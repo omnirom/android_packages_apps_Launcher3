@@ -135,4 +135,9 @@
     <declare-styleable name="InsettableFrameLayout_Layout">
         <attr name="layout_ignoreInsets" format="boolean" />
     </declare-styleable>
+
+    <declare-styleable name="NumberPreference">
+        <attr name="min" format="integer"></attr>
+        <attr name="max" format="integer"></attr>
+    </declare-styleable>
 </resources>
