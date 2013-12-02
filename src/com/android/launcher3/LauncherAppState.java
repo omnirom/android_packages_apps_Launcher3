@@ -23,6 +23,8 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
+import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.database.ContentObserver;
@@ -30,6 +32,7 @@ import android.graphics.Point;
 import android.os.Build;
 import android.os.Handler;
 import android.util.DisplayMetrics;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.Display;
 import android.view.WindowManager;
@@ -125,6 +128,9 @@ public class LauncherAppState implements DeviceProfile.DeviceProfileCallbacks {
         ContentResolver resolver = sContext.getContentResolver();
         resolver.registerContentObserver(LauncherSettings.Favorites.CONTENT_URI, true,
                 mFavoritesObserver);
+
+        PreferenceManager.getDefaultSharedPreferences(sContext)
+                .registerOnSharedPreferenceChangeListener(mSharedPreferencesObserver);
     }
 
     public void recreateWidgetPreviewDb() {
@@ -142,6 +148,8 @@ public class LauncherAppState implements DeviceProfile.DeviceProfileCallbacks {
         final LauncherAppsCompat launcherApps = LauncherAppsCompat.getInstance(sContext);
         launcherApps.removeOnAppsChangedCallback(mModel);
         PackageInstallerCompat.getInstance(sContext).onStop();
+        PreferenceManager.getDefaultSharedPreferences(sContext)
+                .unregisterOnSharedPreferenceChangeListener(mSharedPreferencesObserver);
 
         ContentResolver resolver = sContext.getContentResolver();
         resolver.unregisterContentObserver(mFavoritesObserver);
@@ -157,6 +165,20 @@ public class LauncherAppState implements DeviceProfile.DeviceProfileCallbacks {
             // workspace on the next load
             mModel.resetLoadedState(false, true);
             mModel.startLoaderFromBackground();
+        }
+    };
+
+    private final OnSharedPreferenceChangeListener mSharedPreferencesObserver = new OnSharedPreferenceChangeListener() {
+
+        @Override
+        public void onSharedPreferenceChanged(SharedPreferences sharedPreferences,
+                String key) {
+
+            if (LauncherPreferences.isLauncherPreference(key)) {
+                Log.i(TAG, "Preference " + key + " changed - updating DynamicGrid.");
+                mDynamicGrid.getDeviceProfile().updateFromPreferences(
+                        PreferenceManager.getDefaultSharedPreferences(sContext));
+            }
         }
     };
 
@@ -229,7 +251,9 @@ public class LauncherAppState implements DeviceProfile.DeviceProfileCallbacks {
         grid.updateFromConfiguration(context, context.getResources(),
                 realSize.x, realSize.y,
                 dm.widthPixels, dm.heightPixels);
+        grid.updateFromPreferences(PreferenceManager.getDefaultSharedPreferences(context));
         return dynamicGrid;
+
     }
 
     public DynamicGrid getDynamicGrid() {

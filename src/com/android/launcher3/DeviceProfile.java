@@ -19,6 +19,7 @@ package com.android.launcher3;
 import android.appwidget.AppWidgetHostView;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.graphics.Paint;
@@ -122,7 +123,9 @@ public class DeviceProfile {
     int allAppsNumRows;
     int allAppsNumCols;
     int searchBarSpaceWidthPx;
+    int searchBarSpaceMaxWidthPx;
     int searchBarSpaceHeightPx;
+    int searchBarHeightPx;
     int pageIndicatorHeightPx;
     int allAppsButtonVisualSize;
 
@@ -370,10 +373,10 @@ public class DeviceProfile {
         hotseatIconSizePx = (int) (DynamicGrid.pxFromDp(hotseatIconSize, dm) * scale);
 
         // Search Bar
-        searchBarSpaceWidthPx = Math.min(widthPx,
-                resources.getDimensionPixelSize(R.dimen.dynamic_grid_search_bar_max_width));
-        searchBarSpaceHeightPx = getSearchBarTopOffset()
-                + resources.getDimensionPixelSize(R.dimen.dynamic_grid_search_bar_height);
+        searchBarSpaceMaxWidthPx = resources.getDimensionPixelSize(R.dimen.dynamic_grid_search_bar_max_width);
+        searchBarHeightPx = resources.getDimensionPixelSize(R.dimen.dynamic_grid_search_bar_height);
+        searchBarSpaceWidthPx = Math.min(searchBarSpaceMaxWidthPx, widthPx);
+        searchBarSpaceHeightPx = searchBarHeightPx + getSearchBarTopOffset();
 
         // Calculate the actual text height
         Paint textPaint = new Paint();
@@ -437,6 +440,26 @@ public class DeviceProfile {
         availableHeightPx = ahPx;
 
         updateAvailableDimensions(context);
+    }
+
+    void updateFromPreferences(SharedPreferences prefs) {
+        int prefNumColumns = prefs.getInt(LauncherPreferences.KEY_WORKSPACE_COLS, 0);
+        if(prefNumColumns > 0) {
+            numColumns = prefNumColumns;
+        }
+
+        int prefNumRows = prefs.getInt(LauncherPreferences.KEY_WORKSPACE_ROWS, 0);
+        if(prefNumRows > 0) {
+            numRows = prefNumRows;
+        }
+
+        boolean showSearchBar = prefs.getBoolean(LauncherPreferences.KEY_SHOW_SEARCHBAR, true);
+        if(showSearchBar) {
+            searchBarSpaceHeightPx = searchBarHeightPx + 2 * edgeMarginPx;
+        }
+        else {
+            searchBarSpaceHeightPx = 2 * edgeMarginPx;
+        }
     }
 
     private float dist(PointF p0, PointF p1) {

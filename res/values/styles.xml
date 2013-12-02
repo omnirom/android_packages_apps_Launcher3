@@ -95,4 +95,15 @@
         <item name="android:paddingLeft">@dimen/app_widget_preview_padding_left</item>
     </style>
 
+    <style name="SearchButton.WithPaddingStart">
+        <item name="android:paddingLeft">8dp</item>
+    </style>
+
+    <!-- Launcher Settings -->
+    <style name="LauncherTheme" parent="@android:style/Theme.Material.Light.DarkActionBar">
+        <item name="android:windowContentOverlay">@null</item>
+        <item name="android:colorPrimary">@color/primary</item>
+        <item name="android:colorPrimaryDark">@color/primary_dark</item>
+        <item name="android:colorAccent">@color/accent</item>
+    </style>
 </resources>

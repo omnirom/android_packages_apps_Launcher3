@@ -36,4 +36,10 @@
     <color name="outline_color">#FFFFFFFF</color>
     <color name="widget_text_panel">#FF374248</color>
 
+    <!-- Launcher Settings -->
+    <color name="primary">#ff303F9F</color>
+    <color name="primary_dark">#ff283593</color>
+    <color name="primary_light">#ff3949AB</color>
+    <color name="accent">#ff303F9F</color>
+
 </resources>
