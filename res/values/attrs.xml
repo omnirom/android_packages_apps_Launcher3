@@ -143,4 +143,9 @@
         <attr name="ringOutset" format="dimension" />
         <attr name="indicatorSize" format="dimension" />
     </declare-styleable>
+
+    <declare-styleable name="NumberPreference">
+        <attr name="min" format="integer"></attr>
+        <attr name="max" format="integer"></attr>
+    </declare-styleable>
 </resources>
