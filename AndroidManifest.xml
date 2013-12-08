@@ -130,6 +130,12 @@
             </intent-filter>
         </activity>
 
+        <activity
+            android:name="com.android.launcher3.LauncherPreferencesActivity"
+            android:theme="@android:style/Theme.Holo.Light"
+            android:excludeFromRecents="true">
+        </activity>
+
         <!-- Debugging tools -->
         <activity
             android:name="com.android.launcher3.MemoryDumpActivity"
