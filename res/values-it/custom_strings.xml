@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+
+    <!-- Preferences -->
+    <string name="pref_workspace_title">Impostazioni di lavoro</string>
+    <string name="pref_title_workspace_rows">Righe</string>
+    <string name="pref_title_workspace_cols">Colonne</string>
+    <string name="pref_title_default_workspace">Schermata predifinita</string>
+    <string name="pref_title_show_search_bar">Mostra barra di ricerca</string>
+
+</resources>
