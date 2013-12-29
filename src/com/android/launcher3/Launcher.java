@@ -2178,7 +2178,7 @@ public class Launcher extends Activity
             closeFolder();
             // Stop resizing any widgets
             mWorkspace.exitWidgetResizeMode();
-            if (!mWorkspace.isInOverviewMode()) {
+            if (!mWorkspace.isInOverviewMode() && mState == State.WORKSPACE) {
                 // Show the overview mode
                 showOverviewMode(true);
             } else {
