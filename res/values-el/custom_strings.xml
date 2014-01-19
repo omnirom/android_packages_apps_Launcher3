@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <!-- Preferences -->
+    <string name="pref_workspace_title">Ρυθμίσεις</string>
+    <string name="pref_title_workspace_rows">Σειρές</string>
+    <string name="pref_title_workspace_cols">Κολόνες</string>
+    <string name="pref_title_default_workspace">Αρχική οθόνη</string>
+    <string name="pref_title_show_search_bar">Εμφάνιση μπάρας αναζήτησης</string>
+</resources>
