@@ -29,6 +29,10 @@
             android:title="@string/pref_title_show_search_bar"
             android:defaultValue="true" />
 
+        <Preference
+            android:key="pref_key_iconpack"
+            android:title="@string/pref_icon_pack_title" />
+
     </PreferenceCategory>
 
 </PreferenceScreen>

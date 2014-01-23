@@ -12,7 +12,7 @@ public class LauncherPreferencesActivity extends Activity {
 
 	    // Display the fragment as the main content.
 	    getFragmentManager().beginTransaction()
-	            .replace(android.R.id.content, new PrefsFragment())
+	            .replace(android.R.id.content, new PrefsFragment(this))
 	            .commit();
 	}
 }
