@@ -27,7 +27,8 @@ import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.drawable.Drawable;
-
+import android.text.TextUtils;
+import android.preference.PreferenceManager;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map.Entry;
@@ -40,6 +41,7 @@ public class IconCache {
     private static final String TAG = "Launcher.IconCache";
 
     private static final int INITIAL_ICON_CACHE_CAPACITY = 50;
+    private IconPackHelper mIconPackHelper;
 
     private static class CacheEntry {
         public Bitmap icon;
@@ -63,6 +65,9 @@ public class IconCache {
 
         // need to set mIconDpi before getting default icon
         mDefaultIcon = makeDefaultIcon();
+
+        mIconPackHelper = new IconPackHelper(context);
+        loadIconPack();
     }
 
     public Drawable getFullResDefaultActivityIcon() {
@@ -110,7 +115,14 @@ public class IconCache {
             resources = null;
         }
         if (resources != null) {
-            int iconId = info.getIconResource();
+            int iconId = 0;
+            if (mIconPackHelper != null && mIconPackHelper.isIconPackLoaded()) {
+                iconId = mIconPackHelper.getResourceIdForActivityIcon(info);
+                if (iconId != 0) {
+                    return getFullResIcon(mIconPackHelper.getIconPackResources(), iconId);
+                }
+            }
+            iconId = info.getIconResource();
             if (iconId != 0) {
                 return getFullResIcon(resources, iconId);
             }
@@ -130,6 +142,16 @@ public class IconCache {
         return b;
     }
 
+    private void loadIconPack() {
+        mIconPackHelper.unloadIconPack();
+        String iconPack = PreferenceManager.getDefaultSharedPreferences(mContext)
+                    .getString(LauncherPreferences.KEY_ICON_PACK, "");
+        if (!TextUtils.isEmpty(iconPack) && !mIconPackHelper.loadIconPack(iconPack)) {
+            PreferenceManager.getDefaultSharedPreferences(mContext).edit()
+                    .putString(LauncherPreferences.KEY_ICON_PACK, "").commit();
+        }
+    }
+
     /**
      * Remove any records for the supplied ComponentName.
      */
@@ -146,6 +168,7 @@ public class IconCache {
         synchronized (mCache) {
             mCache.clear();
         }
+        loadIconPack();
     }
 
     /**
@@ -227,8 +250,16 @@ public class IconCache {
                 entry.title = info.activityInfo.name;
             }
 
-            entry.icon = Utilities.createIconBitmap(
-                    getFullResIcon(info), mContext);
+            Drawable icon = getFullResIcon(info);
+            if (mIconPackHelper.isIconPackLoaded() && (mIconPackHelper
+                    .getResourceIdForActivityIcon(info.activityInfo) == 0)) {
+                entry.icon = Utilities.createIconBitmap(
+                        icon, mContext, mIconPackHelper.getIconBack(),
+                        mIconPackHelper.getIconMask(), mIconPackHelper.getIconUpon(), mIconPackHelper.getIconScale());
+            } else {
+                entry.icon = Utilities.createIconBitmap(
+                        icon, mContext);
+            }
         }
         return entry;
     }
