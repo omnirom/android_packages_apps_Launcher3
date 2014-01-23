@@ -1,21 +1,31 @@
 package com.android.launcher3;
 
 import android.content.SharedPreferences;
+import android.preference.Preference;
+import android.preference.PreferenceManager;
+import android.preference.PreferenceScreen;
 import android.os.Bundle;
 import android.preference.PreferenceFragment;
 import android.util.Log;
+import android.app.Activity;
 
 public final class LauncherPreferences {
         public static final String KEY_WORKSPACE_ROWS = "pref_key_workspaceRows";
         public static final String KEY_WORKSPACE_COLS = "pref_key_workspaceCols";
-
         public static final String KEY_WORKSPACE_DEFAULT_PAGE = "pref_key_workspaceDefaultPage";
-
         public static final String KEY_SHOW_SEARCHBAR = "pref_key_showSearchBar";
+        public static final String KEY_ICON_PACK = "pref_key_iconpack";
 
         private static final String TAG = "LauncherPreferences";
 
         public static class PrefsFragment  extends PreferenceFragment {
+            private Preference mIconpack;
+            private LauncherPreferencesActivity mContext;
+
+            public PrefsFragment(LauncherPreferencesActivity context) {
+                mContext = context;
+            }
+
             @Override
             public void onCreate(Bundle savedInstanceState) {
                 super.onCreate(savedInstanceState);
@@ -46,7 +56,17 @@ public final class LauncherPreferences {
                 }
                 else {
                         Log.w(TAG, "No DynamicGrid to get default values!");
+                }
+                mIconpack = (Preference) findPreference(KEY_ICON_PACK);
             }
+            @Override
+            public boolean onPreferenceTreeClick(PreferenceScreen preferenceScreen,
+                    Preference preference) {
+                if (preference == mIconpack){
+                    IconPackHelper.pickIconPack(mContext, false);
+                    return true;
+                }
+                return false;
             }
         }
 
@@ -56,6 +76,7 @@ public final class LauncherPreferences {
                 return key.equals(KEY_WORKSPACE_ROWS)
                                 || key.equals(KEY_WORKSPACE_COLS)
                                 || key.equals(KEY_WORKSPACE_DEFAULT_PAGE)
-                                || key.equals(KEY_SHOW_SEARCHBAR);
+                                || key.equals(KEY_SHOW_SEARCHBAR)
+                                || key.equals(KEY_ICON_PACK);
         }
 }

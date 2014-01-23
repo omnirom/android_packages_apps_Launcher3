@@ -10,5 +10,9 @@
     <string name="pref_title_workspace_cols">Columns</string>
     <string name="pref_title_default_workspace">Default Screen</string>
     <string name="pref_title_show_search_bar">Show Search Bar</string>
-
+    <string name="dialog_pick_iconpack_title">Pick icon pack</string>
+    <string name="default_iconpack_title">Default icons</string>
+    <string name="icon_packs_title">Icon packs</string>
+    <string name="no_iconpacks_summary">No icon packs installed</string>
+    <string name="pref_icon_pack_title">Icon pack</string>
 </resources>
