@@ -139,6 +139,7 @@ public class Launcher extends Activity
     private static final int REQUEST_PICK_WALLPAPER = 10;
 
     private static final int REQUEST_BIND_APPWIDGET = 11;
+    static final int REQUEST_PICK_ICON = 13;
 
     /**
      * IntentStarter uses request codes starting with this. This must be greater than all activity
