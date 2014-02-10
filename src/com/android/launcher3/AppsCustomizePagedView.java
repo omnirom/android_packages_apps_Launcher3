@@ -336,14 +336,19 @@ public class AppsCustomizePagedView extends PagedViewWithDraggableItems implemen
         mNumAppsPages = (int) Math.ceil((float) mApps.size() / (mCellCountX * mCellCountY));
     }
 
-    protected void onDataReady(int width, int height) {
-        // Now that the data is ready, we can calculate the content width, the number of cells to
-        // use for each page
+    public void updateGridSize() {
         LauncherAppState app = LauncherAppState.getInstance();
         DeviceProfile grid = app.getDynamicGrid().getDeviceProfile();
         mCellCountX = (int) grid.allAppsNumCols;
         mCellCountY = (int) grid.allAppsNumRows;
         updatePageCounts();
+
+    }
+
+    protected void onDataReady(int width, int height) {
+	// Now that the data is ready, We can calculate the content widht and the number of cells
+	// to use for each page
+	updateGridSize();
 
         // Force a measure to update recalculate the gaps
         mContentWidth = getMeasuredWidth() - getPaddingLeft() - getPaddingRight();
@@ -366,7 +371,11 @@ public class AppsCustomizePagedView extends PagedViewWithDraggableItems implemen
                     // This code triggers requestLayout so must be posted outside of the
                     // layout pass.
                     public void run() {
-                        if (Utilities.isViewAttachedToWindow(AppsCustomizePagedView.this)) {
+                        boolean attached = true;
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+                            attached = isAttachedToWindow();
+                        }
+                        if (attached) {
                             setDataIsReady();
                             onDataReady(getMeasuredWidth(), getMeasuredHeight());
                         }
@@ -724,8 +733,7 @@ public class AppsCustomizePagedView extends PagedViewWithDraggableItems implemen
                 !(target instanceof DeleteDropTarget) && !(target instanceof Folder))) {
             // Exit spring loaded mode if we have not successfully dropped or have not handled the
             // drop in Workspace
-            mLauncher.exitSpringLoadedDragModeDelayed(true,
-                    Launcher.EXIT_SPRINGLOADED_MODE_SHORT_TIMEOUT, null);
+            mLauncher.exitSpringLoadedDragMode();
             mLauncher.unlockScreenOrientation(false);
         } else {
             mLauncher.unlockScreenOrientation(false);
@@ -837,12 +845,6 @@ public class AppsCustomizePagedView extends PagedViewWithDraggableItems implemen
     protected void onDetachedFromWindow() {
         super.onDetachedFromWindow();
         cancelAllTasks();
-    }
-
-    @Override
-    public void trimMemory() {
-        super.trimMemory();
-        clearAllWidgetPages();
     }
 
     public void clearAllWidgetPages() {
@@ -1565,3 +1567,4 @@ public class AppsCustomizePagedView extends PagedViewWithDraggableItems implemen
         return String.format(getContext().getString(stringId), page + 1, count);
     }
 }
+
