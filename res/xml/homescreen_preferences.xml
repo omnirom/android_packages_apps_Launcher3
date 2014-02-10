@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:launcher="http://schemas.android.com/apk/res-auto"
+    android:title="@string/homescreen_title">
+
+    <SwitchPreference
+        android:key="show_search_bar"
+        android:title="@string/show_search_bar_title"
+        android:defaultValue="true" />
+
+    <com.android.launcher3.preference.DoubleNumberPickerPreference
+        android:key="homescreen_grid"
+        android:summary="@string/grid_size_summary"
+        android:title="@string/grid_size_title"
+        launcher:max1="10"
+        launcher:max2="10"
+        launcher:min1="1"
+        launcher:min2="1"
+        launcher:pickerTitle1="@string/grid_size_rows_title"
+        launcher:pickerTitle2="@string/grid_size_columns_title" />
+
+</PreferenceScreen>
