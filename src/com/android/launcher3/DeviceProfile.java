@@ -19,7 +19,6 @@ package com.android.launcher3;
 import android.appwidget.AppWidgetHostView;
 import android.content.ComponentName;
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.graphics.Paint;
@@ -34,7 +33,6 @@ import android.view.Surface;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
-import android.view.ViewGroup.MarginLayoutParams;
 import android.view.WindowManager;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
@@ -43,6 +41,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 
+import com.android.launcher3.settings.SettingsProvider;
 
 class DeviceProfileQuery {
     DeviceProfile profile;
@@ -68,15 +67,16 @@ public class DeviceProfile {
     String name;
     float minWidthDps;
     float minHeightDps;
-    float numRows;
-    float numColumns;
-    float numHotseatIcons;
+    public float numRows;
+    public float numColumns;
+    public float numHotseatIcons;
     float iconSize;
     private float iconTextSize;
     private int iconDrawablePaddingOriginalPx;
     private float hotseatIconSize;
 
     int defaultLayoutId;
+    int defaultNoAllAppsLayoutId;
 
     boolean isLandscape;
     boolean isTablet;
@@ -101,13 +101,19 @@ public class DeviceProfile {
     float overviewModeIconZoneRatio;
     float overviewModeScaleFactor;
 
+    int originalIconSizePx;
     int iconSizePx;
     int iconTextSizePx;
+    int originalAllAppsIconSizePx;
+    int allAppsIconSizePx;
+    int originalHotseatIconSizePx;
+    int hotseatIconSizePx;
+    int originalIconTextSizePx;
+    int originalAllAppsIconTextSizePx;
+    int allAppsIconTextSizePx;
     int iconDrawablePaddingPx;
     int cellWidthPx;
     int cellHeightPx;
-    int allAppsIconSizePx;
-    int allAppsIconTextSizePx;
     int allAppsCellWidthPx;
     int allAppsCellHeightPx;
     int allAppsCellPaddingPx;
@@ -117,11 +123,10 @@ public class DeviceProfile {
     int folderCellHeightPx;
     int hotseatCellWidthPx;
     int hotseatCellHeightPx;
-    int hotseatIconSizePx;
     int hotseatBarHeightPx;
     int hotseatAllAppsRank;
-    int allAppsNumRows;
-    int allAppsNumCols;
+    public int allAppsNumRows;
+    public int allAppsNumCols;
     int searchBarSpaceWidthPx;
     int searchBarSpaceMaxWidthPx;
     int searchBarSpaceHeightPx;
@@ -129,15 +134,19 @@ public class DeviceProfile {
     int pageIndicatorHeightPx;
     int allAppsButtonVisualSize;
 
+    boolean showSearchBar;
+
     float dragViewScale;
 
     int allAppsShortEdgeCount = -1;
     int allAppsLongEdgeCount = -1;
 
+    View pageIndicator;
+
     private ArrayList<DeviceProfileCallbacks> mCallbacks = new ArrayList<DeviceProfileCallbacks>();
 
     DeviceProfile(String n, float w, float h, float r, float c,
-                  float is, float its, float hs, float his, int dlId) {
+                  float is, float its, float hs, float his, int dlId, int dnalId) {
         // Ensure that we have an odd number of hotseat items (since we need to place all apps)
         if (!LauncherAppState.isDisableAllApps() && hs % 2 == 0) {
             throw new RuntimeException("All Device Profiles must have an odd number of hotseat spaces");
@@ -153,6 +162,7 @@ public class DeviceProfile {
         numHotseatIcons = hs;
         hotseatIconSize = his;
         defaultLayoutId = dlId;
+        defaultNoAllAppsLayoutId = dnalId;
     }
 
     DeviceProfile() {
@@ -215,6 +225,9 @@ public class DeviceProfile {
         // Snap to the closest default layout id
         defaultLayoutId = closestProfile.defaultLayoutId;
 
+        // Snap to the closest default no all-apps layout id
+        defaultNoAllAppsLayoutId = closestProfile.defaultNoAllAppsLayoutId;
+
         // Interpolate the icon size
         points.clear();
         for (DeviceProfile p : profiles) {
@@ -223,7 +236,7 @@ public class DeviceProfile {
         iconSize = invDistWeightedInterpolate(minWidth, minHeight, points);
 
         // AllApps uses the original non-scaled icon size
-        allAppsIconSizePx = DynamicGrid.pxFromDp(iconSize, dm);
+        originalAllAppsIconSizePx = DynamicGrid.pxFromDp(iconSize, dm);
 
         // Interpolate the icon text size
         points.clear();
@@ -234,7 +247,7 @@ public class DeviceProfile {
         iconDrawablePaddingOriginalPx =
                 res.getDimensionPixelSize(R.dimen.dynamic_grid_icon_drawable_padding);
         // AllApps uses the original non-scaled icon text size
-        allAppsIconTextSizePx = DynamicGrid.pxFromDp(iconTextSize, dm);
+        originalAllAppsIconTextSizePx = DynamicGrid.pxFromDp(iconTextSize, dm);
 
         // Interpolate the hotseat icon size
         points.clear();
@@ -348,7 +361,9 @@ public class DeviceProfile {
         // shrink the icon size.
         float scale = 1f;
         int drawablePadding = iconDrawablePaddingOriginalPx;
-        updateIconSize(1f, drawablePadding, resources, dm);
+        setOriginalIconSize(scale, drawablePadding, dm);
+        updateIconFromPreferences(context);
+        updateIconSize(resources);
         float usedHeight = (cellHeightPx * numRows);
 
         Rect workspacePadding = getWorkspacePadding();
@@ -356,22 +371,27 @@ public class DeviceProfile {
         if (usedHeight > maxHeight) {
             scale = maxHeight / usedHeight;
             drawablePadding = 0;
+            setOriginalIconSize(scale, drawablePadding, dm);
+            updateIconFromPreferences(context);
+            updateIconSize(resources);
         }
-        updateIconSize(scale, drawablePadding, resources, dm);
 
         // Make the callbacks
         for (DeviceProfileCallbacks cb : mCallbacks) {
             cb.onAvailableSizeChanged(this);
         }
+
+	updateFromPreferences(context);
     }
 
-    private void updateIconSize(float scale, int drawablePadding, Resources resources,
-                                DisplayMetrics dm) {
-        iconSizePx = (int) (DynamicGrid.pxFromDp(iconSize, dm) * scale);
-        iconTextSizePx = (int) (DynamicGrid.pxFromSp(iconTextSize, dm) * scale);
+    private void setOriginalIconSize(float scale, int drawablePadding, DisplayMetrics dm) {
+        originalIconSizePx = (int) (DynamicGrid.pxFromDp(iconSize, dm) * scale);
+        originalIconTextSizePx = (int) (DynamicGrid.pxFromSp(iconTextSize, dm) * scale);
+        originalHotseatIconSizePx = (int) (DynamicGrid.pxFromDp(hotseatIconSize, dm) * scale);
         iconDrawablePaddingPx = drawablePadding;
-        hotseatIconSizePx = (int) (DynamicGrid.pxFromDp(hotseatIconSize, dm) * scale);
+    }
 
+    private void updateIconSize(Resources resources) {
         // Search Bar
         searchBarSpaceMaxWidthPx = resources.getDimensionPixelSize(R.dimen.dynamic_grid_search_bar_max_width);
         searchBarHeightPx = resources.getDimensionPixelSize(R.dimen.dynamic_grid_search_bar_height);
@@ -399,8 +419,12 @@ public class DeviceProfile {
         folderIconSizePx = iconSizePx + 2 * -folderBackgroundOffset;
 
         // All Apps
+        Rect padding = getWorkspacePadding(isLandscape ?
+                CellLayout.LANDSCAPE : CellLayout.PORTRAIT);
+        int pageIndicatorOffset =
+                resources.getDimensionPixelSize(R.dimen.apps_customize_page_indicator_offset);
         allAppsCellWidthPx = allAppsIconSizePx;
-        allAppsCellHeightPx = allAppsIconSizePx + drawablePadding + iconTextSizePx;
+        allAppsCellHeightPx = allAppsIconSizePx + iconDrawablePaddingPx + iconTextSizePx;
         int maxLongEdgeCellCount =
                 resources.getInteger(R.integer.config_dynamic_grid_max_long_edge_cell_count);
         int maxShortEdgeCellCount =
@@ -442,23 +466,101 @@ public class DeviceProfile {
         updateAvailableDimensions(context);
     }
 
-    void updateFromPreferences(SharedPreferences prefs) {
-        int prefNumColumns = prefs.getInt(LauncherPreferences.KEY_WORKSPACE_COLS, 0);
-        if(prefNumColumns > 0) {
-            numColumns = prefNumColumns;
+    private void updateIconFromPreferences(Context context) {
+        int prefWorkspaceIconSize = SettingsProvider.getInt(context,
+                SettingsProvider.KEY_HOMESCREEN_ICON_SIZE, 100);
+        if (prefWorkspaceIconSize > 0) {
+            iconSizePx = (int) ((double) prefWorkspaceIconSize / 100.0 * originalIconSizePx);
+            iconTextSizePx = (int) ((double)
+                    prefWorkspaceIconSize / 100.0 * originalIconTextSizePx);
+        } else {
+	    iconSizePx = originalIconSizePx;
+	    iconTextSizePx = originalIconTextSizePx;
+	}
+
+        int prefHotseatIconSize = SettingsProvider.getInt(context,
+                SettingsProvider.KEY_DOCK_ICON_SIZE, 100);
+        if (prefHotseatIconSize > 0) {
+            hotseatIconSizePx = (int) ((double)
+                    prefHotseatIconSize / 100.0 * originalHotseatIconSizePx);
+        } else {
+	    hotseatIconSizePx = originalHotseatIconSizePx;
+	}
+
+        int prefDrawerIconSize = SettingsProvider.getInt(context,
+                SettingsProvider.KEY_DRAWER_ICON_SIZE, 100);
+        if (prefDrawerIconSize > 0) {
+            allAppsIconSizePx = (int) ((double)
+                    prefDrawerIconSize / 100.0 * originalAllAppsIconSizePx);
+            allAppsIconTextSizePx = (int) ((double)
+                    prefDrawerIconSize / 100.0 * originalAllAppsIconTextSizePx);
+        } else {
+	    allAppsIconSizePx = originalAllAppsIconSizePx;
+	    allAppsIconTextSizePx = originalAllAppsIconTextSizePx;
+	}
+
+    }
+
+    public void updateFromPreferences(Context context) {
+        showSearchBar = SettingsProvider.getBoolean(context,
+                SettingsProvider.KEY_SHOW_SEARCH_BAR, true);
+
+        if (showSearchBar) {
+            searchBarSpaceHeightPx = searchBarHeightPx + 2 * edgeMarginPX;
+        } else  {
+            searchBarSpaceHeightPx = 2 * edgeMarginPx;
         }
 
-        int prefNumRows = prefs.getInt(LauncherPreferences.KEY_WORKSPACE_ROWS, 0);
-        if(prefNumRows > 0) {
+	updateIconFromPreferences(context);
+
+        int prefNumRows = SettingsProvider.getCellCountY(
+                context, SettingsProvider.KEY_HOMESCREEN_GRID, 4);
+        if (prefNumRows > 0) {
             numRows = prefNumRows;
         }
 
-        boolean showSearchBar = prefs.getBoolean(LauncherPreferences.KEY_SHOW_SEARCHBAR, true);
-        if(showSearchBar) {
-            searchBarSpaceHeightPx = searchBarHeightPx + 2 * edgeMarginPx;
+        int prefNumColumns = SettingsProvider.getCellCountX(
+                context, SettingsProvider.KEY_HOMESCREEN_GRID, 4);
+        if (prefNumColumns > 0) {
+            numColumns = prefNumColumns;
         }
-        else {
-            searchBarSpaceHeightPx = 2 * edgeMarginPx;
+
+        int prefNumHotseatIcons = SettingsProvider.getInt(
+                context, SettingsProvider.KEY_DOCK_ICONS, 5);
+        if (prefNumHotseatIcons > 0) {
+            numHotseatIcons = prefNumHotseatIcons;
+            hotseatAllAppsRank = (int) (numHotseatIcons / 2);
+        }
+
+        int prefAllAppNumRows = SettingsProvider.getCellCountY(
+                context, SettingsProvider.KEY_DRAWER_GRID, 0);
+        if (prefAllAppNumRows > 0) {
+            allAppsNumRows = prefAllAppNumRows;
+        } else {
+            if (isLandscape) {
+                int pageIndicatorOffset =
+                        context.getResources().getDimensionPixelSize(
+                                R.dimen.apps_customize_page_indicator_offset);
+                allAppsNumRows = (availableHeightPx - pageIndicatorOffset - 4 * edgeMarginPx) /
+                        (iconSizePx + iconTextSizePx + 2 * edgeMarginPx);
+            } else {
+                allAppsNumRows = (int) numRows + 1;
+            }
+            SettingsProvider.putCellCountY(context,
+                    SettingsProvider.KEY_DRAWER_GRID, allAppsNumRows);
+        }
+
+        int prefAllAppNumCols = SettingsProvider.getCellCountX(
+                context, SettingsProvider.KEY_DRAWER_GRID, 0);
+        if (prefAllAppNumCols > 0) {
+            allAppsNumCols = prefAllAppNumCols;
+        } else {
+            Rect padding = getWorkspacePadding(isLandscape ?
+                    CellLayout.LANDSCAPE : CellLayout.PORTRAIT);
+            allAppsNumCols = (availableWidthPx - padding.left - padding.right - 2 * edgeMarginPx) /
+                    (iconSizePx + 2 * edgeMarginPx);
+            SettingsProvider.putCellCountX(context,
+                    SettingsProvider.KEY_DRAWER_GRID, allAppsNumCols);
         }
     }
 
@@ -721,6 +823,11 @@ public class DeviceProfile {
         return visibleChildren;
     }
 
+    int calculateOverviewModeWidth(int visibleChildCount) {
+        return visibleChildCount * overviewModeBarItemWidthPx +
+                (visibleChildCount-1) * overviewModeBarSpacerWidthPx;
+    }
+
     public void layout(Launcher launcher) {
         FrameLayout.LayoutParams lp;
         Resources res = launcher.getResources();
@@ -728,12 +835,16 @@ public class DeviceProfile {
 
         // Layout the search bar space
         View searchBar = launcher.getSearchBar();
+	searchBar.setVisibility(showSearchBar ? View.VISIBLE : View.GONE);
         lp = (FrameLayout.LayoutParams) searchBar.getLayoutParams();
         if (hasVerticalBarLayout) {
             // Vertical search bar space
             lp.gravity = Gravity.TOP | Gravity.LEFT;
             lp.width = searchBarSpaceHeightPx;
             lp.height = LayoutParams.WRAP_CONTENT;
+            searchBar.setPadding(
+                    0, 2 * edgeMarginPx, 0,
+                    2 * edgeMarginPx);
 
             LinearLayout targets = (LinearLayout) searchBar.findViewById(R.id.drag_target_bar);
             targets.setOrientation(LinearLayout.VERTICAL);
@@ -742,8 +853,26 @@ public class DeviceProfile {
             lp.gravity = Gravity.TOP | Gravity.CENTER_HORIZONTAL;
             lp.width = searchBarSpaceWidthPx;
             lp.height = searchBarSpaceHeightPx;
+            searchBar.setPadding(
+                    2 * edgeMarginPx,
+                    getSearchBarTopOffset(),
+                    2 * edgeMarginPx, 0);
         }
         searchBar.setLayoutParams(lp);
+
+        // Layout the voice proxy
+        View voiceButtonProxy = launcher.findViewById(R.id.voice_button_proxy);
+        if (voiceButtonProxy != null) {
+            if (hasVerticalBarLayout) {
+                // TODO: MOVE THIS INTO SEARCH BAR MEASURE
+            } else {
+                lp = (FrameLayout.LayoutParams) voiceButtonProxy.getLayoutParams();
+                lp.gravity = Gravity.TOP | Gravity.END;
+                lp.width = (widthPx - searchBarSpaceWidthPx) / 2 +
+                        2 * iconSizePx;
+                lp.height = searchBarSpaceHeightPx;
+            }
+        }
 
         // Layout the workspace
         PagedView workspace = (PagedView) launcher.findViewById(R.id.workspace);
@@ -784,7 +913,7 @@ public class DeviceProfile {
         hotseat.setLayoutParams(lp);
 
         // Layout the page indicators
-        View pageIndicator = launcher.findViewById(R.id.page_indicator);
+	pageIndicator = launcher.findViewById(R.id.page_indicator);
         if (pageIndicator != null) {
             if (hasVerticalBarLayout) {
                 // Hide the page indicators when we have vertical search/hotseat
@@ -795,7 +924,7 @@ public class DeviceProfile {
                 lp.gravity = Gravity.CENTER_HORIZONTAL | Gravity.BOTTOM;
                 lp.width = LayoutParams.WRAP_CONTENT;
                 lp.height = LayoutParams.WRAP_CONTENT;
-                lp.bottomMargin = hotseatBarHeightPx;
+                lp.bottomMargin = Math.max(hotseatBarHeightPx, lp.bottomMargin);
                 pageIndicator.setLayoutParams(lp);
             }
         }
@@ -864,38 +993,11 @@ public class DeviceProfile {
             Rect r = getOverviewModeButtonBarRect();
             lp = (FrameLayout.LayoutParams) overviewMode.getLayoutParams();
             lp.gravity = Gravity.CENTER_HORIZONTAL | Gravity.BOTTOM;
-
-            int visibleChildCount = getVisibleChildCount(overviewMode);
-            int totalItemWidth = visibleChildCount * overviewModeBarItemWidthPx;
-            int maxWidth = totalItemWidth + (visibleChildCount-1) * overviewModeBarSpacerWidthPx;
-
-            lp.width = Math.min(availableWidthPx, maxWidth);
+            lp.width = Math.min(availableWidthPx,
+                    calculateOverviewModeWidth(getVisibleChildCount(overviewMode)));
             lp.height = r.height();
             overviewMode.setLayoutParams(lp);
-
-            if (lp.width > totalItemWidth && visibleChildCount > 1) {
-                // We have enough space. Lets add some margin too.
-                int margin = (lp.width - totalItemWidth) / (visibleChildCount-1);
-                View lastChild = null;
-
-                // Set margin of all visible children except the last visible child
-                for (int i = 0; i < visibleChildCount; i++) {
-                    if (lastChild != null) {
-                        MarginLayoutParams clp = (MarginLayoutParams) lastChild.getLayoutParams();
-                        if (isLayoutRtl) {
-                            clp.leftMargin = margin;
-                        } else {
-                            clp.rightMargin = margin;
-                        }
-                        lastChild.setLayoutParams(clp);
-                        lastChild = null;
-                    }
-                    View thisChild = overviewMode.getChildAt(i);
-                    if (thisChild.getVisibility() != View.GONE) {
-                        lastChild = thisChild;
-                    }
-                }
-            }
         }
     }
 }
+
