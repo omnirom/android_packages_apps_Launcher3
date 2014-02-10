@@ -135,9 +135,33 @@
     <declare-styleable name="InsettableFrameLayout_Layout">
         <attr name="layout_ignoreInsets" format="boolean" />
     </declare-styleable>
+    <declare-styleable name="NumberPickerPreference">
+        <attr name="maxExternal" format="string" />
+        <attr name="minExternal" format="string" />
+    </declare-styleable>
 
-    <declare-styleable name="NumberPreference">
-        <attr name="min" format="integer"></attr>
-        <attr name="max" format="integer"></attr>
+    <declare-styleable name="DoubleNumberPickerPreference">
+        <attr name="defaultValue1" format="integer" />
+        <attr name="defaultValue2" format="integer" />
+        <attr name="max1" format="integer" />
+        <attr name="min1" format="integer" />
+        <attr name="max2" format="integer" />
+        <attr name="min2" format="integer" />
+        <attr name="maxExternal1" format="string" />
+        <attr name="minExternal1" format="string" />
+        <attr name="maxExternal2" format="string" />
+        <attr name="minExternal2" format="string" />
+        <attr name="pickerTitle1" format="string" />
+        <attr name="pickerTitle2" format="string" />
+    </declare-styleable>
+
+    <declare-styleable name="Preference">
+        <attr name="max" format="integer"/>
+        <attr name="min" format="integer" />
+        <attr name="defaultValue" format="string|boolean|integer|reference|float" />
+    </declare-styleable>
+    <declare-styleable name="SeekBarPreference">
+        <attr name="prefix" format="string" />
+        <attr name="suffix" format="string" />
     </declare-styleable>
 </resources>
