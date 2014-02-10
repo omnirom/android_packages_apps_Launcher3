@@ -16,47 +16,38 @@
 
 package com.android.launcher3;
 
-import android.annotation.TargetApi;
 import android.app.SearchManager;
 import android.content.ComponentName;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.SharedPreferences;
-import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.database.ContentObserver;
-import android.graphics.Point;
-import android.os.Build;
 import android.os.Handler;
-import android.util.DisplayMetrics;
-import android.preference.PreferenceManager;
 import android.util.Log;
-import android.view.Display;
-import android.view.WindowManager;
+
 import com.android.launcher3.compat.LauncherAppsCompat;
-import com.android.launcher3.compat.PackageInstallerCompat;
 import com.android.launcher3.compat.PackageInstallerCompat.PackageInstallInfo;
+
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 
 public class LauncherAppState implements DeviceProfile.DeviceProfileCallbacks {
     private static final String TAG = "LauncherAppState";
+    private static final String SHARED_PREFERENCES_KEY = "com.android.launcher3.prefs";
 
     private static final boolean DEBUG = false;
 
     private final AppFilter mAppFilter;
     private final BuildInfo mBuildInfo;
-    private final LauncherModel mModel;
-    private final IconCache mIconCache;
-
-    private final boolean mIsScreenLarge;
-    private final float mScreenDensity;
-    private final int mLongPressTimeout = 300;
-
+    private LauncherModel mModel;
+    private IconCache mIconCache;
     private WidgetPreviewLoader.CacheDb mWidgetPreviewCacheDb;
+    private boolean mIsScreenLarge;
+    private float mScreenDensity;
+    private int mLongPressTimeout = 300;
     private boolean mWallpaperChangedSinceLastCheck;
 
     private static WeakReference<LauncherProvider> sLauncherProvider;
@@ -65,6 +56,8 @@ public class LauncherAppState implements DeviceProfile.DeviceProfileCallbacks {
     private static LauncherAppState INSTANCE;
 
     private DynamicGrid mDynamicGrid;
+
+    private static boolean sSettingsChanged = false;
 
     public static LauncherAppState getInstance() {
         if (INSTANCE == null) {
@@ -77,6 +70,18 @@ public class LauncherAppState implements DeviceProfile.DeviceProfileCallbacks {
         return INSTANCE;
     }
 
+    public static void setSettingsChanged() {
+	sSettingsChanged = true;
+    }
+
+    public static boolean getSettingsChanged() {
+	if (sSettingsChanged) {
+	    sSettingsChanged = false;
+	    return true;
+	}
+	return false;
+    }
+ 
     public Context getContext() {
         return sContext;
     }
@@ -128,9 +133,6 @@ public class LauncherAppState implements DeviceProfile.DeviceProfileCallbacks {
         ContentResolver resolver = sContext.getContentResolver();
         resolver.registerContentObserver(LauncherSettings.Favorites.CONTENT_URI, true,
                 mFavoritesObserver);
-
-        PreferenceManager.getDefaultSharedPreferences(sContext)
-                .registerOnSharedPreferenceChangeListener(mSharedPreferencesObserver);
     }
 
     public void recreateWidgetPreviewDb() {
@@ -147,9 +149,6 @@ public class LauncherAppState implements DeviceProfile.DeviceProfileCallbacks {
         sContext.unregisterReceiver(mModel);
         final LauncherAppsCompat launcherApps = LauncherAppsCompat.getInstance(sContext);
         launcherApps.removeOnAppsChangedCallback(mModel);
-        PackageInstallerCompat.getInstance(sContext).onStop();
-        PreferenceManager.getDefaultSharedPreferences(sContext)
-                .unregisterOnSharedPreferenceChangeListener(mSharedPreferencesObserver);
 
         ContentResolver resolver = sContext.getContentResolver();
         resolver.unregisterContentObserver(mFavoritesObserver);
@@ -168,21 +167,10 @@ public class LauncherAppState implements DeviceProfile.DeviceProfileCallbacks {
         }
     };
 
-    private final OnSharedPreferenceChangeListener mSharedPreferencesObserver = new OnSharedPreferenceChangeListener() {
-
-        @Override
-        public void onSharedPreferenceChanged(SharedPreferences sharedPreferences,
-                String key) {
-
-            if (LauncherPreferences.isLauncherPreference(key)) {
-                Log.i(TAG, "Preference " + key + " changed - updating DynamicGrid.");
-                mDynamicGrid.getDeviceProfile().updateFromPreferences(
-                        PreferenceManager.getDefaultSharedPreferences(sContext));
-            }
-        }
-    };
-
     LauncherModel setLauncher(Launcher launcher) {
+        if (mModel == null) {
+            throw new IllegalStateException("setLauncher() called before init()");
+        }
         mModel.initialize(launcher);
         return mModel;
     }
@@ -212,50 +200,25 @@ public class LauncherAppState implements DeviceProfile.DeviceProfileCallbacks {
     }
 
     public static String getSharedPreferencesKey() {
-        return LauncherFiles.SHARED_PREFERENCES_KEY;
+        return SHARED_PREFERENCES_KEY;
     }
 
-    @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
-    DeviceProfile initDynamicGrid(Context context) {
-        mDynamicGrid = createDynamicGrid(context, mDynamicGrid);
-        mDynamicGrid.getDeviceProfile().addCallback(this);
-        return mDynamicGrid.getDeviceProfile();
-    }
+    DeviceProfile initDynamicGrid(Context context, int minWidth, int minHeight,
+                                  int width, int height,
+                                  int availableWidth, int availableHeight) {
 
-    @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
-    static DynamicGrid createDynamicGrid(Context context, DynamicGrid dynamicGrid) {
-        // Determine the dynamic grid properties
-        WindowManager wm = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
-        Display display = wm.getDefaultDisplay();
-
-        Point realSize = new Point();
-        display.getRealSize(realSize);
-        DisplayMetrics dm = new DisplayMetrics();
-        display.getMetrics(dm);
-
-        if (dynamicGrid == null) {
-            Point smallestSize = new Point();
-            Point largestSize = new Point();
-            display.getCurrentSizeRange(smallestSize, largestSize);
-
-            dynamicGrid = new DynamicGrid(context,
+            mDynamicGrid = new DynamicGrid(context,
                     context.getResources(),
-                    Math.min(smallestSize.x, smallestSize.y),
-                    Math.min(largestSize.x, largestSize.y),
-                    realSize.x, realSize.y,
-                    dm.widthPixels, dm.heightPixels);
-        }
+                    minWidth, minHeight, width, height,
+                    availableWidth, availableHeight);
+            mDynamicGrid.getDeviceProfile().addCallback(this);
 
         // Update the icon size
-        DeviceProfile grid = dynamicGrid.getDeviceProfile();
-        grid.updateFromConfiguration(context, context.getResources(),
-                realSize.x, realSize.y,
-                dm.widthPixels, dm.heightPixels);
-        grid.updateFromPreferences(PreferenceManager.getDefaultSharedPreferences(context));
-        return dynamicGrid;
-
+        DeviceProfile grid = mDynamicGrid.getDeviceProfile();
+        grid.updateFromConfiguration(context, context.getResources(), width, height,
+                availableWidth, availableHeight);
+        return grid;
     }
-
     public DynamicGrid getDynamicGrid() {
         return mDynamicGrid;
     }
@@ -300,7 +263,7 @@ public class LauncherAppState implements DeviceProfile.DeviceProfileCallbacks {
     public static boolean isDisableAllApps() {
         // Returns false on non-dogfood builds.
         return getInstance().mBuildInfo.isDogfoodBuild() &&
-                Utilities.isPropertyEnabled(Launcher.DISABLE_ALL_APPS_PROPERTY);
+                Launcher.isPropertyEnabled(Launcher.DISABLE_ALL_APPS_PROPERTY);
     }
 
     public static boolean isDogfoodBuild() {
@@ -318,3 +281,4 @@ public class LauncherAppState implements DeviceProfile.DeviceProfileCallbacks {
         mModel.updatePackageBadge(packageName);
     }
 }
+

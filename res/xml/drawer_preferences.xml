@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:launcher="http://schemas.android.com/apk/res-auto">
+
+    <com.android.launcher3.preference.DoubleNumberPickerPreference
+        android:key="drawer_grid"
+        android:summary="@string/grid_size_summary"
+        android:title="@string/grid_size_title"
+        launcher:max1="10"
+        launcher:max2="10"
+        launcher:min1="1"
+        launcher:min2="1"
+        launcher:pickerTitle1="@string/grid_size_rows_title"
+        launcher:pickerTitle2="@string/grid_size_columns_title" />
+
+    <com.android.launcher3.preference.SeekBarDialogPreference
+        android:key="drawer_icon_size"
+        android:title="@string/icon_size_title"
+        launcher:max="130"
+        launcher:min="70"
+        launcher:defaultValue="100" />
+</PreferenceScreen>

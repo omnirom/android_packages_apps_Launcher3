@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:launcher="http://schemas.android.com/apk/res-auto"
+    android:title="@string/dock_title">
+
+    <com.android.launcher3.preference.NumberPickerPreference
+        android:key="dock_icon_count"
+        android:title="@string/dock_icons_title"
+        android:summary="@string/dock_icons_summary"
+        launcher:min="1"
+        launcher:max="7" />
+
+    <com.android.launcher3.preference.SeekBarDialogPreference
+        android:key="dock_icon_size"
+        android:title="@string/icon_size_title"
+        launcher:max="130"
+        launcher:min="70"
+        launcher:defaultValue="100" />
+</PreferenceScreen>
+
