@@ -123,6 +123,10 @@ public class Hotseat extends FrameLayout {
     @Override
     protected void onFinishInflate() {
         super.onFinishInflate();
+        updateHotseat();
+    }
+
+    public void updateHotseat() {
         LauncherAppState app = LauncherAppState.getInstance();
         DeviceProfile grid = app.getDynamicGrid().getDeviceProfile();
 
