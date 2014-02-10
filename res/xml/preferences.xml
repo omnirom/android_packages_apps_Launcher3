@@ -1,34 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
-<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:launcher="http://schemas.android.com/apk/res-auto/com.android.launcher3">
-    <PreferenceCategory
-        android:title="@string/pref_workspace_title"
-        android:key="pref_key_workspace_settings">
+<preference-headers xmlns:android="http://schemas.android.com/apk/res/android">
 
-        <com.android.launcher3.NumberPreference
-            android:key="pref_key_workspaceRows"
-            android:title="@string/pref_title_workspace_rows"
-            launcher:min="1"
-            launcher:max="10" />
+    <header
+        android:fragment="com.android.launcher3.settings.HomescreenFragment"
+        android:id="@+id/pref_homescreen"
+        android:title="@string/homescreen_title" />
 
-        <com.android.launcher3.NumberPreference
-            android:key="pref_key_workspaceCols"
-            android:title="@string/pref_title_workspace_cols"
-            launcher:min="1"
-            launcher:max="10" />
+    <header
+	android:fragment="com.android.launcher3.settings.DockFragment"
+	android:id="@+id/pref_dock"
+	android:title="@string/dock_title" />
 
-        <com.android.launcher3.NumberPreference
-            android:key="pref_key_workspaceDefaultPage"
-            android:title="@string/pref_title_default_workspace"
-            android:defaultValue="0"
-            launcher:min="0"
-            launcher:max="10" />
+    <header
+        android:fragment="com.android.launcher3.settings.DrawerFragment"
+        android:id="@+id/pref_drawer"
+        android:title="@string/drawer_title" />
 
-        <SwitchPreference
-            android:key="pref_key_showSearchBar"
-            android:title="@string/pref_title_show_search_bar"
-            android:defaultValue="true" />
+    <!--<header
+        android:fragment="com.android.launcher3.settings.LookFragment"
+        android:id="@+id/pref_look"
+        android:title="@string/look_title" />-->
 
-    </PreferenceCategory>
-
-</PreferenceScreen>
+</preference-headers>

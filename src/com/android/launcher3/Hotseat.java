@@ -123,6 +123,10 @@ public class Hotseat extends FrameLayout {
     @Override
     protected void onFinishInflate() {
         super.onFinishInflate();
+        updateHotseat();
+    }
+
+    public void updateHotseat() {
         LauncherAppState app = LauncherAppState.getInstance();
         DeviceProfile grid = app.getDynamicGrid().getDeviceProfile();
 
@@ -134,6 +138,7 @@ public class Hotseat extends FrameLayout {
             mContent.setGridSize((int) grid.numHotseatIcons, 1);
         }
         mContent.setIsHotseat(true);
+        mContent.updateHotseatScale(grid);
 
         resetLayout();
     }
