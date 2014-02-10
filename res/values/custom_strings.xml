@@ -1,14 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-    <!-- Folder titles -->
-    <string name="google_title" translatable="false">Google</string>
+    <string name="google_title">Google</string>
 
-    <!-- Preferences -->
-    <string name="pref_workspace_title">Workspace settings</string>
-    <string name="pref_title_workspace_rows">Rows</string>
-    <string name="pref_title_workspace_cols">Columns</string>
+    <string name="default_string">Default</string>
+    <string name="reset_string">Reset</string>
+    <string name="set_string">Set</string>
+    <string name="off_string">Off</string>
+
+    <!-- Grid Size -->
+    <string name="grid_size_title">Grid size</string>
+    <string name="grid_size_summary">Choose the number of rows/columns</string>
+    <string name="grid_size_rows_title">Rows</string>
+    <string name="grid_size_columns_title">Columns</string>
+
+    <!-- Homescreen Settings -->
+    <string name="homescreen_title">Homescreen</string>
+    <string name="show_search_bar_title">Show search bar</string>
     <string name="pref_title_default_workspace">Default Screen</string>
-    <string name="pref_title_show_search_bar">Show Search Bar</string>
 
+    <!-- Drawer Settings -->
+    <string name="drawer_title">Drawer</string>
+
+    <!-- Dock Settings -->
+    <string name="dock_title">Dock</string>
+    <string name="dock_icons_title">Dock icons</string>
+    <string name="dock_icons_summary">Number of icons in the dock</string>
+
+    <!-- Miscellaneous -->
+    <string name="icon_size_title">Icon Size</string>
 </resources>
