@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--  Copyright (C) 2013 The OmniROM Project
+
+  Parts Copyright (C) 2012-2013 The CyanogenMod Project
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ -->
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <!-- Preferences -->
+    <string name="pref_workspace_title">Настройка домашнего экрана</string>
+    <string name="pref_title_workspace_rows">Количество строк</string>
+    <string name="pref_title_workspace_cols">Количество столбцов</string>
+    <string name="pref_title_default_workspace">Экран по умолчанию</string>
+    <string name="pref_title_show_search_bar">Показывать строку поиска</string>
+    <string name="dialog_pick_iconpack_title">Выберите набор иконок</string>
+    <string name="default_iconpack_title">Иконки по умолчанию</string>
+    <string name="icon_packs_title">Наборы иконок</string>
+    <string name="no_iconpacks_summary">Наборы иконок не установлены</string>
+    <string name="pref_icon_pack_title">Набор иконок</string>
+</resources>
