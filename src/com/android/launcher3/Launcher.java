@@ -17,6 +17,21 @@
 
 package com.android.launcher3;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileDescriptor;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.text.DateFormat;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+
 import android.accounts.Account;
 import android.accounts.AccountManager;
 import android.animation.Animator;
@@ -46,7 +61,6 @@ import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
-import android.content.pm.ResolveInfo;
 import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.database.ContentObserver;
@@ -56,6 +70,7 @@ import android.graphics.Point;
 import android.graphics.PorterDuff;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
+import android.media.AudioManager;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -66,7 +81,9 @@ import android.os.StrictMode;
 import android.os.SystemClock;
 import android.preference.PreferenceManager;
 import android.provider.Settings;
+import android.speech.RecognitionListener;
 import android.speech.RecognizerIntent;
+import android.speech.SpeechRecognizer;
 import android.text.Selection;
 import android.text.SpannableStringBuilder;
 import android.text.TextUtils;
@@ -100,21 +117,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.android.launcher3.DropTarget.DragObject;
-
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.File;
-import java.io.FileDescriptor;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.text.DateFormat;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
 
 /**
  * Default launcher application.
@@ -333,6 +335,91 @@ public class Launcher extends Activity
 
     private HideFromAccessibilityHelper mHideFromAccessibilityHelper
         = new HideFromAccessibilityHelper();
+
+    private SpeechRecognizer mSpeechRecognizer;
+    private AudioManager mAudioManager;
+    private boolean mHotwordMatched;
+    private String[] mHotwords = new String[] {
+            "hey google",
+            "ok google",
+            "okay google"
+    };
+    
+    private RecognitionListener mSpeechListener = new RecognitionListener() {
+        
+        @Override
+        public void onRmsChanged(float rmsdB) {
+            // ignore
+            
+        }
+        
+        @Override
+        public void onResults(Bundle results) {
+            onPartialResults(results);
+        }
+        
+        @Override
+        public void onReadyForSpeech(Bundle params) {
+            Log.d(TAG, "Hotword started");
+            
+            // Let the beep beep go away, then un-mute
+            mHandler.postDelayed(new Runnable() {
+                public void run() {
+                    mAudioManager.setStreamMute(AudioManager.STREAM_SYSTEM, false);
+                }
+            }, 100);
+        }
+        
+        @Override
+        public void onPartialResults(Bundle partialResults) {
+            ArrayList<String> data = partialResults.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
+            if (data == null) {
+                return;
+            }
+            
+            // Check if the result we have match something we know
+            for (String recognizedWord : data) {
+                for (String trigger : mHotwords) {
+                    if (trigger.trim().equalsIgnoreCase(recognizedWord.trim())) {
+                        mHotwordMatched = true;
+                        
+                        // Start voice search
+                        // TODO: Custom actions on custom words
+                        startVoice();
+                    }
+                }
+            }
+        }
+        
+        @Override
+        public void onEvent(int eventType, Bundle params) {
+            // ignore
+        }
+        
+        @Override
+        public void onError(int error) {
+            Log.e(TAG, "Speech recognition error: " + error);
+        }
+        
+        @Override
+        public void onEndOfSpeech() {
+            // Restart if we didn't catch a known hotword
+            if (!mHotwordMatched) {
+                setupHotwordRecognition();
+            }
+        }
+        
+        @Override
+        public void onBufferReceived(byte[] buffer) {
+            // ignore
+        }
+        
+        @Override
+        public void onBeginningOfSpeech() {
+            // ignore
+        }
+        
+    };
 
     private Runnable mBuildLayersRunnable = new Runnable() {
         public void run() {
@@ -928,6 +1015,9 @@ public class Launcher extends Activity
         }
         mWorkspace.updateInteractionForState();
         mWorkspace.onResume();
+
+        // Start hotword recognition
+        setupHotwordRecognition();
     }
 
     @Override
@@ -4415,6 +4505,29 @@ public class Launcher extends Activity
     }
 
     /**
+     * Setup hotword recognition to start voice search
+     */
+    public void setupHotwordRecognition() {
+        mSpeechRecognizer = SpeechRecognizer.createSpeechRecognizer(this);
+        mSpeechRecognizer.setRecognitionListener(mSpeechListener);
+        
+        Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+        intent.putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE, "com.android.launcher3");
+        intent.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 10);
+        intent.putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true);
+        
+        Log.d(TAG, "Starting hotword recognition");
+        mAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+        mAudioManager.setStreamMute(AudioManager.STREAM_SYSTEM, true);
+        
+        mHotwordMatched = false;
+        
+        mSpeechRecognizer.startListening(intent);
+        
+    }
+
+    /**
      * Prints out out state for debugging.
      */
     public void dumpState() {
@@ -4527,3 +4640,4 @@ interface LauncherTransitionable {
     void onLauncherTransitionStep(Launcher l, float t);
     void onLauncherTransitionEnd(Launcher l, boolean animated, boolean toWorkspace);
 }
+
