@@ -15,4 +15,24 @@
     <string name="icon_packs_title">Icon packs</string>
     <string name="no_iconpacks_summary">No icon packs installed</string>
     <string name="pref_icon_pack_title">Icon pack</string>
+
+    <string name="pref_hotwords_title">Hotwords</string>
+    <string name="pref_title_enable_hotwords">Enable hotword recognition</string>
+    <string name="pref_desc_enable_hotwords">Trigger actions by speaking defined sentences on the homescreen</string>
+    <string name="pref_title_custom_hotwords">Customize hotwords</string>
+    <string name="pref_desc_custom_hotwords">Define the words and actions to trigger</string>
+    <string name="pref_title_disable_hotword_music">Disable when music is playing</string>
+    <string name="pref_desc_disable_hotword_music">Don\'t listen for hotwords when music is playing</string>
+    <string name="pref_hotword_add">Add new hotword</string>
+    <string name="dialog_hotword_title">Customize hotword</string>
+    <string name="dialog_hotword_text">Sentence</string>
+    <string name="dialog_hotword_select_action">Select an action</string>
+
+    <string name="profile_applist_title">Apps</string>
+    <string name="profile_choose_app">Choose app</string>
+    <string name="profiles_add">Add</string>
+    <string name="picker_activities">Activities</string>
+    <string name="select_custom_app_title">Select custom app</string>
+    <string name="select_custom_activity_title">Select custom activity</string>
+    
 </resources>

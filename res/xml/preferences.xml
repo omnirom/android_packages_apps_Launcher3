@@ -1,4 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+ (C) Copyright 2014 The OmniROM Project
+
+ This software is free software; you can redistribute it
+ and/or modify it under the terms of the GNU Lesser General
+ Public License as published by the Free Software Foundation;
+ either version 2.1 of the License, or (at your option) any
+ later version.
+
+ This software is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ GNU Lesser General Public License for more details.
+
+ You should have received a copy of the GNU Lesser General Public
+ License along with this library; if not, write to the Free
+ Software Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ MA 02111-1307 USA
+-->
+
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:launcher="http://schemas.android.com/apk/res-auto/com.android.launcher3">
     <PreferenceCategory
@@ -32,6 +52,31 @@
         <Preference
             android:key="pref_key_iconpack"
             android:title="@string/pref_icon_pack_title" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:title="@string/pref_hotwords_title"
+        android:key="pref_key_hotwords_settings">
+
+        <CheckBoxPreference
+            android:key="pref_key_enableHotword"
+            android:title="@string/pref_title_enable_hotwords"
+            android:summary="@string/pref_desc_enable_hotwords"
+            android:defaultValue="true" />
+
+        <CheckBoxPreference
+            android:key="pref_key_disableHotwordOnMusic"
+            android:title="@string/pref_title_disable_hotword_music"
+            android:summary="@string/pref_desc_disable_hotword_music"
+            android:defaultValue="true" />
+
+        <PreferenceScreen
+            android:key="pref_key_customHotwords"
+            android:fragment="com.android.launcher3.HotwordCustomFragment"
+            android:dependency="pref_key_enableHotword"
+            android:title="@string/pref_title_custom_hotwords"
+            android:summary="@string/pref_desc_custom_hotwords" />
 
     </PreferenceCategory>
 
