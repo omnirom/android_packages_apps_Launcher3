@@ -28,4 +28,24 @@
     <string name="icon_packs_title">Наборы иконок</string>
     <string name="no_iconpacks_summary">Наборы иконок не установлены</string>
     <string name="pref_icon_pack_title">Набор иконок</string>
+
+    <string name="pref_hotwords_title">Ключевые слова</string>
+    <string name="pref_title_enable_hotwords">Включить распознавание ключевых слов</string>
+    <string name="pref_desc_enable_hotwords">Выполнять действия при произношении определённых фраз на рабочем столе</string>
+    <string name="pref_title_custom_hotwords">Изменить ключевые слова</string>
+    <string name="pref_desc_custom_hotwords">Задать ключевые слова и действия для них</string>
+    <string name="pref_title_disable_hotword_music">Отключать, когда играет музыка</string>
+    <string name="pref_desc_disable_hotword_music">Не распознавать ключевые слова при воспроизведении музыки</string>
+    <string name="pref_hotword_add">Добавить новое ключевое слово</string>
+    <string name="dialog_hotword_title">Изменить ключевое слово</string>
+    <string name="dialog_hotword_text">Предложение</string>
+    <string name="dialog_hotword_select_action">Выберите действие</string>
+
+    <string name="profile_applist_title">Приложения</string>
+    <string name="profile_choose_app">Выбрать приложение</string>
+    <string name="profiles_add">Добавить</string>
+    <string name="picker_activities">Действия</string>
+    <string name="select_custom_app_title">Выбрать своё приложение</string>
+    <string name="select_custom_activity_title">Выбрать своё действие</string>
+
 </resources>
