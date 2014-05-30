@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <!-- Preferences -->
+    <string name="pref_workspace_title">Ajustes de la pantalla de inicio</string>
+    <string name="pref_title_workspace_rows">Filas</string>
+    <string name="pref_title_workspace_cols">Columnas</string>
+    <string name="pref_title_default_workspace">Pantalla por defecto</string>
+    <string name="pref_title_show_search_bar">Mostrar la barra de búsqueda</string>
+    <string name="dialog_pick_iconpack_title">Elegir el paquete de íconos</string>
+    <string name="default_iconpack_title">Íconos por defecto</string>
+    <string name="icon_packs_title">Paquetes de íconos</string>
+    <string name="no_iconpacks_summary">No hay paquetes de íconos instalados</string>
+    <string name="pref_icon_pack_title">Paquetes de íconos</string>
+
+    <string name="pref_hotwords_title">Hotwords</string>
+    <string name="pref_title_enable_hotwords">Activar reconocimiento de voz</string>
+    <string name="pref_desc_enable_hotwords">Inicia aplicaciones mediante reconocimiento de voz en la pantalla de inicio</string>
+    <string name="pref_title_custom_hotwords">Personalizar Hotwords</string>
+    <string name="pref_desc_custom_hotwords">Definir atajos de voz para aplicaciones</string>
+    <string name="pref_title_disable_hotword_music">Desactivar cuando se reproduzca música</string>
+    <string name="pref_desc_disable_hotword_music">Deshabilitar el reconocimiento de voz cuando se reproduzca música</string>
+    <string name="pref_hotword_add">Agregar Hotwords</string>
+    <string name="dialog_hotword_title">Personalizar Hotwords</string>
+    <string name="dialog_hotword_text">Frase</string>
+    <string name="dialog_hotword_select_action">Seleccione una acción</string>
+
+    <string name="profile_applist_title">Aplicaciones</string>
+    <string name="profile_choose_app">Seleccione una aplicación</string>
+    <string name="profiles_add">Agregar</string>
+    <string name="picker_activities">Actividades</string>
+    <string name="select_custom_app_title">Seleccione una aplicación personalizada</string>
+    <string name="select_custom_activity_title">Seleccione una actividad personalizada</string>
+
+</resources>
