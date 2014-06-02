@@ -69,6 +69,7 @@
             android:key="pref_key_disableHotwordOnMusic"
             android:title="@string/pref_title_disable_hotword_music"
             android:summary="@string/pref_desc_disable_hotword_music"
+            android:dependency="pref_key_enableHotword"
             android:defaultValue="true" />
 
         <PreferenceScreen
