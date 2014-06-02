@@ -347,6 +347,13 @@ public class Launcher extends Activity
     private String[] mHotwordsActions;
     private static final int MUTE_STREAM = AudioManager.STREAM_MUSIC;
 
+    private Runnable mUnmuteRunnable = new Runnable() {
+        @Override
+        public void run() {
+            mAudioManager.setStreamMute(MUTE_STREAM, false);
+        }
+    };
+
     private RecognitionListener mSpeechListener = new RecognitionListener() {
 
         @Override
@@ -369,11 +376,8 @@ public class Launcher extends Activity
             if (DEBUG_HOTWORD) Log.d(TAG, "onReadyForSpeech");
 
             // Let the beep beep go away, then un-mute
-            mHandler.post(new Runnable() {
-                public void run() {
-                    mAudioManager.setStreamMute(MUTE_STREAM, false);
-                }
-            });
+            mHandler.removeCallbacks(mUnmuteRunnable);
+            mHandler.post(mUnmuteRunnable);
         }
 
         @Override
@@ -4598,6 +4602,7 @@ public class Launcher extends Activity
         // Mute system beep-beep
         // Dear Google, you are utterly stupid for putting the beep on STREAM_MUSIC.
         // Sincerely, someone who tries to use your APIs for a seamless experience.
+        mHandler.removeCallbacks(mUnmuteRunnable);
         mAudioManager.setStreamMute(MUTE_STREAM, true);
 
         mHotwordMatched = false;
@@ -4611,12 +4616,8 @@ public class Launcher extends Activity
         if (mAudioManager != null) {
             // Unmute if we're muted, but only after some time to avoid hearing the
             // beep when opening an app if it's happening
-            mHandler.postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    mAudioManager.setStreamMute(MUTE_STREAM, false);
-                }
-            }, 50);
+            mHandler.removeCallbacks(mUnmuteRunnable);
+            mHandler.postDelayed(mUnmuteRunnable, 200);
         }
 
         if (mSpeechRecognizer != null) {
