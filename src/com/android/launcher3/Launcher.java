@@ -365,12 +365,16 @@ public class Launcher extends Activity
     private boolean mHotwordMatched;
     private String[] mHotwords;
     private String[] mHotwordsActions;
+    private long mHotwordStartTime;
+    private boolean mHotwordBeepMuted = false;
     private static final int MUTE_STREAM = AudioManager.STREAM_MUSIC;
 
     private Runnable mUnmuteRunnable = new Runnable() {
         @Override
         public void run() {
+            if (DEBUG_HOTWORD) Log.d(TAG, "Runnable is unmuting the stream");
             mAudioManager.setStreamMute(MUTE_STREAM, false);
+            mHotwordBeepMuted = false;
         }
     };
 
@@ -1167,6 +1171,16 @@ public class Launcher extends Activity
 
         // Clear hotword recognition if needed
         clearHotwordRecognition();
+
+        // Make sure we unmute after some time
+        new Thread() {
+            public void run() {
+                try { Thread.sleep(500); } catch (Exception e) { return; }
+                if (!isInterrupted() && mPaused) {
+                    mUnmuteRunnable.run();
+                }
+            }
+        }.start();
     }
 
     QSBScroller mQsbScroller = new QSBScroller() {
@@ -4612,8 +4626,14 @@ public class Launcher extends Activity
 
         // Don't enable if music is playing and user chooses to
         if (mainPrefs.getBoolean("pref_key_disableHotwordOnMusic", true)
-                && mAudioManager.isMusicActive()) {
-            if (DEBUG_HOTWORD) Log.d(TAG, "Music is playing, not enabling hotword");
+                && (mAudioManager.isMusicActive() && System.currentTimeMillis()-mHotwordStartTime > 1000)) {
+            if (DEBUG_HOTWORD) Log.d(TAG, "Music is playing, not enabling hotword (last started "
+                                         + (System.currentTimeMillis()-mHotwordStartTime) + "ms ago)");
+            return;
+        }
+
+        if (mHotwordBeepMuted) {
+            if (DEBUG_HOTWORD) Log.d(TAG, "The beep is still muted, don't restart");
             return;
         }
 
@@ -4659,7 +4679,12 @@ public class Launcher extends Activity
         // Dear Google, you are utterly stupid for putting the beep on STREAM_MUSIC.
         // Sincerely, someone who tries to use your APIs for a seamless experience.
         mHandler.removeCallbacks(mUnmuteRunnable);
+
+        // Ensure previous mute is removed
+        mAudioManager.setStreamMute(MUTE_STREAM, false);
         mAudioManager.setStreamMute(MUTE_STREAM, true);
+        mHotwordStartTime = System.currentTimeMillis();
+        mHotwordBeepMuted = true;
 
         mHotwordMatched = false;
 
@@ -4673,7 +4698,7 @@ public class Launcher extends Activity
             // Unmute if we're muted, but only after some time to avoid hearing the
             // beep when opening an app if it's happening
             mHandler.removeCallbacks(mUnmuteRunnable);
-            mHandler.postDelayed(mUnmuteRunnable, 200);
+            mHandler.postDelayed(mUnmuteRunnable, 500);
         }
 
         if (mSpeechRecognizer != null) {
