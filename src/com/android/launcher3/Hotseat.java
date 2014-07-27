@@ -18,10 +18,12 @@ package com.android.launcher3;
 
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
+import android.net.Uri;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -30,16 +32,23 @@ import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.TextView;
 
+import java.io.InputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 
-public class Hotseat extends FrameLayout {
+public class Hotseat extends FrameLayout
+        implements SharedPreferences.OnSharedPreferenceChangeListener {
     private static final String TAG = "Hotseat";
+    public static final String PREFS_HOTSEAT = "prefs_hotseat";
+    public static final String PREF_HOTSEAT_ALLAPPS_IMAGE = "all_apps_image";
 
     private CellLayout mContent;
 
     private Launcher mLauncher;
 
     private int mAllAppsButtonRank;
+
+    private TextView mAllAppsButton;
 
     private boolean mTransposeLayoutWithOrientation;
     private boolean mIsLandscape;
@@ -65,6 +74,8 @@ public class Hotseat extends FrameLayout {
     public void setup(Launcher launcher) {
         mLauncher = launcher;
         setOnKeyListener(new HotseatIconKeyEventListener());
+        SharedPreferences prefs = getContext().getSharedPreferences(PREFS_HOTSEAT, 0);
+        prefs.registerOnSharedPreferenceChangeListener(this);
     }
 
     CellLayout getLayout() {
@@ -149,9 +160,9 @@ public class Hotseat extends FrameLayout {
             LayoutInflater inflater = LayoutInflater.from(context);
             TextView allAppsButton = (TextView)
                     inflater.inflate(R.layout.all_apps_button, mContent, false);
-            Drawable d = context.getResources().getDrawable(R.drawable.all_apps_button_icon);
-            Utilities.resizeIconDrawable(d);
-            allAppsButton.setCompoundDrawables(null, d, null, null);
+
+            mAllAppsButton = allAppsButton;
+            updateAppsButtonIcon();
 
             allAppsButton.setContentDescription(context.getString(R.string.all_apps_button_label));
             if (mLauncher != null) {
@@ -235,5 +246,31 @@ public class Hotseat extends FrameLayout {
                 info.add(si);
             }
         }
+    }
+
+    public void onSharedPreferenceChanged(SharedPreferences prefs, String key) {
+        if (PREF_HOTSEAT_ALLAPPS_IMAGE.equals(key)) {
+            updateAppsButtonIcon();
+        }
+    }
+
+    private void updateAppsButtonIcon() {
+        SharedPreferences prefs = getContext().getSharedPreferences(PREFS_HOTSEAT, 0);
+        String drawUriStr = prefs.getString(PREF_HOTSEAT_ALLAPPS_IMAGE, null);
+        Drawable d;
+        if (drawUriStr == null) {
+            d = getContext().getResources().getDrawable(R.drawable.all_apps_button_icon);
+        } else {
+            Uri drawUri = Uri.parse(drawUriStr);
+            try {
+                InputStream is = getContext().getContentResolver().openInputStream(drawUri);
+                d = Drawable.createFromStream(is, drawUri.toString());
+            } catch (IOException e) {
+                Log.e(TAG, "Unable to open drawer icon from storage", e);
+                d = getContext().getResources().getDrawable(R.drawable.all_apps_button_icon);
+            }
+        }
+        Utilities.resizeIconDrawable(d);
+        mAllAppsButton.setCompoundDrawables(null, d, null, null);
     }
 }
