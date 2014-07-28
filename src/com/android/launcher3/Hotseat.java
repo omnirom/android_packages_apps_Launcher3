@@ -258,7 +258,8 @@ public class Hotseat extends FrameLayout
         SharedPreferences prefs = getContext().getSharedPreferences(PREFS_HOTSEAT, 0);
         String drawUriStr = prefs.getString(PREF_HOTSEAT_ALLAPPS_IMAGE, null);
         Drawable d;
-        if (drawUriStr == null) {
+
+        if (drawUriStr == null || !hasManageDocsPermission()) {
             d = getContext().getResources().getDrawable(R.drawable.all_apps_button_icon);
         } else {
             Uri drawUri = Uri.parse(drawUriStr);
@@ -272,5 +273,10 @@ public class Hotseat extends FrameLayout
         }
         Utilities.resizeIconDrawable(d);
         mAllAppsButton.setCompoundDrawables(null, d, null, null);
+    }
+
+    private boolean hasManageDocsPermission() {
+        int result = getContext().checkCallingOrSelfPermission(android.Manifest.permission.MANAGE_DOCUMENTS);
+        return result == android.content.pm.PackageManager.PERMISSION_GRANTED;
     }
 }
