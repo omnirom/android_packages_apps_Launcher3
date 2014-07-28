@@ -133,6 +133,10 @@ public final class LauncherPreferences {
                 if (requestCode == READ_ICON_CODE && resultCode == Activity.RESULT_OK) {
                     if (resultData != null) {
                         Uri uri = resultData.getData();
+                        final int takeFlags =
+                                resultData.getFlags() & (Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                        mContext.getContentResolver().takePersistableUriPermission(uri, takeFlags);
+                        Log.e("XPLOD", "GOT PERSISTABLE URI: " + uri.toString());
                         setAllAppsIcon(uri.toString());
                     }
                 }
