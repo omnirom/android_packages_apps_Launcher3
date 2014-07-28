@@ -259,14 +259,14 @@ public class Hotseat extends FrameLayout
         String drawUriStr = prefs.getString(PREF_HOTSEAT_ALLAPPS_IMAGE, null);
         Drawable d;
 
-        if (drawUriStr == null || !hasManageDocsPermission()) {
+        if (drawUriStr == null) {
             d = getContext().getResources().getDrawable(R.drawable.all_apps_button_icon);
         } else {
             Uri drawUri = Uri.parse(drawUriStr);
             try {
                 InputStream is = getContext().getContentResolver().openInputStream(drawUri);
                 d = Drawable.createFromStream(is, drawUri.toString());
-            } catch (IOException e) {
+            } catch (Exception e) {
                 Log.e(TAG, "Unable to open drawer icon from storage", e);
                 d = getContext().getResources().getDrawable(R.drawable.all_apps_button_icon);
             }
@@ -275,8 +275,4 @@ public class Hotseat extends FrameLayout
         mAllAppsButton.setCompoundDrawables(null, d, null, null);
     }
 
-    private boolean hasManageDocsPermission() {
-        int result = getContext().checkCallingOrSelfPermission(android.Manifest.permission.MANAGE_DOCUMENTS);
-        return result == android.content.pm.PackageManager.PERMISSION_GRANTED;
-    }
 }
