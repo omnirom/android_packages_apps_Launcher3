@@ -58,6 +58,7 @@
         android:label="@string/derived_app_name"
         android:largeHeap="@bool/config_largeHeap"
         android:restoreAnyVersion="true"
+        android:requiredForAllUsers="true"
         android:supportsRtl="true" >
 
         <!--
