@@ -40,8 +40,12 @@
     <string name="folder_name"></string>
     <!-- Displayed when user selects a shortcut for an app that was uninstalled [CHAR_LIMIT=none]-->
     <string name="activity_not_found">App isn\'t installed.</string>
+    <!-- Displayed when user selects a shortcut for an app that is current not available [CHAR_LIMIT=none]-->
+    <string name="activity_not_available">App isn\'t available</string>
     <!-- SafeMode shortcut error string -->
     <string name="safemode_shortcut_error">Downloaded app disabled in Safe mode</string>
+    <!-- SafeMode widget error string -->
+    <string name="safemode_widget_error">Widgets disabled in Safe mode</string>
     <!--  Labels for the tabs in the customize drawer -->
     <string name="widgets_tab_label">Widgets</string>
 
@@ -52,9 +56,6 @@
     <!-- AppsCustomize pane -->
     <!-- Message to tell the user to press and hold on a widget to add it [CHAR_LIMIT=50] -->
     <string name="long_press_widget_to_add">Touch &amp; hold to pick up a widget.</string>
-    <!-- Market button text.  The market button text is removed in Launcher.java 
-         in the Phone UI. [CHAR LIMIT=32] -->
-    <string name="market">Shop</string>
     <!-- The format string for the dimensions of a widget in the drawer -->
     <!-- There is a special version of this format string for Farsi -->
     <string name="widget_dims_format">%1$d \u00d7 %2$d</string>
@@ -124,17 +125,13 @@ s -->
          device. [CHAR_LIMIT=30]-->
     <string name="delete_zone_label_all_apps">Uninstall</string>
 
-    <!-- Label for delete drop target. [CHAR_LIMIT=30] -->
+    <!-- Label for delete drop target. [CHAR_LIMIT=20] -->
     <string name="delete_target_label">Remove</string>
-    <!-- Label for uninstall drop target. [CHAR_LIMIT=30]-->
+    <!-- Label for uninstall drop target. [CHAR_LIMIT=20]-->
     <string name="delete_target_uninstall_label">Uninstall</string>
-    <!-- Label for the info icon. [CHAR_LIMIT=30] -->
+    <!-- Label for the info icon. [CHAR_LIMIT=20] -->
     <string name="info_target_label">App info</string>
 
-    <!-- Accessibility: Search button -->
-    <string name="accessibility_search_button">Search</string>
-    <!-- Accessibility: Voice Search button -->
-    <string name="accessibility_voice_search_button">Voice Search</string>
     <!-- Accessibility: AllApps button -->
     <string name="accessibility_all_apps_button">Apps</string>
     <!-- Accessibility: Delete button -->

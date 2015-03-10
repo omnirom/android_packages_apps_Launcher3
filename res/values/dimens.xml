@@ -25,8 +25,8 @@
     <dimen name="dynamic_grid_workspace_page_spacing">8dp</dimen>
     <dimen name="dynamic_grid_overview_min_icon_zone_height">80dp</dimen>
     <dimen name="dynamic_grid_overview_max_icon_zone_height">120dp</dimen>
-    <dimen name="dynamic_grid_overview_bar_item_width">48dp</dimen>
-    <dimen name="dynamic_grid_overview_bar_spacer_width">68dp</dimen>
+    <dimen name="dynamic_grid_overview_bar_item_width">80dp</dimen>
+    <dimen name="dynamic_grid_overview_bar_spacer_width">20dp</dimen>
 
 <!-- Cling -->
     <dimen name="cling_migration_logo_height">240dp</dimen>
@@ -43,9 +43,6 @@
 <!-- QSB -->
     <dimen name="toolbar_button_vertical_padding">4dip</dimen>
     <dimen name="toolbar_button_horizontal_padding">12dip</dimen>
-    <!-- External toolbar icon size (for bounds) -->
-    <dimen name="toolbar_external_icon_width">36dp</dimen>
-    <dimen name="toolbar_external_icon_height">36dp</dimen>
 
 <!-- AllApps/Customize/AppsCustomize -->
     <!-- The height of the tab bar - if this changes, we should update the
@@ -62,6 +59,7 @@
 
     <!-- Drag padding to add to the bottom of drop targets -->
     <dimen name="drop_target_drag_padding">14dp</dimen>
+    <dimen name="drop_target_text_size">14sp</dimen>
 
 <!-- Dragging -->
     <!-- the area at the edge of the screen that makes the workspace go left

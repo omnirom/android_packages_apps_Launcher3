@@ -18,10 +18,6 @@ package com.android.launcher3;
 
 import android.content.ComponentName;
 import android.content.Context;
-import android.content.Intent;
-import android.content.pm.ActivityInfo;
-import android.content.pm.PackageManager;
-import android.content.pm.ResolveInfo;
 
 import com.android.launcher3.compat.LauncherActivityInfoCompat;
 import com.android.launcher3.compat.LauncherAppsCompat;
@@ -101,17 +97,15 @@ class AllAppsList {
         final List<LauncherActivityInfoCompat> matches = launcherApps.getActivityList(packageName,
                 user);
 
-        if (matches.size() > 0) {
-            for (LauncherActivityInfoCompat info : matches) {
-                add(new AppInfo(context, info, user, mIconCache, null));
-            }
+        for (LauncherActivityInfoCompat info : matches) {
+            add(new AppInfo(context, info, user, mIconCache, null));
         }
     }
 
     /**
      * Remove the apps for the given apk identified by packageName.
      */
-    public void removePackage(String packageName, UserHandleCompat user) {
+    public void removePackage(String packageName, UserHandleCompat user, boolean clearCache) {
         final List<AppInfo> data = this.data;
         for (int i = data.size() - 1; i >= 0; i--) {
             AppInfo info = data.get(i);
@@ -121,7 +115,9 @@ class AllAppsList {
                 data.remove(i);
             }
         }
-        mIconCache.remove(packageName, user);
+        if (clearCache) {
+            mIconCache.remove(packageName, user);
+        }
     }
 
     /**
@@ -149,9 +145,7 @@ class AllAppsList {
 
             // Find enabled activities and add them to the adapter
             // Also updates existing activities with new labels/icons
-            int count = matches.size();
-            for (int i = 0; i < count; i++) {
-                final LauncherActivityInfoCompat info = matches.get(i);
+            for (final LauncherActivityInfoCompat info : matches) {
                 AppInfo applicationInfo = findApplicationInfoLocked(
                         info.getComponentName().getPackageName(), user,
                         info.getComponentName().getClassName());

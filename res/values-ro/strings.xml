@@ -24,12 +24,13 @@
     <string name="uid_name" msgid="7820867637514617527">"Android Core Apps"</string>
     <string name="folder_name" msgid="7371454440695724752"></string>
     <string name="activity_not_found" msgid="8071924732094499514">"Aplicația nu este instalată."</string>
+    <string name="activity_not_available" msgid="7456344436509528827">"Aplicația nu este disponibilă"</string>
     <string name="safemode_shortcut_error" msgid="9160126848219158407">"Aplicația descărcată este dezactivată în modul de siguranță"</string>
+    <string name="safemode_widget_error" msgid="4863470563535682004">"Widgeturile sunt dezactivate în modul de siguranță"</string>
     <string name="widgets_tab_label" msgid="2921133187116603919">"Widgeturi"</string>
     <string name="widget_adder" msgid="3201040140710381657">"Widgeturi"</string>
     <string name="toggle_weight_watcher" msgid="5645299835184636119">"Afișați memoria"</string>
     <string name="long_press_widget_to_add" msgid="7699152356777458215">"Atingeți lung un widget pentru a-l alege."</string>
-    <string name="market" msgid="2619650989819296998">"Cumpărați"</string>
     <string name="widget_dims_format" msgid="2370757736025621599">"%1$d × %2$d"</string>
     <string name="external_drop_widget_error" msgid="3165821058322217155">"Nu se poate plasa articolul pe ecranul de pornire."</string>
     <string name="external_drop_widget_pick_title" msgid="3486317258037690630">"Alegeți widgetul de creat"</string>
@@ -57,8 +58,6 @@
     <string name="delete_target_label" msgid="1822697352535677073">"Eliminați"</string>
     <string name="delete_target_uninstall_label" msgid="5100785476250872595">"Dezinstalați"</string>
     <string name="info_target_label" msgid="8053346143994679532">"Informații despre aplicație"</string>
-    <string name="accessibility_search_button" msgid="1628520399424565142">"Căutați"</string>
-    <string name="accessibility_voice_search_button" msgid="4637324840434406584">"Căutare vocală"</string>
     <string name="accessibility_all_apps_button" msgid="2603132375383800483">"Aplicații"</string>
     <string name="accessibility_delete_button" msgid="6466114477993744621">"Eliminați"</string>
     <string name="delete_zone_label_all_apps_system_app" msgid="449755632749610895">"Dezinstalați actualizarea"</string>

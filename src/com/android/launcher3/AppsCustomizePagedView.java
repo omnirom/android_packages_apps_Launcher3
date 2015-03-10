@@ -366,11 +366,7 @@ public class AppsCustomizePagedView extends PagedViewWithDraggableItems implemen
                     // This code triggers requestLayout so must be posted outside of the
                     // layout pass.
                     public void run() {
-                        boolean attached = true;
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-                            attached = isAttachedToWindow();
-                        }
-                        if (attached) {
+                        if (Utilities.isViewAttachedToWindow(AppsCustomizePagedView.this)) {
                             setDataIsReady();
                             onDataReady(getMeasuredWidth(), getMeasuredHeight());
                         }
@@ -728,7 +724,8 @@ public class AppsCustomizePagedView extends PagedViewWithDraggableItems implemen
                 !(target instanceof DeleteDropTarget) && !(target instanceof Folder))) {
             // Exit spring loaded mode if we have not successfully dropped or have not handled the
             // drop in Workspace
-            mLauncher.exitSpringLoadedDragMode();
+            mLauncher.exitSpringLoadedDragModeDelayed(true,
+                    Launcher.EXIT_SPRINGLOADED_MODE_SHORT_TIMEOUT, null);
             mLauncher.unlockScreenOrientation(false);
         } else {
             mLauncher.unlockScreenOrientation(false);
@@ -840,6 +837,12 @@ public class AppsCustomizePagedView extends PagedViewWithDraggableItems implemen
     protected void onDetachedFromWindow() {
         super.onDetachedFromWindow();
         cancelAllTasks();
+    }
+
+    @Override
+    public void trimMemory() {
+        super.trimMemory();
+        clearAllWidgetPages();
     }
 
     public void clearAllWidgetPages() {

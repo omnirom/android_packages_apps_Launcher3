@@ -24,12 +24,13 @@
     <string name="uid_name" msgid="7820867637514617527">"Android Core Apps"</string>
     <string name="folder_name" msgid="7371454440695724752"></string>
     <string name="activity_not_found" msgid="8071924732094499514">"Aplikácia nie je nainštalovaná."</string>
+    <string name="activity_not_available" msgid="7456344436509528827">"Aplikácia nie je k dispozícii"</string>
     <string name="safemode_shortcut_error" msgid="9160126848219158407">"Stiahnutá aplikácia je v núdzovom režime zakázaná"</string>
+    <string name="safemode_widget_error" msgid="4863470563535682004">"Miniaplikácie sú v núdzovom režime zakázané"</string>
     <string name="widgets_tab_label" msgid="2921133187116603919">"Miniaplikácie"</string>
     <string name="widget_adder" msgid="3201040140710381657">"Miniaplikácie"</string>
     <string name="toggle_weight_watcher" msgid="5645299835184636119">"Zobraziť pamäť"</string>
     <string name="long_press_widget_to_add" msgid="7699152356777458215">"Miniaplikáciu pridáte stlačením a podržaním."</string>
-    <string name="market" msgid="2619650989819296998">"Obchod"</string>
     <string name="widget_dims_format" msgid="2370757736025621599">"%1$d × %2$d"</string>
     <string name="external_drop_widget_error" msgid="3165821058322217155">"Položku sa nepodarilo presunúť na túto plochu."</string>
     <string name="external_drop_widget_pick_title" msgid="3486317258037690630">"Zvoľte miniaplikáciu na vytvorenie"</string>
@@ -57,8 +58,6 @@
     <string name="delete_target_label" msgid="1822697352535677073">"Odstrániť"</string>
     <string name="delete_target_uninstall_label" msgid="5100785476250872595">"Odinštalovať"</string>
     <string name="info_target_label" msgid="8053346143994679532">"Informácie o aplikácii"</string>
-    <string name="accessibility_search_button" msgid="1628520399424565142">"Vyhľadať"</string>
-    <string name="accessibility_voice_search_button" msgid="4637324840434406584">"Hlasové vyhľadávanie"</string>
     <string name="accessibility_all_apps_button" msgid="2603132375383800483">"Aplikácie"</string>
     <string name="accessibility_delete_button" msgid="6466114477993744621">"Odstrániť"</string>
     <string name="delete_zone_label_all_apps_system_app" msgid="449755632749610895">"Odinštalovať aktualizáciu"</string>
@@ -86,7 +85,7 @@
     <string name="workspace_scroll_format" msgid="8458889198184077399">"Plocha %1$d z %2$d"</string>
     <string name="apps_customize_apps_scroll_format" msgid="370005296147130238">"Stránka aplikácií %1$d z %2$d"</string>
     <string name="apps_customize_widgets_scroll_format" msgid="3106209519974971521">"Stránka miniaplikácií %1$d z %2$d"</string>
-    <string name="first_run_cling_title" msgid="2459738000155917941">"Vitajte"</string>
+    <string name="first_run_cling_title" msgid="2459738000155917941">"Vitajte!"</string>
     <string name="first_run_cling_description" msgid="6447072552696253358">"Cíťte sa tu ako doma."</string>
     <string name="first_run_cling_custom_content_hint" msgid="6090628589029352439"></string>
     <string name="first_run_cling_search_bar_hint" msgid="5909062802402452582"></string>
@@ -94,7 +93,7 @@
     <string name="migration_cling_title" msgid="9181776667882933767">"Kopírovanie ikon aplikácií"</string>
     <string name="migration_cling_description" msgid="2752413805582227644">"Chcete importovať ikony a priečinky zo starých plôch?"</string>
     <string name="migration_cling_copy_apps" msgid="946331230090919440">"SKOPÍROVAŤ IKONY"</string>
-    <string name="migration_cling_use_default" msgid="2626475813981258626">"ZAČAŤ S PREDVOLENÝM ROZLOŽENÍM"</string>
+    <string name="migration_cling_use_default" msgid="2626475813981258626">"ZAČAŤ ODZNOVA"</string>
     <string name="workspace_cling_title" msgid="5626202359865825661">"Usporiadajte svoj priestor"</string>
     <string name="workspace_cling_move_item" msgid="528201129978005352">"Ak chcete spravovať tapetu, miniaplikácie a nastavenia, dotknite sa pozadia a podržte."</string>
     <string name="workspace_cling_longpress_title" msgid="9173998993909018310">"Pozadia, miniaplikácie a nastavenia"</string>

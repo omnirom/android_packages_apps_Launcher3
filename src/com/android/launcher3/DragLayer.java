@@ -38,12 +38,14 @@ import android.view.animation.Interpolator;
 import android.widget.FrameLayout;
 import android.widget.TextView;
 
+import com.android.launcher3.InsettableFrameLayout.LayoutParams;
+
 import java.util.ArrayList;
 
 /**
  * A ViewGroup that coordinates dragging across its descendants
  */
-public class DragLayer extends FrameLayout implements ViewGroup.OnHierarchyChangeListener {
+public class DragLayer extends InsettableFrameLayout {
     private DragController mDragController;
     private int[] mTmpXY = new int[2];
 
@@ -71,8 +73,6 @@ public class DragLayer extends FrameLayout implements ViewGroup.OnHierarchyChang
 
     private TouchCompleteListener mTouchCompleteListener;
 
-    private final Rect mInsets = new Rect();
-
     private View mOverlayView;
     private int mTopViewIndex;
     private int mChildCountOnLastUpdate = -1;
@@ -89,6 +89,8 @@ public class DragLayer extends FrameLayout implements ViewGroup.OnHierarchyChang
     private Drawable mLeftHoverDrawableActive;
     private Drawable mRightHoverDrawableActive;
 
+    private boolean mBlockTouches = false;
+
     /**
      * Used to create a new DragLayer from XML.
      *
@@ -101,7 +103,6 @@ public class DragLayer extends FrameLayout implements ViewGroup.OnHierarchyChang
         // Disable multitouch across the workspace/all apps/customize tray
         setMotionEventSplittingEnabled(false);
         setChildrenDrawingOrderEnabled(true);
-        setOnHierarchyChangeListener(this);
 
         final Resources res = getResources();
         mLeftHoverDrawable = res.getDrawable(R.drawable.page_hover_left);
@@ -121,27 +122,6 @@ public class DragLayer extends FrameLayout implements ViewGroup.OnHierarchyChang
         return mDragController.dispatchKeyEvent(event) || super.dispatchKeyEvent(event);
     }
 
-    @Override
-    protected boolean fitSystemWindows(Rect insets) {
-        final int n = getChildCount();
-        for (int i = 0; i < n; i++) {
-            final View child = getChildAt(i);
-            setInsets(child, insets, mInsets);
-        }
-        mInsets.set(insets);
-        return true; // I'll take it from here
-    }
-
-    Rect getInsets() {
-        return mInsets;
-    }
-
-    @Override
-    public void addView(View child, int index, android.view.ViewGroup.LayoutParams params) {
-        super.addView(child, index, params);
-        setInsets(child, mInsets, new Rect());
-    }
-
     public void showOverlayView(View overlayView) {
         LayoutParams lp = new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
         mOverlayView = overlayView;
@@ -154,19 +134,6 @@ public class DragLayer extends FrameLayout implements ViewGroup.OnHierarchyChang
 
     public void dismissOverlayView() {
         removeView(mOverlayView);
-    }
-
-    private void setInsets(View child, Rect newInsets, Rect oldInsets) {
-        final FrameLayout.LayoutParams flp = (FrameLayout.LayoutParams) child.getLayoutParams();
-        if (child instanceof Insettable) {
-            ((Insettable) child).setInsets(newInsets);
-        } else {
-            flp.topMargin += (newInsets.top - oldInsets.top);
-            flp.leftMargin += (newInsets.left - oldInsets.left);
-            flp.rightMargin += (newInsets.right - oldInsets.right);
-            flp.bottomMargin += (newInsets.bottom - oldInsets.bottom);
-        }
-        child.setLayoutParams(flp);
     }
 
     private boolean isEventOverFolderTextRegion(Folder folder, MotionEvent ev) {
@@ -185,10 +152,18 @@ public class DragLayer extends FrameLayout implements ViewGroup.OnHierarchyChang
         return false;
     }
 
+    public void setBlockTouch(boolean block) {
+        mBlockTouches = block;
+    }
+
     private boolean handleTouchDown(MotionEvent ev, boolean intercept) {
         Rect hitRect = new Rect();
         int x = (int) ev.getX();
         int y = (int) ev.getY();
+
+        if (mBlockTouches) {
+            return true;
+        }
 
         for (AppWidgetResizeFrame child: mResizeFrames) {
             child.getHitRect(hitRect);
@@ -332,6 +307,10 @@ public class DragLayer extends FrameLayout implements ViewGroup.OnHierarchyChang
         int x = (int) ev.getX();
         int y = (int) ev.getY();
 
+        if (mBlockTouches) {
+            return true;
+        }
+
         if (action == MotionEvent.ACTION_DOWN) {
             if (handleTouchDown(ev, false)) {
                 return true;
@@ -433,15 +412,41 @@ public class DragLayer extends FrameLayout implements ViewGroup.OnHierarchyChang
         return mDragController.dispatchUnhandledMove(focused, direction);
     }
 
-    public static class LayoutParams extends FrameLayout.LayoutParams {
+    @Override
+    public LayoutParams generateLayoutParams(AttributeSet attrs) {
+        return new LayoutParams(getContext(), attrs);
+    }
+
+    @Override
+    protected LayoutParams generateDefaultLayoutParams() {
+        return new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
+    }
+
+    // Override to allow type-checking of LayoutParams.
+    @Override
+    protected boolean checkLayoutParams(ViewGroup.LayoutParams p) {
+        return p instanceof LayoutParams;
+    }
+
+    @Override
+    protected LayoutParams generateLayoutParams(ViewGroup.LayoutParams p) {
+        return new LayoutParams(p);
+    }
+
+    public static class LayoutParams extends InsettableFrameLayout.LayoutParams {
         public int x, y;
         public boolean customPosition = false;
 
-        /**
-         * {@inheritDoc}
-         */
+        public LayoutParams(Context c, AttributeSet attrs) {
+            super(c, attrs);
+        }
+
         public LayoutParams(int width, int height) {
             super(width, height);
+        }
+
+        public LayoutParams(ViewGroup.LayoutParams lp) {
+            super(lp);
         }
 
         public void setWidth(int width) {
@@ -801,6 +806,7 @@ public class DragLayer extends FrameLayout implements ViewGroup.OnHierarchyChang
 
     @Override
     public void onChildViewAdded(View parent, View child) {
+        super.onChildViewAdded(parent, child);
         if (mOverlayView != null) {
             // ensure that the overlay view stays on top. we can't use drawing order for this
             // because in API level 16 touch dispatch doesn't respect drawing order.

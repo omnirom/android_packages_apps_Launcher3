@@ -40,7 +40,7 @@ import android.widget.TextView;
  */
 public class BubbleTextView extends TextView {
 
-    private static SparseArray<Theme> sPreloaderThemes = new SparseArray<>(2);
+    private static SparseArray<Theme> sPreloaderThemes = new SparseArray<Theme>(2);
 
     private static final float SHADOW_LARGE_RADIUS = 4.0f;
     private static final float SHADOW_SMALL_RADIUS = 1.75f;
@@ -122,7 +122,7 @@ public class BubbleTextView extends TextView {
         LauncherAppState app = LauncherAppState.getInstance();
 
         FastBitmapDrawable iconDrawable = Utilities.createIconDrawable(b);
-        iconDrawable.setGhostModeEnabled(info.isDisabled);
+        iconDrawable.setGhostModeEnabled(info.isDisabled != 0);
 
         setCompoundDrawables(null, iconDrawable, null, null);
         if (setDefaultPadding) {

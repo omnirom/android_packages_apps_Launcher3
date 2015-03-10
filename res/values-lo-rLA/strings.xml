@@ -24,19 +24,20 @@
     <string name="uid_name" msgid="7820867637514617527">"ແອັບພລິເຄຊັນຫຼັກຂອງ Android"</string>
     <string name="folder_name" msgid="7371454440695724752"></string>
     <string name="activity_not_found" msgid="8071924732094499514">"ແອັບຯບໍ່ໄດ້ຖືກຕິດຕັ້ງ."</string>
+    <string name="activity_not_available" msgid="7456344436509528827">"ແອັບຯ​ໃຊ້​ບໍ່​ໄດ້"</string>
     <string name="safemode_shortcut_error" msgid="9160126848219158407">"ແອັບຯ​ທີ່​ດາວ​ໂຫລດ​ແລ້ວ​ຖືກ​ປິດ​ການ​ນຳ​ໃຊ້​ໃນ Safe mode"</string>
+    <string name="safemode_widget_error" msgid="4863470563535682004">"​ວິດ​ເຈັດ​ຖືກ​ປິດ​ໃນ Safe mode"</string>
     <string name="widgets_tab_label" msgid="2921133187116603919">"ວິດເຈັດ"</string>
     <string name="widget_adder" msgid="3201040140710381657">"ວິດເຈັດ"</string>
     <string name="toggle_weight_watcher" msgid="5645299835184636119">"ສະແດງຄວາມຈຳ"</string>
     <string name="long_press_widget_to_add" msgid="7699152356777458215">"ສຳພັດຄ້າງໄວ້ ເພື່ອຈັບວິດເຈັດ."</string>
-    <string name="market" msgid="2619650989819296998">"ຮ້ານຄ້າ"</string>
     <string name="widget_dims_format" msgid="2370757736025621599">"%1$d × %2$d"</string>
     <string name="external_drop_widget_error" msgid="3165821058322217155">"ບໍ່ສາມາດວາງລາຍການໃສ່ໜ້າຈໍຫຼັກນີ້ໄດ້"</string>
     <string name="external_drop_widget_pick_title" msgid="3486317258037690630">"ເລືອກວິດເຈັດເພື່ອສ້າງມັນ"</string>
     <string name="rename_folder_label" msgid="3727762225964550653">"ຊື່ໂຟນເດີ"</string>
     <string name="rename_folder_title" msgid="3771389277707820891">"ປ່ຽນຊື່ໂຟນເດີ"</string>
     <string name="rename_action" msgid="5559600076028658757">"ຕົກລົງ"</string>
-    <string name="cancel_action" msgid="7009134900002915310">"ຍົກ​ເລີກ​"</string>
+    <string name="cancel_action" msgid="7009134900002915310">"ຍົກ​ເລີກ"</string>
     <string name="menu_item_add_item" msgid="1264911265836810421">"ເພີ່ມໃສ່ໜ້າຈໍຫຼັກ"</string>
     <string name="group_applications" msgid="3797214114206693605">"ແອັບຯ"</string>
     <string name="group_shortcuts" msgid="6012256992764410535">"ທາງລັດ"</string>
@@ -57,8 +58,6 @@
     <string name="delete_target_label" msgid="1822697352535677073">"ລຶບ"</string>
     <string name="delete_target_uninstall_label" msgid="5100785476250872595">"ຖອນ​ການ​ຕິດ​ຕັ້ງ"</string>
     <string name="info_target_label" msgid="8053346143994679532">"ຂໍ້ມູນແອັບຯ"</string>
-    <string name="accessibility_search_button" msgid="1628520399424565142">"ຊອກຫາ"</string>
-    <string name="accessibility_voice_search_button" msgid="4637324840434406584">"ຊອກຫາດ້ວຍສຽງ"</string>
     <string name="accessibility_all_apps_button" msgid="2603132375383800483">"ແອັບຯ"</string>
     <string name="accessibility_delete_button" msgid="6466114477993744621">"ລຶບ"</string>
     <string name="delete_zone_label_all_apps_system_app" msgid="449755632749610895">"ຖອນອັບເດດ"</string>
@@ -118,7 +117,7 @@
     <string name="package_state_unknown" msgid="7592128424511031410">"​ບໍ່​ຮູ້​ຈັກ"</string>
     <string name="package_state_error" msgid="7672093962724223588">"ບໍ່​ໄດ້​ກູ້​ຂໍ້ມູນ​ມາ​ເທື່ອ"</string>
     <string name="abandoned_clean_all" msgid="5256770727689657618">"ລຶບ​ທັງ​ໝົດ"</string>
-    <string name="abandoned_clean_this" msgid="7610119707847920412">"ລຶບ​"</string>
+    <string name="abandoned_clean_this" msgid="7610119707847920412">"ລຶບ"</string>
     <string name="abandoned_search" msgid="891119232568284442">"ຊອກຫາ"</string>
     <string name="abandoned_promises_title" msgid="7096178467971716750">"ແອັບຯ​ນີ້​ຍັງ​ບໍ່​ໄດ້​ຕິດ​ຕັ້ງ​ເທື່ອ"</string>
     <string name="abandoned_promise_explanation" msgid="3990027586878167529">"​ແອັບຯ​ສຳ​ລັບ​ໄອ​ຄອນ​ນີ້​ຍັງ​ບໍ່ໄດ້​ຕິດ​ຕັ້ງ​ເທື່ອ. ທ່ານ​ສາ​ມາດ​ລຶບ​ມັນ​ອອກ ຫຼື​ຊອກ​ຫາ​ແອັບຯ ແລ້ວ​ຕິດ​ຕັ້ງ​ມັນ​ໄດ້​ດ້ວຍ​ຕົນ​ເອງ."</string>

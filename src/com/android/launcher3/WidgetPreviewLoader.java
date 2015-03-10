@@ -12,6 +12,7 @@ import android.database.sqlite.SQLiteCantOpenDatabaseException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteDiskIOException;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.database.sqlite.SQLiteReadOnlyDatabaseException;
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.Config;
 import android.graphics.BitmapFactory;
@@ -26,8 +27,8 @@ import android.graphics.Shader;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.util.Log;
-
 import com.android.launcher3.compat.AppWidgetManagerCompat;
 
 import java.io.ByteArrayOutputStream;
@@ -130,8 +131,8 @@ public class WidgetPreviewLoader {
     private final PaintCache mDefaultAppWidgetPreviewPaint = new PaintCache();
     private final BitmapFactoryOptionsCache mCachedBitmapFactoryOptions = new BitmapFactoryOptionsCache();
 
-    private final HashMap<String, WeakReference<Bitmap>> mLoadedPreviews = new HashMap<>();
-    private final ArrayList<SoftReference<Bitmap>> mUnusedBitmaps = new ArrayList<>();
+    private final HashMap<String, WeakReference<Bitmap>> mLoadedPreviews = new HashMap<String, WeakReference<Bitmap>>();
+    private final ArrayList<SoftReference<Bitmap>> mUnusedBitmaps = new ArrayList<SoftReference<Bitmap>>();
 
     private final Context mContext;
     private final int mAppIconSize;
@@ -165,14 +166,24 @@ public class WidgetPreviewLoader {
                 LauncherAppState.getSharedPreferencesKey(), Context.MODE_PRIVATE);
         final String lastVersionName = sp.getString(ANDROID_INCREMENTAL_VERSION_NAME_KEY, null);
         final String versionName = android.os.Build.VERSION.INCREMENTAL;
+        final boolean isLollipopOrGreater = Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP;
         if (!versionName.equals(lastVersionName)) {
-            // clear all the previews whenever the system version changes, to ensure that previews
-            // are up-to-date for any apps that might have been updated with the system
-            clearDb();
-
-            SharedPreferences.Editor editor = sp.edit();
-            editor.putString(ANDROID_INCREMENTAL_VERSION_NAME_KEY, versionName);
-            editor.commit();
+            try {
+                // clear all the previews whenever the system version changes, to ensure that
+                // previews are up-to-date for any apps that might have been updated with the system
+                clearDb();
+            } catch (SQLiteReadOnlyDatabaseException e) {
+                if (isLollipopOrGreater) {
+                    // Workaround for Bug. 18554839, if we fail to clear the db due to the read-only
+                    // issue, then ignore this error and leave the old previews
+                } else {
+                    throw e;
+                }
+            } finally {
+                SharedPreferences.Editor editor = sp.edit();
+                editor.putString(ANDROID_INCREMENTAL_VERSION_NAME_KEY, versionName);
+                editor.commit();
+            }
         }
     }
 
@@ -287,7 +298,6 @@ public class WidgetPreviewLoader {
 
     static class CacheDb extends SQLiteOpenHelper {
         final static int DB_VERSION = 2;
-        final static String DB_NAME = "widgetpreviews.db";
         final static String TABLE_NAME = "shortcut_and_widget_previews";
         final static String COLUMN_NAME = "name";
         final static String COLUMN_SIZE = "size";
@@ -295,7 +305,8 @@ public class WidgetPreviewLoader {
         Context mContext;
 
         public CacheDb(Context context) {
-            super(context, new File(context.getCacheDir(), DB_NAME).getPath(), null, DB_VERSION);
+            super(context, new File(context.getCacheDir(),
+                    LauncherFiles.WIDGET_PREVIEWS_DB).getPath(), null, DB_VERSION);
             // Store the context for later use
             mContext = context;
         }
@@ -638,7 +649,7 @@ public class WidgetPreviewLoader {
             c.setBitmap(null);
         }
         // Render the icon
-        Drawable icon = mutateOnMainThread(mIconCache.getFullResIcon(info));
+        Drawable icon = mutateOnMainThread(mIconCache.getFullResIcon(info.activityInfo));
 
         int paddingTop = mContext.
                 getResources().getDimensionPixelOffset(R.dimen.shortcut_preview_padding_top);
