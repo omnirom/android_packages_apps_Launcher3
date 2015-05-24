@@ -458,7 +458,7 @@ public class DeviceProfile {
             searchBarSpaceHeightPx = searchBarHeightPx + 2 * edgeMarginPx;
         }
         else {
-            searchBarSpaceHeightPx = 2 * edgeMarginPx;
+            searchBarSpaceHeightPx = 1 * edgeMarginPx;
         }
     }
 
