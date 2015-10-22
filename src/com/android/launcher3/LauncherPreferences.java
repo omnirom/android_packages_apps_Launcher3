@@ -24,28 +24,25 @@ public final class LauncherPreferences {
                 addPreferencesFromResource(R.xml.preferences );
 
                 SharedPreferences prefs = getPreferenceManager().getSharedPreferences();
+                InvariantDeviceProfile prof = LauncherAppState.getInstance().getInvariantDeviceProfile();
 
-                DynamicGrid grid = LauncherAppState.getInstance().getDynamicGrid();
-
-                if(grid != null) {
+                if(prof != null) {
                         // initialize default values from current Profile
-                        DeviceProfile prof = grid.getDeviceProfile();
-
                         SharedPreferences.Editor editor = prefs.edit();
 
                         if(prefs.getInt(KEY_WORKSPACE_ROWS, 0) < 1) {
-                                Log.i(TAG,"Loading r default value from: "+grid.toString());
-                                editor.putInt(KEY_WORKSPACE_ROWS, (int)prof.numRows);
+                                Log.i(TAG,"Loading r default value: "+prof.numRows);
+                                editor.putInt(KEY_WORKSPACE_ROWS, prof.numRows);
                         }
                         if(prefs.getInt(KEY_WORKSPACE_COLS, 0) < 1) {
-                                Log.i(TAG,"Loading c default value from: "+grid.toString());
-                                editor.putInt(KEY_WORKSPACE_COLS, (int)prof.numColumns);
+                                Log.i(TAG,"Loading c default value: "+prof.numColumns);
+                                editor.putInt(KEY_WORKSPACE_COLS, prof.numColumns);
                         }
 
                         editor.apply();
                 }
                 else {
-                        Log.w(TAG, "No DynamicGrid to get default values!");
+                        Log.w(TAG, "No DeviceProfile to get default values!");
             }
             }
         }
