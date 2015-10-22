@@ -106,7 +106,6 @@ public class DeviceProfile {
 
         this.inv = inv;
         this.isLandscape = isLandscape;
->>>>>>> android-6.0.0_r1
 
         Resources res = context.getResources();
         DisplayMetrics dm = res.getDisplayMetrics();
