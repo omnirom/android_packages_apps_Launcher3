@@ -18,6 +18,7 @@ package com.android.launcher3;
 
 import android.app.SearchManager;
 import android.content.ComponentName;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -41,6 +42,9 @@ import com.android.launcher3.util.Thunk;
 import java.lang.ref.WeakReference;
 
 public class LauncherAppState {
+    private static final String TAG = "LauncherAppState";
+
+    private static final boolean DEBUG = false;
 
     private final AppFilter mAppFilter;
     private final BuildInfo mBuildInfo;
@@ -146,6 +150,19 @@ public class LauncherAppState {
         mModel.startLoaderFromBackground();
     }
 
+    /**
+     * Receives notifications whenever the user favorites have changed.
+     */
+    private final ContentObserver mFavoritesObserver = new ContentObserver(new Handler()) {
+        @Override
+        public void onChange(boolean selfChange) {
+            // If the database has ever changed, then we really need to force a reload of the
+            // workspace on the next load
+            mModel.resetLoadedState(false, true);
+            mModel.startLoaderFromBackground();
+        }
+    };
+
     private final OnSharedPreferenceChangeListener mSharedPreferencesObserver = new OnSharedPreferenceChangeListener() {
 
         @Override
@@ -153,8 +170,8 @@ public class LauncherAppState {
                 String key) {
 
             if (LauncherPreferences.isLauncherPreference(key)) {
-                Log.i(TAG, "Preference " + key + " changed - updating DynamicGrid.");
-                mDynamicGrid.getDeviceProfile().updateFromPreferences(
+                Log.i(TAG, "Preference " + key + " changed - updating Profile.");
+                getInstance().getInvariantDeviceProfile().updateFromPreferences(
                         PreferenceManager.getDefaultSharedPreferences(sContext));
             }
         }

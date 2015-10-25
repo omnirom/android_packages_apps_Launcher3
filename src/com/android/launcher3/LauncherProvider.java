@@ -82,6 +82,15 @@ public class LauncherProvider extends ContentProvider {
     private static final String RESTRICTION_PACKAGE_NAME = "workspace.configuration.package.name";
 
     @Thunk LauncherProviderChangeListener mListener;
+
+    /**
+     * {@link Uri} triggered at any registered {@link android.database.ContentObserver} when
+     * {@link AppWidgetHost#deleteHost()} is called during database creation.
+     * Use this to recall {@link AppWidgetHost#startListening()} if needed.
+     */
+    static final Uri CONTENT_APPWIDGET_RESET_URI =
+            Uri.parse("content://" + AUTHORITY + "/appWidgetReset");
+
     @Thunk DatabaseHelper mOpenHelper;
 
     @Override

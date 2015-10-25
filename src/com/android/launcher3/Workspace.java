@@ -1956,6 +1956,41 @@ public class Workspace extends PagedView
         return mState == State.OVERVIEW;
     }
 
+    public boolean enterOverviewMode() {
+        if (mTouchState != TOUCH_STATE_REST) {
+            return false;
+        }
+        enableOverviewMode(true, -1, true);
+        return true;
+    }
+
+    public void exitOverviewMode(boolean animated) {
+        exitOverviewMode(-1, animated);
+    }
+
+    public void exitOverviewMode(int snapPage, boolean animated) {
+        enableOverviewMode(false, snapPage, animated);
+    }
+
+    private void enableOverviewMode(boolean enable, int snapPage, boolean animated) {
+        State finalState = Workspace.State.OVERVIEW;
+        if (!enable) {
+            finalState = Workspace.State.NORMAL;
+        }
+
+        /*Animator workspaceAnim = getChangeStateAnimation(finalState, animated, 0, snapPage);
+        if (workspaceAnim != null) {
+            onTransitionPrepare();
+            workspaceAnim.addListener(new AnimatorListenerAdapter() {
+                @Override
+                public void onAnimationEnd(Animator arg0) {
+                    onTransitionEnd();
+                }
+            });
+            workspaceAnim.start();
+        }*/
+    }
+
     int getOverviewModeTranslationY() {
         DeviceProfile grid = mLauncher.getDeviceProfile();
         Rect overviewBar = grid.getOverviewModeButtonBarRect();
