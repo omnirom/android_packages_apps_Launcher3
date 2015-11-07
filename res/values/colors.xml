@@ -48,9 +48,18 @@
     <color name="container_fastscroll_thumb_inactive_color">#009688</color>
     <color name="container_fastscroll_thumb_active_color">#009688</color>
 
+    <!-- Options -->
+    <color name="ic_setting_icon_color">#FFFFFFFF</color>
+    <color name="ic_wallpaper_icon_color">#FFFFFFFF</color>
+    <color name="ic_widget_icon_color">#FFFFFFFF</color>
+
     <!-- All Apps -->
     <color name="all_apps_grid_section_text_color">#009688</color>
     <color name="all_apps_search_market_button_focused_bg_color">#DDDDDD</color>
+    <color name="ic_allapps_icon_color">#FFFFFFFF</color>
+    <color name="search_text_color">#4c4c4c</color>
+    <color name="ic_search_icon_color">#818181</color>
+    <color name="ic_arrow_icon_color">#818181</color>
 
     <!-- Widgets view -->
     <color name="widgets_view_section_text_color">#FFFFFF</color>
