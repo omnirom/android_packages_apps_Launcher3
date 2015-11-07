@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Copyright (C) 2011 The Android Open Source Project
+<!--
+     Copyright (C) 2015 The Android Open Source Project
 
      Licensed under the Apache License, Version 2.0 (the "License");
      you may not use this file except in compliance with the License.
@@ -14,8 +15,6 @@
      limitations under the License.
 -->
 
-<selector xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:state_focused="true" android:drawable="@drawable/ic_allapps_pressed_icon" />
-    <item android:state_pressed="true" android:drawable="@drawable/ic_allapps_pressed_icon" />
-    <item android:drawable="@drawable/ic_allapps_icon" />
-</selector>
+<bitmap xmlns:android="http://schemas.android.com/apk/res/android"
+    android:src="@drawable/ic_widget_pressed"
+    android:tint="@color/ic_widget_icon_color" />
