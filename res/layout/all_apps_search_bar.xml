@@ -36,7 +36,7 @@
             android:layout_marginLeft="16dp"
             android:layout_marginStart="16dp"
             android:contentDescription="@string/all_apps_button_label"
-            android:src="@drawable/ic_arrow_back_grey" />
+            android:src="@drawable/ic_arrow_icon" />
 
         <com.android.launcher3.ExtendedEditText
             android:id="@+id/search_box_input"
@@ -52,7 +52,7 @@
             android:paddingLeft="8dp"
             android:scrollHorizontally="true"
             android:singleLine="true"
-            android:textColor="#4c4c4c"
+            android:textColor="@color/search_text_color"
             android:textColorHint="#9c9c9c"
             android:textSize="16sp" />
     </LinearLayout>
@@ -65,5 +65,5 @@
         android:layout_marginEnd="16dp"
         android:layout_marginRight="16dp"
         android:contentDescription="@string/all_apps_search_bar_hint"
-        android:src="@drawable/ic_search_grey" />
+        android:src="@drawable/ic_search_icon" />
 </FrameLayout>
