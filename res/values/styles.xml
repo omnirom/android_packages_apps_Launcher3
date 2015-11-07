@@ -98,7 +98,7 @@
     </style>
 
     <!-- Launcher Settings -->
-    <style name="LauncherTheme" parent="@android:style/Theme.Material.Light.DarkActionBar">
+    <style name="LauncherTheme" parent="@android:style/Theme.Material.DayNight.DarkActionBar">
         <item name="android:windowContentOverlay">@null</item>
         <item name="android:colorPrimary">@color/primary</item>
         <item name="android:colorPrimaryDark">@color/primary_dark</item>
