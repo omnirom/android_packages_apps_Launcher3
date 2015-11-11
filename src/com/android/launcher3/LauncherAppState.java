@@ -17,7 +17,6 @@
 package com.android.launcher3;
 
 import android.app.SearchManager;
-<<<<<<< HEAD
 import android.content.ComponentName;
 import android.content.ContentResolver;
 import android.content.Context;
@@ -31,13 +30,8 @@ import android.database.ContentObserver;
 import android.graphics.Point;
 import android.os.Build;
 import android.os.Handler;
-import android.util.DisplayMetrics;
-=======
-import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
 import android.os.UserManager;
->>>>>>> android-6.0.0_r26
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.preference.PreferenceManager;
 
@@ -123,7 +117,7 @@ public class LauncherAppState {
         filter.addAction(LauncherAppsCompat.ACTION_MANAGED_PROFILE_REMOVED);
 
         sContext.registerReceiver(mModel, filter);
-<<<<<<< HEAD
+        UserManagerCompat.getInstance(sContext).enableAndResetCache();
 
         // Register for changes to the favorites
         ContentResolver resolver = sContext.getContentResolver();
@@ -132,9 +126,6 @@ public class LauncherAppState {
 
         PreferenceManager.getDefaultSharedPreferences(sContext)
                 .registerOnSharedPreferenceChangeListener(mSharedPreferencesObserver);
-=======
-        UserManagerCompat.getInstance(sContext).enableAndResetCache();
->>>>>>> android-6.0.0_r26
     }
 
     /**
