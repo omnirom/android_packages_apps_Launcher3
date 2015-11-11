@@ -324,21 +324,12 @@ public class Workspace extends PagedView
 
         TypedArray a = context.obtainStyledAttributes(attrs,
                 R.styleable.Workspace, defStyle, 0);
-        mSpringLoadedShrinkFactor =
-<<<<<<< HEAD
             res.getInteger(R.integer.config_workspaceSpringLoadShrinkPercentage) / 100.0f;
         mOverviewModeShrinkFactor = grid.getOverviewModeScale(mIsRtl);
         mOriginalDefaultPage = mDefaultPage =
                 PreferenceManager.getDefaultSharedPreferences(context)
                         .getInt(LauncherPreferences.KEY_WORKSPACE_DEFAULT_PAGE,
                                 a.getInt(R.styleable.Workspace_defaultScreen, 0));
-
-=======
-                res.getInteger(R.integer.config_workspaceSpringLoadShrinkPercentage) / 100.0f;
-        mOverviewModeShrinkFactor =
-                res.getInteger(R.integer.config_workspaceOverviewShrinkPercentage) / 100f;
-        mOriginalDefaultPage = mDefaultPage = a.getInt(R.styleable.Workspace_defaultScreen, 1);
->>>>>>> android-6.0.0_r26
         a.recycle();
 
         setOnHierarchyChangeListener(this);
