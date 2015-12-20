@@ -294,18 +294,6 @@ public class InvariantDeviceProfile {
         return this;
     }
 
-    void updateFromPreferences(SharedPreferences prefs) {
-        int prefNumColumns = prefs.getInt(LauncherPreferences.KEY_WORKSPACE_COLS, 0);
-        if(prefNumColumns > 0) {
-            numColumns = prefNumColumns;
-        }
-
-        int prefNumRows = prefs.getInt(LauncherPreferences.KEY_WORKSPACE_ROWS, 0);
-        if(prefNumRows > 0) {
-            numRows = prefNumRows;
-        }
-    }
-
     private float weight(float x0, float y0, float x1, float y1, float pow) {
         float d = dist(x0, y0, x1, y1);
         if (Float.compare(d, 0f) == 0) {

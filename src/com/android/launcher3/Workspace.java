@@ -328,10 +328,7 @@ public class Workspace extends PagedView
                 res.getInteger(R.integer.config_workspaceSpringLoadShrinkPercentage) / 100.0f;
         mOverviewModeShrinkFactor =
                 res.getInteger(R.integer.config_workspaceOverviewShrinkPercentage) / 100f;
-        mOriginalDefaultPage = mDefaultPage =
-                PreferenceManager.getDefaultSharedPreferences(context)
-                        .getInt(LauncherPreferences.KEY_WORKSPACE_DEFAULT_PAGE,
-                                a.getInt(R.styleable.Workspace_defaultScreen, 0));
+        mOriginalDefaultPage = mDefaultPage = a.getInt(R.styleable.Workspace_defaultScreen, 0);
         a.recycle();
 
         setOnHierarchyChangeListener(this);

@@ -123,9 +123,6 @@ public class LauncherAppState {
         ContentResolver resolver = sContext.getContentResolver();
         resolver.registerContentObserver(LauncherSettings.Favorites.CONTENT_URI, true,
                 mFavoritesObserver);
-
-        PreferenceManager.getDefaultSharedPreferences(sContext)
-                .registerOnSharedPreferenceChangeListener(mSharedPreferencesObserver);
     }
 
     /**
@@ -136,9 +133,6 @@ public class LauncherAppState {
         final LauncherAppsCompat launcherApps = LauncherAppsCompat.getInstance(sContext);
         launcherApps.removeOnAppsChangedCallback(mModel);
         PackageInstallerCompat.getInstance(sContext).onStop();
-        PreferenceManager.getDefaultSharedPreferences(sContext)
-                .unregisterOnSharedPreferenceChangeListener(mSharedPreferencesObserver);
-
         ContentResolver resolver = sContext.getContentResolver();
         resolver.unregisterContentObserver(mFavoritesObserver);
     }
@@ -162,20 +156,6 @@ public class LauncherAppState {
             // workspace on the next load
             mModel.resetLoadedState(false, true);
             mModel.startLoaderFromBackground();
-        }
-    };
-
-    private final OnSharedPreferenceChangeListener mSharedPreferencesObserver = new OnSharedPreferenceChangeListener() {
-
-        @Override
-        public void onSharedPreferenceChanged(SharedPreferences sharedPreferences,
-                String key) {
-
-            if (LauncherPreferences.isLauncherPreference(key)) {
-                Log.i(TAG, "Preference " + key + " changed - updating Profile.");
-                getInstance().getInvariantDeviceProfile().updateFromPreferences(
-                        PreferenceManager.getDefaultSharedPreferences(sContext));
-            }
         }
     };
 

@@ -470,9 +470,6 @@ public class Launcher extends Activity
         setupViews();
         mDeviceProfile.layout(this);
 
-        PreferenceManager.getDefaultSharedPreferences(this)
-                .registerOnSharedPreferenceChangeListener(mSharedPreferencesObserver);
-
         registerContentObservers();
 
         lockAllApps();
@@ -1214,14 +1211,6 @@ public class Launcher extends Activity
             // On devices with a locked orientation, we will at least have the allow rotation
             // setting.
             return !Utilities.isRotationAllowedForDevice(this);
-        }
-    }
-
-    protected void startSettings() {
-        Intent i = new Intent(this, LauncherPreferencesActivity.class);
-        startActivity(i);
-        if (mWorkspace.isInOverviewMode()) {
-            mWorkspace.exitOverviewMode(false);
         }
     }
 
@@ -1998,27 +1987,9 @@ public class Launcher extends Activity
         }
     }
 
-
-    private final OnSharedPreferenceChangeListener mSharedPreferencesObserver = new OnSharedPreferenceChangeListener() {
-        @Override
-        public void onSharedPreferenceChanged(SharedPreferences sharedPreferences,
-                String key) {
-
-            if(LauncherPreferences.isLauncherPreference(key)) {
-                if(!isFinishing()) {
-                    Launcher.this.
-                    recreate();
-                }
-            }
-        }
-    };
-
     @Override
     public void onDestroy() {
         super.onDestroy();
-
-        PreferenceManager.getDefaultSharedPreferences(this)
-                .unregisterOnSharedPreferenceChangeListener(mSharedPreferencesObserver);
 
         // Remove all pending runnables
         mHandler.removeMessages(ADVANCE_MSG);
@@ -2811,7 +2782,6 @@ public class Launcher extends Activity
         } else {
             startActivity(new Intent(this, SettingsActivity.class));
         }
-        startSettings();
     }
 
     public View.OnTouchListener getHapticFeedbackTouchListener() {
