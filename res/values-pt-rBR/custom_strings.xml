@@ -3,4 +3,9 @@
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
   <!-- Folder titles -->
   <!-- Preferences -->
+  <string name="pref_workspace_title">Configurações da área de trabalho</string>
+  <string name="pref_title_workspace_rows">Linhas</string>
+  <string name="pref_title_workspace_cols">Colunas</string>
+  <string name="pref_title_default_workspace">Tela padrão</string>
+  <string name="pref_title_show_search_bar">Exibir barra de pesquisa</string>
 </resources>
