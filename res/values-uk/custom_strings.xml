@@ -3,4 +3,9 @@
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
   <!-- Folder titles -->
   <!-- Preferences -->
+  <string name="pref_workspace_title">Налаштування домашнього екрану</string>
+  <string name="pref_title_workspace_rows">Рядки</string>
+  <string name="pref_title_workspace_cols">Колонки</string>
+  <string name="pref_title_default_workspace">Типовий екран</string>
+  <string name="pref_title_show_search_bar">Показати панель пошуку</string>
 </resources>
