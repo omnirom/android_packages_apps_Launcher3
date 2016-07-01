@@ -3,4 +3,9 @@
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
   <!-- Folder titles -->
   <!-- Preferences -->
+  <string name="pref_workspace_title">Çalışma alanı ayarları</string>
+  <string name="pref_title_workspace_rows">Satırlar</string>
+  <string name="pref_title_workspace_cols">Sütunlar</string>
+  <string name="pref_title_default_workspace">Varsayılan Ekran</string>
+  <string name="pref_title_show_search_bar">Arama Çubuğunu Göster</string>
 </resources>
