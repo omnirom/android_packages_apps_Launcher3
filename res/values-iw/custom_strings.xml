@@ -3,4 +3,9 @@
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
   <!-- Folder titles -->
   <!-- Preferences -->
+  <string name="pref_workspace_title">הגדרות סביבת עבודה</string>
+  <string name="pref_title_workspace_rows">שורות</string>
+  <string name="pref_title_workspace_cols">טורים</string>
+  <string name="pref_title_default_workspace">מסך ברירת מחדל</string>
+  <string name="pref_title_show_search_bar">הראה את בר החיפוש</string>
 </resources>
