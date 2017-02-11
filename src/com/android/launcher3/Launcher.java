@@ -287,6 +287,9 @@ public class Launcher extends BaseDraggingActivity implements LauncherExterns,
     private DeviceProfile mStableDeviceProfile;
     private RotationMode mRotationMode = RotationMode.NORMAL;
 
+    private LauncherTab mLauncherTab;
+    private boolean mLauncherTabEnabled;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         RaceConditionTracker.onEvent(ON_CREATE_EVT, ENTER);
@@ -379,6 +382,9 @@ public class Launcher extends BaseDraggingActivity implements LauncherExterns,
 
         getSystemUiController().updateUiState(SystemUiController.UI_STATE_BASE_WINDOW,
                 Themes.getAttrBoolean(this, R.attr.isWorkspaceDarkText));
+
+        mLauncherTabEnabled = isLauncherTabEnabled();
+        mLauncherTab = new LauncherTab(this, mLauncherTabEnabled);
 
         if (mLauncherCallbacks != null) {
             mLauncherCallbacks.onCreate(savedInstanceState);
@@ -872,6 +878,10 @@ public class Launcher extends BaseDraggingActivity implements LauncherExterns,
     protected void onStop() {
         super.onStop();
 
+        if (mLauncherTabEnabled) {
+            mLauncherTab.getClient().onStop();
+        }
+
         if (mLauncherCallbacks != null) {
             mLauncherCallbacks.onStop();
         }
@@ -892,6 +902,10 @@ public class Launcher extends BaseDraggingActivity implements LauncherExterns,
     protected void onStart() {
         RaceConditionTracker.onEvent(ON_START_EVT, ENTER);
         super.onStart();
+        if (mLauncherTabEnabled) {
+            mLauncherTab.getClient().onStart();
+        }
+
         if (mLauncherCallbacks != null) {
             mLauncherCallbacks.onStart();
         }
@@ -968,6 +982,10 @@ public class Launcher extends BaseDraggingActivity implements LauncherExterns,
             resumeCallbacks.clear();
         }
 
+        if (mLauncherTabEnabled) {
+            mLauncherTab.getClient().onResume();
+        }
+
         if (mLauncherCallbacks != null) {
             mLauncherCallbacks.onResume();
         }
@@ -985,6 +1003,11 @@ public class Launcher extends BaseDraggingActivity implements LauncherExterns,
         mDragController.cancelDrag();
         mDragController.resetLastGestureUpTime();
         mDropTargetBar.animateToVisibility(false);
+
+        if (mLauncherTabEnabled) {
+            mLauncherTab.getClient().onPause();
+        }
+
         if (mLauncherCallbacks != null) {
             mLauncherCallbacks.onPause();
         }
@@ -1288,6 +1311,10 @@ public class Launcher extends BaseDraggingActivity implements LauncherExterns,
     public void onAttachedToWindow() {
         super.onAttachedToWindow();
 
+        if (mLauncherTabEnabled) {
+            mLauncherTab.getClient().onAttachedToWindow();
+        }
+
         if (mLauncherCallbacks != null) {
             mLauncherCallbacks.onAttachedToWindow();
         }
@@ -1296,6 +1323,10 @@ public class Launcher extends BaseDraggingActivity implements LauncherExterns,
     @Override
     public void onDetachedFromWindow() {
         super.onDetachedFromWindow();
+
+        if (mLauncherTabEnabled) {
+            mLauncherTab.getClient().onDetachedFromWindow();
+        }
 
         if (mLauncherCallbacks != null) {
             mLauncherCallbacks.onDetachedFromWindow();
@@ -1309,6 +1340,10 @@ public class Launcher extends BaseDraggingActivity implements LauncherExterns,
     @Override
     public LauncherRootView getRootView() {
         return (LauncherRootView) mLauncherView;
+    }
+
+    private boolean isLauncherTabEnabled() {
+        return Utilities.isShowLeftTab(this);
     }
 
     @Override
@@ -1403,6 +1438,10 @@ public class Launcher extends BaseDraggingActivity implements LauncherExterns,
                 UiThreadHelper.hideKeyboardAsync(this, v.getWindowToken());
             }
 
+            if (mLauncherTabEnabled) {
+                mLauncherTab.getClient().hideOverlay(internalStateHandled);
+            }
+
             if (mLauncherCallbacks != null) {
                 mLauncherCallbacks.onHomeIntent(internalStateHandled);
             }
@@ -1486,6 +1525,10 @@ public class Launcher extends BaseDraggingActivity implements LauncherExterns,
         TextKeyListener.getInstance().release();
         clearPendingBinds();
         LauncherAppState.getIDP(this).removeOnChangeListener(this);
+        if (mLauncherTabEnabled) {
+            mLauncherTab.getClient().onDestroy();
+        }
+
         if (mLauncherCallbacks != null) {
             mLauncherCallbacks.onDestroy();
         }

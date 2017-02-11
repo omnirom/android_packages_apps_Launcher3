@@ -75,6 +75,7 @@ import com.android.launcher3.dragndrop.FolderAdaptiveIcon;
 import com.android.launcher3.graphics.RotationMode;
 import com.android.launcher3.graphics.TintedDrawableSpan;
 import com.android.launcher3.icons.LauncherIcons;
+import com.android.launcher3.settings.SettingsActivity;
 import com.android.launcher3.shortcuts.DeepShortcutManager;
 import com.android.launcher3.shortcuts.ShortcutKey;
 import com.android.launcher3.util.IntArray;
@@ -172,6 +173,8 @@ public final class Utilities {
     public static final String QSB_SHOW = "pref_qsb_show";
     private static final long WAIT_BEFORE_RESTART = 250;
 
+    public static final String SHOW_LEFT_TAB_PREFERENCE_KEY = "pref_left_tab";
+
     public static boolean isPropertyEnabled(String propertyName) {
         return Log.isLoggable(propertyName, Log.VERBOSE);
     }
@@ -184,6 +187,10 @@ public final class Utilities {
 
     public static boolean showQsbWidget(Context context) {
          return getPrefs(context).getBoolean(QSB_SHOW, FeatureFlags.QSB_ON_FIRST_SCREEN);
+    }
+
+    public static boolean isShowLeftTab(Context context) {
+        return getPrefs(context).getBoolean(SHOW_LEFT_TAB_PREFERENCE_KEY, false);
     }
 
     /**
