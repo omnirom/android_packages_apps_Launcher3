@@ -33,6 +33,7 @@ import android.provider.Settings;
 import android.text.TextUtils;
 
 import com.android.launcher3.LauncherFiles;
+import com.android.launcher3.LauncherTab;
 import com.android.launcher3.R;
 import com.android.launcher3.Utilities;
 import com.android.launcher3.config.FeatureFlags;
@@ -47,6 +48,8 @@ import androidx.preference.PreferenceFragment.OnPreferenceStartScreenCallback;
 import androidx.preference.PreferenceGroup.PreferencePositionCallback;
 import androidx.preference.PreferenceScreen;
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.android.internal.util.omni.PackageUtils;
 
 /**
  * Settings activity for Launcher. Currently implements the following setting: Allow rotation
@@ -163,6 +166,17 @@ public class SettingsActivity extends Activity
                     return true;
                 }
             });
+
+            Preference leftTabPage = findPreference(Utilities.SHOW_LEFT_TAB_PREFERENCE_KEY);
+            if (!isSearchInstalled()) {
+				getPreferenceScreen().removePreference(leftTabPage);
+		    }
+            leftTabPage.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+                public boolean onPreferenceChange(Preference preference, Object newValue) {
+				    Utilities.restart(getActivity());
+                    return true;
+                }
+            });
         }
 
         @Override
@@ -217,6 +231,10 @@ public class SettingsActivity extends Activity
             }
 
             return true;
+        }
+
+        private boolean isSearchInstalled() {
+            return PackageUtils.isAppInstalled(getActivity(), LauncherTab.SEARCH_PACKAGE);
         }
 
         @Override
