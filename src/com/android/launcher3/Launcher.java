@@ -343,6 +343,9 @@ public class Launcher extends StatefulActivity<LauncherState> implements Launche
 
     private SafeCloseable mUserChangedCallbackCloseable;
 
+    private LauncherTab mLauncherTab;
+    private boolean mLauncherTabEnabled;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         Object traceToken = TraceHelper.INSTANCE.beginSection(ON_CREATE_EVT,
@@ -432,6 +435,9 @@ public class Launcher extends StatefulActivity<LauncherState> implements Launche
 
         getSystemUiController().updateUiState(SystemUiController.UI_STATE_BASE_WINDOW,
                 Themes.getAttrBoolean(this, R.attr.isWorkspaceDarkText));
+
+        mLauncherTabEnabled = isLauncherTabEnabled();
+        mLauncherTab = new LauncherTab(this, mLauncherTabEnabled);
 
         if (mLauncherCallbacks != null) {
             mLauncherCallbacks.onCreate(savedInstanceState);
@@ -878,6 +884,10 @@ public class Launcher extends StatefulActivity<LauncherState> implements Launche
     @Override
     protected void onStop() {
         super.onStop();
+        if (mLauncherTabEnabled) {
+            mLauncherTab.getClient().onStop();
+        }
+
         if (mDeferOverlayCallbacks) {
             checkIfOverlayStillDeferred();
         } else {
@@ -894,6 +904,10 @@ public class Launcher extends StatefulActivity<LauncherState> implements Launche
         Object traceToken = TraceHelper.INSTANCE.beginSection(ON_START_EVT,
                 TraceHelper.FLAG_UI_EVENT);
         super.onStart();
+        if (mLauncherTabEnabled) {
+            mLauncherTab.getClient().onStart();
+        }
+
         if (!mDeferOverlayCallbacks) {
             mOverlayManager.onActivityStarted(this);
         }
@@ -1052,6 +1066,10 @@ public class Launcher extends StatefulActivity<LauncherState> implements Launche
             resumeCallbacks.clear();
         }
 
+        if (mLauncherTabEnabled) {
+            mLauncherTab.getClient().onResume();
+        }
+
         if (mDeferOverlayCallbacks) {
             scheduleDeferredCheck();
         } else {
@@ -1070,6 +1088,10 @@ public class Launcher extends StatefulActivity<LauncherState> implements Launche
         mDragController.cancelDrag();
         mLastTouchUpTime = -1;
         mDropTargetBar.animateToVisibility(false);
+
+        if (mLauncherTabEnabled) {
+            mLauncherTab.getClient().onPause();
+        }
 
         if (!mDeferOverlayCallbacks) {
             mOverlayManager.onActivityPaused(this);
@@ -1328,18 +1350,28 @@ public class Launcher extends StatefulActivity<LauncherState> implements Launche
     @Override
     public void onAttachedToWindow() {
         super.onAttachedToWindow();
+        if (mLauncherTabEnabled) {
+            mLauncherTab.getClient().onAttachedToWindow();
+        }
         mOverlayManager.onAttachedToWindow();
     }
 
     @Override
     public void onDetachedFromWindow() {
         super.onDetachedFromWindow();
+        if (mLauncherTabEnabled) {
+            mLauncherTab.getClient().onDetachedFromWindow();
+        }
         mOverlayManager.onDetachedFromWindow();
         closeContextMenu();
     }
 
     public AllAppsTransitionController getAllAppsController() {
         return mAllAppsController;
+    }
+
+    private boolean isLauncherTabEnabled() {
+        return Utilities.isShowLeftTab(this);
     }
 
     @Override
@@ -1444,6 +1476,10 @@ public class Launcher extends StatefulActivity<LauncherState> implements Launche
                     newContainerTarget(ContainerType.WORKSPACE));
             hideKeyboard();
 
+            if (mLauncherTabEnabled) {
+                mLauncherTab.getClient().hideOverlay(internalStateHandled);
+            }
+
             if (mLauncherCallbacks != null) {
                 mLauncherCallbacks.onHomeIntent(internalStateHandled);
             }
@@ -1529,6 +1565,10 @@ public class Launcher extends StatefulActivity<LauncherState> implements Launche
         TextKeyListener.getInstance().release();
         clearPendingBinds();
         LauncherAppState.getIDP(this).removeOnChangeListener(this);
+
+        if (mLauncherTabEnabled) {
+            mLauncherTab.getClient().onDestroy();
+        }
 
         mOverlayManager.onActivityDestroyed(this);
         mAppTransitionManager.unregisterRemoteAnimations();
