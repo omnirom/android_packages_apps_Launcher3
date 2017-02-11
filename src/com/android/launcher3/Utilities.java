@@ -140,6 +140,7 @@ public final class Utilities {
     public static final String SHOW_TODAY_PREFERENCE_KEY = "pref_showToday";
     public static final String SHOW_SEARCH_BAR_LOCATION_PREFERENCE_KEY = "pref_searchBarLocation";
     public static final String SHOW_EVENTS_PREFERENCE_KEY = "pref_showEvents";
+    public static final String SHOW_LEFT_TAB_PREFERENCE_KEY = "pref_left_tab";
 
     public static boolean isPropertyEnabled(String propertyName) {
         return Log.isLoggable(propertyName, Log.VERBOSE);
@@ -207,6 +208,10 @@ public final class Utilities {
 
     public static boolean isShowEvents(Context context) {
         return getPrefs(context).getBoolean(SHOW_EVENTS_PREFERENCE_KEY, true);
+    }
+
+    public static boolean isShowLeftTab(Context context) {
+        return getPrefs(context).getBoolean(SHOW_LEFT_TAB_PREFERENCE_KEY, false);
     }
 
     public static boolean getAllowRotationDefaultValue(Context context) {
@@ -358,6 +363,21 @@ public final class Utilities {
         } else {
             return false;
         }
+    }
+
+    public static boolean isPackageInstalled(Context context, String pkg) {
+        if (pkg != null) {
+            try {
+                PackageInfo pi = context.getPackageManager().getPackageInfo(pkg, 0);
+                if (!pi.applicationInfo.enabled) {
+                    return false;
+                }
+            } catch (PackageManager.NameNotFoundException e) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**

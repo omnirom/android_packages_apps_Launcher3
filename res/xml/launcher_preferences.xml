@@ -91,6 +91,12 @@
             android:defaultValue="true"
             android:persistent="true" />
 
+        <SwitchPreference
+            android:key="pref_left_tab"
+            android:title="@string/left_tab_label"
+            android:summary="@string/left_tab_description"
+            android:persistent="true" />
+
     </PreferenceCategory>
 
     <PreferenceCategory

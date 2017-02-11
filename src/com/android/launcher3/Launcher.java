@@ -337,6 +337,8 @@ public class Launcher extends BaseActivity
     private boolean mShowPredictiveApps;
 
     private Context mContext;
+    private LauncherTab mLauncherTab;
+    private boolean mLauncherTabEnabled;
 
     @Thunk void setOrientation() {
         if (mRotationEnabled) {
@@ -453,6 +455,9 @@ public class Launcher extends BaseActivity
         // For handling default keys
         mDefaultKeySsb = new SpannableStringBuilder();
         Selection.setSelection(mDefaultKeySsb, 0);
+
+        mLauncherTabEnabled = isLauncherTabEnabled();
+        mLauncherTab = new LauncherTab(this, mLauncherTabEnabled);
 
         mRotationEnabled = getResources().getBoolean(R.bool.allow_rotation);
         // In case we are on a device with locked rotation, we should look at preferences to check
@@ -1091,6 +1096,11 @@ public class Launcher extends BaseActivity
             mAllAppsController.showDiscoveryBounce();
         }
         mIsResumeFromActionScreenOff = false;
+
+        if (mLauncherTabEnabled) {
+            mLauncherTab.getClient().onResume();
+        }
+
         if (mLauncherCallbacks != null) {
             mLauncherCallbacks.onResume();
         }
@@ -1112,6 +1122,10 @@ public class Launcher extends BaseActivity
         // debounce excess onHide calls.
         if (mWorkspace.getCustomContentCallbacks() != null) {
             mWorkspace.getCustomContentCallbacks().onHide();
+        }
+
+        if (mLauncherTabEnabled) {
+            mLauncherTab.getClient().onPause();
         }
 
         if (mLauncherCallbacks != null) {
@@ -1632,6 +1646,10 @@ public class Launcher extends BaseActivity
         FirstFrameAnimatorHelper.initializeDrawListener(getWindow().getDecorView());
         mAttached = true;
 
+        if (mLauncherTabEnabled) {
+            mLauncherTab.getClient().onAttachedToWindow();
+        }
+
         if (mLauncherCallbacks != null) {
             mLauncherCallbacks.onAttachedToWindow();
         }
@@ -1645,6 +1663,9 @@ public class Launcher extends BaseActivity
             mAttached = false;
         }
 
+        if (mLauncherTabEnabled) {
+            mLauncherTab.getClient().onDetachedFromWindow();
+        }
         if (mLauncherCallbacks != null) {
             mLauncherCallbacks.onDetachedFromWindow();
         }
@@ -1687,6 +1708,10 @@ public class Launcher extends BaseActivity
             }
             clearTypedText();
         }
+    }
+
+    private boolean isLauncherTabEnabled() {
+        return Utilities.isShowLeftTab(this);
     }
 
     public DragLayer getDragLayer() {
@@ -1808,6 +1833,10 @@ public class Launcher extends BaseActivity
                 mWidgetsView.scrollToTop();
             }
 
+            if (mLauncherTabEnabled) {
+                mLauncherTab.getClient().hideOverlay(true);
+            }
+
             if (mLauncherCallbacks != null) {
                 mLauncherCallbacks.onHomeIntent();
             }
@@ -1912,6 +1941,10 @@ public class Launcher extends BaseActivity
                 .removeAccessibilityStateChangeListener(this);
 
         LauncherAnimUtils.onDestroyActivity();
+
+        if (mLauncherTabEnabled) {
+            mLauncherTab.getClient().onDestroy();
+        }
 
         if (mLauncherCallbacks != null) {
             mLauncherCallbacks.onDestroy();
@@ -4220,6 +4253,17 @@ public class Launcher extends BaseActivity
             }
             if (Utilities.SHOW_SEARCH_BAR_LOCATION_PREFERENCE_KEY.equals(key)) {
                 mHotseat.updateSearchBarLocation();
+            }
+            if (Utilities.SHOW_LEFT_TAB_PREFERENCE_KEY.equals(key)) {
+                if (mLauncherTab != null) {
+                    mLauncherTabEnabled = isLauncherTabEnabled();
+                    mLauncherTab.updateLauncherTab(mLauncherTabEnabled);
+                    if (!mLauncherTabEnabled) {
+                        mLauncherTab.getClient().onDestroy();
+                    } else {
+                        mLauncherTab.getClient().onAttachedToWindow();
+                    }
+                }
             }
         }
     }
