@@ -287,9 +287,10 @@ android_library {
 
 // Build rule for Quickstep library
 android_library {
-    name: "Launcher3QuickStepLib",
+    name: "Launcher3QuickStepLibGoogle",
     srcs: [
         ":launcher-src-no-build-config",
+        "src_overlay/google/com/android/launcher3/overlay/OverlayCallbackImpl.java",
     ],
     resource_dirs: [],
     libs: [
@@ -305,6 +306,8 @@ android_library {
         "Launcher3CommonDepsLib",
         "QuickstepResLib",
         "SystemUIAnimationLib",
+        "OmniLib",
+        "//vendor/omni:libGoogleFeed",
     ],
     manifest: "quickstep/AndroidManifest.xml",
     platform_apis: true,
