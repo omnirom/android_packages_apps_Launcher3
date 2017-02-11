@@ -20,5 +20,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
     <string name="state_loading">Applying\u2026</string>
     <string name="pref_qsb_show_summary"></string>
     <string name="pref_qsb_show_title">Show search widget</string>
+    <string name="left_tab_label">Google Now tab</string>
+    <string name="left_tab_description">Toggle Google Now intergration</string>
 
 </resources>
