@@ -62,4 +62,10 @@
         android:title="@string/pref_grid_title"
         android:persistent="false"/>
 
+    <SwitchPreference
+        android:key="pref_left_tab"
+        android:title="@string/left_tab_label"
+        android:summary="@string/left_tab_description"
+        android:persistent="true" />
+
 </androidx.preference.PreferenceScreen>
