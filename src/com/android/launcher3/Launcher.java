@@ -343,6 +343,9 @@ public class Launcher extends StatefulActivity<LauncherState> implements Launche
 
     private SafeCloseable mUserChangedCallbackCloseable;
 
+    private LauncherTab mLauncherTab;
+    private boolean mLauncherTabEnabled;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         Object traceToken = TraceHelper.INSTANCE.beginSection(ON_CREATE_EVT,
@@ -432,6 +435,9 @@ public class Launcher extends StatefulActivity<LauncherState> implements Launche
 
         getSystemUiController().updateUiState(SystemUiController.UI_STATE_BASE_WINDOW,
                 Themes.getAttrBoolean(this, R.attr.isWorkspaceDarkText));
+
+        mLauncherTabEnabled = isLauncherTabEnabled();
+        mLauncherTab = new LauncherTab(this, mLauncherTabEnabled);
 
         if (mLauncherCallbacks != null) {
             mLauncherCallbacks.onCreate(savedInstanceState);
@@ -884,6 +890,10 @@ public class Launcher extends StatefulActivity<LauncherState> implements Launche
             mOverlayManager.onActivityStopped(this);
         }
 
+        if (mLauncherTabEnabled) {
+            mLauncherTab.getClient().onStop();
+        }
+
         logStopAndResume(Action.Command.STOP);
         mAppWidgetHost.setListenIfResumed(false);
         NotificationListener.removeNotificationsChangedListener();
@@ -896,6 +906,10 @@ public class Launcher extends StatefulActivity<LauncherState> implements Launche
         super.onStart();
         if (!mDeferOverlayCallbacks) {
             mOverlayManager.onActivityStarted(this);
+        }
+
+        if (mLauncherTabEnabled) {
+            mLauncherTab.getClient().onStart();
         }
 
         mAppWidgetHost.setListenIfResumed(true);
@@ -1073,6 +1087,10 @@ public class Launcher extends StatefulActivity<LauncherState> implements Launche
 
         if (!mDeferOverlayCallbacks) {
             mOverlayManager.onActivityPaused(this);
+        }
+
+        if (mLauncherTabEnabled) {
+            mLauncherTab.getClient().onPause();
         }
     }
 
@@ -1336,10 +1354,18 @@ public class Launcher extends StatefulActivity<LauncherState> implements Launche
         super.onDetachedFromWindow();
         mOverlayManager.onDetachedFromWindow();
         closeContextMenu();
+
+        if (mLauncherTabEnabled) {
+            mLauncherTab.getClient().onDetachedFromWindow();
+        }
     }
 
     public AllAppsTransitionController getAllAppsController() {
         return mAllAppsController;
+    }
+
+    private boolean isLauncherTabEnabled() {
+        return Utilities.isShowLeftTab(this);
     }
 
     @Override
@@ -1444,6 +1470,10 @@ public class Launcher extends StatefulActivity<LauncherState> implements Launche
                     newContainerTarget(ContainerType.WORKSPACE));
             hideKeyboard();
 
+            if (mLauncherTabEnabled) {
+                mLauncherTab.getClient().hideOverlay(internalStateHandled);
+            }
+
             if (mLauncherCallbacks != null) {
                 mLauncherCallbacks.onHomeIntent(internalStateHandled);
             }
@@ -1534,6 +1564,10 @@ public class Launcher extends StatefulActivity<LauncherState> implements Launche
         mAppTransitionManager.unregisterRemoteAnimations();
         mUserChangedCallbackCloseable.close();
         mAllAppsController.onActivityDestroyed();
+
+        if (mLauncherTabEnabled) {
+            mLauncherTab.getClient().onDestroy();
+        }
     }
 
     public LauncherAccessibilityDelegate getAccessibilityDelegate() {
