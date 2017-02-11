@@ -20,7 +20,9 @@ import static androidx.core.view.accessibility.AccessibilityNodeInfoCompat.ACTIO
 
 import static com.android.launcher3.states.RotationHelper.ALLOW_ROTATION_PREFERENCE_KEY;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.content.SharedPreferences;
 import android.content.res.XmlResourceParser;
 import android.os.Bundle;
@@ -52,10 +54,13 @@ import com.android.launcher3.InvariantDeviceProfile;
 import com.android.launcher3.InvariantDeviceProfile.GridOption;
 import com.android.launcher3.LauncherFiles;
 import com.android.launcher3.R;
+import com.android.launcher3.LauncherTab;
 import com.android.launcher3.Utilities;
 import com.android.launcher3.config.FeatureFlags;
 import com.android.launcher3.model.WidgetsModel;
 import com.android.launcher3.uioverrides.plugins.PluginManagerWrapper;
+
+import org.omnirom.omnilib.utils.PackageUtils;
 
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
@@ -235,6 +240,17 @@ public class SettingsActivity extends FragmentActivity
                 }
             });
 
+            Preference leftTabPage = findPreference(Utilities.SHOW_LEFT_TAB_PREFERENCE_KEY);
+            if (!isSearchInstalled()) {
+                getPreferenceScreen().removePreference(leftTabPage);
+            }
+            leftTabPage.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+                public boolean onPreferenceChange(Preference preference, Object newValue) {
+                    new Handler().postDelayed(() -> Utilities.restart(getActivity()), Utilities.WAIT_BEFORE_RESTART);
+                    return true;
+                }
+            });
+
             final DropDownPreference grid = (DropDownPreference) findPreference(GRID_SIZE_PREFERENCE_KEY);
             InvariantDeviceProfile idp = InvariantDeviceProfile.INSTANCE.get(getContext());
             ArrayList<String> entries = new ArrayList<>();
@@ -351,6 +367,10 @@ public class SettingsActivity extends FragmentActivity
                 }
             }
             return showPreference;
+        }
+
+        private boolean isSearchInstalled() {
+            return PackageUtils.isAppInstalled(getActivity(), LauncherTab.SEARCH_PACKAGE);
         }
 
         @Override
