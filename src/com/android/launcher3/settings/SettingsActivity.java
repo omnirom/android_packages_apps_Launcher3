@@ -33,6 +33,7 @@ import android.provider.Settings;
 import android.text.TextUtils;
 
 import com.android.launcher3.LauncherFiles;
+import com.android.launcher3.LauncherTab;
 import com.android.launcher3.R;
 import com.android.launcher3.Utilities;
 import com.android.launcher3.config.FeatureFlags;
@@ -47,6 +48,8 @@ import androidx.preference.PreferenceFragment.OnPreferenceStartScreenCallback;
 import androidx.preference.PreferenceGroup.PreferencePositionCallback;
 import androidx.preference.PreferenceScreen;
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.android.internal.util.omni.PackageUtils;
 
 /**
  * Settings activity for Launcher. Currently implements the following setting: Allow rotation
@@ -66,6 +69,7 @@ public class SettingsActivity extends Activity
     public static final String EXTRA_SHOW_FRAGMENT_ARGS = ":settings:show_fragment_args";
     private static final int DELAY_HIGHLIGHT_DURATION_MILLIS = 600;
     public static final String SAVE_HIGHLIGHTED_KEY = "android:preference_highlighted";
+    public static final String SHOW_LEFT_TAB_PREFERENCE_KEY = "pref_left_tab";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -214,6 +218,9 @@ public class SettingsActivity extends Activity
                     return false;
                 case DEVELOPER_OPTIONS_KEY:
                     return false;
+
+                case SHOW_LEFT_TAB_PREFERENCE_KEY:
+                    return PackageUtils.isAvailableApp(LauncherTab.SEARCH_PACKAGE, getActivity());
             }
 
             return true;
