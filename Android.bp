@@ -273,8 +273,9 @@ android_library {
 
 // Library with all the source code and dependencies for building Quickstep
 android_library {
-    name: "Launcher3QuickStepLib",
+    name: "Launcher3QuickStepLibGoogle",
     srcs: [
+        "src_overlay/google/com/android/launcher3/overlay/OverlayCallbackImpl.java",
         ":launcher-src",
         ":launcher-quickstep-src",
         ":launcher-build-config",
@@ -288,6 +289,37 @@ android_library {
     // in QuickstepResLib to take precendece, so it should be the final
     // dependency. See b/208647810 for how this can go wrong.
     static_libs: [
+        "OmniLib",
+        "//vendor/omni:libGoogleFeed",
+        "SystemUI-statsd",
+        "QuickstepResLib",
+    ],
+    manifest: "quickstep/AndroidManifest.xml",
+    platform_apis: true,
+    min_sdk_version: "current",
+    // TODO(b/319712088): re-enable use_resource_processor
+    use_resource_processor: false,
+}
+
+android_library {
+    name: "Launcher3QuickStepLibMock",
+    srcs: [
+        "src_overlay/mock/com/android/launcher3/overlay/OverlayCallbackImpl.java",
+        "src_overlay/mock/com/google/android/libraries/gsa/launcherclient/LauncherClientCallbacks.java",
+        ":launcher-src",
+        ":launcher-quickstep-src",
+        ":launcher-build-config",
+    ],
+    resource_dirs: [],
+    libs: [
+        "framework-statsd",
+    ],
+    // Note the ordering here is important when it comes to resource
+    // overriding. We want the most specific resource overrides defined
+    // in QuickstepResLib to take precendece, so it should be the final
+    // dependency. See b/208647810 for how this can go wrong.
+    static_libs: [
+        "OmniLib",
         "SystemUI-statsd",
         "QuickstepResLib",
     ],
@@ -302,7 +334,7 @@ android_library {
 android_app {
     name: "Launcher3QuickStep",
 
-    static_libs: ["Launcher3QuickStepLib"],
+    defaults: ["omni_launcher3_defaults"],
     optimize: {
         enabled: false,
     },
