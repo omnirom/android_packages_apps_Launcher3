@@ -287,9 +287,10 @@ android_library {
 
 // Build rule for Quickstep library
 android_library {
-    name: "Launcher3QuickStepLib",
+    name: "Launcher3QuickStepLibGoogle",
     srcs: [
         ":launcher-src-no-build-config",
+        "src_overlay/google/com/android/launcher3/overlay/OverlayCallbackImpl.java",
     ],
     resource_dirs: [],
     libs: [
@@ -305,6 +306,39 @@ android_library {
         "Launcher3CommonDepsLib",
         "QuickstepResLib",
         "SystemUIAnimationLib",
+        "OmniLib",
+        "//vendor/omni:libGoogleFeed",
+    ],
+    manifest: "quickstep/AndroidManifest.xml",
+    platform_apis: true,
+    min_sdk_version: "current",
+    lint: {
+        baseline_filename: "lint-baseline-launcher3.xml",
+    },
+}
+
+android_library {
+    name: "Launcher3QuickStepLibMock",
+    srcs: [
+        ":launcher-src-no-build-config",
+        "src_overlay/mock/com/android/launcher3/overlay/OverlayCallbackImpl.java",
+        "src_overlay/mock/com/google/android/libraries/gsa/launcherclient/LauncherClientCallbacks.java",
+    ],
+    resource_dirs: [],
+    libs: [
+        "framework-statsd",
+    ],
+    // Note the ordering here is important when it comes to resource
+    // overriding. We want the most specific resource overrides defined
+    // in QuickstepResLib to take precendece, so it should be the final
+    // dependency. See b/208647810 for how this can go wrong.
+    static_libs: [
+        "SystemUI-statsd",
+        "SystemUISharedLib",
+        "Launcher3CommonDepsLib",
+        "QuickstepResLib",
+        "SystemUIAnimationLib",
+        "OmniLib",
     ],
     manifest: "quickstep/AndroidManifest.xml",
     platform_apis: true,
