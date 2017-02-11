@@ -173,6 +173,8 @@ public final class Utilities {
     public static final String QSB_SHOW = "pref_qsb_show";
     public static final long WAIT_BEFORE_RESTART = 250;
 
+    public static final String SHOW_LEFT_TAB_PREFERENCE_KEY = "pref_left_tab";
+
     public static boolean isPropertyEnabled(String propertyName) {
         return Log.isLoggable(propertyName, Log.VERBOSE);
     }
@@ -186,6 +188,10 @@ public final class Utilities {
     public static boolean showQsbWidget(Context context) {
          return getPrefs(context).getBoolean(QSB_SHOW,
                 context.getResources().getBoolean(R.bool.qsb_show_default));
+    }
+
+    public static boolean isShowLeftTab(Context context) {
+        return getPrefs(context).getBoolean(SHOW_LEFT_TAB_PREFERENCE_KEY, false);
     }
 
     /**
