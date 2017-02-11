@@ -26,5 +26,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
     <string name="pref_qsb_location_workspace">Workspace</string>
     <string name="pref_qsb_location_workspace_value" translatable="false">1</string>
     <string name="pref_grid_title">Grid size</string>
+    <string name="left_tab_label">Google feed tab</string>
+    <string name="left_tab_description">Toggle Google feed intergration</string>
 
 </resources>

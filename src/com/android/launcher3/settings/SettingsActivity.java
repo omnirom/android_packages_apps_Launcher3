@@ -63,6 +63,7 @@ import com.android.launcher3.Utilities;
 import com.android.launcher3.util.DisplayController;
 import com.android.launcher3.util.SettingsCache;
 
+import org.omnirom.omnilib.utils.PackageUtils;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
@@ -94,6 +95,9 @@ public class SettingsActivity extends FragmentActivity
 
     private static final int DELAY_HIGHLIGHT_DURATION_MILLIS = 600;
     public static final String SAVE_HIGHLIGHTED_KEY = "android:preference_highlighted";
+
+    private static final String SEARCH_PACKAGE = "com.google.android.googlequicksearchbox";
+    private static final String SHOW_LEFT_TAB_PREFERENCE_KEY = "pref_left_tab";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -223,6 +227,17 @@ public class SettingsActivity extends FragmentActivity
 
             Preference showQsbWidget = findPreference(Utilities.QSB_SHOW);
             showQsbWidget.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+                public boolean onPreferenceChange(Preference preference, Object newValue) {
+                    new Handler().postDelayed(() -> Utilities.restart(getActivity()), Utilities.WAIT_BEFORE_RESTART);
+                    return true;
+                }
+            });
+
+            Preference leftTabPage = findPreference(SHOW_LEFT_TAB_PREFERENCE_KEY);
+            if (!isSearchInstalled()) {
+                getPreferenceScreen().removePreference(leftTabPage);
+            }
+            leftTabPage.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
                 public boolean onPreferenceChange(Preference preference, Object newValue) {
                     new Handler().postDelayed(() -> Utilities.restart(getActivity()), Utilities.WAIT_BEFORE_RESTART);
                     return true;
@@ -424,6 +439,10 @@ public class SettingsActivity extends FragmentActivity
                 return Collections.emptyList();
             }
             return result;
+        }
+
+        private boolean isSearchInstalled() {
+            return PackageUtils.isAvailableApp(SEARCH_PACKAGE, getActivity());
         }
     }
 }
