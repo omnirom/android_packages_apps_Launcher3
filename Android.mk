@@ -62,7 +62,8 @@ LOCAL_MODULE_TAGS := optional
 
 LOCAL_STATIC_JAVA_LIBRARIES := \
     SystemUI-statsd \
-    SystemUISharedLib
+    SystemUISharedLib \
+    OmniLib
 ifneq (,$(wildcard frameworks/base))
   LOCAL_PRIVATE_PLATFORM_APIS := true
 else
