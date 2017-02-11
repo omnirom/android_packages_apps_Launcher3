@@ -60,7 +60,14 @@ include $(CLEAR_VARS)
 LOCAL_USE_AAPT2 := true
 LOCAL_MODULE_TAGS := optional
 
-LOCAL_STATIC_ANDROID_LIBRARIES := Launcher3QuickStepLib
+ifeq ($(ROM_BUILDTYPE),GAPPS)
+LOCAL_STATIC_ANDROID_LIBRARIES := \
+    Launcher3QuickStepLibGoogle
+else
+LOCAL_STATIC_ANDROID_LIBRARIES := \
+    Launcher3QuickStepLibMock
+endif
+
 LOCAL_PROGUARD_ENABLED := disabled
 
 ifneq (,$(wildcard frameworks/base))
