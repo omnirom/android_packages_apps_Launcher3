@@ -57,6 +57,12 @@
         android:summary="@string/pref_qsb_show_summary"
         android:title="@string/pref_qsb_show_title"/>
 
+    <SwitchPreference
+        android:key="pref_left_tab"
+        android:title="@string/left_tab_label"
+        android:summary="@string/left_tab_description"
+        android:persistent="true" />
+
     <ListPreference
         android:key="pref_grid"
         android:title="@string/pref_grid_title"
