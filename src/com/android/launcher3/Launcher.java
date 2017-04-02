@@ -392,6 +392,9 @@ public class Launcher extends Activity
 
         super.onCreate(savedInstanceState);
 
+        boolean visible = Utilities.isShowSearchBar(this);
+        FeatureFlags.QSB_ON_FIRST_SCREEN = visible;
+
         LauncherAppState app = LauncherAppState.getInstance();
 
         // Load configuration-specific DeviceProfile
