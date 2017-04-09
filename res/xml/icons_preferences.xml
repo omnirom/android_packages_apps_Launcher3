@@ -22,4 +22,9 @@
         android:defaultValue=""
         android:persistent="false" />
 
+    <Preference
+        android:persistent="true"
+        android:key="icon-packs"
+        android:title="@string/icons_pack_name"
+        android:icon="@drawable/icon_pack"/>
 </PreferenceScreen>

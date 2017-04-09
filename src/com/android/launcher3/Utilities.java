@@ -37,6 +37,7 @@ import android.os.Bundle;
 import android.os.DeadObjectException;
 import android.os.PowerManager;
 import android.os.TransactionTooLargeException;
+import android.preference.PreferenceManager;
 import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.TextUtils;
@@ -126,6 +127,7 @@ public final class Utilities {
             TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
 
     public static final String ALLOW_ROTATION_PREFERENCE_KEY = "pref_allowRotation";
+
     public static final String KEY_HIDDEN_APPS = "hidden_app";
     public static final String KEY_HIDDEN_APPS_SET = "hidden_app_set";
 
@@ -143,6 +145,8 @@ public final class Utilities {
     private static final String GRID_COLUMNS_DEFAULT = "default";
     private static final String GRID_ROWS_DEFAULT = "default";
     private static final String HOTSEAT_ICONS_DEFAULTS = "default";
+
+    public static final String KEY_ICON_PACK = "icon-packs";
 
     public static boolean showSwipeUpIndicator(Context context) {
         return getPrefs(context).getBoolean(KEY_SHOW_SWIPEUP_ARROW,
@@ -729,5 +733,4 @@ public final class Utilities {
         hashSet.add(elem);
         return hashSet;
     }
-
 }

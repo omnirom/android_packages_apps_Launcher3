@@ -163,6 +163,12 @@
             </intent-filter>
         </activity>
 
+        <activity
+            android:name="com.android.launcher3.ChooseIconActivity"
+            android:autoRemoveFromRecents="true"
+            android:label="@string/icon_chooser"
+            android:theme="@android:style/Theme.DeviceDefault.Settings" />
+
         <!--
         The settings provider contains Home's data, like the workspace favorites. The permissions
         should be changed to what is defined above. The authorities should also be changed to

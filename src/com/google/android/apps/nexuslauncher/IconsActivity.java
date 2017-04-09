@@ -15,14 +15,23 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
+import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageManager;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.SystemClock;
 import android.preference.ListPreference;
 import android.preference.Preference;
 import android.preference.PreferenceFragment;
+import android.preference.PreferenceManager;
+import android.preference.PreferenceScreen;
 import android.provider.Settings;
 import android.view.MenuItem;
 
+import com.android.launcher3.IconCache;
+import com.android.launcher3.IconsHandler;
 import com.android.launcher3.LauncherAppState;
 import com.android.launcher3.LauncherFiles;
 import com.android.launcher3.LauncherModel;
@@ -63,11 +72,17 @@ public class IconsActivity extends com.android.launcher3.SettingsActivity implem
     }
 
     public static class IconsSettingsFragment extends PreferenceFragment
-            implements Preference.OnPreferenceChangeListener, Preference.OnPreferenceClickListener {
+            implements Preference.OnPreferenceChangeListener, Preference.OnPreferenceClickListener, OnSharedPreferenceChangeListener {
 
         ActionBar actionBar;
         private Context mContext;
         private IconBadgingObserver mIconBadgingObserver;
+
+        private String mDefaultIconPack;
+        private IconsHandler mIconsHandler;
+        private PackageManager mPackageManager;
+        private Preference mIconPack;
+        private Preference mIconShapeOverride;
 
         @Override
         public void onCreate(Bundle savedInstanceState) {
@@ -97,19 +112,36 @@ public class IconsActivity extends com.android.launcher3.SettingsActivity implem
                 mIconBadgingObserver.register(NOTIFICATION_BADGING, NOTIFICATION_ENABLED_LISTENERS);
             }
 
-            Preference iconShapeOverride = findPreference(IconShapeOverride.KEY_PREFERENCE);
-            if (iconShapeOverride != null) {
+            mIconShapeOverride = findPreference(IconShapeOverride.KEY_PREFERENCE);
+            if (mIconShapeOverride != null) {
                 if (IconShapeOverride.isSupported(getActivity())) {
-                    IconShapeOverride.handlePreferenceUi((ListPreference) iconShapeOverride);
+                    IconShapeOverride.handlePreferenceUi((ListPreference) mIconShapeOverride);
                 } else {
-                    getPreferenceScreen().removePreference(iconShapeOverride);
+                    getPreferenceScreen().removePreference(mIconShapeOverride);
                 }
             }
+
+            mPackageManager = getActivity().getPackageManager();
+            mDefaultIconPack = getString(R.string.default_iconpack);
+            mIconsHandler = IconCache.getIconsHandler(getActivity().getApplicationContext());
+            mIconShapeOverride.setEnabled(mIconsHandler.isDefaultIconPack());
+            mIconPack = (Preference) findPreference(Utilities.KEY_ICON_PACK);
+            reloadIconPackSummary();
         }
 
         @Override
         public void onResume() {
+            PreferenceManager.getDefaultSharedPreferences(getActivity())
+                    .registerOnSharedPreferenceChangeListener(this);
             super.onResume();
+        }
+
+        @Override
+        public void onPause() {
+            super.onPause();
+            PreferenceManager.getDefaultSharedPreferences(getActivity())
+                    .unregisterOnSharedPreferenceChangeListener(this);
+            mIconsHandler.hideDialog();
         }
 
         @Override
@@ -119,6 +151,44 @@ public class IconsActivity extends com.android.launcher3.SettingsActivity implem
                 mIconBadgingObserver = null;
             }
             super.onDestroy();
+        }
+
+        @Override
+        public boolean onPreferenceTreeClick(PreferenceScreen preferenceScreen, Preference pref) {
+            if (pref == mIconPack) {
+                mIconsHandler.showDialog(getActivity());
+                return true;
+            }
+            return false;
+        }
+
+        @Override
+        public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+
+            reloadIconPackSummary();
+        }
+
+        private void reloadIconPackSummary() {
+            ApplicationInfo info = null;
+            String iconPack = PreferenceManager.getDefaultSharedPreferences(getActivity())
+                    .getString(Utilities.KEY_ICON_PACK, mDefaultIconPack);
+
+            String packageLabel = getActivity().getString(R.string.default_iconpack_title);
+            Drawable packageIcon = getActivity().getDrawable(R.drawable.icon_pack);
+            if (!mIconsHandler.isDefaultIconPack()) {
+                try {
+                    info = mPackageManager.getApplicationInfo(iconPack, 0);
+                } catch (PackageManager.NameNotFoundException e) {
+                    e.printStackTrace();
+                }
+                if (info != null) {
+                    packageLabel = mPackageManager.getApplicationLabel(info).toString();
+                    packageIcon = mPackageManager.getApplicationIcon(info);
+                }
+            }
+            mIconPack.setSummary(packageLabel);
+            mIconPack.setIcon(packageIcon);
+            mIconShapeOverride.setEnabled(mIconsHandler.isDefaultIconPack());
         }
 
         @Override
