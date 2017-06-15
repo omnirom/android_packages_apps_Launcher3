@@ -512,6 +512,9 @@ public class Launcher extends Activity
      * @param activate if true, make sure the status bar is light, otherwise base on wallpaper.
      */
     public void activateLightStatusBar(boolean activate) {
+        if (getResources().getBoolean(R.bool.disable_statusbar_color_inversion)){
+            activate = false;
+        }
         boolean lightStatusBar = activate || (FeatureFlags.LIGHT_STATUS_BAR
                 && mExtractedColors.getColor(ExtractedColors.STATUS_BAR_INDEX,
                 ExtractedColors.DEFAULT_DARK) == ExtractedColors.DEFAULT_LIGHT);
