@@ -16,6 +16,13 @@
 
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <ListPreference
+            android:key="pref_iconPackPackage"
+            android:title="@string/icon_pack"
+            android:defaultValue="@string/iconPackPackageDefault"
+            android:persistent="true"
+    />
+
     <SwitchPreference
             android:key="pref_allowRotation"
             android:title="@string/allow_rotation_title"

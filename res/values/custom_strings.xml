@@ -20,4 +20,5 @@
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="search_bar_title">Show search bar</string>
     <string name="show_predictive_apps_title">Predictive apps</string>
+    <string name="icon_pack">Icon Pack</string>
 </resources>

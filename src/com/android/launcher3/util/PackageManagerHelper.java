@@ -29,6 +29,9 @@ import android.text.TextUtils;
 import com.android.launcher3.Utilities;
 
 import java.util.ArrayList;
+import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Utility methods using package manager
@@ -77,6 +80,19 @@ public class PackageManagerHelper {
         } else {
             return false;
         }
+    }
+
+    public static Map<String, String> getIconPackPackages(PackageManager pm){
+        List<ResolveInfo> list;
+        list = pm.queryIntentActivities(new Intent("com.novalauncher.THEME"), 0);
+        list.addAll(pm.queryIntentActivities(new Intent("org.adw.launcher.icons.ACTION_PICK_ICON"),0));
+        list.addAll(pm.queryIntentActivities(new Intent("com.dlto.atom.launcher.THEME"),0));
+        list.addAll(pm.queryIntentActivities(new Intent("android.intent.action.MAIN").addCategory("com.anddoes.launcher.THEME"),0));
+        Map<String, String> iconPackPackages = new HashMap<>();
+        for(ResolveInfo info : list){
+            iconPackPackages.put(info.activityInfo.packageName, info.activityInfo.loadLabel(pm).toString());
+        }
+        return iconPackPackages;
     }
 
     /**
