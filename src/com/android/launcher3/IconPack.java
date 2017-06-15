@@ -28,7 +28,7 @@ import java.util.Map;
 
 import com.android.launcher3.compat.LauncherActivityInfoCompat;
 
-class IconPack {
+public class IconPack {
     /*
     Useful Links:
     https://github.com/teslacoil/Example_NovaTheme
