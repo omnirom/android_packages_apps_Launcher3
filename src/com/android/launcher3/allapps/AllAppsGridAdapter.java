@@ -514,6 +514,7 @@ public class AllAppsGridAdapter extends RecyclerView.Adapter<AllAppsGridAdapter.
             case VIEW_TYPE_EMPTY_SEARCH:
                 TextView emptyViewText = (TextView) holder.mContent;
                 emptyViewText.setText(mEmptySearchMessage);
+                emptyViewText.setTextColor(mLauncher.getResources().getColor(R.color.all_apps_search_text_color));
                 emptyViewText.setGravity(mApps.hasNoFilteredResults() ? Gravity.CENTER :
                         Gravity.START | Gravity.CENTER_VERTICAL);
                 break;
