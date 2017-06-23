@@ -214,6 +214,21 @@ public class IconCache {
     }
 
     /**
+     * Remove any records for the supplied user name from memory.
+     */
+     private void removeFromMemCacheLocked(UserHandleCompat user) {
+        HashSet<ComponentKey> forDeletion = new HashSet<ComponentKey>();
+        for (ComponentKey key: mCache.keySet()) {
+            if (key.user.equals(user)) {
+                forDeletion.add(key);
+            }
+        }
+        for (ComponentKey condemned: forDeletion) {
+            mCache.remove(condemned);
+        }
+    }
+
+    /**
      * Updates the entries related to the given package in memory and persistent DB.
      */
     public synchronized void updateIconsForPkg(String packageName, UserHandleCompat user) {
@@ -240,6 +255,19 @@ public class IconCache {
         mIconDb.delete(
                 IconDB.COLUMN_COMPONENT + " LIKE ? AND " + IconDB.COLUMN_USER + " = ?",
                 new String[]{packageName + "/%", Long.toString(userSerial)});
+    }
+
+    /**
+     * Removes the entries related to the given user in memory and persistent DB.
+     */
+    public synchronized void removeAllIconsForUser(UserHandleCompat user) {
+
+
+        removeFromMemCacheLocked(user);
+        long userSerial = mUserManager.getSerialNumberForUser(user);
+        mIconDb.delete(
+                IconDB.COLUMN_USER + " = ?",
+                new String[]{Long.toString(userSerial)});
     }
 
     public void updateDbIcons(Set<String> ignorePackagesForMainUser) {
@@ -391,6 +419,14 @@ public class IconCache {
                     mIconProvider.getIcon(app, mIconDpi), app.getUser(),
                     mContext);
         }
+
+        IconPack iconPack = IconPackProvider.loadAndGetIconPack(mContext);
+        if (iconPack != null) {
+            Drawable iconDrawable = iconPack.getIcon(app);
+            if (iconDrawable != null) {
+                entry.icon = Utilities.createIconBitmap(iconDrawable, mContext);
+            }
+        }
         entry.title = app.getLabel();
         entry.contentDescription = mUserManager.getBadgedLabelForUser(entry.title, app.getUser());
         mCache.put(new ComponentKey(app.getComponentName(), app.getUser()), entry);
@@ -447,9 +483,7 @@ public class IconCache {
                 false, useLowResIcon);
         application.title = Utilities.trim(entry.title);
         application.contentDescription = entry.contentDescription;
-        IconPack iconPack = IconPackProvider.loadAndGetIconPack(mContext);
-        Drawable icon = iconPack == null ? null : iconPack.getIcon(application.componentName);
-        application.iconBitmap = icon == null ? getNonNullIcon(entry, user) : Utilities.createIconBitmap(icon, mContext);
+        application.iconBitmap = getNonNullIcon(entry, user);
         application.usingLowResIcon = entry.isLowResIcon;
     }
 
@@ -462,9 +496,7 @@ public class IconCache {
         if (entry.icon != null && !isDefaultIcon(entry.icon, application.user)) {
             application.title = Utilities.trim(entry.title);
             application.contentDescription = entry.contentDescription;
-            IconPack iconPack = IconPackProvider.loadAndGetIconPack(mContext);
-            Drawable icon = iconPack == null ? null : iconPack.getIcon(application.componentName);
-            application.iconBitmap = icon == null ? entry.icon : Utilities.createIconBitmap(icon, mContext);
+            application.iconBitmap = entry.icon;
             application.usingLowResIcon = entry.isLowResIcon;
         }
     }
@@ -513,10 +545,7 @@ public class IconCache {
             ShortcutInfo shortcutInfo, ComponentName component, LauncherActivityInfoCompat info,
             UserHandleCompat user, boolean usePkgIcon, boolean useLowResIcon) {
         CacheEntry entry = cacheLocked(component, info, user, usePkgIcon, useLowResIcon);
-        IconPack iconPack = IconPackProvider.loadAndGetIconPack(mContext);
-        Drawable icon = iconPack == null ? null : iconPack.getIcon(component);
-        Bitmap iBitmap = icon == null ? getNonNullIcon(entry, user) : Utilities.createIconBitmap(icon, mContext);
-        shortcutInfo.setIcon(iBitmap);
+        shortcutInfo.setIcon(getNonNullIcon(entry, user));
         shortcutInfo.title = Utilities.trim(entry.title);
         shortcutInfo.contentDescription = entry.contentDescription;
         shortcutInfo.usingFallbackIcon = isDefaultIcon(entry.icon, user);
@@ -565,6 +594,13 @@ public class IconCache {
                     entry.icon = Utilities.createBadgedIconBitmap(
                             mIconProvider.getIcon(info, mIconDpi), info.getUser(),
                             mContext);
+                    IconPack iconPack = IconPackProvider.loadAndGetIconPack(mContext);
+                    if (iconPack != null) {
+                        Drawable iconDrawable = iconPack.getIcon(info);
+                        if (iconDrawable != null) {
+                            entry.icon = Utilities.createIconBitmap(iconDrawable, mContext);
+                        }
+                    }
                 } else {
                     if (usePackageIcon) {
                         CacheEntry packageEntry = getEntryForPackageLocked(
@@ -650,6 +686,15 @@ public class IconCache {
                     // only keep the low resolution icon instead of the larger full-sized icon
                     Bitmap icon = Utilities.createBadgedIconBitmap(
                             appInfo.loadIcon(mPackageManager), user, mContext);
+                    // get first one matching packageName
+                    IconPack iconPack = IconPackProvider.loadAndGetIconPack(mContext);
+                    if (iconPack != null) {
+                        Drawable iconDrawable = iconPack.getIcon(packageName);
+                        if (iconDrawable != null) {
+                            icon = Utilities.createIconBitmap(iconDrawable, mContext);
+                        }
+                    }
+
                     Bitmap lowResIcon =  generateLowResIcon(icon, mPackageBgColor);
                     entry.title = appInfo.loadLabel(mPackageManager);
                     entry.contentDescription = mUserManager.getBadgedLabelForUser(entry.title, user);
@@ -897,5 +942,9 @@ public class IconCache {
         } catch (Exception e) {
             return null;
         }
+    }
+
+    public void clearIconCache() {
+        removeAllIconsForUser(UserHandleCompat.myUserHandle());
     }
 }
