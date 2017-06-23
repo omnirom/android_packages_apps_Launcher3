@@ -21,7 +21,6 @@ public class IconPack {
     http://stackoverflow.com/questions/3890012/how-to-access-string-resource-from-another-application
      */
     private Map<String, String> icons = new ArrayMap<>();
-    private Map<String, Drawable> cache = new ArrayMap<>();
     private String packageName;
     private Context mContext;
 
@@ -44,16 +43,12 @@ public class IconPack {
     }
 
     private Drawable getDrawable(String name) {
-        if (cache.containsKey(name)){
-            return cache.get(name);
-        }
         Resources res;
         try {
             res = mContext.getPackageManager().getResourcesForApplication(packageName);
             int resourceId = res.getIdentifier(name, "drawable", packageName);
             if (0 != resourceId) {
                 Drawable drawable = mContext.getPackageManager().getDrawable(packageName, resourceId, null);
-                cache.put(name, drawable);
                 return drawable;
             }
         } catch (Exception ignored) {}
