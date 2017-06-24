@@ -422,7 +422,7 @@ public class IconCache {
 
         IconPack iconPack = IconPackProvider.loadAndGetIconPack(mContext);
         if (iconPack != null) {
-            Drawable iconDrawable = iconPack.getIcon(app);
+            Drawable iconDrawable = iconPack.getIcon(app, entry.icon, app.getLabel());
             if (iconDrawable != null) {
                 entry.icon = Utilities.createIconBitmap(iconDrawable, mContext);
             }
@@ -596,7 +596,7 @@ public class IconCache {
                             mContext);
                     IconPack iconPack = IconPackProvider.loadAndGetIconPack(mContext);
                     if (iconPack != null) {
-                        Drawable iconDrawable = iconPack.getIcon(info);
+                        Drawable iconDrawable = iconPack.getIcon(info, entry.icon, info.getLabel());
                         if (iconDrawable != null) {
                             entry.icon = Utilities.createIconBitmap(iconDrawable, mContext);
                         }
@@ -681,6 +681,7 @@ public class IconCache {
                     if (appInfo == null) {
                         throw new NameNotFoundException("ApplicationInfo is null");
                     }
+                    entry.title = appInfo.loadLabel(mPackageManager);
 
                     // Load the full res icon for the application, but if useLowResIcon is set, then
                     // only keep the low resolution icon instead of the larger full-sized icon
@@ -689,14 +690,13 @@ public class IconCache {
                     // get first one matching packageName
                     IconPack iconPack = IconPackProvider.loadAndGetIconPack(mContext);
                     if (iconPack != null) {
-                        Drawable iconDrawable = iconPack.getIcon(packageName);
+                        Drawable iconDrawable = iconPack.getIcon(packageName, icon, entry.title);
                         if (iconDrawable != null) {
                             icon = Utilities.createIconBitmap(iconDrawable, mContext);
                         }
                     }
 
                     Bitmap lowResIcon =  generateLowResIcon(icon, mPackageBgColor);
-                    entry.title = appInfo.loadLabel(mPackageManager);
                     entry.contentDescription = mUserManager.getBadgedLabelForUser(entry.title, user);
                     entry.icon = useLowResIcon ? lowResIcon : icon;
                     entry.isLowResIcon = useLowResIcon;
