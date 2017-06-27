@@ -16,10 +16,10 @@
 
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <com.android.launcher3.preferences.IconPackPreference
+    <ListPreference
             android:key="pref_iconPackPackage"
             android:title="@string/icon_pack"
-            android:summary="@string/icon_pack_summary"
+            android:defaultValue="@string/iconPackPackageDefault"
             android:persistent="true"
     />
 
