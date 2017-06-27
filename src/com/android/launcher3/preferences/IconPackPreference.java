@@ -105,9 +105,12 @@ public class IconPackPreference extends Preference {
         Map<String, IconPackInfo> iconPacks = new HashMap<>();
         List<ResolveInfo> list;
         list = pm.queryIntentActivities(new Intent("com.novalauncher.THEME"), 0);
-        list.addAll(pm.queryIntentActivities(new Intent("org.adw.launcher.icons.ACTION_PICK_ICON"), 0));
+        list.addAll(pm.queryIntentActivities(new Intent("org.adw.launcher.THEMES"), 0));
         list.addAll(pm.queryIntentActivities(new Intent("com.dlto.atom.launcher.THEME"), 0));
+        list.addAll(pm.queryIntentActivities(new Intent("com.gau.go.launcherex.theme"), 0));
         list.addAll(pm.queryIntentActivities(new Intent("android.intent.action.MAIN").addCategory("com.anddoes.launcher.THEME"), 0));
+        list.addAll(pm.queryIntentActivities(new Intent("android.intent.action.MAIN").addCategory("com.teslacoilsw.launcher.THEME"), 0));
+        list.addAll(pm.queryIntentActivities(new Intent("android.intent.action.MAIN").addCategory("com.fede.launcher.THEME_ICONPACK"), 0));
         for (ResolveInfo info : list) {
             iconPacks.put(info.activityInfo.packageName, new IconPackInfo(info, pm));
         }
@@ -148,7 +151,7 @@ public class IconPackPreference extends Preference {
             });
 
             Resources res = context.getResources();
-            String defaultLabel = "None";
+            String defaultLabel = res.getString(R.string.default_iconpack_title);
             Drawable icon = res.getDrawable(R.mipmap.ic_launcher_home);
             mSupportedPackages.add(0, new IconPackInfo(defaultLabel, icon, ""));
             mCurrentIconPack = currentPack;
