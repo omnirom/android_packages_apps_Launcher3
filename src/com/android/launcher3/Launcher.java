@@ -2864,7 +2864,7 @@ public class Launcher extends Activity
             } else if (user == null || user.equals(UserHandleCompat.myUserHandle())) {
                 // Could be launching some bookkeeping activity
                 startActivity(intent, optsBundle);
-                if (isAllAppsVisible() && mShowPredictiveApps) {
+                if (isAllAppsVisible() && mShowPredictiveApps && intent.getComponent() != null) {
                     mPredictiveAppsProvider.updateComponentCount(intent.getComponent());
                 }
             } else {
