@@ -174,10 +174,14 @@ public class IconPack {
                 Bitmap.Config.ARGB_8888);
         canvas.setBitmap(bitmap);
 
-        canvas.save();
-        canvas.scale(scale, scale, width / 2, height/2);
-        canvas.drawBitmap(appIcon, 0, 0, null);
-        canvas.restore();
+        int scaledWidth = (int) (width * scale);
+        int scaledHeight = (int) (height * scale);
+        if (scaledWidth != width || scaledHeight != height) {
+            Bitmap scaledBitmap = Bitmap.createScaledBitmap(appIcon, scaledWidth, scaledHeight, true);
+            canvas.drawBitmap(scaledBitmap, (width - scaledWidth) / 2, (height - scaledHeight) / 2, null);
+        } else {
+            canvas.drawBitmap(appIcon, 0, 0, null);
+        }
         if (mIconMask != null) {
             mIconMask.setBounds(0, 0, width, height);
             BitmapDrawable  b = getBitmapDrawable(mIconMask);
