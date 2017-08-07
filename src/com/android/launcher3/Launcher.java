@@ -49,6 +49,7 @@ import android.content.res.Configuration;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
@@ -515,6 +516,14 @@ public class Launcher extends Activity
         if (getResources().getBoolean(R.bool.disable_statusbar_color_inversion)){
             activate = false;
         }
+        if (isAllAppsVisible()) {
+            int allAppsBackgroundColor = getResources().getColor(R.color.all_apps_container_color);
+            // if dark we dont want light status bar
+            if (!isBrightColor(allAppsBackgroundColor)) {
+                activate = false;
+            }
+        }
+
         boolean lightStatusBar = activate || (FeatureFlags.LIGHT_STATUS_BAR
                 && mExtractedColors.getColor(ExtractedColors.STATUS_BAR_INDEX,
                 ExtractedColors.DEFAULT_DARK) == ExtractedColors.DEFAULT_LIGHT);
@@ -4542,5 +4551,22 @@ public class Launcher extends Activity
         public void run() {
             setOrientation();
         }
+    }
+
+    private static boolean isBrightColor(int color) {
+        if (color == -3) {
+            return false;
+        } else if (color == Color.TRANSPARENT) {
+            return false;
+        } else if (color == Color.WHITE) {
+            return true;
+        }
+        int[] rgb = { Color.red(color), Color.green(color), Color.blue(color) };
+        int brightness = (int) Math.sqrt(rgb[0] * rgb[0] * .241 + rgb[1]
+            * rgb[1] * .691 + rgb[2] * rgb[2] * .068);
+        if (brightness >= 170) {
+            return true;
+        }
+        return false;
     }
 }
