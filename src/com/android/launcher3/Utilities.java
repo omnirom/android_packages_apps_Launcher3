@@ -143,6 +143,8 @@ public final class Utilities {
     public static final String SHOW_LEFT_TAB_PREFERENCE_KEY = "pref_left_tab";
     public static final String SHOW_DARK_THEME = "pref_showDarkTheme";
     public static final String SHOW_NOTIFICATION_DOT_NUMBERS = "pref_icon_badging_numbers";
+    public static final String KEY_HIDDEN_APPS = "hidden-app";
+    public static final String KEY_HIDDEN_APPS_SET = "hidden-app-set";
 
     public static boolean isPropertyEnabled(String propertyName) {
         return Log.isLoggable(propertyName, Log.VERBOSE);

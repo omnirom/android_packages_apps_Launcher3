@@ -43,7 +43,10 @@ public class WidgetsModel {
     private final IconCache mIconCache;
     private final AppFilter mAppFilter;
 
-    public WidgetsModel(IconCache iconCache, AppFilter appFilter) {
+    private Context mContext;
+
+    public WidgetsModel(Context context,  IconCache iconCache, AppFilter appFilter) {
+        mContext = context;
         mIconCache = iconCache;
         mAppFilter = appFilter;
         mWidgetsList = new MultiHashMap<>();
@@ -152,7 +155,7 @@ public class WidgetsModel {
                 }
             }
 
-            if (!mAppFilter.shouldShowApp(item.componentName)) {
+            if (mAppFilter != null && !mAppFilter.shouldShowApp(item.componentName.getPackageName(), mContext)) {
                 if (DEBUG) {
                     Log.d(TAG, String.format("%s is filtered and not added to the widget tray.",
                             item.componentName));
