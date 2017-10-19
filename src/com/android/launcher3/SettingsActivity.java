@@ -54,6 +54,7 @@ public class SettingsActivity extends Activity {
     private static final String DEFAULT_WEATHER_ICON_PACKAGE = "org.omnirom.omnijaws";
     private static final String DEFAULT_WEATHER_ICON_PREFIX = "outline";
     private static final String CHRONUS_ICON_PACK_INTENT = "com.dvtonder.chronus.ICON_PACK";
+    private static final String HIDDEN_APPS = "hidden_app";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -185,6 +186,13 @@ public class SettingsActivity extends Activity {
             if (!isSearchInstalled()) {
                 getPreferenceScreen().removePreference(leftTabPage);
             }
+
+            Preference hiddenApp = findPreference(Utilities.KEY_HIDDEN_APPS);
+            hiddenApp.setOnPreferenceClickListener(
+                preference -> {
+                    startActivity(new Intent(getActivity(), MultiSelectRecyclerViewActivity.class));
+                    return false;
+            });
         }
 
         @Override

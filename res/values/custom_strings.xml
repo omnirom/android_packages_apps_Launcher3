@@ -81,4 +81,13 @@
     <string name="show_dark_theme_title">Dark theme</string>
     <string name="pref_icon_badging_numbers_title">Notification dot numbers</string>
     <string name="pref_icon_badging_numbers_summary">Show the notification count inside of the dot</string>
+
+    <!-- Hidden app -->
+    <string name="hide_app">Hide apps</string>
+    <string name="hide_app_sum">Hide apps from the app drawer</string>
+    <string name="hide_app_selected">&#160;selected</string>
+    <string name="hidden_app">All apps</string>
+    <string name="hide_selected">Hide selected app(s)</string>
+    <string name="more">More</string>
+
 </resources>

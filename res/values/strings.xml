@@ -301,5 +301,4 @@
     <!-- Accessibility confirmation for notification being dismissed. -->
     <string name="notification_dismissed">Notification dismissed</string>
 
-    <string name="customize">Customize</string>
 </resources>

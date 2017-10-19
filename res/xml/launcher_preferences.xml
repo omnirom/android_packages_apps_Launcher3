@@ -109,6 +109,12 @@
             android:title="@string/show_dark_theme_title"
             android:defaultValue="false"
             android:persistent="true" />
+
+       <Preference
+            android:key="hidden_app"
+            android:title="@string/hide_app"
+            android:summary="@string/hide_app_sum"/>
+
     </PreferenceCategory>
 
     <PreferenceCategory
