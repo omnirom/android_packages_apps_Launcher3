@@ -34,9 +34,6 @@ public final class FeatureFlags {
     // When enabled while all-apps open, the soft input will be set to adjust resize .
     public static boolean LAUNCHER3_UPDATE_SOFT_INPUT_MODE = false;
 
-
-    // Feature flag to enable moving the QSB on the 0th screen of the workspace.
-    public static boolean QSB_ON_FIRST_SCREEN = true;
     // When enabled the all-apps icon is not added to the hotseat.
     public static final boolean NO_ALL_APPS_ICON = true;
     // When enabled fling down gesture on the first workspace triggers search.

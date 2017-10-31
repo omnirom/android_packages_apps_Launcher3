@@ -131,6 +131,7 @@ public final class Utilities {
     public static final String LEGACY_ICON_PREFERENCE_KEY = "pref_legacyIcons";
     public static final String ICON_SHAPE_PREFERENCE_KEY = "pref_iconShape";
     public static final String ICON_SHADOW_PREFERENCE_KEY = "pref_iconShadow";
+    public static final String BOTTOM_SEARCH_BAR_PREFERENCE_KEY = "pref_bottomSearchBar";
 
     public static boolean isPropertyEnabled(String propertyName) {
         return Log.isLoggable(propertyName, Log.VERBOSE);
@@ -141,8 +142,8 @@ public final class Utilities {
                 getAllowRotationDefaultValue(context));
     }
 
-    public static boolean isShowSearchBar(Context context) {
-        return getPrefs(context).getBoolean(SHOW_SEARCH_BAR_PREFERENCE_KEY, FeatureFlags.QSB_ON_FIRST_SCREEN);
+    public static boolean isTopSearchBar(Context context) {
+        return getPrefs(context).getBoolean(SHOW_SEARCH_BAR_PREFERENCE_KEY, true);
     }
 
     public static boolean isAdaptiveIcons(Context context) {
@@ -159,6 +160,10 @@ public final class Utilities {
 
     public static boolean isIconShadow(Context context) {
         return getPrefs(context).getBoolean(ICON_SHADOW_PREFERENCE_KEY, FeatureFlags.ADAPTIVE_ICON_SHADOW);
+    }
+
+    public static boolean isBottomSearchBar(Context context) {
+        return getPrefs(context).getBoolean(BOTTOM_SEARCH_BAR_PREFERENCE_KEY, false);
     }
 
     public static boolean getAllowRotationDefaultValue(Context context) {

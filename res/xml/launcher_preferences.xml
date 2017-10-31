@@ -91,10 +91,23 @@
             android:defaultValue="true"
             android:persistent="true" />
 
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:key="search_bar_category"
+        android:title="@string/search_bar_category_title" >
+            
         <SwitchPreference
             android:key="pref_searchBar"
-            android:title="@string/search_bar_title"
+            android:title="@string/top_search_bar_title"
             android:defaultValue="true"
             android:persistent="true" />
+
+        <SwitchPreference
+            android:key="pref_bottomSearchBar"
+            android:title="@string/bottom_search_bar_title"
+            android:defaultValue="false"
+            android:persistent="true" />
+
     </PreferenceCategory>
 </PreferenceScreen>

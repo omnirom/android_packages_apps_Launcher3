@@ -38,4 +38,7 @@
     <string name="icon_category_title">Icons</string>
     <string name="other_category_title">Other</string>
     <string name="icon_shadow_title">Add icon shadow</string>
+    <string name="bottom_search_bar_title">Bottom search bar</string>
+    <string name="search_bar_category_title">Search bar</string>
+    <string name="top_search_bar_title">Top search bar</string>
 </resources>
