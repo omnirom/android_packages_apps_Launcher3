@@ -125,12 +125,16 @@ public final class Utilities {
             TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
 
     public static final String ALLOW_ROTATION_PREFERENCE_KEY = "pref_allowRotation";
-    public static final String SHOW_SEARCH_BAR_PREFERENCE_KEY = "pref_searchBar";
     public static final String ADAPTIVE_ICONS_PREFERENCE_KEY = "pref_adaptiveIcons";
     public static final String ICON_PACK_PREFERENCE_KEY = "pref_iconPackPackage";
     public static final String LEGACY_ICON_PREFERENCE_KEY = "pref_legacyIcons";
     public static final String ICON_SHAPE_PREFERENCE_KEY = "pref_iconShape";
     public static final String ICON_SHADOW_PREFERENCE_KEY = "pref_iconShadow";
+    public static final String SEARCH_BAR_POS_PREFERENCE_KEY = "pref_searchBarPosition";
+    private static final String SHOW_SEARCH_BAR_PREFERENCE_KEY = "pref_searchBar";
+    public static final String SEARCH_BAR_POS_TOP = "0";
+    public static final String SEARCH_BAR_POS_BOTTOM = "1";
+    public static final String SEARCH_BAR_POS_NONE = "-1";
 
     public static boolean isPropertyEnabled(String propertyName) {
         return Log.isLoggable(propertyName, Log.VERBOSE);
@@ -141,8 +145,19 @@ public final class Utilities {
                 getAllowRotationDefaultValue(context));
     }
 
-    public static boolean isShowSearchBar(Context context) {
-        return getPrefs(context).getBoolean(SHOW_SEARCH_BAR_PREFERENCE_KEY, FeatureFlags.QSB_ON_FIRST_SCREEN);
+    public static boolean isTopSearchBar(Context context) {
+        if (getPrefs(context).contains(SHOW_SEARCH_BAR_PREFERENCE_KEY)) {
+            boolean value = getPrefs(context).getBoolean(SHOW_SEARCH_BAR_PREFERENCE_KEY, true);
+            getPrefs(context).edit().remove(SHOW_SEARCH_BAR_PREFERENCE_KEY).commit();
+            getPrefs(context).edit().putString(SEARCH_BAR_POS_PREFERENCE_KEY, value ?
+                    SEARCH_BAR_POS_TOP :
+                    SEARCH_BAR_POS_NONE).commit();
+        }
+        String value = getPrefs(context).getString(SEARCH_BAR_POS_PREFERENCE_KEY, SEARCH_BAR_POS_NONE);
+        if (value != null) {
+            return value.equals(SEARCH_BAR_POS_TOP);
+        }
+        return false;
     }
 
     public static boolean isAdaptiveIcons(Context context) {
@@ -159,6 +174,14 @@ public final class Utilities {
 
     public static boolean isIconShadow(Context context) {
         return getPrefs(context).getBoolean(ICON_SHADOW_PREFERENCE_KEY, FeatureFlags.ADAPTIVE_ICON_SHADOW);
+    }
+
+    public static boolean isBottomSearchBar(Context context) {
+        String value = getPrefs(context).getString(SEARCH_BAR_POS_PREFERENCE_KEY, SEARCH_BAR_POS_NONE);
+        if (value != null) {
+            return value.equals(SEARCH_BAR_POS_BOTTOM);
+        }
+        return false;
     }
 
     public static boolean getAllowRotationDefaultValue(Context context) {

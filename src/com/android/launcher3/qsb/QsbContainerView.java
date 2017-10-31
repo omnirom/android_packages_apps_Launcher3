@@ -76,6 +76,7 @@ public class QsbContainerView extends FrameLayout {
         private QsbWidgetHost mQsbWidgetHost;
         private AppWidgetProviderInfo mWidgetInfo;
         private QsbWidgetHostView mQsb;
+        private boolean mHotseatLocation;
 
         @Override
         public void onCreate(Bundle savedInstanceState) {
@@ -89,10 +90,16 @@ public class QsbContainerView extends FrameLayout {
         public View onCreateView(
                 LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
+            mHotseatLocation = getTag().equals("qsb_view_hotseat");
             mWrapper = new FrameLayout(getActivity());
 
+            boolean topSearchBar = Utilities.isTopSearchBar(getActivity());
+            boolean bottomSearchBar = Utilities.isBottomSearchBar(getActivity());
             // Only add the view when enabled
-            if (FeatureFlags.QSB_ON_FIRST_SCREEN) {
+            if (topSearchBar && !mHotseatLocation) {
+                mWrapper.addView(createQsb(mWrapper));
+            }
+            if (bottomSearchBar && mHotseatLocation) {
                 mWrapper.addView(createQsb(mWrapper));
             }
             return mWrapper;
@@ -190,11 +197,21 @@ public class QsbContainerView extends FrameLayout {
         @Override
         public void onResume() {
             super.onResume();
-            boolean visible = Utilities.isShowSearchBar(getActivity());
-            if (!visible) {
-                removeFragment();
+            boolean topSearchBar = Utilities.isTopSearchBar(getActivity());
+            boolean bottomSearchBar = Utilities.isBottomSearchBar(getActivity());
+
+            if (!mHotseatLocation) {
+                if (!topSearchBar) {
+                    removeFragment();
+                } else {
+                    rebindFragment();
+                }
             } else {
-                rebindFragment();
+                if (!bottomSearchBar) {
+                    removeFragment();
+                } else {
+                    rebindFragment();
+                }
             }
         }
 
@@ -205,8 +222,13 @@ public class QsbContainerView extends FrameLayout {
         }
 
         private void rebindFragment() {
+            boolean topSearchBar = Utilities.isTopSearchBar(getActivity());
+            boolean bottomSearchBar = Utilities.isBottomSearchBar(getActivity());
             // Exit if the embedded qsb is disabled
-            if (!FeatureFlags.QSB_ON_FIRST_SCREEN) {
+            if (!topSearchBar && !mHotseatLocation) {
+                return;
+            }
+            if (!bottomSearchBar && mHotseatLocation) {
                 return;
             }
 

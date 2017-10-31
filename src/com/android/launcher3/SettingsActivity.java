@@ -111,6 +111,16 @@ public class SettingsActivity extends Activity {
                     return true;
                 }
             });
+
+            final ListPreference searchBarPos = (ListPreference) findPreference(Utilities.SEARCH_BAR_POS_PREFERENCE_KEY);
+            searchBarPos.setSummary(searchBarPos.getEntry());
+            searchBarPos.setOnPreferenceChangeListener(new OnPreferenceChangeListener() {
+                public boolean onPreferenceChange(Preference preference, Object newValue) {
+                    int index = searchBarPos.findIndexOfValue((String) newValue);
+                    searchBarPos.setSummary(searchBarPos.getEntries()[index]);
+                    return true;
+                }
+            });
         }
 
         @Override

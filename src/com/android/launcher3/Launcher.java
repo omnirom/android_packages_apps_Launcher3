@@ -376,9 +376,6 @@ public class Launcher extends BaseActivity
 
         LauncherAppState app = LauncherAppState.getInstance(this);
 
-        boolean visible = Utilities.isShowSearchBar(this);
-        FeatureFlags.QSB_ON_FIRST_SCREEN = visible;
-
         // Load configuration-specific DeviceProfile
         mDeviceProfile = app.getInvariantDeviceProfile().getDeviceProfile(this);
         if (isInMultiWindowModeCompat()) {
@@ -2848,7 +2845,7 @@ public class Launcher extends BaseActivity
     boolean isHotseatLayout(View layout) {
         // TODO: Remove this method
         return mHotseat != null && layout != null &&
-                (layout instanceof CellLayout) && (layout == mHotseat.getLayout());
+                (layout instanceof CellLayout) && (layout == mHotseat.getCellLayout());
     }
 
     /**
@@ -2857,7 +2854,7 @@ public class Launcher extends BaseActivity
     public CellLayout getCellLayout(long container, long screenId) {
         if (container == LauncherSettings.Favorites.CONTAINER_HOTSEAT) {
             if (mHotseat != null) {
-                return mHotseat.getLayout();
+                return mHotseat.getCellLayout();
             } else {
                 return null;
             }
@@ -2924,6 +2921,8 @@ public class Launcher extends BaseActivity
                     .sendAccessibilityEvent(AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED);
         }
         mWorkspace.updateQsbVisibility();
+        updateHotseatQsbVisibility();
+
         return changed;
     }
 
@@ -3283,12 +3282,13 @@ public class Launcher extends BaseActivity
     @Override
     public void bindScreens(ArrayList<Long> orderedScreenIds) {
         // Make sure the first screen is always at the start.
-        if (FeatureFlags.QSB_ON_FIRST_SCREEN &&
+        boolean visible = Utilities.isTopSearchBar(this);
+        if (visible &&
                 orderedScreenIds.indexOf(Workspace.FIRST_SCREEN_ID) != 0) {
             orderedScreenIds.remove(Workspace.FIRST_SCREEN_ID);
             orderedScreenIds.add(0, Workspace.FIRST_SCREEN_ID);
             mModel.updateWorkspaceScreenOrder(this, orderedScreenIds);
-        } else if (!FeatureFlags.QSB_ON_FIRST_SCREEN && orderedScreenIds.isEmpty()) {
+        } else if (!visible && orderedScreenIds.isEmpty()) {
             // If there are no screens, we need to have an empty screen
             mWorkspace.addExtraEmptyScreen();
         }
@@ -3309,9 +3309,10 @@ public class Launcher extends BaseActivity
 
     private void bindAddScreens(ArrayList<Long> orderedScreenIds) {
         int count = orderedScreenIds.size();
+        boolean visible = Utilities.isTopSearchBar(this);
         for (int i = 0; i < count; i++) {
             long screenId = orderedScreenIds.get(i);
-            if (!FeatureFlags.QSB_ON_FIRST_SCREEN || screenId != Workspace.FIRST_SCREEN_ID) {
+            if (!visible || screenId != Workspace.FIRST_SCREEN_ID) {
                 // No need to bind the first screen, as its always bound.
                 mWorkspace.insertNewWorkspaceScreenBeforeEmptyScreen(screenId);
             }
@@ -4054,7 +4055,7 @@ public class Launcher extends BaseActivity
             }
 
             writer.println(prefix + "  Hotseat");
-            ViewGroup layout = mHotseat.getLayout().getShortcutsAndWidgets();
+            ViewGroup layout = mHotseat.getCellLayout().getShortcutsAndWidgets();
             for (int j = 0; j < layout.getChildCount(); j++) {
                 Object tag = layout.getChildAt(j).getTag();
                 if (tag != null) {
@@ -4172,6 +4173,19 @@ public class Launcher extends BaseActivity
                 mModel.forceReload();
                 mOnResumeNeedsLoad = true;
             }
+            if (Utilities.SEARCH_BAR_POS_PREFERENCE_KEY.equals(key)) {
+                updateHotseatQsbVisibility();
+                mDeviceProfile.layout(Launcher.this, false /* notifyListeners */);
+                mWorkspace.updateQsbVisibility();
+            }
+        }
+    }
+
+    private void updateHotseatQsbVisibility() {
+        View qsbContainer = mHotseat.getQsbContainer();
+        if (qsbContainer != null) {
+            boolean bottomSearchBar = Utilities.isBottomSearchBar(this);
+            qsbContainer.setVisibility(bottomSearchBar ? View.VISIBLE : View.GONE);
         }
     }
 }
