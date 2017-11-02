@@ -87,8 +87,8 @@ public class OverviewScreenAccessibilityDelegate extends AccessibilityDelegate {
         if (index < mWorkspace.getChildCount() - 1) {
             info.addAction(mActions.get(MOVE_FORWARD));
         }
-        boolean visible = Utilities.isTopSearchBar(mWorkspace.getContext());
-        int startIndex = mWorkspace.numCustomPages() + (visible ? 1 : 0);
+        boolean topSpaceUsed = Utilities.isTopSpaceReserved(mWorkspace.getContext());
+        int startIndex = mWorkspace.numCustomPages() + (topSpaceUsed ? 1 : 0);
         if (index > startIndex) {
             info.addAction(mActions.get(MOVE_BACKWARD));
         }

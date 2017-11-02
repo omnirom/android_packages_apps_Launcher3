@@ -853,9 +853,9 @@ public class LauncherProvider extends ContentProvider {
                 case 25:
                     convertShortcutsToLauncherActivities(db);
                 case 26:
-                    // QSB was moved to the grid. Clear the first row on screen 0.
-                    boolean visible = Utilities.isTopSearchBar(mContext);
-                    if (visible && !LauncherDbUtils.prepareScreenZeroToHostQsb(mContext, db)) {
+                    // Clear the first row on screen 0.
+                    boolean visible = Utilities.isTopSpaceReserved(mContext);
+                    if (visible && !LauncherDbUtils.prepareScreenZeroToHostTopContainer(mContext, db)) {
                         break;
                     }
                 case 27:

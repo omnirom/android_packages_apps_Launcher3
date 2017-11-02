@@ -218,7 +218,7 @@ public class Launcher extends BaseActivity
     private View mLauncherView;
     @Thunk DragLayer mDragLayer;
     private DragController mDragController;
-    private View mQsbContainer;
+    private View mTopContainer;
 
     public View mWeightWatcher;
 
@@ -1312,8 +1312,7 @@ public class Launcher extends BaseActivity
         mDragLayer = (DragLayer) findViewById(R.id.drag_layer);
         mFocusHandler = mDragLayer.getFocusIndicatorHelper();
         mWorkspace = (Workspace) mDragLayer.findViewById(R.id.workspace);
-        mQsbContainer = mDragLayer.findViewById(mDeviceProfile.isVerticalBarLayout()
-                ? R.id.workspace_blocked_row : R.id.qsb_container);
+        mTopContainer = mDragLayer.findViewById(R.id.top_container);
         mWorkspace.initParentViews(mDragLayer);
 
         mLauncherView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
@@ -1339,7 +1338,7 @@ public class Launcher extends BaseActivity
         // Until the workspace is bound, ensure that we keep the wallpaper offset locked to the
         // default state, otherwise we will update to the wrong offsets in RTL
         mWorkspace.lockWallpaperToDefaultPage();
-        mWorkspace.bindAndInitFirstWorkspaceScreen(null /* recycled qsb */);
+        mWorkspace.bindAndInitFirstWorkspaceScreen();
         mDragController.addDragListener(mWorkspace);
 
         // Get the search/delete/uninstall bar
@@ -1686,8 +1685,8 @@ public class Launcher extends BaseActivity
         return mWorkspace;
     }
 
-    public View getQsbContainer() {
-        return mQsbContainer;
+    public View getTopContainer() {
+        return mTopContainer;
     }
 
     public Hotseat getHotseat() {
@@ -2920,8 +2919,8 @@ public class Launcher extends BaseActivity
             getWindow().getDecorView()
                     .sendAccessibilityEvent(AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED);
         }
-        mWorkspace.updateQsbVisibility();
         updateHotseatQsbVisibility();
+        updateTopWidgetVisibility();
 
         return changed;
     }
@@ -3282,7 +3281,7 @@ public class Launcher extends BaseActivity
     @Override
     public void bindScreens(ArrayList<Long> orderedScreenIds) {
         // Make sure the first screen is always at the start.
-        boolean visible = Utilities.isTopSearchBar(this);
+        boolean visible = Utilities.isTopSpaceReserved(this);
         if (visible &&
                 orderedScreenIds.indexOf(Workspace.FIRST_SCREEN_ID) != 0) {
             orderedScreenIds.remove(Workspace.FIRST_SCREEN_ID);
@@ -3309,7 +3308,7 @@ public class Launcher extends BaseActivity
 
     private void bindAddScreens(ArrayList<Long> orderedScreenIds) {
         int count = orderedScreenIds.size();
-        boolean visible = Utilities.isTopSearchBar(this);
+        boolean visible = Utilities.isTopSpaceReserved(this);
         for (int i = 0; i < count; i++) {
             long screenId = orderedScreenIds.get(i);
             if (!visible || screenId != Workspace.FIRST_SCREEN_ID) {
@@ -4173,19 +4172,23 @@ public class Launcher extends BaseActivity
                 mModel.forceReload();
                 mOnResumeNeedsLoad = true;
             }
-            if (Utilities.SEARCH_BAR_POS_PREFERENCE_KEY.equals(key)) {
+            if (Utilities.SHOW_SEARCH_BAR_PREFERENCE_KEY.equals(key)) {
                 updateHotseatQsbVisibility();
                 mDeviceProfile.layout(Launcher.this, false /* notifyListeners */);
-                mWorkspace.updateQsbVisibility();
+            }
+            if (Utilities.SHOW_TOP_WIDGET_PREFERENCE_KEY.equals(key)) {
+                updateTopWidgetVisibility();
             }
         }
     }
 
     private void updateHotseatQsbVisibility() {
         View qsbContainer = mHotseat.getQsbContainer();
-        if (qsbContainer != null) {
-            boolean bottomSearchBar = Utilities.isBottomSearchBar(this);
-            qsbContainer.setVisibility(bottomSearchBar ? View.VISIBLE : View.GONE);
-        }
+        boolean bottomSearchBar = Utilities.isBottomSearchBar(this);
+        qsbContainer.setVisibility(bottomSearchBar ? View.VISIBLE : View.GONE);
+    }
+
+    public void updateTopWidgetVisibility() {
+        mWorkspace.updateTopWidgetVisibility();
     }
 }

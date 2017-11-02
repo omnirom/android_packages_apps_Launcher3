@@ -261,7 +261,7 @@ public class GridSizeMigrationTask {
      */
     protected void migrateScreen(long screenId) {
         // If we are migrating the first screen, do not touch the first row.
-        boolean visible = Utilities.isTopSearchBar(mContext);
+        boolean visible = Utilities.isTopSpaceReserved(mContext);
         int startY = (visible && screenId == Workspace.FIRST_SCREEN_ID)
                 ? 1 : 0;
 
