@@ -59,6 +59,8 @@ public class Hotseat extends FrameLayout
     private ValueAnimator mBackgroundColorAnimator;
     private View mQsbContainer;
     private LinearLayout mContentContainer;
+    private boolean mEnableDynamicBackgroundColor;
+    private int mDynamicBackgroundColor;
 
     public Hotseat(Context context) {
         this(context, null);
@@ -75,6 +77,8 @@ public class Hotseat extends FrameLayout
         mBackgroundColor = ColorUtils.setAlphaComponent(
                 Themes.getAttrColor(context, android.R.attr.colorPrimary), 0);
         mBackground = new ColorDrawable(mBackgroundColor);
+        mDynamicBackgroundColor = mBackgroundColor;
+        mEnableDynamicBackgroundColor = Utilities.isShowHotseatBgColor(context);
         setBackground(mBackground);
     }
 
@@ -189,7 +193,8 @@ public class Hotseat extends FrameLayout
 
     public void updateColor(ExtractedColors extractedColors, boolean animate) {
         if (!mHasVerticalHotseat) {
-            int color = extractedColors.getColor(ExtractedColors.HOTSEAT_INDEX, Color.TRANSPARENT);
+            mDynamicBackgroundColor = extractedColors.getColor(ExtractedColors.HOTSEAT_INDEX, Color.TRANSPARENT);
+            int color = mEnableDynamicBackgroundColor ? mDynamicBackgroundColor : Color.TRANSPARENT;
             if (mBackgroundColorAnimator != null) {
                 mBackgroundColorAnimator.cancel();
             }
@@ -230,5 +235,12 @@ public class Hotseat extends FrameLayout
 
     public View getQsbContainer() {
         return mQsbContainer;
+    }
+
+    public void setShowBackgroundColor(boolean value) {
+        mEnableDynamicBackgroundColor = value;
+        int color = mEnableDynamicBackgroundColor ? mDynamicBackgroundColor : Color.TRANSPARENT;
+        setBackgroundColor(color);
+        mBackgroundColor = color;
     }
 }

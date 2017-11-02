@@ -130,11 +130,12 @@ public final class Utilities {
     public static final String LEGACY_ICON_PREFERENCE_KEY = "pref_legacyIcons";
     public static final String ICON_SHAPE_PREFERENCE_KEY = "pref_iconShape";
     public static final String ICON_SHADOW_PREFERENCE_KEY = "pref_iconShadow";
-    public static final String SEARCH_BAR_POS_PREFERENCE_KEY = "pref_searchBarPosition";
-    private static final String SHOW_SEARCH_BAR_PREFERENCE_KEY = "pref_searchBar";
-    public static final String SEARCH_BAR_POS_TOP = "0";
-    public static final String SEARCH_BAR_POS_BOTTOM = "1";
-    public static final String SEARCH_BAR_POS_NONE = "-1";
+    public static final String SHOW_SEARCH_BAR_PREFERENCE_KEY = "pref_searchBar";
+    public static final String SHOW_TOP_WIDGET_PREFERENCE_KEY = "pref_topWidget";
+    public static final String SHOW_HOTSEAT_BG_PREFERENCE_KEY = "pref_hotSeatBgColor";
+    public static final String SHOW_HOTSEAT_PREFERENCE_KEY = "pref_hotSeat";
+    public static final String WEATHER_ICON_PACK_PREFERENCE_KEY = "pref_weatherIconPack";
+    public static final String SHOW_ALL_DAY_EVENTS_PREFERENCE_KEY = "pref_allDayEvents";
 
     public static boolean isPropertyEnabled(String propertyName) {
         return Log.isLoggable(propertyName, Log.VERBOSE);
@@ -143,21 +144,6 @@ public final class Utilities {
     public static boolean isAllowRotationPrefEnabled(Context context) {
         return getPrefs(context).getBoolean(ALLOW_ROTATION_PREFERENCE_KEY,
                 getAllowRotationDefaultValue(context));
-    }
-
-    public static boolean isTopSearchBar(Context context) {
-        if (getPrefs(context).contains(SHOW_SEARCH_BAR_PREFERENCE_KEY)) {
-            boolean value = getPrefs(context).getBoolean(SHOW_SEARCH_BAR_PREFERENCE_KEY, true);
-            getPrefs(context).edit().remove(SHOW_SEARCH_BAR_PREFERENCE_KEY).commit();
-            getPrefs(context).edit().putString(SEARCH_BAR_POS_PREFERENCE_KEY, value ?
-                    SEARCH_BAR_POS_TOP :
-                    SEARCH_BAR_POS_NONE).commit();
-        }
-        String value = getPrefs(context).getString(SEARCH_BAR_POS_PREFERENCE_KEY, SEARCH_BAR_POS_NONE);
-        if (value != null) {
-            return value.equals(SEARCH_BAR_POS_TOP);
-        }
-        return false;
     }
 
     public static boolean isAdaptiveIcons(Context context) {
@@ -177,11 +163,27 @@ public final class Utilities {
     }
 
     public static boolean isBottomSearchBar(Context context) {
-        String value = getPrefs(context).getString(SEARCH_BAR_POS_PREFERENCE_KEY, SEARCH_BAR_POS_NONE);
-        if (value != null) {
-            return value.equals(SEARCH_BAR_POS_BOTTOM);
-        }
-        return false;
+        return getPrefs(context).getBoolean(SHOW_SEARCH_BAR_PREFERENCE_KEY, true);
+    }
+
+    public static boolean isTopSpaceReserved(Context context) {
+        return getPrefs(context).getBoolean(SHOW_TOP_WIDGET_PREFERENCE_KEY, true);
+    }
+
+    public static boolean isShowHotseatBgColor(Context context) {
+        return getPrefs(context).getBoolean(SHOW_HOTSEAT_BG_PREFERENCE_KEY, true);
+    }
+
+    public static boolean isShowHotseat(Context context) {
+        return getPrefs(context).getBoolean(SHOW_HOTSEAT_PREFERENCE_KEY, true);
+    }
+
+    public static String getWeatherIconPack(Context context) {
+        return getPrefs(context).getString(WEATHER_ICON_PACK_PREFERENCE_KEY, null);
+    }
+
+    public static boolean isShowAllDayEvents(Context context) {
+        return getPrefs(context).getBoolean(SHOW_ALL_DAY_EVENTS_PREFERENCE_KEY, false);
     }
 
     public static boolean getAllowRotationDefaultValue(Context context) {

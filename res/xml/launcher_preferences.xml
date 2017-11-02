@@ -94,16 +94,54 @@
     </PreferenceCategory>
 
     <PreferenceCategory
-        android:key="search_bar_category"
-        android:title="@string/search_bar_category_title" >
+        android:key="hotseat_category"
+        android:title="@string/hotseat_category_title" >
+
+        <SwitchPreference
+            android:key="pref_hotSeat"
+            android:title="@string/show_hotseat_title"
+            android:summary="@string/show_hotseat_summary"
+            android:defaultValue="true"
+            android:persistent="true" />
+
+        <SwitchPreference
+            android:key="pref_searchBar"
+            android:title="@string/show_search_bar_title"
+            android:summary="@string/show_search_bar_summary"
+            android:defaultValue="true"
+            android:persistent="true" />
+
+        <SwitchPreference
+            android:key="pref_hotSeatBgColor"
+            android:title="@string/show_hotseat_bg_color_title"
+            android:summary="@string/show_hotseat_bg_color_summary"
+            android:defaultValue="true"
+            android:persistent="true" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:key="widget_category"
+        android:title="@string/widget_category_title" >
+
+        <SwitchPreference
+            android:key="pref_topWidget"
+            android:title="@string/show_top_widget_title"
+            android:summary="@string/show_top_widget_summary"
+            android:defaultValue="true"
+            android:persistent="true" />
 
         <ListPreference
-            android:key="pref_searchBarPosition"
-            android:title="@string/search_bar_pos_title"
-            android:entries="@array/search_bar_pos_names"
-            android:entryValues="@array/search_bar_pos_values"
-            android:persistent="true"
-            android:defaultValue="0" />
+            android:key="pref_weatherIconPack"
+            android:title="@string/weather_icon_pack_title"
+            android:persistent="true" />
+
+        <SwitchPreference
+            android:key="pref_allDayEvents"
+            android:title="@string/pref_allDayEvents_title"
+            android:summary="@string/pref_allDayEvents_summary"
+            android:defaultValue="false"
+            android:persistent="true" />
 
     </PreferenceCategory>
 </PreferenceScreen>

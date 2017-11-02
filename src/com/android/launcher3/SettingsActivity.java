@@ -19,6 +19,9 @@ package com.android.launcher3;
 import android.app.Activity;
 import android.app.ActionBar;
 import android.content.ContentResolver;
+import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
 import android.database.ContentObserver;
 import android.os.Bundle;
 import android.os.Handler;
@@ -33,6 +36,9 @@ import android.view.MenuItem;
 
 import com.android.launcher3.graphics.IconShapeOverride;
 
+import java.util.List;
+import java.util.ArrayList;
+
 /**
  * Settings activity for Launcher. Currently implements the following setting: Allow rotation
  */
@@ -41,6 +47,9 @@ public class SettingsActivity extends Activity {
     private static final String ICON_BADGING_PREFERENCE_KEY = "pref_icon_badging";
     // TODO: use Settings.Secure.NOTIFICATION_BADGING
     private static final String NOTIFICATION_BADGING = "notification_badging";
+    private static final String DEFAULT_WEATHER_ICON_PACKAGE = "org.omnirom.omnijaws";
+    private static final String DEFAULT_WEATHER_ICON_PREFIX = "outline";
+    private static final String CHRONUS_ICON_PACK_INTENT = "com.dvtonder.chronus.ICON_PACK";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -112,12 +121,32 @@ public class SettingsActivity extends Activity {
                 }
             });
 
-            final ListPreference searchBarPos = (ListPreference) findPreference(Utilities.SEARCH_BAR_POS_PREFERENCE_KEY);
-            searchBarPos.setSummary(searchBarPos.getEntry());
-            searchBarPos.setOnPreferenceChangeListener(new OnPreferenceChangeListener() {
+            final ListPreference iconPack = (ListPreference) findPreference(Utilities.WEATHER_ICON_PACK_PREFERENCE_KEY) ;
+
+            String settingHeaderPackage = Utilities.getWeatherIconPack(getActivity());
+            if (settingHeaderPackage == null) {
+                settingHeaderPackage = DEFAULT_WEATHER_ICON_PACKAGE + "." + DEFAULT_WEATHER_ICON_PREFIX;
+            }
+
+            List<String> entries = new ArrayList<String>();
+            List<String> values = new ArrayList<String>();
+            getAvailableWeatherIconPacks(entries, values);
+            iconPack.setEntries(entries.toArray(new String[entries.size()]));
+            iconPack.setEntryValues(values.toArray(new String[values.size()]));
+
+            int valueIndex = iconPack.findIndexOfValue(settingHeaderPackage);
+            if (valueIndex == -1) {
+                // no longer found
+                settingHeaderPackage = DEFAULT_WEATHER_ICON_PACKAGE + "." + DEFAULT_WEATHER_ICON_PREFIX;
+                valueIndex = iconPack.findIndexOfValue(settingHeaderPackage);
+            }
+            iconPack.setValueIndex(valueIndex >= 0 ? valueIndex : 0);
+            iconPack.setSummary(iconPack.getEntry());
+            iconPack.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+                @Override
                 public boolean onPreferenceChange(Preference preference, Object newValue) {
-                    int index = searchBarPos.findIndexOfValue((String) newValue);
-                    searchBarPos.setSummary(searchBarPos.getEntries()[index]);
+                    int valueIndex = iconPack.findIndexOfValue((String)newValue);
+                    iconPack.setSummary(iconPack.getEntries()[valueIndex]);
                     return true;
                 }
             });
@@ -134,6 +163,48 @@ public class SettingsActivity extends Activity {
                 mIconBadgingObserver = null;
             }
             super.onDestroy();
+        }
+
+        private void getAvailableWeatherIconPacks(List<String> entries, List<String> values) {
+            Intent i = new Intent();
+            PackageManager packageManager = getActivity().getPackageManager();
+            i.setAction("org.omnirom.WeatherIconPack");
+            for (ResolveInfo r : packageManager.queryIntentActivities(i, 0)) {
+                String packageName = r.activityInfo.packageName;
+                String label = r.activityInfo.loadLabel(getActivity().getPackageManager()).toString();
+                if (label == null) {
+                    label = r.activityInfo.packageName;
+                }
+                if (entries.contains(label)) {
+                    continue;
+                }
+                if (packageName.equals(DEFAULT_WEATHER_ICON_PACKAGE)) {
+                    values.add(0, r.activityInfo.name);
+                } else {
+                    values.add(r.activityInfo.name);
+                }
+
+                if (packageName.equals(DEFAULT_WEATHER_ICON_PACKAGE)) {
+                    entries.add(0, label);
+                } else {
+                    entries.add(label);
+                }
+            }
+            i = new Intent(Intent.ACTION_MAIN);
+            i.addCategory(CHRONUS_ICON_PACK_INTENT);
+            for (ResolveInfo r : packageManager.queryIntentActivities(i, 0)) {
+                String packageName = r.activityInfo.packageName;
+                String label = r.activityInfo.loadLabel(getActivity().getPackageManager()).toString();
+                if (label == null) {
+                    label = r.activityInfo.packageName;
+                }
+                if (entries.contains(label)) {
+                    continue;
+                }
+                values.add(packageName + ".weather");
+
+                entries.add(label);
+            }
         }
     }
 
