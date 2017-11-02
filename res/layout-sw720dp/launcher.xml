@@ -63,8 +63,8 @@
                  android:id="@+id/page_indicator" />
 
         <include
-            layout="@layout/qsb_container"
-            android:id="@+id/qsb_container" />
+            layout="@layout/top_container"
+            android:id="@+id/top_container" />
 
         <include layout="@layout/widgets_view"
             android:id="@+id/widgets_view"

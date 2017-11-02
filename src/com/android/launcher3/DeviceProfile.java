@@ -536,15 +536,6 @@ public class DeviceProfile {
                 workspacePadding.bottom);
         workspace.setPageSpacing(getWorkspacePageSpacing());
 
-        // Only display when enabled
-        boolean topSearchBar = Utilities.isTopSearchBar(launcher);
-        if (topSearchBar) {
-            View qsbContainer = launcher.getQsbContainer();
-            lp = (FrameLayout.LayoutParams) qsbContainer.getLayoutParams();
-            lp.topMargin = mInsets.top + workspacePadding.top;
-            qsbContainer.setLayoutParams(lp);
-        }
-
         // Layout the hotseat
         Hotseat hotseat = (Hotseat) launcher.findViewById(R.id.hotseat);
         lp = (FrameLayout.LayoutParams) hotseat.getLayoutParams();
@@ -662,7 +653,7 @@ public class DeviceProfile {
 
         // In landscape, we match the width of the workspace
         int padding = (pageIndicatorLandGutterRightNavBarPx +
-                hotseatBarHeightPx + hotseatLandGutterPx + mInsets.left) / 2;
+                getHotseatHeight() + hotseatLandGutterPx + mInsets.left) / 2;
         return new int[]{ padding, padding };
     }
 
@@ -675,9 +666,14 @@ public class DeviceProfile {
 
     public int getHotseatHeight() {
         boolean bottomSearchBar = Utilities.isBottomSearchBar(mContext);
-        if (bottomSearchBar) {
-            return hotseatBarHeightPx + hotseatQsbHeight;
+        boolean showHotseat = Utilities.isShowHotseat(mContext);
+        int height = 0;
+        if (showHotseat) {
+            height += hotseatBarHeightPx;
         }
-        return hotseatBarHeightPx;
+        if (bottomSearchBar) {
+            height += hotseatQsbHeight;
+        }
+        return height;
     }
 }
