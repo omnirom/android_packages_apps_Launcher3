@@ -33,16 +33,4 @@
         <item>@string/icon_mask_circle_string</item>
         <item>@string/icon_mask_teardrop_string</item>
     </string-array>
-
-    <string-array name="search_bar_pos_names" translatable="false">
-        <item>@string/search_bar_pos_top</item>
-        <item>@string/search_bar_pos_bottom</item>
-        <item>@string/search_bar_pos_none</item>
-    </string-array>
-
-    <string-array name="search_bar_pos_values" translatable="false" >
-        <item>0</item>
-        <item>1</item>
-        <item>-1</item>
-    </string-array>
 </resources>

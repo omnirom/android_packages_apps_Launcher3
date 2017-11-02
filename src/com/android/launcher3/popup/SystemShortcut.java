@@ -1,6 +1,7 @@
 package com.android.launcher3.popup;
 
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
@@ -12,6 +13,7 @@ import com.android.launcher3.ItemInfo;
 import com.android.launcher3.Launcher;
 import com.android.launcher3.R;
 import com.android.launcher3.model.WidgetItem;
+import com.android.launcher3.topwidget.OmniJawsClient;
 import com.android.launcher3.util.PackageUserKey;
 import com.android.launcher3.util.Themes;
 import com.android.launcher3.widget.WidgetsBottomSheet;
@@ -87,6 +89,27 @@ public abstract class SystemShortcut {
                     Rect sourceBounds = launcher.getViewBounds(view);
                     Bundle opts = launcher.getActivityLaunchOptions(view);
                     InfoDropTarget.startDetailsActivityForInfo(itemInfo, launcher, null, sourceBounds, opts);
+                }
+            };
+        }
+    }
+
+    public static class WeatherSettings extends SystemShortcut {
+        public WeatherSettings() {
+            super(R.drawable.ic_weather_settings, R.string.weather_settings_drop_target_label);
+        }
+
+        @Override
+        public View.OnClickListener getOnClickListener(final Launcher launcher,
+                final ItemInfo itemInfo) {
+            return new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    OmniJawsClient weatherClient = new OmniJawsClient(launcher);
+                    Intent intent = weatherClient.getSettingsIntent();
+                    if (intent != null) {
+                        launcher.startActivitySafely(null, intent, null);
+                    }
                 }
             };
         }

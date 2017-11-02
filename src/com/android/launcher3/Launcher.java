@@ -43,6 +43,7 @@ import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Point;
+import android.graphics.PointF;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
@@ -70,12 +71,14 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnLongClickListener;
 import android.view.ViewGroup;
+import android.view.ViewGroup.LayoutParams;
 import android.view.ViewTreeObserver;
 import android.view.WindowManager;
 import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityManager;
 import android.view.animation.OvershootInterpolator;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -111,8 +114,11 @@ import com.android.launcher3.notification.NotificationListener;
 import com.android.launcher3.pageindicators.PageIndicator;
 import com.android.launcher3.popup.PopupContainerWithArrow;
 import com.android.launcher3.popup.PopupDataProvider;
+import com.android.launcher3.popup.SimplePopupContainerWithArrow;
 import com.android.launcher3.shortcuts.DeepShortcutManager;
 import com.android.launcher3.shortcuts.ShortcutKey;
+import com.android.launcher3.topwidget.CalendarView;
+import com.android.launcher3.topwidget.CurrentWeatherView;
 import com.android.launcher3.userevent.nano.LauncherLogProto;
 import com.android.launcher3.userevent.nano.LauncherLogProto.Action;
 import com.android.launcher3.userevent.nano.LauncherLogProto.ContainerType;
@@ -166,6 +172,7 @@ public class Launcher extends BaseActivity
     private static final int REQUEST_RECONFIGURE_APPWIDGET = 12;
 
     private static final int REQUEST_PERMISSION_CALL_PHONE = 13;
+    private static final int REQUEST_PERMISSION_CALENDAR = 14;
 
     private static final float BOUNCE_ANIMATION_TENSION = 1.3f;
 
@@ -218,7 +225,9 @@ public class Launcher extends BaseActivity
     private View mLauncherView;
     @Thunk DragLayer mDragLayer;
     private DragController mDragController;
-    private View mQsbContainer;
+    private View mTopContainer;
+    private CalendarView mCalendarView;
+    private CurrentWeatherView mWeatherView;
 
     public View mWeightWatcher;
 
@@ -321,6 +330,7 @@ public class Launcher extends BaseActivity
     private PendingRequestArgs mPendingRequestArgs;
 
     private float mLastDispatchTouchEventX = 0.0f;
+    private float mLastDispatchTouchEventY = 0.0f;
 
     public ViewGroupFocusHelper mFocusHandler;
     private boolean mRotationEnabled = false;
@@ -875,6 +885,14 @@ public class Launcher extends BaseActivity
                         getString(R.string.derived_app_name)), Toast.LENGTH_SHORT).show();
             }
         }
+        if (requestCode == REQUEST_PERMISSION_CALENDAR) {
+            if (grantResults.length > 0
+                    && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                if (mCalendarView != null) {
+                    mCalendarView.checkPermissions();
+                }
+            }
+        }
         if (mLauncherCallbacks != null) {
             mLauncherCallbacks.onRequestPermissionsResult(requestCode, permissions,
                     grantResults);
@@ -1312,8 +1330,8 @@ public class Launcher extends BaseActivity
         mDragLayer = (DragLayer) findViewById(R.id.drag_layer);
         mFocusHandler = mDragLayer.getFocusIndicatorHelper();
         mWorkspace = (Workspace) mDragLayer.findViewById(R.id.workspace);
-        mQsbContainer = mDragLayer.findViewById(mDeviceProfile.isVerticalBarLayout()
-                ? R.id.workspace_blocked_row : R.id.qsb_container);
+        mTopContainer = mDragLayer.findViewById(R.id.top_container);
+        mTopContainer.setOnLongClickListener(this);
         mWorkspace.initParentViews(mDragLayer);
 
         mLauncherView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
@@ -1327,6 +1345,7 @@ public class Launcher extends BaseActivity
         mHotseat = (Hotseat) findViewById(R.id.hotseat);
         if (mHotseat != null) {
             mHotseat.setOnLongClickListener(this);
+            mHotseat.getCellLayout().setVisibility(Utilities.isShowHotseat(Launcher.this) ? View.VISIBLE : View.GONE);
         }
 
         // Setup the overview panel
@@ -1339,7 +1358,7 @@ public class Launcher extends BaseActivity
         // Until the workspace is bound, ensure that we keep the wallpaper offset locked to the
         // default state, otherwise we will update to the wrong offsets in RTL
         mWorkspace.lockWallpaperToDefaultPage();
-        mWorkspace.bindAndInitFirstWorkspaceScreen(null /* recycled qsb */);
+        mWorkspace.bindAndInitFirstWorkspaceScreen();
         mDragController.addDragListener(mWorkspace);
 
         // Get the search/delete/uninstall bar
@@ -1366,6 +1385,9 @@ public class Launcher extends BaseActivity
         if (TestingUtils.MEMORY_DUMP_ENABLED) {
             TestingUtils.addWeightWatcher(this);
         }
+
+        updateTopWidgetVisibility();
+        updateHotseatQsbVisibility();
     }
 
     private void setupOverviewPanel() {
@@ -1686,8 +1708,8 @@ public class Launcher extends BaseActivity
         return mWorkspace;
     }
 
-    public View getQsbContainer() {
-        return mQsbContainer;
+    public View getTopContainer() {
+        return mTopContainer;
     }
 
     public Hotseat getHotseat() {
@@ -2762,6 +2784,7 @@ public class Launcher extends BaseActivity
     @Override
     public boolean dispatchTouchEvent(MotionEvent ev) {
         mLastDispatchTouchEventX = ev.getX();
+        mLastDispatchTouchEventY = ev.getY();
         return super.dispatchTouchEvent(ev);
     }
 
@@ -2777,6 +2800,11 @@ public class Launcher extends BaseActivity
             return true;
         }
 
+
+        if (v == mTopContainer) {
+            onLongClickTopContainer();
+            return true;
+        }
 
         boolean ignoreLongPressToOverview =
                 mDeviceProfile.shouldIgnoreLongPressToOverview(mLastDispatchTouchEventX);
@@ -2920,8 +2948,6 @@ public class Launcher extends BaseActivity
             getWindow().getDecorView()
                     .sendAccessibilityEvent(AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED);
         }
-        mWorkspace.updateQsbVisibility();
-        updateHotseatQsbVisibility();
 
         return changed;
     }
@@ -3282,7 +3308,7 @@ public class Launcher extends BaseActivity
     @Override
     public void bindScreens(ArrayList<Long> orderedScreenIds) {
         // Make sure the first screen is always at the start.
-        boolean visible = Utilities.isTopSearchBar(this);
+        boolean visible = Utilities.isTopSpaceReserved(this);
         if (visible &&
                 orderedScreenIds.indexOf(Workspace.FIRST_SCREEN_ID) != 0) {
             orderedScreenIds.remove(Workspace.FIRST_SCREEN_ID);
@@ -3309,7 +3335,7 @@ public class Launcher extends BaseActivity
 
     private void bindAddScreens(ArrayList<Long> orderedScreenIds) {
         int count = orderedScreenIds.size();
-        boolean visible = Utilities.isTopSearchBar(this);
+        boolean visible = Utilities.isTopSpaceReserved(this);
         for (int i = 0; i < count; i++) {
             long screenId = orderedScreenIds.get(i);
             if (!visible || screenId != Workspace.FIRST_SCREEN_ID) {
@@ -4173,10 +4199,29 @@ public class Launcher extends BaseActivity
                 mModel.forceReload();
                 mOnResumeNeedsLoad = true;
             }
-            if (Utilities.SEARCH_BAR_POS_PREFERENCE_KEY.equals(key)) {
+            if (Utilities.SHOW_SEARCH_BAR_PREFERENCE_KEY.equals(key)) {
                 updateHotseatQsbVisibility();
                 mDeviceProfile.layout(Launcher.this, false /* notifyListeners */);
-                mWorkspace.updateQsbVisibility();
+            }
+            if (Utilities.SHOW_TOP_WIDGET_PREFERENCE_KEY.equals(key)) {
+                updateTopWidgetVisibility();
+            }
+            if (Utilities.SHOW_HOTSEAT_BG_PREFERENCE_KEY.equals(key)) {
+                mHotseat.setShowBackgroundColor(Utilities.isShowHotseatBgColor(Launcher.this));
+            }
+            if (Utilities.SHOW_HOTSEAT_PREFERENCE_KEY.equals(key)) {
+                mHotseat.getCellLayout().setVisibility(Utilities.isShowHotseat(Launcher.this) ? View.VISIBLE : View.GONE);
+                mDeviceProfile.layout(Launcher.this, false /* notifyListeners */);
+            }
+            if (Utilities.WEATHER_ICON_PACK_PREFERENCE_KEY.equals(key)) {
+                if (mWeatherView != null) {
+                    mWeatherView.updateSettings();
+                }
+            }
+            if (Utilities.SHOW_ALL_DAY_EVENTS_PREFERENCE_KEY.equals(key)) {
+                if (mCalendarView != null) {
+                    mCalendarView.updateSettings();
+                }
             }
         }
     }
@@ -4187,5 +4232,51 @@ public class Launcher extends BaseActivity
             boolean bottomSearchBar = Utilities.isBottomSearchBar(this);
             qsbContainer.setVisibility(bottomSearchBar ? View.VISIBLE : View.GONE);
         }
+    }
+
+    public void updateTopWidgetVisibility() {
+        boolean visible = Utilities.isTopSpaceReserved(this);
+        mTopContainer.setVisibility(visible ? View.VISIBLE : View.GONE);
+        if (!visible) {
+            if (mCalendarView != null && mWeatherView != null) {
+                LinearLayout v = (LinearLayout) mTopContainer.findViewById(R.id.calendar_view_container);
+                v.removeAllViews();
+                v = (LinearLayout) mTopContainer.findViewById(R.id.current_weather_view_container);
+                v.removeAllViews();
+                mCalendarView = null;
+                mWeatherView = null;
+            }
+        } else {
+            if (mCalendarView == null && mWeatherView == null) {
+                mCalendarView = (CalendarView) getLayoutInflater().inflate(R.layout.calendar_view, null);
+                LinearLayout v = (LinearLayout) mTopContainer.findViewById(R.id.calendar_view_container);
+                v.addView(mCalendarView, new ViewGroup.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
+                mWeatherView = (CurrentWeatherView) getLayoutInflater().inflate(R.layout.current_weather_view, null);
+                v = (LinearLayout) mTopContainer.findViewById(R.id.current_weather_view_container);
+                v.addView(mWeatherView, new ViewGroup.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
+            }
+        }
+        mWorkspace.updateTopWidgetVisibility(visible);
+    }
+
+    public void onLongClickTopContainer() {
+        //SimplePopupContainerWithArrow popupContainer = SimplePopupContainerWithArrow.showForTopWidget(
+        //        mTopContainer, new PointF(mLastDispatchTouchEventX, mLastDispatchTouchEventY), this);
+    }
+
+    public boolean isCalendarPermissionEnabled() {
+        if (checkSelfPermission(Manifest.permission.READ_CONTACTS) != PackageManager.PERMISSION_GRANTED ||
+                checkSelfPermission(Manifest.permission.READ_CALENDAR) != PackageManager.PERMISSION_GRANTED||
+                checkSelfPermission(Manifest.permission.WRITE_CALENDAR) != PackageManager.PERMISSION_GRANTED) {
+            return false;
+        }
+        return true;
+    }
+
+    public void requestCalendarPermission() {
+        requestPermissions(new String[]{Manifest.permission.READ_CONTACTS,
+                Manifest.permission.READ_CALENDAR,
+                Manifest.permission.WRITE_CALENDAR},
+                REQUEST_PERMISSION_CALENDAR);
     }
 }
