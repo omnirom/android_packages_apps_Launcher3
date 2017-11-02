@@ -134,7 +134,7 @@ public class ImportDataTask {
                 .getSerialNumberForUser(Process.myUserHandle()));
 
         boolean createEmptyRowOnFirstScreen = false;
-        boolean visible = Utilities.isTopSearchBar(mContext);
+        boolean visible = Utilities.isTopSpaceReserved(mContext);
         if (visible) {
             try (Cursor c = mContext.getContentResolver().query(mOtherFavoritesUri, null,
                     // get items on the first row of the first screen
