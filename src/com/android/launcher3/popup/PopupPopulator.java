@@ -98,6 +98,15 @@ public class PopupPopulator {
         return items;
     }
 
+    public static @NonNull Item[] getItemsToPopulate(@NonNull List<SystemShortcut> systemShortcuts) {
+        int numItems = systemShortcuts.size();
+        Item[] items = new Item[numItems];
+        for (int i = 0; i < numItems; i++) {
+            items[i] = Item.SYSTEM_SHORTCUT;
+        }
+        return items;
+    }
+
     public static Item[] reverseItems(Item[] items) {
         if (items == null) return null;
         int numItems = items.length;
@@ -221,8 +230,7 @@ public class PopupPopulator {
                 // doesn't return null (it puts all the widgets in memory).
                 for (int i = 0; i < systemShortcuts.size(); i++) {
                     final SystemShortcut systemShortcut = systemShortcuts.get(i);
-                    uiHandler.post(new UpdateSystemShortcutChild(container,
-                            systemShortcutViews.get(i), systemShortcut, launcher, originalInfo));
+                    uiHandler.post(new UpdateSystemShortcutChild(systemShortcutViews.get(i), systemShortcut, launcher, originalInfo));
                 }
                 uiHandler.post(new Runnable() {
                     @Override
@@ -231,6 +239,21 @@ public class PopupPopulator {
                                 PackageUserKey.fromItemInfo(originalInfo));
                     }
                 });
+            }
+        };
+    }
+
+    public static Runnable createUpdateRunnable(final Launcher launcher,
+            final Handler uiHandler, final SimplePopupContainerWithArrow container,
+            final List<SystemShortcut> systemShortcuts,
+            final List<View> systemShortcutViews) {
+        return new Runnable() {
+            @Override
+            public void run() {
+                for (int i = 0; i < systemShortcuts.size(); i++) {
+                    final SystemShortcut systemShortcut = systemShortcuts.get(i);
+                    uiHandler.post(new UpdateSystemShortcutChild(systemShortcutViews.get(i), systemShortcut, launcher, null));
+                }
             }
         };
     }
@@ -276,16 +299,13 @@ public class PopupPopulator {
 
     /** Updates the system shortcut child based on the given shortcut info. */
     private static class UpdateSystemShortcutChild implements Runnable {
-
-        private final PopupContainerWithArrow mContainer;
         private final View mSystemShortcutChild;
         private final SystemShortcut mSystemShortcutInfo;
         private final Launcher mLauncher;
         private final ItemInfo mItemInfo;
 
-        public UpdateSystemShortcutChild(PopupContainerWithArrow container, View systemShortcutChild,
+        public UpdateSystemShortcutChild(View systemShortcutChild,
                 SystemShortcut systemShortcut, Launcher launcher, ItemInfo originalInfo) {
-            mContainer = container;
             mSystemShortcutChild = systemShortcutChild;
             mSystemShortcutInfo = systemShortcut;
             mLauncher = launcher;
