@@ -33,4 +33,20 @@
         <item>@string/icon_mask_circle_string</item>
         <item>@string/icon_mask_teardrop_string</item>
     </string-array>
+
+    <string-array name="preferences_widget_days_labels">
+        <item>@string/one_week</item>
+        <item>@string/two_weeks</item>
+        <item>@string/three_weeks</item>
+        <item>@string/one_month</item>
+        <item>@string/three_months</item>
+    </string-array>
+
+    <string-array name="preferences_widget_days_values">
+        <item>"7"</item>
+        <item>"14"</item>
+        <item>"21"</item>
+        <item>"28"</item>
+        <item>"90"</item>
+    </string-array>
 </resources>

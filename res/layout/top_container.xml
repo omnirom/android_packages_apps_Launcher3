@@ -15,7 +15,7 @@
      limitations under the License.
 -->
 
-<FrameLayout
+<com.android.launcher3.topwidget.TopWidgetView
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/top_container"
     android:layout_width="match_parent"
@@ -40,4 +40,4 @@
             android:layout_gravity="center" />
 
     </LinearLayout>
-</FrameLayout>
+</com.android.launcher3.topwidget.TopWidgetView>

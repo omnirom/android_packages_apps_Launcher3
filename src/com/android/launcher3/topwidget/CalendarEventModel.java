@@ -36,7 +36,7 @@ import java.util.TimeZone;
 
 class CalendarEventModel {
     private static final String TAG = "Launcher3:CalendarEventModel";
-    private static final boolean DEBUG = true;
+    private static final boolean DEBUG = false;
     private static final int INDEX_ALL_DAY = 0;
     private static final int INDEX_BEGIN = 1;
     private static final int INDEX_END = 2;
@@ -47,7 +47,6 @@ class CalendarEventModel {
     private static final int INDEX_END_DAY = 7;
     private static final int INDEX_COLOR = 8;
     private static final int INDEX_SELF_ATTENDEE_STATUS = 9;
-    private static final int EVENT_MIN_COUNT = 20;
 
     private String mHomeTZName;
     private boolean mShowTZ;
@@ -451,9 +450,6 @@ class CalendarEventModel {
                 count += bucket.size();
             }
             day++;
-            if (count >= EVENT_MIN_COUNT) {
-                break;
-            }
         }
     }
 }

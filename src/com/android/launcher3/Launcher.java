@@ -119,6 +119,7 @@ import com.android.launcher3.shortcuts.DeepShortcutManager;
 import com.android.launcher3.shortcuts.ShortcutKey;
 import com.android.launcher3.topwidget.CalendarView;
 import com.android.launcher3.topwidget.CurrentWeatherView;
+import com.android.launcher3.topwidget.TopWidgetView;
 import com.android.launcher3.userevent.nano.LauncherLogProto;
 import com.android.launcher3.userevent.nano.LauncherLogProto.Action;
 import com.android.launcher3.userevent.nano.LauncherLogProto.ContainerType;
@@ -225,9 +226,9 @@ public class Launcher extends BaseActivity
     private View mLauncherView;
     @Thunk DragLayer mDragLayer;
     private DragController mDragController;
-    private View mTopContainer;
     private CalendarView mCalendarView;
     private CurrentWeatherView mWeatherView;
+    private TopWidgetView mTopContainer;
 
     public View mWeightWatcher;
 
@@ -1330,7 +1331,7 @@ public class Launcher extends BaseActivity
         mDragLayer = (DragLayer) findViewById(R.id.drag_layer);
         mFocusHandler = mDragLayer.getFocusIndicatorHelper();
         mWorkspace = (Workspace) mDragLayer.findViewById(R.id.workspace);
-        mTopContainer = mDragLayer.findViewById(R.id.top_container);
+        mTopContainer = (TopWidgetView) mDragLayer.findViewById(R.id.top_container);
         mTopContainer.setOnLongClickListener(this);
         mWorkspace.initParentViews(mDragLayer);
 
@@ -1708,7 +1709,7 @@ public class Launcher extends BaseActivity
         return mWorkspace;
     }
 
-    public View getTopContainer() {
+    public TopWidgetView getTopContainer() {
         return mTopContainer;
     }
 
@@ -4218,7 +4219,8 @@ public class Launcher extends BaseActivity
                     mWeatherView.updateSettings();
                 }
             }
-            if (Utilities.SHOW_ALL_DAY_EVENTS_PREFERENCE_KEY.equals(key)) {
+            if (Utilities.SHOW_ALL_DAY_EVENTS_PREFERENCE_KEY.equals(key) ||
+                    Utilities.SHOW_EVENTS_PERIOD_PREFERENCE_KEY.equals(key)) {
                 if (mCalendarView != null) {
                     mCalendarView.updateSettings();
                 }

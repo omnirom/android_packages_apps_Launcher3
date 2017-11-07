@@ -57,7 +57,7 @@ import java.util.Date;
 public class CurrentWeatherView extends FrameLayout implements OmniJawsClient.OmniJawsObserver {
 
     static final String TAG = "Launcher3:CurrentWeatherView";
-    static final boolean DEBUG = true;
+    static final boolean DEBUG = false;
 
     private ImageView mCurrentImage;
     private OmniJawsClient mWeatherClient;

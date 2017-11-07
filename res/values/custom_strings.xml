@@ -63,4 +63,11 @@
     <string name="calendar_no_events">No events</string>
     <string name="pref_allDayEvents_title">Show all day events</string>
     <string name="pref_allDayEvents_summary"></string>
+    <string name="preferences_widget_days_title">Display period</string>
+    <string name="one_week">1 week</string>
+    <string name="two_weeks">2 weeks</string>
+    <string name="three_weeks">3 weeks</string>
+    <string name="one_month">1 month</string>
+    <string name="three_months">3 months</string>
+    <string name="preferences_widget_days_default" translatable="false" >14</string>
 </resources>

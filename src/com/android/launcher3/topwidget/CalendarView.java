@@ -64,7 +64,7 @@ import java.util.List;
 public class CalendarView extends FrameLayout implements CalendarClient.CalendarEventObserver {
 
     private static final String TAG = "Launcher3:CalendarView";
-    private static final boolean DEBUG = true;
+    private static final boolean DEBUG = false;
     private static final int SHOW_NUM_EVENTS = 3;
 
     private View mCalendarData;

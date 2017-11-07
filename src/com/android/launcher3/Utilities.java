@@ -136,6 +136,7 @@ public final class Utilities {
     public static final String SHOW_HOTSEAT_PREFERENCE_KEY = "pref_hotSeat";
     public static final String WEATHER_ICON_PACK_PREFERENCE_KEY = "pref_weatherIconPack";
     public static final String SHOW_ALL_DAY_EVENTS_PREFERENCE_KEY = "pref_allDayEvents";
+    public static final String SHOW_EVENTS_PERIOD_PREFERENCE_KEY = "pref_showEventsPeriod";
 
     public static boolean isPropertyEnabled(String propertyName) {
         return Log.isLoggable(propertyName, Log.VERBOSE);
@@ -155,7 +156,8 @@ public final class Utilities {
     }
 
     public static String getIconShapePath(Context context) {
-        return getPrefs(context).getString(ICON_SHAPE_PREFERENCE_KEY, context.getResources().getString(R.string.icon_mask_square_string));
+        return getPrefs(context).getString(ICON_SHAPE_PREFERENCE_KEY,
+                context.getResources().getString(R.string.icon_mask_square_string));
     }
 
     public static boolean isIconShadow(Context context) {
@@ -184,6 +186,11 @@ public final class Utilities {
 
     public static boolean isShowAllDayEvents(Context context) {
         return getPrefs(context).getBoolean(SHOW_ALL_DAY_EVENTS_PREFERENCE_KEY, false);
+    }
+
+    public static int getEventDisplayPeriod(Context context) {
+        return Integer.valueOf(getPrefs(context).getString(SHOW_EVENTS_PERIOD_PREFERENCE_KEY,
+                context.getResources().getString(R.string.preferences_widget_days_default)));
     }
 
     public static boolean getAllowRotationDefaultValue(Context context) {

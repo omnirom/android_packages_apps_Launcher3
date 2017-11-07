@@ -40,6 +40,8 @@ import android.text.format.DateUtils;
 import android.text.format.Time;
 import android.util.Log;
 
+import com.android.launcher3.Utilities;
+
 import java.text.SimpleDateFormat;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -48,7 +50,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class CalendarClient {
     private static final String TAG = "Launcher3:CalendarClient";
-    private static final boolean DEBUG = true;
+    private static final boolean DEBUG = false;
 
     private static final int EVENT_MAX_COUNT = 100;
     private static final int UPDATE_THROTTLE = 500;
@@ -133,8 +135,7 @@ public class CalendarClient {
         }
 
         private long getSearchDuration() {
-            // TODO maxwen - make config
-            return 14 * DateUtils.DAY_IN_MILLIS;
+            return Utilities.getEventDisplayPeriod(mContext) * DateUtils.DAY_IN_MILLIS;
         }
 
         private void initLoader(String selection) {

@@ -150,6 +150,16 @@ public class SettingsActivity extends Activity {
                     return true;
                 }
             });
+
+            final ListPreference eventsPeriod = (ListPreference) findPreference(Utilities.SHOW_EVENTS_PERIOD_PREFERENCE_KEY);
+            eventsPeriod.setSummary(eventsPeriod.getEntry());
+            eventsPeriod.setOnPreferenceChangeListener(new OnPreferenceChangeListener() {
+                public boolean onPreferenceChange(Preference preference, Object newValue) {
+                    int index = eventsPeriod.findIndexOfValue((String) newValue);
+                    eventsPeriod.setSummary(eventsPeriod.getEntries()[index]);
+                    return true;
+                }
+            });
         }
 
         @Override

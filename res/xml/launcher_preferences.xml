@@ -143,5 +143,12 @@
             android:defaultValue="false"
             android:persistent="true" />
 
+        <ListPreference
+            android:key="pref_showEventsPeriod"
+            android:defaultValue="@string/preferences_widget_days_default"
+            android:title="@string/preferences_widget_days_title"
+            android:entries="@array/preferences_widget_days_labels"
+            android:entryValues="@array/preferences_widget_days_values" />
+
     </PreferenceCategory>
 </PreferenceScreen>
