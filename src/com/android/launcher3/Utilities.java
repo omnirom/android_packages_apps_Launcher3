@@ -137,6 +137,7 @@ public final class Utilities {
     public static final String WEATHER_ICON_PACK_PREFERENCE_KEY = "pref_weatherIconPack";
     public static final String SHOW_ALL_DAY_EVENTS_PREFERENCE_KEY = "pref_allDayEvents";
     public static final String SHOW_EVENTS_PERIOD_PREFERENCE_KEY = "pref_showEventsPeriod";
+    public static final String SHOW_TODAY_PREFERENCE_KEY = "pref_showToday";
 
     public static boolean isPropertyEnabled(String propertyName) {
         return Log.isLoggable(propertyName, Log.VERBOSE);
@@ -186,6 +187,10 @@ public final class Utilities {
 
     public static boolean isShowAllDayEvents(Context context) {
         return getPrefs(context).getBoolean(SHOW_ALL_DAY_EVENTS_PREFERENCE_KEY, false);
+    }
+
+    public static boolean isShowToday(Context context) {
+        return getPrefs(context).getBoolean(SHOW_TODAY_PREFERENCE_KEY, true);
     }
 
     public static int getEventDisplayPeriod(Context context) {

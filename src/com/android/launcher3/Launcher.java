@@ -4220,7 +4220,8 @@ public class Launcher extends BaseActivity
                 }
             }
             if (Utilities.SHOW_ALL_DAY_EVENTS_PREFERENCE_KEY.equals(key) ||
-                    Utilities.SHOW_EVENTS_PERIOD_PREFERENCE_KEY.equals(key)) {
+                    Utilities.SHOW_EVENTS_PERIOD_PREFERENCE_KEY.equals(key) ||
+                    Utilities.SHOW_TODAY_PREFERENCE_KEY.equals(key)) {
                 if (mCalendarView != null) {
                     mCalendarView.updateSettings();
                 }

@@ -37,4 +37,14 @@
         <item name="android:shadowDy">1.0</item>
         <item name="android:shadowRadius">4.0</item>
     </style>
+
+    <style name="CalendarBig">
+        <item name="android:textSize">18sp</item>
+        <item name="android:textStyle">normal</item>
+        <item name="android:textColor">#ffffff</item>
+        <item name="android:shadowColor">@color/default_shadow_color_no_alpha</item>
+        <item name="android:shadowDx">0.0</item>
+        <item name="android:shadowDy">1.0</item>
+        <item name="android:shadowRadius">4.0</item>
+    </style>
 </resources>

@@ -353,7 +353,7 @@ class CalendarEventModel {
         return builder.toString();
     }
 
-    private String formatDateRange(Context context, long startMillis,
+    public static String formatDateRange(Context context, long startMillis,
                                   long endMillis, int flags) {
         Formatter mF = new Formatter(new StringBuffer(), Locale.getDefault());
         return DateUtils.formatDateRange(context, mF, startMillis, endMillis, flags, Time.getCurrentTimezone()).toString();

@@ -150,5 +150,12 @@
             android:entries="@array/preferences_widget_days_labels"
             android:entryValues="@array/preferences_widget_days_values" />
 
+        <SwitchPreference
+            android:key="pref_showToday"
+            android:title="@string/pref_show_today_title"
+            android:summary="@string/pref_show_today_summary"
+            android:defaultValue="true"
+            android:persistent="true" />
+
     </PreferenceCategory>
 </PreferenceScreen>

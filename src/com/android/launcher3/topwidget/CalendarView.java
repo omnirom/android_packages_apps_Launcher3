@@ -21,21 +21,11 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.content.res.TypedArray;
-import android.graphics.Bitmap;
-import android.graphics.BlurMaskFilter;
-import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.Paint;
-import android.graphics.PaintFlagsDrawFilter;
-import android.graphics.Rect;
-import android.graphics.Typeface;
-import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
-import android.graphics.drawable.VectorDrawable;
 import android.net.Uri;
 import android.provider.CalendarContract;
 import android.text.TextPaint;
-import android.text.format.DateFormat;
+import android.text.format.DateUtils;
 import android.util.ArraySet;
 import android.util.AttributeSet;
 import android.util.Log;
@@ -76,6 +66,7 @@ public class CalendarView extends FrameLayout implements CalendarClient.Calendar
     private EventListAdapter mEventAdapter;
     private LayoutInflater mInflater;
     private TextView mCalendarStatusText;
+    private TextView mCalendarTodayText;
 
     private class EventListAdapter extends ArrayAdapter<CalendarEventModel.EventInfo> {
 
@@ -88,11 +79,11 @@ public class CalendarView extends FrameLayout implements CalendarClient.Calendar
             final CalendarEventModel.EventInfo event = mEventData.get(position);
             TextView eventTitle = null;
             TextView eventWhen  = null;
-            if (position == 0) {
+            /*if (position == 0) {
                 convertView = mInflater.inflate(R.layout.event_item, parent, false);
-            } else {
+            } else {*/
                 convertView = mInflater.inflate(R.layout.event_item_oneline, parent, false);
-            }
+            //}
             eventTitle = (TextView) convertView.findViewById(R.id.event_title);
             eventWhen = (TextView) convertView.findViewById(R.id.event_when);
             eventTitle.setText(event.title);
@@ -146,6 +137,7 @@ public class CalendarView extends FrameLayout implements CalendarClient.Calendar
         mCalendarStatus = findViewById(R.id.calendar_status);
         mEventList = (ListView) findViewById(R.id.event_list);
         mCalendarStatusText = (TextView) findViewById(R.id.calendar_status_text);
+        mCalendarTodayText = (TextView) findViewById(R.id.calendar_today_text);
 
         mCalendarStatus.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -153,6 +145,8 @@ public class CalendarView extends FrameLayout implements CalendarClient.Calendar
                 Launcher launcher = Launcher.getLauncher(getContext());
                 if (!launcher.isCalendarPermissionEnabled()) {
                     launcher.requestCalendarPermission();
+                } else {
+                    showCalendarAtToday();
                 }
             }
         });
@@ -160,11 +154,14 @@ public class CalendarView extends FrameLayout implements CalendarClient.Calendar
         mCalendarData.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Launcher launcher = Launcher.getLauncher(getContext());
-                Intent intent = getEventIntent(0, 0, 0, false);
-                if (intent != null) {
-                    launcher.startActivitySafely(null, intent, null);
-                }
+                showCalendarAtToday();
+            }
+        });
+
+        mCalendarTodayText.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showCalendarAtToday();
             }
         });
 
@@ -172,6 +169,9 @@ public class CalendarView extends FrameLayout implements CalendarClient.Calendar
         mEventData = new ArrayList<CalendarEventModel.EventInfo>();
         mEventAdapter = new EventListAdapter(getContext(), mEventData);
         mEventList.setAdapter(mEventAdapter);
+
+        updateToday();
+        mCalendarTodayText.setVisibility(Utilities.isShowToday(getContext()) ? View.VISIBLE : View .GONE);
     }
 
 
@@ -207,6 +207,8 @@ public class CalendarView extends FrameLayout implements CalendarClient.Calendar
             Log.d(TAG, "eventUpdates");
         }
         stopProgress();
+
+        updateToday();
 
         mEventData.clear();
         mCalendarData.setVisibility(View.VISIBLE);
@@ -254,5 +256,21 @@ public class CalendarView extends FrameLayout implements CalendarClient.Calendar
             startProgress();
             mCalendarClient.load();
         }
+        mCalendarTodayText.setVisibility(Utilities.isShowToday(getContext()) ? View.VISIBLE : View .GONE);
+    }
+
+    private void showCalendarAtToday() {
+        Launcher launcher = Launcher.getLauncher(getContext());
+        long today = System.currentTimeMillis();
+        Intent intent = getEventIntent(0, today, today, false);
+        if (intent != null) {
+            launcher.startActivitySafely(null, intent, null);
+        }
+    }
+
+    private void updateToday() {
+        int flags = DateUtils.FORMAT_SHOW_WEEKDAY | DateUtils.FORMAT_SHOW_DATE;
+        long today = System.currentTimeMillis();
+        mCalendarTodayText.setText(CalendarEventModel.formatDateRange(getContext(), today, today, flags));
     }
 }
