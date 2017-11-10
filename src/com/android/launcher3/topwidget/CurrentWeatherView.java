@@ -121,6 +121,9 @@ public class CurrentWeatherView extends FrameLayout implements OmniJawsClient.Om
                     if (intent != null) {
                         launcher.startActivitySafely(null, intent, null);
                     }
+                } else {
+                    startProgress();
+                    forceRefreshWeatherSettings();
                 }
             }
         });
