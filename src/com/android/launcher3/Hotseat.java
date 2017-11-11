@@ -31,6 +31,8 @@ import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewDebug;
+import android.view.ViewGroup;
+import android.view.ViewGroup.LayoutParams;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -41,6 +43,7 @@ import com.android.launcher3.logging.UserEventDispatcher;
 import com.android.launcher3.userevent.nano.LauncherLogProto.ContainerType;
 import com.android.launcher3.userevent.nano.LauncherLogProto.Target;
 import com.android.launcher3.util.Themes;
+import com.android.launcher3.Utilities;
 
 public class Hotseat extends FrameLayout
         implements UserEventDispatcher.LogContainerProvider {
@@ -131,6 +134,11 @@ public class Hotseat extends FrameLayout
         }
         mQsbContainer = findViewById(R.id.qsb_container_bottom);
         mContentContainer = (LinearLayout) findViewById(R.id.layout_container);
+
+        boolean topSearchBar = Utilities.getSearchBarLocation(getContext()) == 1;
+        if (topSearchBar) {
+            updateSearchBarLocation();
+        }
 
         resetLayout();
     }
@@ -242,5 +250,19 @@ public class Hotseat extends FrameLayout
         int color = mEnableDynamicBackgroundColor ? mDynamicBackgroundColor : Color.TRANSPARENT;
         setBackgroundColor(color);
         mBackgroundColor = color;
+    }
+
+    public void updateSearchBarLocation() {
+        if (!mHasVerticalHotseat) {
+            boolean topSearchBar = Utilities.getSearchBarLocation(getContext()) == 1;
+            mContentContainer.removeAllViews();
+            if (topSearchBar) {
+                mContentContainer.addView(mQsbContainer);
+                mContentContainer.addView(mContent);
+            } else {
+                mContentContainer.addView(mContent);
+                mContentContainer.addView(mQsbContainer);
+            }
+        }
     }
 }

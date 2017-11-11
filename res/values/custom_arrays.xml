@@ -49,4 +49,14 @@
         <item>"28"</item>
         <item>"90"</item>
     </string-array>
+
+    <string-array name="show_search_bar_location_names">
+        <item>@string/search_bar_location_bottom</item>
+        <item>@string/search_bar_location_top</item>
+    </string-array>
+
+    <string-array name="show_search_bar_location_values">
+        <item>"0"</item>
+        <item>"1"</item>
+    </string-array>
 </resources>

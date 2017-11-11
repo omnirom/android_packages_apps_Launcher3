@@ -117,8 +117,6 @@ import com.android.launcher3.popup.PopupDataProvider;
 import com.android.launcher3.popup.SimplePopupContainerWithArrow;
 import com.android.launcher3.shortcuts.DeepShortcutManager;
 import com.android.launcher3.shortcuts.ShortcutKey;
-import com.android.launcher3.topwidget.CalendarView;
-import com.android.launcher3.topwidget.CurrentWeatherView;
 import com.android.launcher3.topwidget.TopWidgetView;
 import com.android.launcher3.userevent.nano.LauncherLogProto;
 import com.android.launcher3.userevent.nano.LauncherLogProto.Action;
@@ -226,8 +224,6 @@ public class Launcher extends BaseActivity
     private View mLauncherView;
     @Thunk DragLayer mDragLayer;
     private DragController mDragController;
-    private CalendarView mCalendarView;
-    private CurrentWeatherView mWeatherView;
     private TopWidgetView mTopContainer;
 
     public View mWeightWatcher;
@@ -889,8 +885,8 @@ public class Launcher extends BaseActivity
         if (requestCode == REQUEST_PERMISSION_CALENDAR) {
             if (grantResults.length > 0
                     && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                if (mCalendarView != null) {
-                    mCalendarView.checkPermissions();
+                if (mTopContainer != null) {
+                    mTopContainer.checkPermissions();
                 }
             }
         }
@@ -4214,17 +4210,16 @@ public class Launcher extends BaseActivity
                 mHotseat.getCellLayout().setVisibility(Utilities.isShowHotseat(Launcher.this) ? View.VISIBLE : View.GONE);
                 mDeviceProfile.layout(Launcher.this, false /* notifyListeners */);
             }
-            if (Utilities.WEATHER_ICON_PACK_PREFERENCE_KEY.equals(key)) {
-                if (mWeatherView != null) {
-                    mWeatherView.updateSettings();
-                }
-            }
             if (Utilities.SHOW_ALL_DAY_EVENTS_PREFERENCE_KEY.equals(key) ||
                     Utilities.SHOW_EVENTS_PERIOD_PREFERENCE_KEY.equals(key) ||
-                    Utilities.SHOW_TODAY_PREFERENCE_KEY.equals(key)) {
-                if (mCalendarView != null) {
-                    mCalendarView.updateSettings();
+                    Utilities.SHOW_TODAY_PREFERENCE_KEY.equals(key) ||
+                    Utilities.WEATHER_ICON_PACK_PREFERENCE_KEY.equals(key)) {
+                if (mTopContainer != null) {
+                    mTopContainer.updateSettings();
                 }
+            }
+            if (Utilities.SHOW_SEARCH_BAR_LOCATION_PREFERENCE_KEY.equals(key)) {
+                mHotseat.updateSearchBarLocation();
             }
         }
     }
@@ -4239,25 +4234,8 @@ public class Launcher extends BaseActivity
 
     public void updateTopWidgetVisibility() {
         boolean visible = Utilities.isTopSpaceReserved(this);
-        mTopContainer.setVisibility(visible ? View.VISIBLE : View.GONE);
-        if (!visible) {
-            if (mCalendarView != null && mWeatherView != null) {
-                LinearLayout v = (LinearLayout) mTopContainer.findViewById(R.id.calendar_view_container);
-                v.removeAllViews();
-                v = (LinearLayout) mTopContainer.findViewById(R.id.current_weather_view_container);
-                v.removeAllViews();
-                mCalendarView = null;
-                mWeatherView = null;
-            }
-        } else {
-            if (mCalendarView == null && mWeatherView == null) {
-                mCalendarView = (CalendarView) getLayoutInflater().inflate(R.layout.calendar_view, null);
-                LinearLayout v = (LinearLayout) mTopContainer.findViewById(R.id.calendar_view_container);
-                v.addView(mCalendarView, new ViewGroup.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
-                mWeatherView = (CurrentWeatherView) getLayoutInflater().inflate(R.layout.current_weather_view, null);
-                v = (LinearLayout) mTopContainer.findViewById(R.id.current_weather_view_container);
-                v.addView(mWeatherView, new ViewGroup.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
-            }
+        if (mTopContainer != null) {
+            mTopContainer.updateTopWidgetVisibility(visible);
         }
         mWorkspace.updateTopWidgetVisibility(visible);
     }
