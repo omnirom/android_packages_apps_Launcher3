@@ -111,6 +111,15 @@
             android:defaultValue="true"
             android:persistent="true" />
 
+        <ListPreference
+            android:key="pref_searchBarLocation"
+            android:title="@string/show_search_bar_location_title"
+            android:entries="@array/show_search_bar_location_names"
+            android:entryValues="@array/show_search_bar_location_values"
+            android:persistent="true"
+            android:defaultValue="0"
+            android:dependency="pref_searchBar"/>
+
         <SwitchPreference
             android:key="pref_hotSeatBgColor"
             android:title="@string/show_hotseat_bg_color_title"

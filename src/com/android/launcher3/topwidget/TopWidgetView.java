@@ -21,8 +21,12 @@ import android.content.Context;
 import android.content.res.Resources;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
+import android.view.ViewGroup.LayoutParams;
 import android.widget.FrameLayout;
+import android.widget.LinearLayout;
 
 import com.android.launcher3.R;
 
@@ -30,6 +34,9 @@ public class TopWidgetView extends FrameLayout {
 
     private static final String TAG = "Launcher3:TopWidgetView";
     private static final boolean DEBUG = false;
+    private CalendarView mCalendarView;
+    private CurrentWeatherView mWeatherView;
+    private LayoutInflater mInflater;
 
     public TopWidgetView(Context context) {
         this(context, null);
@@ -41,5 +48,49 @@ public class TopWidgetView extends FrameLayout {
 
     public TopWidgetView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
+    }
+
+    public void updateSettings() {
+        if (mCalendarView != null) {
+            mCalendarView.updateSettings();
+        }
+        if (mWeatherView != null) {
+            mWeatherView.updateSettings();
+        }
+    }
+
+    public void checkPermissions() {
+        if (mCalendarView != null) {
+            mCalendarView.checkPermissions();
+        }
+    }
+
+    @Override
+    protected void onFinishInflate() {
+        super.onFinishInflate();
+        mInflater = (LayoutInflater) getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+    }
+
+    public void updateTopWidgetVisibility(boolean visible) {
+        setVisibility(visible ? View.VISIBLE : View.GONE);
+        if (!visible) {
+            if (mCalendarView != null && mWeatherView != null) {
+                LinearLayout v = (LinearLayout) findViewById(R.id.calendar_view_container);
+                v.removeAllViews();
+                v = (LinearLayout) findViewById(R.id.current_weather_view_container);
+                v.removeAllViews();
+                mCalendarView = null;
+                mWeatherView = null;
+            }
+        } else {
+            if (mCalendarView == null && mWeatherView == null) {
+                mCalendarView = (CalendarView) mInflater.inflate(R.layout.calendar_view, null);
+                LinearLayout v = (LinearLayout) findViewById(R.id.calendar_view_container);
+                v.addView(mCalendarView, new ViewGroup.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
+                mWeatherView = (CurrentWeatherView) mInflater.inflate(R.layout.current_weather_view, null);
+                v = (LinearLayout) findViewById(R.id.current_weather_view_container);
+                v.addView(mWeatherView, new ViewGroup.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
+            }
+        }
     }
 }

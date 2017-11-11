@@ -79,11 +79,7 @@ public class CalendarView extends FrameLayout implements CalendarClient.Calendar
             final CalendarEventModel.EventInfo event = mEventData.get(position);
             TextView eventTitle = null;
             TextView eventWhen  = null;
-            /*if (position == 0) {
-                convertView = mInflater.inflate(R.layout.event_item, parent, false);
-            } else {*/
-                convertView = mInflater.inflate(R.layout.event_item_oneline, parent, false);
-            //}
+            convertView = mInflater.inflate(R.layout.event_item_oneline, parent, false);
             eventTitle = (TextView) convertView.findViewById(R.id.event_title);
             eventWhen = (TextView) convertView.findViewById(R.id.event_when);
             eventTitle.setText(event.title);

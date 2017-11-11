@@ -32,7 +32,7 @@
             android:id="@+id/qsb_container_bottom"
             android:orientation="vertical"
             android:layout_width="match_parent"
-            android:layout_height="@dimen/qsb_hotseat_height" >
+            android:layout_height="wrap_content" >
 
             <fragment
                 android:name="com.android.launcher3.qsb.QsbContainerView$QsbFragment"
