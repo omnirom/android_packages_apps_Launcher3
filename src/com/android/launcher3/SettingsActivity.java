@@ -28,6 +28,7 @@ import android.os.Handler;
 import android.preference.ListPreference;
 import android.preference.Preference;
 import android.preference.Preference.OnPreferenceChangeListener;
+import android.preference.PreferenceCategory;
 import android.preference.PreferenceFragment;
 import android.provider.Settings;
 import android.provider.Settings.System;
@@ -35,6 +36,7 @@ import android.support.v4.os.BuildCompat;
 import android.view.MenuItem;
 
 import com.android.launcher3.graphics.IconShapeOverride;
+import com.android.launcher3.topwidget.OmniJawsClient;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -123,33 +125,39 @@ public class SettingsActivity extends Activity {
 
             final ListPreference iconPack = (ListPreference) findPreference(Utilities.WEATHER_ICON_PACK_PREFERENCE_KEY) ;
 
-            String settingHeaderPackage = Utilities.getWeatherIconPack(getActivity());
-            if (settingHeaderPackage == null) {
-                settingHeaderPackage = DEFAULT_WEATHER_ICON_PACKAGE + "." + DEFAULT_WEATHER_ICON_PREFIX;
-            }
-
-            List<String> entries = new ArrayList<String>();
-            List<String> values = new ArrayList<String>();
-            getAvailableWeatherIconPacks(entries, values);
-            iconPack.setEntries(entries.toArray(new String[entries.size()]));
-            iconPack.setEntryValues(values.toArray(new String[values.size()]));
-
-            int valueIndex = iconPack.findIndexOfValue(settingHeaderPackage);
-            if (valueIndex == -1) {
-                // no longer found
-                settingHeaderPackage = DEFAULT_WEATHER_ICON_PACKAGE + "." + DEFAULT_WEATHER_ICON_PREFIX;
-                valueIndex = iconPack.findIndexOfValue(settingHeaderPackage);
-            }
-            iconPack.setValueIndex(valueIndex >= 0 ? valueIndex : 0);
-            iconPack.setSummary(iconPack.getEntry());
-            iconPack.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
-                @Override
-                public boolean onPreferenceChange(Preference preference, Object newValue) {
-                    int valueIndex = iconPack.findIndexOfValue((String)newValue);
-                    iconPack.setSummary(iconPack.getEntries()[valueIndex]);
-                    return true;
+            OmniJawsClient weatherClient = new OmniJawsClient(getActivity());
+            if (!weatherClient.isOmniJawsServiceInstalled()) {
+                PreferenceCategory widgetCategory = (PreferenceCategory) findPreference("widget_category");
+                widgetCategory.removePreference(iconPack);
+            } else {
+                String settingHeaderPackage = Utilities.getWeatherIconPack(getActivity());
+                if (settingHeaderPackage == null) {
+                    settingHeaderPackage = DEFAULT_WEATHER_ICON_PACKAGE + "." + DEFAULT_WEATHER_ICON_PREFIX;
                 }
-            });
+
+                List<String> entries = new ArrayList<String>();
+                List<String> values = new ArrayList<String>();
+                getAvailableWeatherIconPacks(entries, values);
+                iconPack.setEntries(entries.toArray(new String[entries.size()]));
+                iconPack.setEntryValues(values.toArray(new String[values.size()]));
+
+                int valueIndex = iconPack.findIndexOfValue(settingHeaderPackage);
+                if (valueIndex == -1) {
+                    // no longer found
+                    settingHeaderPackage = DEFAULT_WEATHER_ICON_PACKAGE + "." + DEFAULT_WEATHER_ICON_PREFIX;
+                    valueIndex = iconPack.findIndexOfValue(settingHeaderPackage);
+                }
+                iconPack.setValueIndex(valueIndex >= 0 ? valueIndex : 0);
+                iconPack.setSummary(iconPack.getEntry());
+                iconPack.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+                    @Override
+                    public boolean onPreferenceChange(Preference preference, Object newValue) {
+                        int valueIndex = iconPack.findIndexOfValue((String)newValue);
+                        iconPack.setSummary(iconPack.getEntries()[valueIndex]);
+                        return true;
+                    }
+                });
+            }
 
             final ListPreference eventsPeriod = (ListPreference) findPreference(Utilities.SHOW_EVENTS_PERIOD_PREFERENCE_KEY);
             eventsPeriod.setSummary(eventsPeriod.getEntry());

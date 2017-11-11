@@ -89,6 +89,7 @@ public class CurrentWeatherView extends FrameLayout implements OmniJawsClient.Om
             queryAndUpdateWeather();
         } else {
             setVisibility(View.GONE);
+            mWeatherClient = null;
         }
     }
 
@@ -96,7 +97,7 @@ public class CurrentWeatherView extends FrameLayout implements OmniJawsClient.Om
     protected void onDetachedFromWindow() {
         super.onDetachedFromWindow();
         if (DEBUG) Log.d(TAG, "onDetachedFromWindow");
-        if (mWeatherClient.isOmniJawsServiceInstalled()) {
+        if (mWeatherClient != null) {
             mWeatherClient.removeObserver(this);
             mWeatherClient.cleanupObserver();
             mWeatherClient = null;
@@ -132,7 +133,7 @@ public class CurrentWeatherView extends FrameLayout implements OmniJawsClient.Om
         mCurrentView.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
-                if (mWeatherClient.isOmniJawsEnabled()) {
+                if (mWeatherClient != null && mWeatherClient.isOmniJawsEnabled()) {
                     startProgress();
                     forceRefreshWeatherSettings();
                 }
@@ -141,11 +142,11 @@ public class CurrentWeatherView extends FrameLayout implements OmniJawsClient.Om
         });
     }
 
-    public void updateWeatherData(OmniJawsClient.WeatherInfo weatherData) {
+    private void updateWeatherData(OmniJawsClient.WeatherInfo weatherData) {
         if (DEBUG) Log.d(TAG, "updateWeatherData");
         mProgressContainer.setVisibility(View.GONE);
 
-        if (weatherData == null || !mWeatherClient.isOmniJawsEnabled()) {
+        if (!mWeatherClient.isOmniJawsEnabled()) {
             setErrorView();
             if (mWeatherClient.isOmniJawsEnabled()) {
                 mEmptyViewImage.setImageResource(R.drawable.ic_qs_weather_default_on);
@@ -255,9 +256,11 @@ public class CurrentWeatherView extends FrameLayout implements OmniJawsClient.Om
     }
 
     private void queryAndUpdateWeather() {
-        mWeatherClient.queryWeather();
-        OmniJawsClient.WeatherInfo weatherData = mWeatherClient.getWeatherInfo();
-        updateWeatherData(weatherData);
+        if (mWeatherClient != null) {
+            mWeatherClient.queryWeather();
+            OmniJawsClient.WeatherInfo weatherData = mWeatherClient.getWeatherInfo();
+            updateWeatherData(weatherData);
+        }
     }
 
     public static BitmapDrawable shadow(Resources resources, Bitmap b) {
@@ -284,7 +287,9 @@ public class CurrentWeatherView extends FrameLayout implements OmniJawsClient.Om
     }
 
     public void updateSettings() {
-        mWeatherClient.loadCustomIconPackage();
-        queryAndUpdateWeather();
+        if (mWeatherClient != null) {
+            mWeatherClient.loadCustomIconPackage();
+            queryAndUpdateWeather();
+        }
     }
 }
