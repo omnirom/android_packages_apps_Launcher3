@@ -611,7 +611,7 @@ public class Workspace extends PagedView
         lp.canReorder = false;
         View topContainer = mLauncher.getTopContainer();
         ((ViewGroup) topContainer.getParent()).removeView(topContainer);
-        if (!firstPage.addViewToCellLayout(topContainer, 0, R.id.top_container, lp, true)) {
+        if (!firstPage.addViewToCellLayout(topContainer, 0, R.id.top_container, lp, Utilities.isTopSpaceReserved(mLauncher))) {
             Log.e(TAG, "Failed to add to item at (0, 0) to CellLayout");
         }
     }

@@ -3332,10 +3332,9 @@ public class Launcher extends BaseActivity
 
     private void bindAddScreens(ArrayList<Long> orderedScreenIds) {
         int count = orderedScreenIds.size();
-        boolean visible = Utilities.isTopSpaceReserved(this);
         for (int i = 0; i < count; i++) {
             long screenId = orderedScreenIds.get(i);
-            if (!visible || screenId != Workspace.FIRST_SCREEN_ID) {
+            if (screenId != Workspace.FIRST_SCREEN_ID) {
                 // No need to bind the first screen, as its always bound.
                 mWorkspace.insertNewWorkspaceScreenBeforeEmptyScreen(screenId);
             }
