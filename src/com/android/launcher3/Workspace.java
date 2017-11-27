@@ -315,6 +315,8 @@ public class Workspace extends PagedView
     private float mOverlayTranslation;
     private int mFirstPageScrollX;
 
+    private CellLayout.LayoutParams mLp;
+
     // Handles workspace state transitions
     private WorkspaceStateTransitionAnimation mStateTransitionAnimation;
 
@@ -607,13 +609,9 @@ public class Workspace extends PagedView
             });
         }
 
-        CellLayout.LayoutParams lp = new CellLayout.LayoutParams(0, 0, firstPage.getCountX(), 1);
-        lp.canReorder = false;
-        View topContainer = mLauncher.getTopContainer();
-        ((ViewGroup) topContainer.getParent()).removeView(topContainer);
-        if (!firstPage.addViewToCellLayout(topContainer, 0, R.id.top_container, lp, Utilities.isTopSpaceReserved(mLauncher))) {
-            Log.e(TAG, "Failed to add to item at (0, 0) to CellLayout");
-        }
+        mLp = new CellLayout.LayoutParams(0, 0, firstPage.getCountX(), 1);
+        mLp.canReorder = false;
+        updateTopWidgetVisibility(Utilities.isTopSpaceReserved(mLauncher));
     }
 
     @Override
@@ -4207,10 +4205,17 @@ public class Workspace extends PagedView
 
     public void updateTopWidgetVisibility(boolean visible) {
         CellLayout firstPage = mWorkspaceScreens.get(FIRST_SCREEN_ID);
+        View topContainer = mLauncher.getTopContainer();
         if (!visible) {
-            firstPage.markCellsAsUnoccupiedForView(mLauncher.getTopContainer());
+            firstPage.markCellsAsUnoccupiedForView(topContainer);
+            if (((ViewGroup) topContainer.getParent()) != null) {
+                ((ViewGroup) topContainer.getParent()).removeView(topContainer);
+            }
         } else {
-            firstPage.markCellsAsOccupiedForView(mLauncher.getTopContainer());
+            if (((ViewGroup) topContainer.getParent()) != null) {
+                ((ViewGroup) topContainer.getParent()).removeView(topContainer);
+            }
+            firstPage.addViewToCellLayout(topContainer, 0, R.id.top_container, mLp, visible);
         }
     }
 }
