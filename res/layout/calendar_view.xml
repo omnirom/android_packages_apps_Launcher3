@@ -24,6 +24,22 @@
     android:layout_height="match_parent">
 
     <LinearLayout
+        android:id="@+id/calendar_today"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:layout_gravity="center_vertical" >
+
+        <TextView
+            android:id="@+id/calendar_today_text_big"
+            style="@style/CalendarBigger"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center_vertical" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/calendar_events"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical">
