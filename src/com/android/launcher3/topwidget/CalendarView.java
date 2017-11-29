@@ -67,6 +67,8 @@ public class CalendarView extends FrameLayout implements CalendarClient.Calendar
     private LayoutInflater mInflater;
     private TextView mCalendarStatusText;
     private TextView mCalendarTodayText;
+    private View mCalendarToday;
+    private View mCalendarEvents;
 
     private class EventListAdapter extends ArrayAdapter<CalendarEventModel.EventInfo> {
 
@@ -133,7 +135,8 @@ public class CalendarView extends FrameLayout implements CalendarClient.Calendar
         mCalendarStatus = findViewById(R.id.calendar_status);
         mEventList = (ListView) findViewById(R.id.event_list);
         mCalendarStatusText = (TextView) findViewById(R.id.calendar_status_text);
-        mCalendarTodayText = (TextView) findViewById(R.id.calendar_today_text);
+        mCalendarToday = findViewById(R.id.calendar_today);
+        mCalendarEvents = findViewById(R.id.calendar_events);
 
         mCalendarStatus.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -154,20 +157,12 @@ public class CalendarView extends FrameLayout implements CalendarClient.Calendar
             }
         });
 
-        mCalendarTodayText.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                showCalendarAtToday();
-            }
-        });
-
         mCalendarStatus.setVisibility(View.GONE);
         mEventData = new ArrayList<CalendarEventModel.EventInfo>();
         mEventAdapter = new EventListAdapter(getContext(), mEventData);
         mEventList.setAdapter(mEventAdapter);
 
-        updateToday();
-        mCalendarTodayText.setVisibility(Utilities.isShowToday(getContext()) ? View.VISIBLE : View .GONE);
+        updateSettings();
     }
 
 
@@ -206,6 +201,9 @@ public class CalendarView extends FrameLayout implements CalendarClient.Calendar
 
         updateToday();
 
+        if (!Utilities.isShowEvents(getContext())) {
+            return;
+        }
         mEventData.clear();
         mCalendarData.setVisibility(View.VISIBLE);
         mCalendarStatus.setVisibility(View.GONE);
@@ -222,12 +220,8 @@ public class CalendarView extends FrameLayout implements CalendarClient.Calendar
             }
         }
         mEventAdapter.notifyDataSetChanged();
-
-        if (mEventData.size() == 0) {
-            mCalendarData.setVisibility(View.GONE);
-            mCalendarStatus.setVisibility(View.VISIBLE);
-            mCalendarStatusText.setText(R.string.calendar_no_events);
-        }
+        showBigToday(mEventData.size() == 0);
+        updateToday();
     }
 
     private Intent getEventIntent(long id, long start, long end, boolean allDay) {
@@ -248,11 +242,15 @@ public class CalendarView extends FrameLayout implements CalendarClient.Calendar
     }
 
     public void updateSettings() {
+        boolean showEvents = Utilities.isShowEvents(getContext());
+        showBigToday(!showEvents || mEventData.size() == 0);
+
+        updateToday();
+
         if (mCalendarClient != null) {
             startProgress();
             mCalendarClient.load();
         }
-        mCalendarTodayText.setVisibility(Utilities.isShowToday(getContext()) ? View.VISIBLE : View .GONE);
     }
 
     private void showCalendarAtToday() {
@@ -268,5 +266,24 @@ public class CalendarView extends FrameLayout implements CalendarClient.Calendar
         int flags = DateUtils.FORMAT_SHOW_WEEKDAY | DateUtils.FORMAT_SHOW_DATE;
         long today = System.currentTimeMillis();
         mCalendarTodayText.setText(CalendarEventModel.formatDateRange(getContext(), today, today, flags));
+    }
+
+    private void showBigToday(boolean bigToday) {
+        if (!bigToday) {
+            mCalendarToday.setVisibility(View.GONE);
+            mCalendarEvents.setVisibility(View.VISIBLE);
+            mCalendarTodayText = (TextView) findViewById(R.id.calendar_today_text);
+        } else {
+            mCalendarToday.setVisibility(View.VISIBLE);
+            mCalendarEvents.setVisibility(View.GONE);
+            mCalendarTodayText = (TextView) findViewById(R.id.calendar_today_text_big);
+        }
+        mCalendarTodayText.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showCalendarAtToday();
+            }
+        });
+        mCalendarTodayText.setVisibility(Utilities.isShowToday(getContext()) ? View.VISIBLE : View.GONE);
     }
 }
