@@ -24,35 +24,64 @@
     android:layout_height="match_parent">
 
     <LinearLayout
+        android:id="@+id/calendar_today"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:layout_gravity="center_vertical" >
+
+        <TextView
+            android:id="@+id/calendar_today_text_big"
+            style="@style/CalendarBigger"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/calendar_events"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical">
 
-        <TextView
-            android:id="@+id/calendar_today_text"
-            style="@style/CalendarBig"
+        <Space
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"/>
+            android:layout_height="0dp"
+            android:layout_weight="1" />
 
         <LinearLayout
-            android:id="@+id/calendar_data"
+            android:id="@+id/calendar_events"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <ListView
-                android:id="@+id/event_list"
+            <TextView
+                android:id="@+id/calendar_today_text"
+                style="@style/CalendarBig"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"/>
+
+            <LinearLayout
+                android:id="@+id/calendar_data"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:divider="@null"
-                android:scrollbars="none"/>
+                android:orientation="vertical">
 
+                <ListView
+                    android:id="@+id/event_list"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:divider="@null"
+                    android:scrollbars="none"/>
+
+            </LinearLayout>
         </LinearLayout>
 
         <LinearLayout
             android:id="@+id/calendar_status"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
             android:orientation="vertical">
 
             <TextView
@@ -78,6 +107,12 @@
                 android:layout_height="48dp"/>
 
         </LinearLayout>
+
+        <Space
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1" />
+
     </LinearLayout>
 </com.android.launcher3.topwidget.CalendarView>
 
