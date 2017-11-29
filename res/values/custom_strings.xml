@@ -60,7 +60,6 @@
     <string name="calendar_event_no_title_label">No title</string>
     <string name="weather_icon_pack_title">Weather condition icon pack</string>
     <string name="hotseat_category_title">Dock</string>
-    <string name="calendar_no_events">No events</string>
     <string name="pref_allDayEvents_title">Show all day events</string>
     <string name="pref_allDayEvents_summary"></string>
     <string name="preferences_widget_days_title">Display period</string>
@@ -70,9 +69,11 @@
     <string name="one_month">1 month</string>
     <string name="three_months">3 months</string>
     <string name="preferences_widget_days_default" translatable="false" >14</string>
-    <string name="pref_show_today_title">Show current day</string>
+    <string name="pref_show_today_title">Show date</string>
     <string name="pref_show_today_summary"></string>
     <string name="show_search_bar_location_title">Search bar placement</string>
     <string name="search_bar_location_bottom">Below hotseat</string>
     <string name="search_bar_location_top">Above hotseat</string>
+    <string name="pref_show_events_title">Show upcoming events</string>
+    <string name="pref_show_events_summary"></string>
 </resources>
