@@ -23,6 +23,7 @@
     android:layout_height="match_parent" >
 
     <LinearLayout
+        android:id="@+id/main_container"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="horizontal" >
@@ -41,4 +42,12 @@
             android:layout_gravity="center" />
 
     </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/detailed_weather_view_container"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_gravity="center"
+        android:visibility="gone" />
+
 </com.android.launcher3.topwidget.TopWidgetView>
