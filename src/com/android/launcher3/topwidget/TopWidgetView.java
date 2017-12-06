@@ -23,6 +23,7 @@ import android.util.AttributeSet;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewAnimationUtils;
 import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.FrameLayout;
@@ -37,6 +38,7 @@ public class TopWidgetView extends FrameLayout {
     private CalendarView mCalendarView;
     private CurrentWeatherView mWeatherView;
     private LayoutInflater mInflater;
+    private DetailedWeatherView mDetailedWeatherView;
 
     public TopWidgetView(Context context) {
         this(context, null);
@@ -55,6 +57,7 @@ public class TopWidgetView extends FrameLayout {
             mCalendarView.updateSettings();
         }
         if (mWeatherView != null) {
+            showDetailedWeather(false);
             mWeatherView.updateSettings();
         }
     }
@@ -79,8 +82,11 @@ public class TopWidgetView extends FrameLayout {
                 v.removeAllViews();
                 v = (LinearLayout) findViewById(R.id.current_weather_view_container);
                 v.removeAllViews();
+                v = (LinearLayout) findViewById(R.id.detailed_weather_view_container);
+                v.removeAllViews();
                 mCalendarView = null;
                 mWeatherView = null;
+                mDetailedWeatherView = null;
             }
         } else {
             if (mCalendarView == null && mWeatherView == null) {
@@ -90,7 +96,22 @@ public class TopWidgetView extends FrameLayout {
                 mWeatherView = (CurrentWeatherView) mInflater.inflate(R.layout.current_weather_view, null);
                 v = (LinearLayout) findViewById(R.id.current_weather_view_container);
                 v.addView(mWeatherView, new ViewGroup.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
+                mDetailedWeatherView = (DetailedWeatherView) mInflater.inflate(R.layout.detailed_weather_view, null);
+                v = (LinearLayout) findViewById(R.id.detailed_weather_view_container);
+                v.addView(mDetailedWeatherView, new ViewGroup.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
+
+                mWeatherView.setTopWidgetView(this);
+                mDetailedWeatherView.setTopWidgetView(this);
+                mWeatherView.setDetailedWeatherView(mDetailedWeatherView);
             }
         }
+    }
+
+    public void showDetailedWeather(boolean visible) {
+        View mainContainer = findViewById(R.id.main_container);
+        mainContainer.setVisibility(visible ? View.GONE : View.VISIBLE);
+
+        View detailedView = findViewById(R.id.detailed_weather_view_container);
+        detailedView.setVisibility(visible ? View.VISIBLE : View.GONE);
     }
 }
