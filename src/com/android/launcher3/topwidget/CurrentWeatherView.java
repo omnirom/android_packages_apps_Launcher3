@@ -65,6 +65,8 @@ public class CurrentWeatherView extends FrameLayout implements OmniJawsClient.Om
     private View mProgressContainer;
     private View mEmptyView;
     private ImageView mEmptyViewImage;
+    private TopWidgetView mTopWidget;
+    private DetailedWeatherView mDetailedWeatherView;
 
     public CurrentWeatherView(Context context) {
         this(context, null);
@@ -76,6 +78,14 @@ public class CurrentWeatherView extends FrameLayout implements OmniJawsClient.Om
 
     public CurrentWeatherView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
+    }
+
+    public void setTopWidgetView(TopWidgetView topWidget) {
+        mTopWidget = topWidget;
+    }
+
+    public void setDetailedWeatherView(DetailedWeatherView detailedWeatherView) {
+        mDetailedWeatherView = detailedWeatherView;
     }
 
     @Override
@@ -129,7 +139,20 @@ public class CurrentWeatherView extends FrameLayout implements OmniJawsClient.Om
             }
         });
 
-        // TODO maxwen - on click show details
+        mCurrentView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (mWeatherClient != null && mWeatherClient.isOmniJawsEnabled()
+                        && mTopWidget != null && mDetailedWeatherView != null) {
+                    mWeatherClient.queryWeather();
+                    OmniJawsClient.WeatherInfo weatherData = mWeatherClient.getWeatherInfo();
+                    if (weatherData != null) {
+                        mDetailedWeatherView.updateWeatherData(mWeatherClient, weatherData);
+                        mTopWidget.showDetailedWeather(true);
+                    }
+                }
+            }
+        });
         mCurrentView.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
@@ -146,7 +169,7 @@ public class CurrentWeatherView extends FrameLayout implements OmniJawsClient.Om
         if (DEBUG) Log.d(TAG, "updateWeatherData");
         mProgressContainer.setVisibility(View.GONE);
 
-        if (!mWeatherClient.isOmniJawsEnabled()) {
+        if (!mWeatherClient.isOmniJawsEnabled() || weatherData == null) {
             setErrorView();
             if (mWeatherClient.isOmniJawsEnabled()) {
                 mEmptyViewImage.setImageResource(R.drawable.ic_qs_weather_default_on);
@@ -237,6 +260,9 @@ public class CurrentWeatherView extends FrameLayout implements OmniJawsClient.Om
         } else {
             mEmptyViewImage.setImageResource(R.drawable.ic_qs_weather_default_on);
         }
+        if (mTopWidget != null && mDetailedWeatherView != null) {
+            mTopWidget.showDetailedWeather(false);
+        }
     }
 
     public void startProgress() {
@@ -260,6 +286,10 @@ public class CurrentWeatherView extends FrameLayout implements OmniJawsClient.Om
             mWeatherClient.queryWeather();
             OmniJawsClient.WeatherInfo weatherData = mWeatherClient.getWeatherInfo();
             updateWeatherData(weatherData);
+
+            if (mTopWidget != null && mDetailedWeatherView != null && weatherData != null) {
+                mDetailedWeatherView.updateWeatherData(mWeatherClient, weatherData);
+            }
         }
     }
 
