@@ -60,7 +60,6 @@ public class CalendarView extends FrameLayout implements CalendarClient.Calendar
     private View mCalendarData;
     private ListView mEventList;
     private View mProgressContainer;
-    private View mCalendarStatus;
     private CalendarClient mCalendarClient;
     private List<CalendarEventModel.EventInfo> mEventData;
     private EventListAdapter mEventAdapter;
@@ -116,8 +115,8 @@ public class CalendarView extends FrameLayout implements CalendarClient.Calendar
     public void checkPermissions() {
         Launcher launcher = Launcher.getLauncher(getContext());
         boolean permsChecked = launcher.isCalendarPermissionEnabled();
-        mCalendarData.setVisibility(permsChecked ? View.VISIBLE : View.GONE);
-        mCalendarStatus.setVisibility(permsChecked ? View.GONE : View.VISIBLE);
+        mEventList.setVisibility(permsChecked ? View.VISIBLE : View.GONE);
+        mCalendarStatusText.setVisibility(permsChecked ? View.GONE : View.VISIBLE);
         if (permsChecked) {
             mCalendarClient = new CalendarClient(getContext(), this);
             mCalendarClient.register();
@@ -132,20 +131,20 @@ public class CalendarView extends FrameLayout implements CalendarClient.Calendar
         mInflater = (LayoutInflater) getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         mProgressContainer = findViewById(R.id.progress_container);
         mCalendarData = findViewById(R.id.calendar_data);
-        mCalendarStatus = findViewById(R.id.calendar_status);
         mEventList = (ListView) findViewById(R.id.event_list);
         mCalendarStatusText = (TextView) findViewById(R.id.calendar_status_text);
         mCalendarToday = findViewById(R.id.calendar_today);
         mCalendarEvents = findViewById(R.id.calendar_events);
 
-        mCalendarStatus.setOnClickListener(new View.OnClickListener() {
+        mCalendarStatusText.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Launcher launcher = Launcher.getLauncher(getContext());
                 if (!launcher.isCalendarPermissionEnabled()) {
                     launcher.requestCalendarPermission();
                 } else {
-                    showCalendarAtToday();
+                    mEventList.setVisibility(View.VISIBLE);
+                    mCalendarStatusText.setVisibility(View.GONE);
                 }
             }
         });
@@ -157,7 +156,6 @@ public class CalendarView extends FrameLayout implements CalendarClient.Calendar
             }
         });
 
-        mCalendarStatus.setVisibility(View.GONE);
         mEventData = new ArrayList<CalendarEventModel.EventInfo>();
         mEventAdapter = new EventListAdapter(getContext(), mEventData);
         mEventList.setAdapter(mEventAdapter);
@@ -204,9 +202,13 @@ public class CalendarView extends FrameLayout implements CalendarClient.Calendar
         if (!Utilities.isShowEvents(getContext())) {
             return;
         }
+        Launcher launcher = Launcher.getLauncher(getContext());
+        boolean permsChecked = launcher.isCalendarPermissionEnabled();
+        mEventList.setVisibility(permsChecked ? View.VISIBLE : View.GONE);
+        mCalendarStatusText.setVisibility(permsChecked ? View.GONE : View.VISIBLE);
+
         mEventData.clear();
         mCalendarData.setVisibility(View.VISIBLE);
-        mCalendarStatus.setVisibility(View.GONE);
         int i = 0;
         boolean showAllDayEvents = Utilities.isShowAllDayEvents(getContext());
         for (CalendarEventModel.EventInfo event : model.mEventInfos) {
@@ -220,8 +222,6 @@ public class CalendarView extends FrameLayout implements CalendarClient.Calendar
             }
         }
         mEventAdapter.notifyDataSetChanged();
-        showBigToday(mEventData.size() == 0);
-        updateToday();
     }
 
     private Intent getEventIntent(long id, long start, long end, boolean allDay) {
@@ -243,11 +243,16 @@ public class CalendarView extends FrameLayout implements CalendarClient.Calendar
 
     public void updateSettings() {
         boolean showEvents = Utilities.isShowEvents(getContext());
-        showBigToday(!showEvents || mEventData.size() == 0);
+        Launcher launcher = Launcher.getLauncher(getContext());
+        boolean permsChecked = launcher.isCalendarPermissionEnabled();
+        mEventList.setVisibility(permsChecked ? View.VISIBLE : View.GONE);
+        mCalendarStatusText.setVisibility(permsChecked ? View.GONE : View.VISIBLE);
+
+        showBigToday(!showEvents);
 
         updateToday();
 
-        if (mCalendarClient != null) {
+        if (mCalendarClient != null && showEvents && permsChecked) {
             startProgress();
             mCalendarClient.load();
         }
