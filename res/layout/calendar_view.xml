@@ -74,23 +74,14 @@
                     android:divider="@null"
                     android:scrollbars="none"/>
 
+                <TextView
+                    android:id="@+id/calendar_status_text"
+                    style="@style/Calendar"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/calendar_view_status_perms"/>
+
             </LinearLayout>
-        </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/calendar_status"
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
-            android:orientation="vertical">
-
-            <TextView
-                android:id="@+id/calendar_status_text"
-                style="@style/Calendar"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/calendar_view_status_perms"/>
-
         </LinearLayout>
 
         <LinearLayout
