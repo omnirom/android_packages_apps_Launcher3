@@ -13,12 +13,21 @@
      See the License for the specific language governing permissions and
      limitations under the License.
 -->
+<com.android.launcher3.Hotseat
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:launcher="http://schemas.android.com/apk/res-auto">
+    <LinearLayout
+        android:id="@+id/layout_container"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical" >
 
-<resources>
-<!-- All Apps -->
-    <dimen name="all_apps_button_scale_down">8dp</dimen>
-    <dimen name="all_apps_search_bar_height">54dp</dimen>
-    <dimen name="all_apps_empty_search_message_top_offset">64dp</dimen>
-    <dimen name="all_apps_empty_search_bg_top_offset">180dp</dimen>
-    <dimen name="top_widget_padding">20dp</dimen>
-</resources>
+        <com.android.launcher3.CellLayout
+            android:id="@+id/layout"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_gravity="center"
+            launcher:containerType="hotseat" />
+
+    </LinearLayout>
+</com.android.launcher3.Hotseat>
