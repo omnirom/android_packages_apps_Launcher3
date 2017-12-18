@@ -554,14 +554,6 @@ public class DeviceProfile {
             lp.height = LayoutParams.MATCH_PARENT;
             hotseat.getCellLayout().setPadding(mInsets.left, mInsets.top, mInsets.right,
                     workspacePadding.bottom);
-        } else if (isTablet) {
-            // Pad the hotseat with the workspace padding calculated above
-            lp.gravity = Gravity.BOTTOM;
-            lp.width = LayoutParams.MATCH_PARENT;
-            lp.height = getHotseatHeight() + mInsets.bottom;
-            hotseat.getLayoutContainer().setPadding(hotseatAdjustment + workspacePadding.left,
-                    hotseatBarTopPaddingPx, hotseatAdjustment + workspacePadding.right,
-                    hotseatBarBottomPaddingPx + mInsets.bottom);
         } else {
             // For phones, layout the hotseat without any bottom margin
             // to ensure that we have space for the folders
