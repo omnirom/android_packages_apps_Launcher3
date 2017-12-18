@@ -216,4 +216,6 @@
     <!-- Approximates the system status bar height. Not guaranteed to be always be correct. -->
     <dimen name="status_bar_height">24dp</dimen>
     <dimen name="qsb_hotseat_height">80dp</dimen>
+
+    <dimen name="top_widget_padding">0dp</dimen>
 </resources>
