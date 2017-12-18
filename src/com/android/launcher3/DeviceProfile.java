@@ -367,7 +367,7 @@ public class DeviceProfile {
     }
 
     /** Returns the width and height of the search bar, ignoring any padding. */
-    public Point getSearchBarDimensForWidgetOpts() {
+    private Point getSearchBarDimensForWidgetOpts() {
         if (isVerticalBarLayout()) {
             return new Point(dropTargetBarSizePx, availableHeightPx - 2 * edgeMarginPx);
         } else {
@@ -554,14 +554,6 @@ public class DeviceProfile {
             lp.height = LayoutParams.MATCH_PARENT;
             hotseat.getCellLayout().setPadding(mInsets.left, mInsets.top, mInsets.right,
                     workspacePadding.bottom);
-        } else if (isTablet) {
-            // Pad the hotseat with the workspace padding calculated above
-            lp.gravity = Gravity.BOTTOM;
-            lp.width = LayoutParams.MATCH_PARENT;
-            lp.height = getHotseatHeight() + mInsets.bottom;
-            hotseat.getLayoutContainer().setPadding(hotseatAdjustment + workspacePadding.left,
-                    hotseatBarTopPaddingPx, hotseatAdjustment + workspacePadding.right,
-                    hotseatBarBottomPaddingPx + mInsets.bottom);
         } else {
             // For phones, layout the hotseat without any bottom margin
             // to ensure that we have space for the folders
