@@ -26,7 +26,9 @@
         android:id="@+id/main_container"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="horizontal" >
+        android:orientation="horizontal"
+        android:paddingLeft="@dimen/top_widget_padding"
+        android:paddingRight="@dimen/top_widget_padding" >
 
         <LinearLayout
             android:id="@+id/calendar_view_container"
@@ -48,6 +50,8 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_gravity="center"
-        android:visibility="gone" />
+        android:visibility="gone"
+        android:paddingLeft="@dimen/top_widget_padding"
+        android:paddingRight="@dimen/top_widget_padding" />
 
 </com.android.launcher3.topwidget.TopWidgetView>
