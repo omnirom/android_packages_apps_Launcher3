@@ -17,4 +17,7 @@
 * limitations under the License.
 */
 -->
-<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2"></resources>
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+  <string name="two_weeks">2 nädalat</string>
+  <string name="three_weeks">3 nädalat</string>
+</resources>

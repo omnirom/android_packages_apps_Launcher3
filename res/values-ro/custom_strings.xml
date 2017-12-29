@@ -17,4 +17,53 @@
 * limitations under the License.
 */
 -->
-<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2"></resources>
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+  <string name="show_predictive_apps_title">Aplicații predictive</string>
+  <string name="icon_pack">Pachet de pictograme</string>
+  <string name="icon_pack_summary">Selectaţi un pachet de pictograme</string>
+  <string name="adaptive_icons_title">Pictograme adaptive</string>
+  <string name="legacy_icons_title">Modificare pictograme vechi</string>
+  <string name="icon_mask_square">Pătrat</string>
+  <string name="icon_mask_rounded_square">Pătrat rotunjit</string>
+  <string name="icon_mask_squircle">Pătrat cu colțuri rotunjite</string>
+  <string name="icon_mask_circle">Cerc</string>
+  <string name="icon_mask_teardrop">Lacrimă</string>
+  <string name="adaptive_icon_mask_title">Mască pictogramă</string>
+  <string name="icon_category_title">Pictograme</string>
+  <string name="other_category_title">Altele</string>
+  <string name="icon_shadow_title">Adăugare umbră pictogramă</string>
+  <string name="show_search_bar_title">Afișează bara de căutare</string>
+  <string name="widget_category_title">Widget-uri</string>
+  <string name="show_top_widget_title">Afișare widget de sus</string>
+  <string name="omnijaws_service_error">Eroare</string>
+  <string name="omnijaws_service_unkown">Datele meteo lipsesc</string>
+  <string name="omnijaws_service_error_long">Eroare la încărcarea datelor meteo</string>
+  <string name="omnijaws_service_disabled">Serviciul este dezactivat</string>
+  <string name="omnijaws_detail_header">Meteo</string>
+  <string name="omnijaws_label_default">Meteo</string>
+  <string name="omnijaws_current_text">Acum</string>
+  <string name="omnijaws_package_not_available">OmniJaws nu este disponibil</string>
+  <string name="omnijaws_service_last_update">Ultima actualizare:</string>
+  <string name="weather_settings_drop_target_label">Configurare</string>
+  <string name="show_hotseat_bg_color_title">Culoare fundal</string>
+  <string name="show_hotseat_bg_color_summary">Aplicare culoarea de fundal doc bazat pe imaginea de fundal</string>
+  <string name="calendar_view_status_perms">Atingeţi pentru a configura</string>
+  <string name="show_hotseat_title">Afişare doc</string>
+  <string name="calendar_event_no_title_label">Fără titlu</string>
+  <string name="weather_icon_pack_title">Pachet pictograme condiţii meteo</string>
+  <string name="hotseat_category_title">Doc</string>
+  <string name="pref_allDayEvents_title">Afişaţi toate evenimentele zilei</string>
+  <string name="preferences_widget_days_title">Perioada de afişare</string>
+  <string name="one_week">1 săptămână</string>
+  <string name="two_weeks">2 săptămâni</string>
+  <string name="three_weeks">3 săptămâni</string>
+  <string name="one_month">1 lună</string>
+  <string name="three_months">3 luni</string>
+  <string name="pref_show_today_title">Afișați data</string>
+  <string name="show_search_bar_location_title">Amplasarea barei de căutare</string>
+  <string name="search_bar_location_bottom">Mai jos de doc</string>
+  <string name="search_bar_location_top">Deasupra doc-ului</string>
+  <string name="pref_show_events_title">Afişare evenimente viitoare</string>
+  <string name="left_tab_label">Fila Google Now</string>
+  <string name="left_tab_description">Comutare integrare Google Now</string>
+</resources>

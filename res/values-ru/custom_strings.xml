@@ -17,4 +17,53 @@
 * limitations under the License.
 */
 -->
-<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2"></resources>
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+  <string name="show_predictive_apps_title">Предиктивные приложения</string>
+  <string name="icon_pack">Набор значков</string>
+  <string name="icon_pack_summary">Выберите набор значков</string>
+  <string name="adaptive_icons_title">Адаптивные значки</string>
+  <string name="legacy_icons_title">Маска на старых значках</string>
+  <string name="icon_mask_square">Квадрат</string>
+  <string name="icon_mask_rounded_square">Квадрат с закругленными углами</string>
+  <string name="icon_mask_squircle">Квадрат с закругленными краями</string>
+  <string name="icon_mask_circle">Круг</string>
+  <string name="icon_mask_teardrop">Капля</string>
+  <string name="adaptive_icon_mask_title">Маска значка</string>
+  <string name="icon_category_title">Значки</string>
+  <string name="other_category_title">Другие</string>
+  <string name="icon_shadow_title">Добавить тень значка</string>
+  <string name="show_search_bar_title">Показывать строку поиска</string>
+  <string name="widget_category_title">Виджеты</string>
+  <string name="show_top_widget_title">Показать верхний виджет</string>
+  <string name="omnijaws_service_error">Ошибка</string>
+  <string name="omnijaws_service_unkown">Нет данных погоды</string>
+  <string name="omnijaws_service_error_long">Ошибка загрузки данных о погоде</string>
+  <string name="omnijaws_service_disabled">Служба отключена</string>
+  <string name="omnijaws_detail_header">Погода</string>
+  <string name="omnijaws_label_default">Погода</string>
+  <string name="omnijaws_current_text">Только что</string>
+  <string name="omnijaws_package_not_available">OmniJaws не доступно</string>
+  <string name="omnijaws_service_last_update">Последнее обновление:</string>
+  <string name="weather_settings_drop_target_label">Настройка</string>
+  <string name="show_hotseat_bg_color_title">Цвет фона</string>
+  <string name="show_hotseat_bg_color_summary">Применить фоновый цвет к доку на основе обоев</string>
+  <string name="calendar_view_status_perms">Нажмите для настройки</string>
+  <string name="show_hotseat_title">Показать hotseat</string>
+  <string name="calendar_event_no_title_label">Нет заголовка</string>
+  <string name="weather_icon_pack_title">Набор значков состояния погоды</string>
+  <string name="hotseat_category_title">Док</string>
+  <string name="pref_allDayEvents_title">Показать события на весь день</string>
+  <string name="preferences_widget_days_title">Показать период</string>
+  <string name="one_week">1 неделя</string>
+  <string name="two_weeks">2 недели</string>
+  <string name="three_weeks">3 недели</string>
+  <string name="one_month">1 месяц</string>
+  <string name="three_months">3 месяца</string>
+  <string name="pref_show_today_title">Показать дату</string>
+  <string name="show_search_bar_location_title">Размещение панели поиска</string>
+  <string name="search_bar_location_bottom">Ниже hotseat</string>
+  <string name="search_bar_location_top">Выше hotseat</string>
+  <string name="pref_show_events_title">Показать предстоящие события</string>
+  <string name="left_tab_label">Google Now</string>
+  <string name="left_tab_description">Переключить интеграцию Google Now</string>
+</resources>
