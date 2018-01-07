@@ -17,4 +17,53 @@
 * limitations under the License.
 */
 -->
-<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2"></resources>
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+  <string name="show_predictive_apps_title">Prediktív alkalmazások</string>
+  <string name="icon_pack">Ikon csomag</string>
+  <string name="icon_pack_summary">Válasszon ki egy ikon csomagot</string>
+  <string name="adaptive_icons_title">Adaptív ikonok</string>
+  <string name="legacy_icons_title">Régi ikonok maszkolása</string>
+  <string name="icon_mask_square">Négyzet</string>
+  <string name="icon_mask_rounded_square">Lekerekített négyzet</string>
+  <string name="icon_mask_squircle">Kör-zet</string>
+  <string name="icon_mask_circle">Kör</string>
+  <string name="icon_mask_teardrop">Könnycsepp</string>
+  <string name="adaptive_icon_mask_title">Ikon maszkolás</string>
+  <string name="icon_category_title">Ikonok</string>
+  <string name="other_category_title">Egyéb</string>
+  <string name="icon_shadow_title">Ikon árnyék hozzáadása</string>
+  <string name="show_search_bar_title">Keresési sáv megjelenítése</string>
+  <string name="widget_category_title">Modulok</string>
+  <string name="show_top_widget_title">Legjobb modulok megjelenítése</string>
+  <string name="omnijaws_service_error">Hiba</string>
+  <string name="omnijaws_service_unkown">Nincs időjárási adat</string>
+  <string name="omnijaws_service_error_long">Hiba az időjárási adatok betöltésekor</string>
+  <string name="omnijaws_service_disabled">Szolgáltatás le van tiltva</string>
+  <string name="omnijaws_detail_header">Időjárás</string>
+  <string name="omnijaws_label_default">Időjárás</string>
+  <string name="omnijaws_current_text">Most</string>
+  <string name="omnijaws_package_not_available">OmniJaws nem elérhető</string>
+  <string name="omnijaws_service_last_update">Utolsó frissítés:</string>
+  <string name="weather_settings_drop_target_label">Konfigurálás</string>
+  <string name="show_hotseat_bg_color_title">Háttérszín</string>
+  <string name="show_hotseat_bg_color_summary">Dokk háttérszín alkalmazása a háttérkép alapján</string>
+  <string name="calendar_view_status_perms">Érintse meg a beállításhoz</string>
+  <string name="show_hotseat_title">Dokkoló megjelenítése</string>
+  <string name="calendar_event_no_title_label">Nincs cím</string>
+  <string name="weather_icon_pack_title">Időjárás állapot ikon csomag</string>
+  <string name="hotseat_category_title">Dokkoló</string>
+  <string name="pref_allDayEvents_title">Egész napos események megjelenítése</string>
+  <string name="preferences_widget_days_title">Időszak megjelenítése</string>
+  <string name="one_week">1 hét</string>
+  <string name="two_weeks">2 hét</string>
+  <string name="three_weeks">3 hét</string>
+  <string name="one_month">1 hónap</string>
+  <string name="three_months">3 hónap</string>
+  <string name="pref_show_today_title">Dátum megjelenítése</string>
+  <string name="show_search_bar_location_title">Keresősáv elhelyezése</string>
+  <string name="search_bar_location_bottom">Dokkoló alatt</string>
+  <string name="search_bar_location_top">Dokkoló felett</string>
+  <string name="pref_show_events_title">Közelgő események megjelenítése</string>
+  <string name="left_tab_label">Google Now lap</string>
+  <string name="left_tab_description">Google Now integráció váltása</string>
+</resources>

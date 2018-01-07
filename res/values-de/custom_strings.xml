@@ -17,4 +17,36 @@
 * limitations under the License.
 */
 -->
-<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2"></resources>
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+  <string name="show_predictive_apps_title">Prädiktive Apps</string>
+  <string name="icon_pack">Icon-Pack</string>
+  <string name="icon_pack_summary">Wählen Sie ein Icon-Pack aus</string>
+  <string name="adaptive_icons_title">Adaptive Icons</string>
+  <string name="icon_mask_square">Quadrat</string>
+  <string name="icon_mask_circle">Kreis</string>
+  <string name="other_category_title">Sonstige</string>
+  <string name="show_search_bar_title">Suchleiste anzeigen</string>
+  <string name="widget_category_title">Widgets</string>
+  <string name="omnijaws_service_error">Fehler</string>
+  <string name="omnijaws_service_unkown">Keine Wetterdaten</string>
+  <string name="omnijaws_service_error_long">Fehler beim Laden der Wetterdaten</string>
+  <string name="omnijaws_service_disabled">Dienst ist deaktiviert</string>
+  <string name="omnijaws_detail_header">Wetter</string>
+  <string name="omnijaws_label_default">Wetter</string>
+  <string name="omnijaws_current_text">Jetzt</string>
+  <string name="omnijaws_package_not_available">OmniJaws ist nicht verfügbar</string>
+  <string name="omnijaws_service_last_update">Letzte Aktualisierung:</string>
+  <string name="weather_settings_drop_target_label">Konfigurieren</string>
+  <string name="show_hotseat_bg_color_title">Hintergrundfarbe</string>
+  <string name="calendar_view_status_perms">Zum Einrichten berühren</string>
+  <string name="calendar_event_no_title_label">Kein Titel</string>
+  <string name="hotseat_category_title">Dock</string>
+  <string name="preferences_widget_days_title">Anzeigezeitraum</string>
+  <string name="one_week">1 Woche</string>
+  <string name="two_weeks">2 Wochen</string>
+  <string name="three_weeks">3 Wochen</string>
+  <string name="one_month">1 Monat</string>
+  <string name="three_months">3 Monate</string>
+  <string name="pref_show_today_title">Datum anzeigen</string>
+  <string name="pref_show_events_title">Bevorstehende Ereignisse anzeigen</string>
+</resources>

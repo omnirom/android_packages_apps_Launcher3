@@ -17,4 +17,53 @@
 * limitations under the License.
 */
 -->
-<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2"></resources>
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+  <string name="show_predictive_apps_title">Aplicações preditivas</string>
+  <string name="icon_pack">Pacote de ícones</string>
+  <string name="icon_pack_summary">Selecione um pacote de ícones</string>
+  <string name="adaptive_icons_title">Ícones adaptáveis</string>
+  <string name="legacy_icons_title">Máscara de ícones legacy</string>
+  <string name="icon_mask_square">Quadrado</string>
+  <string name="icon_mask_rounded_square">Quadrado redondo</string>
+  <string name="icon_mask_squircle">Squircle</string>
+  <string name="icon_mask_circle">Círculo</string>
+  <string name="icon_mask_teardrop">Lágrima</string>
+  <string name="adaptive_icon_mask_title">Máscara de ícone</string>
+  <string name="icon_category_title">Ícones</string>
+  <string name="other_category_title">Outro</string>
+  <string name="icon_shadow_title">Adicionar sombra ao ícone</string>
+  <string name="show_search_bar_title">Mostrar barra de pesquisa</string>
+  <string name="widget_category_title">Widgets</string>
+  <string name="show_top_widget_title">Mostrar o widget top</string>
+  <string name="omnijaws_service_error">Erro</string>
+  <string name="omnijaws_service_unkown">Sem informação meteorológica</string>
+  <string name="omnijaws_service_error_long">Erro ao carregar dados meteorológicos</string>
+  <string name="omnijaws_service_disabled">Serviço desactivado</string>
+  <string name="omnijaws_detail_header">Clima</string>
+  <string name="omnijaws_label_default">Clima</string>
+  <string name="omnijaws_current_text">Agora</string>
+  <string name="omnijaws_package_not_available">O Omnijaws está indisponível</string>
+  <string name="omnijaws_service_last_update">Última atualização:</string>
+  <string name="weather_settings_drop_target_label">Configurar</string>
+  <string name="show_hotseat_bg_color_title">Cor de fundo</string>
+  <string name="show_hotseat_bg_color_summary">Aplicar cor de fundo de dock com base no papel de parede</string>
+  <string name="calendar_view_status_perms">Toque para configurar</string>
+  <string name="show_hotseat_title">Mostrar hotseat</string>
+  <string name="calendar_event_no_title_label">Sem título</string>
+  <string name="weather_icon_pack_title">Pacote de ícones de condições atmosféricas</string>
+  <string name="hotseat_category_title">Dock</string>
+  <string name="pref_allDayEvents_title">Mostrar todos os eventos do dia</string>
+  <string name="preferences_widget_days_title">Período de visualização</string>
+  <string name="one_week">1 semana</string>
+  <string name="two_weeks">2 semanas</string>
+  <string name="three_weeks">3 semanas</string>
+  <string name="one_month">1 mês</string>
+  <string name="three_months">3 meses</string>
+  <string name="pref_show_today_title">Mostrar a data</string>
+  <string name="show_search_bar_location_title">Localização da barra de pesquisa</string>
+  <string name="search_bar_location_bottom">Abaixo do hotseat</string>
+  <string name="search_bar_location_top">Acima do hotseat</string>
+  <string name="pref_show_events_title">Mostrar próximos eventos</string>
+  <string name="left_tab_label">Google Now</string>
+  <string name="left_tab_description">Alternar a integração do Google Now</string>
+</resources>
