@@ -19,7 +19,7 @@
     android:id="@+id/widgets_scroll_container"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="?android:attr/colorPrimaryDark"
+    android:background="@color/widgets_view_background_color_cell"
     android:scrollbars="none">
     <LinearLayout
         android:id="@+id/widgets_cell_list"
