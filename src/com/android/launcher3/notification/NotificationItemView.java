@@ -53,7 +53,6 @@ public class NotificationItemView extends PopupItemView implements LogContainerP
     private NotificationFooterLayout mFooter;
     private SwipeHelper mSwipeHelper;
     private boolean mAnimatingNextIcon;
-    private int mNotificationHeaderTextColor = Notification.COLOR_DEFAULT;
 
     public NotificationItemView(Context context) {
         this(context, null, 0);
@@ -93,15 +92,7 @@ public class NotificationItemView extends PopupItemView implements LogContainerP
     }
 
     public void updateHeader(int notificationCount, @Nullable IconPalette palette) {
-        mHeaderCount.setText(notificationCount <= 1 ? "" : String.valueOf(notificationCount));
-        if (palette != null) {
-            if (mNotificationHeaderTextColor == Notification.COLOR_DEFAULT) {
-                mNotificationHeaderTextColor =
-                        IconPalette.resolveContrastColor(getContext(), palette.dominantColor,
-                            getResources().getColor(R.color.popup_header_background_color));
-            }
-            mHeaderCount.setTextColor(mNotificationHeaderTextColor);
-        }
+        mHeaderCount.setText(String.valueOf(notificationCount));
     }
 
     @Override

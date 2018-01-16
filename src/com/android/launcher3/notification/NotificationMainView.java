@@ -84,8 +84,8 @@ public class NotificationMainView extends FrameLayout implements SwipeHelper.Cal
     public void applyNotificationInfo(NotificationInfo mainNotification, View iconView,
            boolean animate) {
         mNotificationInfo = mainNotification;
-        CharSequence title = mNotificationInfo.title;
-        CharSequence text = mNotificationInfo.text;
+        String title = mNotificationInfo.title.toString().trim();
+        String text = mNotificationInfo.text.toString().trim();
         if (!TextUtils.isEmpty(title) && !TextUtils.isEmpty(text)) {
             mTitleView.setText(title);
             mTextView.setText(text);

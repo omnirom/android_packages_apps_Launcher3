@@ -97,6 +97,11 @@
             android:summary="@string/left_tab_description"
             android:persistent="true" />
 
+        <SwitchPreference
+            android:key="pref_showDarkTheme"
+            android:title="@string/show_dark_theme_title"
+            android:defaultValue="false"
+            android:persistent="true" />
     </PreferenceCategory>
 
     <PreferenceCategory

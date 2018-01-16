@@ -31,7 +31,7 @@
         android:drawableEnd="@drawable/deep_shortcuts_drag_handle"
         android:drawablePadding="@dimen/deep_shortcut_drawable_padding"
         android:textSize="14sp"
-        android:textColor="?android:attr/textColorPrimary"
+        android:textColor="@color/popup_text_color"
         android:fontFamily="sans-serif"
         launcher:layoutHorizontal="true"
         launcher:iconDisplay="shortcut_popup"
@@ -50,6 +50,6 @@
         android:layout_height="@dimen/popup_item_divider_height"
         android:layout_gravity="end|bottom"
         android:visibility="gone"
-        android:background="?android:attr/listDivider" />
+        android:background="@drawable/list_divider" />
 
 </com.android.launcher3.shortcuts.DeepShortcutView>

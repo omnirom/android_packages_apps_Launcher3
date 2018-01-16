@@ -16,7 +16,7 @@
 <com.android.launcher3.BubbleTextView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:launcher="http://schemas.android.com/apk/res-auto"
-    style="@style/BaseIcon"
+    style="@style/BaseIcon.AllApps"
     android:id="@+id/icon"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
