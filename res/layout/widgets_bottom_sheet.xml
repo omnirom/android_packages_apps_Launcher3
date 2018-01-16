@@ -20,7 +20,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:paddingTop="28dp"
-    android:background="?android:attr/colorPrimary"
+    android:background="@color/widgets_view_background_color"
     android:elevation="@dimen/deep_shortcuts_elevation"
     android:layout_gravity="bottom">
 
@@ -30,7 +30,7 @@
         android:layout_height="wrap_content"
         android:gravity="center_horizontal"
         android:fontFamily="sans-serif"
-        android:textColor="?android:attr/textColorPrimary"
+        android:textColor="@color/widgets_view_text_color"
         android:textSize="24sp"/>
 
     <TextView
@@ -39,7 +39,7 @@
         android:gravity="center_horizontal"
         android:paddingTop="4dp"
         android:fontFamily="sans-serif"
-        android:textColor="?android:attr/textColorTertiary"
+        android:textColor="@color/widgets_view_text_color"
         android:textSize="14sp"
         android:text="@string/long_press_widget_to_add"/>
 

@@ -81,6 +81,11 @@
         <item name="android:shadowColor">#B0000000</item>
     </style>
 
+    <!-- Icon displayed on the worksapce -->
+    <style name="BaseIcon.AllApps">
+        <item name="android:textColor">@color/all_apps_icon_text_color</item>
+    </style>
+
     <!-- Drop targets -->
     <style name="DropTargetButtonBase">
         <item name="android:drawablePadding">7.5dp</item>

@@ -39,6 +39,8 @@ import android.content.IntentFilter;
 import android.content.IntentSender;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
+import android.content.om.IOverlayManager;
+import android.content.om.OverlayInfo;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.database.sqlite.SQLiteDatabase;
@@ -51,6 +53,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Process;
+import android.os.ServiceManager;
 import android.os.StrictMode;
 import android.os.SystemClock;
 import android.os.Trace;
@@ -339,6 +342,7 @@ public class Launcher extends BaseActivity
     private Context mContext;
     private LauncherTab mLauncherTab;
     private boolean mLauncherTabEnabled;
+    private boolean mDarkMode = true;
 
     @Thunk void setOrientation() {
         if (mRotationEnabled) {
@@ -481,6 +485,15 @@ public class Launcher extends BaseActivity
         if (mLauncherCallbacks != null) {
             mLauncherCallbacks.onCreate(savedInstanceState);
         }
+
+        try {
+            IOverlayManager overlayManager = IOverlayManager.Stub.asInterface(
+                    ServiceManager.getService(Context.OVERLAY_SERVICE));
+            overlayManager.setEnabled("org.omnirom.theme.launcher3",
+                    true, UserHandle.USER_CURRENT);
+        } catch (Exception e) {
+            Log.w(TAG, "Can't change theme", e);
+        }
     }
 
     @Override
@@ -526,6 +539,9 @@ public class Launcher extends BaseActivity
      * @param navBar if true, make the nav bar theme match the isLight param.
      */
     public void activateLightSystemBars(boolean isLight, boolean statusBar, boolean navBar) {
+        isLight = isLight && !mDarkMode;
+        navBar = navBar && !mDarkMode;
+
         int oldSystemUiFlags = getWindow().getDecorView().getSystemUiVisibility();
         int newSystemUiFlags = oldSystemUiFlags;
         if (isLight) {
