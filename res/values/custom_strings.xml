@@ -78,4 +78,5 @@
     <string name="pref_show_events_summary"></string>
     <string name="left_tab_label">Google Now tab</string>
     <string name="left_tab_description">Toggle Google Now integration</string>
+    <string name="show_dark_theme_title">Dark theme</string>
 </resources>
