@@ -141,6 +141,7 @@ public final class Utilities {
     public static final String SHOW_SEARCH_BAR_LOCATION_PREFERENCE_KEY = "pref_searchBarLocation";
     public static final String SHOW_EVENTS_PREFERENCE_KEY = "pref_showEvents";
     public static final String SHOW_LEFT_TAB_PREFERENCE_KEY = "pref_left_tab";
+    public static final String SHOW_DARK_THEME = "pref_showDarkTheme";
 
     public static boolean isPropertyEnabled(String propertyName) {
         return Log.isLoggable(propertyName, Log.VERBOSE);
@@ -224,6 +225,10 @@ public final class Utilities {
             return originalSmallestWidth >= 600;
         }
         return false;
+    }
+
+    public static boolean isDarkTheme(Context context) {
+        return getPrefs(context).getBoolean(SHOW_DARK_THEME, false);
     }
 
     /**
