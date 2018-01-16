@@ -100,7 +100,7 @@ public class AllAppsTransitionController implements TouchController, VerticalPul
         mProgress = 1f;
 
         mEvaluator = new ArgbEvaluator();
-        mAllAppsBackgroundColor = Themes.getAttrColor(l, android.R.attr.colorPrimary);
+        mAllAppsBackgroundColor = l.getResources().getColor(R.color.all_apps_background_color);
     }
 
     @Override

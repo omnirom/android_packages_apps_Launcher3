@@ -475,12 +475,6 @@ public class AllAppsContainerView extends BaseContainerView implements DragSourc
             mlp.topMargin = insets.top;
             mlp.rightMargin = insets.right;
             setLayoutParams(mlp);
-        } else {
-            View navBarBg = findViewById(R.id.nav_bar_bg);
-            ViewGroup.LayoutParams navBarBgLp = navBarBg.getLayoutParams();
-            navBarBgLp.height = insets.bottom;
-            navBarBg.setLayoutParams(navBarBgLp);
-            navBarBg.setVisibility(View.VISIBLE);
         }
     }
 
