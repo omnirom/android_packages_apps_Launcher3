@@ -1803,6 +1803,21 @@ public class Workspace extends PagedView
         }
     }
 
+    public void switchTouchListeners(boolean enable) {
+        if (mChildrenLayersEnabled) {
+            final int screenCount = getChildCount();
+            for (int i = numCustomPages(); i < screenCount; i++) {
+                final CellLayout cl = (CellLayout) getPageAt(i);
+                cl.setOnInterceptTouchListener(enable ? this : null);
+            }
+        } else {
+            for (int i = 0; i < getPageCount(); i++) {
+                final CellLayout cl = (CellLayout) getChildAt(i);
+                cl.setOnInterceptTouchListener(enable ? this : null);
+            }
+        }
+    }
+
     private void enableHwLayersOnVisiblePages() {
         if (mChildrenLayersEnabled) {
             final int screenCount = getChildCount();
