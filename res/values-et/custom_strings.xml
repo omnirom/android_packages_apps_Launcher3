@@ -18,6 +18,39 @@
 */
 -->
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+  <string name="icon_pack">Ikoonipakk</string>
+  <string name="icon_pack_summary">Vali ikoonipakk</string>
+  <string name="icon_mask_square">Ristkülik</string>
+  <string name="icon_mask_rounded_square">Ümar ristkülik</string>
+  <string name="icon_mask_squircle">Ringkülik</string>
+  <string name="icon_mask_circle">Ring</string>
+  <string name="icon_mask_teardrop">Veepiisk</string>
+  <string name="adaptive_icon_mask_title">Ikoonimask</string>
+  <string name="icon_category_title">Ikoonid</string>
+  <string name="other_category_title">Muu</string>
+  <string name="icon_shadow_title">Lisa ikoonivari</string>
+  <string name="show_search_bar_title">Kuva otsinguriba</string>
+  <string name="widget_category_title">Vidinad</string>
+  <string name="omnijaws_service_error">Viga</string>
+  <string name="omnijaws_service_unkown">Ilmateade puudub</string>
+  <string name="omnijaws_service_error_long">Ilmateate laadimisel esines viga</string>
+  <string name="omnijaws_service_disabled">Teenus on keelatud</string>
+  <string name="omnijaws_detail_header">Ilm</string>
+  <string name="omnijaws_label_default">Ilm</string>
+  <string name="omnijaws_current_text">Nüüd</string>
+  <string name="omnijaws_package_not_available">OmniJaws pole saadaval</string>
+  <string name="omnijaws_service_last_update">Viimane uuendus:</string>
+  <string name="weather_settings_drop_target_label">Seadista</string>
+  <string name="show_hotseat_bg_color_title">Taustavärv</string>
+  <string name="calendar_view_status_perms">Koputa seadistamiseks</string>
+  <string name="hotseat_category_title">Dokk</string>
+  <string name="one_week">1 nädal</string>
   <string name="two_weeks">2 nädalat</string>
   <string name="three_weeks">3 nädalat</string>
+  <string name="one_month">1 kuu</string>
+  <string name="three_months">3 kuud</string>
+  <string name="pref_show_today_title">Näita kuupäeva</string>
+  <string name="show_search_bar_location_title">Otsinguriba paigutus</string>
+  <string name="left_tab_label">Google Now vahekaart</string>
+  <string name="left_tab_description">Lülita Google Now integreerimist</string>
 </resources>
