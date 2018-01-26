@@ -360,6 +360,8 @@ public class Workspace extends PagedView
         setMotionEventSplittingEnabled(true);
 
         final PowerManager pm = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
+        context.enforceCallingOrSelfPermission(
+                    android.Manifest.permission.DEVICE_POWER, null);
         mGestureListener =
                 new GestureDetector(context, new GestureDetector.SimpleOnGestureListener() {
             @Override
