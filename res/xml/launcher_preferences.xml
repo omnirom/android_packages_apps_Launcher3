@@ -51,6 +51,11 @@
         android:defaultValue="true"
         />
 
+    <Preference
+        android:key="hidden_app"
+        android:title="@string/hide_app"
+        android:summary="@string/hide_app_sum"/>
+
     <SwitchPreference
         android:key="pref_show_predictions"
         android:title="@string/title_app_suggestions"

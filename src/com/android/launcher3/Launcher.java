@@ -71,7 +71,6 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.View.OnClickListener;
 import android.view.View.OnLongClickListener;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
@@ -1332,14 +1331,6 @@ public class Launcher extends BaseActivity
     private void setupOverviewPanel() {
         mOverviewPanel = (ViewGroup) findViewById(R.id.overview_panel);
 
-        // Long-clicking buttons in the overview panel does the same thing as clicking them.
-        OnLongClickListener performClickOnLongClick = new OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View v) {
-                return v.performClick();
-            }
-        };
-
         // Bind wallpaper button actions
         View wallpaperButton = findViewById(R.id.wallpaper_button);
         new OverviewButtonClickListener(ControlType.WALLPAPER_BUTTON) {
@@ -1371,17 +1362,6 @@ public class Launcher extends BaseActivity
         } else {
             settingsButton.setVisibility(View.GONE);
         }
-
-        View customizeButton = findViewById(R.id.customize_button);
-        customizeButton.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (!mWorkspace.isSwitchingState()) {
-                    onClickCustomizeButton(view);
-                }
-           }
-        });
-        customizeButton.setOnLongClickListener(performClickOnLongClick);
 
         mOverviewPanel.setAlpha(0f);
     }
@@ -2561,25 +2541,12 @@ public class Launcher extends BaseActivity
      * on the home screen.
      */
     public void onClickSettingsButton(View v) {
-        if (mWorkspace.isInOverviewMode()) {
-            showWorkspace(false);
-        }
         if (LOGD) Log.d(TAG, "onClickSettingsButton");
         Intent intent = new Intent(Intent.ACTION_APPLICATION_PREFERENCES)
                 .setPackage(getPackageName());
         intent.setSourceBounds(getViewBounds(v));
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         showWorkspace(false);
-        startActivity(intent, getActivityLaunchOptions(v));
-    }
-
-    private void onClickCustomizeButton(View v) {
-        if (mWorkspace.isInOverviewMode()) {
-            showWorkspace(false);
-        }
-        Intent intent = new Intent(this, CustomizeActivity.class);
-        intent.setPackage(getPackageName());
-        intent.setSourceBounds(getViewBounds(v));
         startActivity(intent, getActivityLaunchOptions(v));
     }
 

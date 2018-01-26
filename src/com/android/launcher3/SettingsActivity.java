@@ -47,6 +47,7 @@ public class SettingsActivity extends Activity {
     public static final String NOTIFICATION_BADGING = "notification_badging";
     /** Hidden field Settings.Secure.ENABLED_NOTIFICATION_LISTENERS */
     private static final String NOTIFICATION_ENABLED_LISTENERS = "enabled_notification_listeners";
+    private static final String HIDDEN_APPS = "hidden_app";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -115,6 +116,13 @@ public class SettingsActivity extends Activity {
                     getPreferenceScreen().removePreference(iconShapeOverride);
                 }
             }
+
+            Preference hiddenApp = findPreference(Utilities.KEY_HIDDEN_APPS);
+            hiddenApp.setOnPreferenceClickListener(
+                preference -> {
+                    startActivity(new Intent(getActivity(), MultiSelectRecyclerViewActivity.class));
+                    return false;
+            });
         }
 
         @Override
