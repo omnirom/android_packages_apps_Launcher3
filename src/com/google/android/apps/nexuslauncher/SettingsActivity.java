@@ -73,6 +73,12 @@ public class SettingsActivity extends com.android.launcher3.SettingsActivity imp
             findPreference(SHOW_PREDICTIONS_PREF).setOnPreferenceChangeListener(this);
             findPreference(ENABLE_MINUS_ONE_PREF).setTitle(getDisplayGoogleTitle());
 
+            if (SmartspaceController.get(mContext).cY()) {
+                findPreference(SMARTSPACE_PREF).setOnPreferenceClickListener(this);
+            } else {
+                getPreferenceScreen().removePreference(findPreference("pref_smartspace"));
+            }
+
             mIconPackPref = (CustomIconPreference) findPreference(ICON_PACK_PREF);
             mIconPackPref.setOnPreferenceChangeListener(this);
 
