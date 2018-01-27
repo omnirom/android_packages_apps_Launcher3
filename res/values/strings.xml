@@ -22,7 +22,7 @@
     <skip />
 
     <!-- Application name -->
-    <string name="app_name">Launcher3</string>
+    <string name="app_name">Pixel Launcher</string>
     <!-- Default folder name -->
     <string name="folder_name"></string>
     <!-- Work folder name -->
@@ -110,7 +110,7 @@
         shortcuts in Home.</string>
 
     <!-- Toast shown on clicking a direct call shortcut. [CHAR_LIMIT=80] -->
-    <string name="msg_no_phone_permission"><xliff:g id="app_name" example="Launcher3">%1$s</xliff:g> is not allowed to make phone calls</string>
+    <string name="msg_no_phone_permission"><xliff:g id="app_name" example="Pixel Launcher">%1$s</xliff:g> is not allowed to make phone calls</string>
 
     <!-- Widgets: -->
     <skip />    
@@ -159,7 +159,7 @@
     <!-- Text for wallpaper change button -->
     <string name="wallpaper_button_text">Wallpapers</string>
     <!-- Text for settings button -->
-    <string name="settings_button_text">Home settings</string>
+    <string name="settings_button_text">Settings</string>
     <!-- Message shown when a feature is disabled by the administrator -->
     <string name="msg_disabled_by_admin">Disabled by your admin</string>
     <!-- Text for custom accessibility action to go to the overview mode, where users can look and change the overall UI of the launcher. -->
@@ -167,9 +167,9 @@
 
     <!-- Strings for settings -->
     <!-- Title for Allow Rotation setting. [CHAR LIMIT=50] -->
-    <string name="allow_rotation_title">Allow Home screen rotation</string>
+    <string name="allow_rotation_title">Screen orientation</string>
     <!-- Text explaining when the home screen will get rotated. [CHAR LIMIT=100] -->
-    <string name="allow_rotation_desc">When phone is rotated</string>
+    <string name="allow_rotation_desc">Allow launcher to auto rotate accordingly</string>
     <!-- Text explaining that rotation is disabled in Display settings. 'Display' refers to the Display section in system settings [CHAR LIMIT=100] -->
     <string name="allow_rotation_blocked_desc">Current Display setting doesn\'t permit rotation</string>
     <!-- Title for Notification dots setting. Tapping this will link to the system Notifications settings screen where the user can turn off notification dots globally. [CHAR LIMIT=50] -->
@@ -188,7 +188,7 @@
     <!-- Label for the setting that allows the automatic placement of launcher shortcuts for applications and games installed on the device [CHAR LIMIT=40] -->
     <string name="auto_add_shortcuts_label">Add icon to Home screen</string>
     <!-- Text description of the setting that allows the automatic placement of launcher shortcuts for applications and games installed on the device [CHAR LIMIT=NONE] -->
-    <string name="auto_add_shortcuts_description">For new apps</string>
+    <string name="auto_add_shortcuts_description">For newly installed apps</string>
 
     <!-- Developer setting to change the shape of icons on home screen. [CHAR LIMIT=50] -->
     <string name="icon_shape_override_label">Change icon shape</string>
@@ -324,19 +324,32 @@
     <string name="default_live_wallpaper">com.breel.wallpapers/com.breel.wallpapers.dioramas.lagos.LagosWallpaperService</string>
     <string name="pref_icon_pack">Icon pack</string>
     <string name="state_loading">Applying…</string>
-    <string name="smartspace_preferences_in_settings">At A Glance</string>
-    <string name="smartspace_preferences_in_settings_desc">At the top of your Home screen</string>
-    <string name="title_show_google_app">Display %1$s</string>
+    <string name="smartspace_preferences_in_settings">\"At a Glance\" widget</string>
+    <string name="smartspace_preferences_in_settings_desc">Show a widget at the top of the homescreen that displays different events</string>
+    <string name="title_show_google_app">%1$s</string>
     <string name="pref_show_google_now_summary">@string/msg_minus_one_on_left</string>
-    <string name="msg_minus_one_on_left">To the left of the main Home screen</string>
+    <string name="msg_minus_one_on_left">Swipe left on the homescreen to access Google now panel</string>
     <string name="about">About</string>
-    <string name="title_google_app">Google app</string>
-    <string name="title_app_suggestions">Display app suggestions</string>
-    <string name="summary_app_suggestions">At the top of your All Apps list</string>
+    <string name="title_google_app">Google now panel</string>
+    <string name="title_app_suggestions">App suggestions</string>
+    <string name="summary_app_suggestions">Show app suggestions at the top of your All Apps list</string>
     <string name="about_app_version">Version</string>
     <string name="app_releases_url">https://github.com/amirzaidi/launcher3/releases</string>
     <string name="app_name_pixel_launcher">Pixel Launcher</string>
     <string name="title_disable_suggestions_prompt">Turn off app suggestions?</string>
     <string name="msg_disable_suggestions_prompt">"Suggestions won't appear at the top of your apps list, and the usage data used to create them will be permanently erased."</string>
     <string name="label_turn_off_suggestions">TURN OFF</string>
+
+    <!-- Preference categories -->
+    <string name="home_category_title">Home screen</string>
+    <string name="icon_category_title">App icons</string>
+    <string name="widget_category_title">Widgets</string>
+
+    <!-- About -->
+    <string name="about_credits">Credits</string>
+    <string name="about_credits_ok">OK</string>
+    <string name="about_amirzaidi_title">Amir Zaidi</string>
+    <string name="about_amirzaidi_summary">Reverse engineered pixel launcher features onto Launcher 3</string>
+    <string name="about_amirzaidi_url">https://github.com/amirzaidi</string>
+
 </resources>
