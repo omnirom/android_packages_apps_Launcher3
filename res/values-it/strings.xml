@@ -146,4 +146,25 @@
     <string name="title_disable_suggestions_prompt">Disattivare i suggerimenti di app?</string>
     <string name="msg_disable_suggestions_prompt">"I suggerimenti non verranno mostrati in cima all'elenco delle tue app e i dati sull'utilizzo utilizzati per crearli verranno cancellati definitivamente."</string>
     <string name="label_turn_off_suggestions">DISATTIVA</string>
+
+    <!-- Preference categories -->
+    <string name="home_category_title">Home</string>
+    <string name="app_drawer_category_title">App drawer</string>
+    <string name="icon_category_title">Icone app</string>
+    <string name="widget_category_title">Widgets</string>
+
+    <!-- About -->
+    <string name="about_credits">Crediti</string>
+    <string name="about_credits_ok">OK</string>
+    <string name="about_amirzaidi_title">Amir Zaidi</string>
+    <string name="about_amirzaidi_summary">Reverse engineered pixel launcher features onto Launcher 3</string>
+    <string name="about_amirzaidi_url">https://github.com/amirzaidi</string>
+
+    <!-- Hidden app -->
+    <string name="hide_app">Nascondi apps</string>
+    <string name="hide_app_sum">Nascondi apps nell\'app drawer</string>
+    <string name="hide_app_selected">&#160;selezionati</string>
+    <string name="hidden_app">Tutte le apps</string>
+    <string name="hide_selected">Nascondi le app selezionate</string>
+    <string name="more">Altro</string>
 </resources>
