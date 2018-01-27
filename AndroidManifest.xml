@@ -107,7 +107,7 @@
         <activity
             android:name="com.google.android.apps.nexuslauncher.SettingsActivity"
             android:label="@string/settings_button_text"
-            android:theme="@style/SettingsTheme"
+            android:theme="@android:style/Theme.DeviceDefault.Settings"
             android:autoRemoveFromRecents="true"
             android:parentActivityName="com.google.android.apps.nexuslauncher.NexusLauncherActivity" >
             <intent-filter>

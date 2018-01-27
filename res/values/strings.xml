@@ -328,7 +328,7 @@
     <string name="smartspace_preferences_in_settings_desc">Show a widget at the top of the homescreen that displays different events</string>
     <string name="title_show_google_app">%1$s</string>
     <string name="pref_show_google_now_summary">@string/msg_minus_one_on_left</string>
-    <string name="msg_minus_one_on_left">Swipe left on the homescreen to access Google now panel</string>
+    <string name="msg_minus_one_on_left">Swipe to the right on the homescreen to access Google now panel</string>
     <string name="about">About</string>
     <string name="title_google_app">Google now panel</string>
     <string name="title_app_suggestions">App suggestions</string>
@@ -352,5 +352,13 @@
     <string name="about_amirzaidi_title">Amir Zaidi</string>
     <string name="about_amirzaidi_summary">Reverse engineered pixel launcher features onto Launcher 3</string>
     <string name="about_amirzaidi_url">https://github.com/amirzaidi</string>
+
+    <!-- Hidden app -->
+    <string name="hide_app">Hide apps</string>
+    <string name="hide_app_sum">Hide apps from the app drawer</string>
+    <string name="hide_app_selected">&#160;selected</string>
+    <string name="hidden_app">All apps</string>
+    <string name="hide_selected">Hide selected app(s)</string>
+    <string name="more">More</string>
 
 </resources>
