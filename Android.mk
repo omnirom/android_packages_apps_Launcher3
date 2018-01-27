@@ -36,6 +36,12 @@ LOCAL_SRC_FILES := \
     $(call all-proto-files-under, protos) \
     $(call all-proto-files-under, proto_overrides)
 
+LOCAL_AIDL_INCLUDES := src/com/google/android/libraries/launcherclient
+
+LOCAL_SRC_FILES += \
+    src/com/google/android/libraries/launcherclient/ILauncherOverlayCallback.aidl \
+    src/com/google/android/libraries/launcherclient/ILauncherOverlay.aidl
+
 LOCAL_CERTIFICATE := platform
 
 LOCAL_RESOURCE_DIR := \

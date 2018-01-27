@@ -6,6 +6,9 @@ import android.os.IBinder;
 
 import java.lang.ref.WeakReference;
 
+import com.google.android.libraries.launcherclient.ILauncherOverlay;
+import com.google.android.libraries.launcherclient.ILauncherOverlayCallback;
+
 class OverlayServiceConnection extends BaseOverlayServiceConnection
 {
     private static OverlayServiceConnection instance;
