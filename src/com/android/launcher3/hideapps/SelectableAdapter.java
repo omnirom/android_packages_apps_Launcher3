@@ -14,13 +14,17 @@
  * limitations under the License.
  */
 
-package com.android.launcher3;
+package com.android.launcher3.hideapps;
 
 import android.app.ActionBar;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 import android.support.v7.widget.RecyclerView;
+
+import com.android.launcher3.LauncherAppState;
+import com.android.launcher3.R;
+import com.android.launcher3.Utilities;
 
 import java.util.HashSet;
 import java.util.Set;

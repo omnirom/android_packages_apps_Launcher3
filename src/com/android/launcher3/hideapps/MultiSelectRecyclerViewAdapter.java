@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.android.launcher3;
+package com.android.launcher3.hideapps;
 
 import android.content.Context;
 import android.content.pm.PackageManager;
@@ -26,6 +26,9 @@ import android.view.ViewGroup;
 import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.TextView;
+
+import com.android.launcher3.R;
+import com.android.launcher3.hideapps.SelectableAdapter;
 
 import java.util.List;
 

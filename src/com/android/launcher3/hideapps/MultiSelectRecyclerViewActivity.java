@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.android.launcher3;
+package com.android.launcher3.hideapps;
 
 import android.app.ActionBar;
 import android.app.Activity;
@@ -27,6 +27,10 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.Menu;
 import android.view.MenuItem;
+
+import com.android.launcher3.LauncherAppState;
+import com.android.launcher3.R;
+import com.android.launcher3.Utilities;
 
 import java.util.Collections;
 import java.util.List;

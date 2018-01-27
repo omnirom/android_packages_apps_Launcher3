@@ -116,10 +116,15 @@
         </activity>
 
         <activity
-            android:name="com.android.launcher3.MultiSelectRecyclerViewActivity"
+            android:name="com.android.launcher3.hideapps.MultiSelectRecyclerViewActivity"
             android:autoRemoveFromRecents="true"
             android:label="@string/hidden_app"
-            android:theme="@android:style/Theme.DeviceDefault.Settings" />
+            android:theme="@android:style/Theme.DeviceDefault.Settings" >
+            <intent-filter android:priority="1">
+                <action android:name="com.android.launcher3.hideapps.HIDE_APPS"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+            </intent-filter>
+        </activity>
 
         <!--
         The settings provider contains Home's data, like the workspace favorites. The permissions

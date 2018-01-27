@@ -103,6 +103,10 @@
   *;
 }
 
+-keep class com.android.launcher3.hideapps.MultiSelectRecyclerViewActivity {
+  *;
+}
+
 -keep,allowshrinking,allowoptimization class com.google.android.apps.nexuslauncher.** {
   *;
 }
@@ -120,9 +124,5 @@
 }
 
 -keep class com.android.launcher3.graphics.FixedScaleDrawable {
-  *;
-}
-
--keep class com.android.launcher3.MultiSelectRecyclerViewActivity {
   *;
 }

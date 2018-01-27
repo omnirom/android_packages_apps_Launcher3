@@ -120,7 +120,10 @@ public class SettingsActivity extends Activity {
             Preference hiddenApp = findPreference(Utilities.KEY_HIDDEN_APPS);
             hiddenApp.setOnPreferenceClickListener(
                 preference -> {
-                    startActivity(new Intent(getActivity(), MultiSelectRecyclerViewActivity.class));
+                    Intent intent = new Intent("com.android.launcher3.hideapps.HIDE_APPS")
+                            .setPackage("com.android.launcher3");
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    getActivity().startActivity(intent);
                     return false;
             });
         }
