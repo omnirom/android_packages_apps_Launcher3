@@ -1,10 +1,12 @@
 package com.google.android.libraries.launcherclient;
 
+import android.app.ActivityManager;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.IBinder;
+import android.os.UserHandle;
 import android.util.Log;
 
 class BaseOverlayServiceConnection implements ServiceConnection {
@@ -21,7 +23,7 @@ class BaseOverlayServiceConnection implements ServiceConnection {
         if (!mConnected) {
             Intent intent = GoogleNow.RC_getOverlayIntent(mContext);
             try {
-                mConnected = mContext.bindService(intent, this, mFlags);
+                mConnected = mContext.bindServiceAsUser(intent, this, mFlags, new UserHandle(ActivityManager.getCurrentUser()));
             } catch (SecurityException ex) {
                 Log.e("LauncherClient", "Unable to connect to overlay service", ex);
             }
