@@ -66,4 +66,5 @@
   <string name="pref_show_events_title">Zobrazit nadcházející události</string>
   <string name="left_tab_label">Karta Google Now</string>
   <string name="left_tab_description">Přepnutí integrace Google Now</string>
+  <string name="show_dark_theme_title">Tmavý motiv</string>
 </resources>

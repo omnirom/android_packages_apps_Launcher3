@@ -66,4 +66,5 @@
   <string name="pref_show_events_title">Bevorstehende Ereignisse anzeigen</string>
   <string name="left_tab_label">Registerkarte \"Google Now\"</string>
   <string name="left_tab_description">\"Google Now\"-Integration umschalten</string>
+  <string name="show_dark_theme_title">Dunkles Design</string>
 </resources>

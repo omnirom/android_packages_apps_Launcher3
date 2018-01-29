@@ -42,16 +42,16 @@
   <string name="omnijaws_detail_header">Погода</string>
   <string name="omnijaws_label_default">Погода</string>
   <string name="omnijaws_current_text">Только что</string>
-  <string name="omnijaws_package_not_available">OmniJaws не доступно</string>
+  <string name="omnijaws_package_not_available">OmniJaws недоступен</string>
   <string name="omnijaws_service_last_update">Последнее обновление:</string>
-  <string name="weather_settings_drop_target_label">Настройка</string>
+  <string name="weather_settings_drop_target_label">Настроить</string>
   <string name="show_hotseat_bg_color_title">Цвет фона</string>
   <string name="show_hotseat_bg_color_summary">Применить фоновый цвет к доку на основе обоев</string>
   <string name="calendar_view_status_perms">Нажмите для настройки</string>
-  <string name="show_hotseat_title">Показать hotseat</string>
-  <string name="calendar_event_no_title_label">Нет заголовка</string>
+  <string name="show_hotseat_title">Быстрые клавиши</string>
+  <string name="calendar_event_no_title_label">Без заголовка</string>
   <string name="weather_icon_pack_title">Набор значков состояния погоды</string>
-  <string name="hotseat_category_title">Док</string>
+  <string name="hotseat_category_title">Док-станция</string>
   <string name="pref_allDayEvents_title">Показать события на весь день</string>
   <string name="preferences_widget_days_title">Показать период</string>
   <string name="one_week">1 неделя</string>
@@ -64,6 +64,7 @@
   <string name="search_bar_location_bottom">Ниже hotseat</string>
   <string name="search_bar_location_top">Выше hotseat</string>
   <string name="pref_show_events_title">Показать предстоящие события</string>
-  <string name="left_tab_label">Google Now</string>
+  <string name="left_tab_label">Вкладка Google Now</string>
   <string name="left_tab_description">Переключить интеграцию Google Now</string>
+  <string name="show_dark_theme_title">Тёмная тема</string>
 </resources>

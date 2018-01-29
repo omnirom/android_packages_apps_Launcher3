@@ -66,4 +66,5 @@
   <string name="pref_show_events_title">Mostrar próximos eventos</string>
   <string name="left_tab_label">Google Now</string>
   <string name="left_tab_description">Alternar a integração do Google Now</string>
+  <string name="show_dark_theme_title">Tema Escuro</string>
 </resources>

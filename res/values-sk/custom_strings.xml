@@ -66,4 +66,5 @@
   <string name="pref_show_events_title">Zobraziť nadchádzajúce udalosti</string>
   <string name="left_tab_label">Karta Asistent Google</string>
   <string name="left_tab_description">Prepnutie integrácie služby Asistent Google</string>
+  <string name="show_dark_theme_title">Tmavá téma</string>
 </resources>

@@ -22,7 +22,7 @@
   <string name="icon_pack">Simge paketi</string>
   <string name="icon_pack_summary">Bir simge paketi seçin</string>
   <string name="adaptive_icons_title">Uyarlanabilir simgeler</string>
-  <string name="legacy_icons_title">Eski simgeleri gizle</string>
+  <string name="legacy_icons_title">Eski simgeleri sakla</string>
   <string name="icon_mask_square">Kare</string>
   <string name="icon_mask_rounded_square">Yuvarlak kare</string>
   <string name="icon_mask_squircle">Köşeli yuvarlak</string>
@@ -66,4 +66,5 @@
   <string name="pref_show_events_title">Yaklaşan faaliyetleri göster</string>
   <string name="left_tab_label">Google Now sekmesi</string>
   <string name="left_tab_description">Google Now ile bütünleştirmeyi aç veyâ kapat</string>
+  <string name="show_dark_theme_title">Koyu tema</string>
 </resources>

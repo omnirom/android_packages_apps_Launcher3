@@ -65,5 +65,4 @@
   <string name="search_bar_location_top">Diatas hotseat</string>
   <string name="pref_show_events_title">Tampilkan acara mendatang</string>
   <string name="left_tab_label">Tab Google Now</string>
-  <string name="left_tab_description">Alihkan integrasi Google Now</string>
 </resources>

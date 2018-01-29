@@ -52,5 +52,4 @@
   <string name="pref_show_today_title">Näita kuupäeva</string>
   <string name="show_search_bar_location_title">Otsinguriba paigutus</string>
   <string name="left_tab_label">Google Now vahekaart</string>
-  <string name="left_tab_description">Lülita Google Now integreerimist</string>
 </resources>

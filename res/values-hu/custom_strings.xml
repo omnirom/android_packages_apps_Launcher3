@@ -66,4 +66,5 @@
   <string name="pref_show_events_title">Közelgő események megjelenítése</string>
   <string name="left_tab_label">Google Now lap</string>
   <string name="left_tab_description">Google Now integráció váltása</string>
+  <string name="show_dark_theme_title">Sötét téma</string>
 </resources>
