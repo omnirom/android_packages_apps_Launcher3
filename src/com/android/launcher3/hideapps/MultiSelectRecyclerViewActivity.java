@@ -124,7 +124,7 @@ public class MultiSelectRecyclerViewActivity extends Activity implements MultiSe
 
     @Override
     public void onItemClicked(int position) {
-        mAdapter.toggleSelection(mActionBar, position, mInstalledPackages.get(position).activityInfo.packageName);
+        mAdapter.toggleSelection(mActionBar, position);
         updateHiddenApps();
         recreate();
     }
