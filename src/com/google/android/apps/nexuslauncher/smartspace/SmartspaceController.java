@@ -1,11 +1,13 @@
 package com.google.android.apps.nexuslauncher.smartspace;
 
+import android.app.ActivityManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
+import android.os.UserHandle;
 
 import com.android.launcher3.Alarm;
 import com.android.launcher3.LauncherModel;
@@ -78,9 +80,9 @@ public class SmartspaceController implements Handler.Callback {
         }
         if (cs && !this.dQ.cS()) {
             this.df(null, SmartspaceController.Store.CURRENT);
-            this.mAppContext.sendBroadcast(new Intent("com.google.android.apps.gsa.smartspace.EXPIRE_EVENT")
+            this.mAppContext.sendBroadcastAsUser(new Intent("com.google.android.apps.gsa.smartspace.EXPIRE_EVENT")
                     .setPackage("com.google.android.googlequicksearchbox")
-                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
+                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK), new UserHandle(ActivityManager.getCurrentUser()));
         }
     }
 
@@ -92,9 +94,9 @@ public class SmartspaceController implements Handler.Callback {
     }
 
     private void de() {
-        this.mAppContext.sendBroadcast(new Intent("com.google.android.apps.gsa.smartspace.ENABLE_UPDATE")
+        this.mAppContext.sendBroadcastAsUser(new Intent("com.google.android.apps.gsa.smartspace.ENABLE_UPDATE")
                 .setPackage("com.google.android.googlequicksearchbox")
-                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK), new UserHandle(ActivityManager.getCurrentUser()));
     }
 
     private void df(final NewCardInfo a, final SmartspaceController.Store SmartspaceControllerStore) {
@@ -148,7 +150,7 @@ public class SmartspaceController implements Handler.Callback {
     }
 
     public void cZ() {
-        this.mAppContext.sendBroadcast(this.db());
+        this.mAppContext.sendBroadcastAsUser(this.db(), new UserHandle(ActivityManager.getCurrentUser()));
     }
 
     public void da(final ISmartspace ds) {

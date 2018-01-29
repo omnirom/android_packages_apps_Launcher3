@@ -1,5 +1,6 @@
 package com.google.android.apps.nexuslauncher.smartspace;
 
+import android.app.ActivityManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
@@ -10,6 +11,7 @@ import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffColorFilter;
+import android.os.UserHandle;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
@@ -299,7 +301,7 @@ public class SmartspaceCard {
                 }
                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 intent.setSourceBounds(launcher.getViewBounds(view));
-                view.getContext().sendBroadcast(intent);
+                view.getContext().sendBroadcastAsUser(intent, new UserHandle(ActivityManager.getCurrentUser()));
                 break;
             }
             case 2: {
