@@ -18,6 +18,8 @@ import android.os.Bundle;
 import android.os.SystemClock;
 import android.preference.Preference;
 import android.preference.PreferenceFragment;
+import android.preference.PreferenceScreen;
+import android.preference.SwitchPreference;
 import android.preference.TwoStatePreference;
 import android.text.TextUtils;
 import android.util.Log;
@@ -30,15 +32,17 @@ import com.android.launcher3.LauncherModel;
 import com.android.launcher3.R;
 import com.android.launcher3.Utilities;
 import com.android.launcher3.util.LooperExecutor;
+import com.google.android.apps.nexuslauncher.AboutDialog;
 import com.google.android.apps.nexuslauncher.smartspace.SmartspaceController;
 
-import com.google.android.apps.nexuslauncher.AboutDialog;
-
 public class SettingsActivity extends com.android.launcher3.SettingsActivity implements PreferenceFragment.OnPreferenceStartFragmentCallback {
+
     public final static String ICON_PACK_PREF = "pref_icon_pack";
     public final static String SHOW_PREDICTIONS_PREF = "pref_show_predictions";
     public final static String ENABLE_MINUS_ONE_PREF = "pref_enable_minus_one";
     public final static String SMARTSPACE_PREF = "pref_smartspace";
+
+    private static final String GOOGLE_NOW_PACKAGE = "com.google.android.googlequicksearchbox";
 
     @Override
     protected void onCreate(final Bundle bundle) {
@@ -61,8 +65,13 @@ public class SettingsActivity extends com.android.launcher3.SettingsActivity imp
 
     public static class MySettingsFragment extends com.android.launcher3.SettingsActivity.LauncherSettingsFragment
             implements Preference.OnPreferenceChangeListener, Preference.OnPreferenceClickListener {
-        private CustomIconPreference mIconPackPref;
+
         private Context mContext;
+
+        private CustomIconPreference mIconPackPref;
+        private SwitchPreference mAppSuggestions;
+        private SwitchPreference mGoogleNowPanel;
+        private PreferenceScreen mAtGlanceWidget;
 
         @Override
         public void onCreate(Bundle bundle) {
@@ -70,19 +79,27 @@ public class SettingsActivity extends com.android.launcher3.SettingsActivity imp
 
             mContext = getActivity();
 
-            findPreference(SHOW_PREDICTIONS_PREF).setOnPreferenceChangeListener(this);
-            findPreference(ENABLE_MINUS_ONE_PREF).setTitle(getDisplayGoogleTitle());
+            mIconPackPref = (CustomIconPreference) findPreference(ICON_PACK_PREF);
+            mAppSuggestions = (SwitchPreference) findPreference(SHOW_PREDICTIONS_PREF);
+            mGoogleNowPanel = (SwitchPreference) findPreference(ENABLE_MINUS_ONE_PREF);
+            mAtGlanceWidget = (PreferenceScreen) findPreference(SMARTSPACE_PREF);
 
-            if (SmartspaceController.get(mContext).cY()) {
-                findPreference(SMARTSPACE_PREF).setOnPreferenceClickListener(this);
+            mGoogleNowPanel.setTitle(getDisplayGoogleTitle());
+            if (!isPackageInstalled(GOOGLE_NOW_PACKAGE, mContext)) {
+                mGoogleNowPanel.setEnabled(false);
+                mGoogleNowPanel.setSelectable(false);
+                mAtGlanceWidget.setEnabled(false);
+                mAtGlanceWidget.setSelectable(false);
             } else {
-                getPreferenceScreen().removePreference(findPreference("pref_smartspace"));
+                mGoogleNowPanel.setEnabled(true);
+                mGoogleNowPanel.setSelectable(true);
+                mAtGlanceWidget.setEnabled(true);
+                mAtGlanceWidget.setSelectable(true);
+                mAtGlanceWidget.setOnPreferenceClickListener(this);
             }
 
-            mIconPackPref = (CustomIconPreference) findPreference(ICON_PACK_PREF);
             mIconPackPref.setOnPreferenceChangeListener(this);
-
-            findPreference(SHOW_PREDICTIONS_PREF).setOnPreferenceChangeListener(this);
+            mAppSuggestions.setOnPreferenceChangeListener(this);
 
             setHasOptionsMenu(true);
         }
@@ -90,8 +107,8 @@ public class SettingsActivity extends com.android.launcher3.SettingsActivity imp
         private String getDisplayGoogleTitle() {
             CharSequence charSequence = null;
             try {
-                Resources resourcesForApplication = mContext.getPackageManager().getResourcesForApplication("com.google.android.googlequicksearchbox");
-                int identifier = resourcesForApplication.getIdentifier("title_google_home_screen", "string", "com.google.android.googlequicksearchbox");
+                Resources resourcesForApplication = mContext.getPackageManager().getResourcesForApplication(GOOGLE_NOW_PACKAGE);
+                int identifier = resourcesForApplication.getIdentifier("title_google_home_screen", "string", GOOGLE_NOW_PACKAGE);
                 if (identifier != 0) {
                     charSequence = resourcesForApplication.getString(identifier);
                 }
@@ -102,6 +119,16 @@ public class SettingsActivity extends com.android.launcher3.SettingsActivity imp
                 charSequence = mContext.getString(R.string.title_google_app);
             }
             return mContext.getString(R.string.title_show_google_app, charSequence);
+        }
+
+        private boolean isPackageInstalled(String package_name, Context context) {
+            try {
+                PackageManager pm = context.getPackageManager();
+                pm.getPackageInfo(package_name, PackageManager.GET_ACTIVITIES);
+                return true;
+            } catch (Exception e) {
+                return false;
+            }
         }
 
         @Override
@@ -211,7 +238,7 @@ public class SettingsActivity extends com.android.launcher3.SettingsActivity imp
         }
     }
 
-    public static void showAboutDialog(Fragment context, DialogFragment dialog) {
+    private static void showAboutDialog(Fragment context, DialogFragment dialog) {
         FragmentTransaction ft = context.getChildFragmentManager().beginTransaction();
         Fragment prev = context.getChildFragmentManager().findFragmentByTag("dialog");
         if (prev != null) {
