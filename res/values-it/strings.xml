@@ -164,4 +164,5 @@
     <string name="hidden_app">Tutte le apps</string>
     <string name="hide_selected">Nascondi le app selezionate</string>
     <string name="more">Altro</string>
+    <string name="reset_hidden_apps_done">Tutte le apps sono ora disponibili</string>
 </resources>

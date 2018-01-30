@@ -92,7 +92,7 @@ public class MultiSelectRecyclerViewActivity extends Activity implements MultiSe
         if (appState != null) {
             appState.getModel().forceReload();
         }
-        Toast.makeText(getApplicationContext(), getString(R.string.reset_hidden_apps),
+        Toast.makeText(getApplicationContext(), getString(R.string.reset_hidden_apps_done),
                 Toast.LENGTH_LONG).show();
     }
 

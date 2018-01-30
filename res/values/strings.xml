@@ -361,6 +361,6 @@
     <string name="hide_selected">Hide selected app(s)</string>
     <string name="more">More</string>
     <string name="reset_hidden_apps">Reset all</string>
-    <string name="reset_hidden_apps">Hidden apps are now available</string>
+    <string name="reset_hidden_apps_done">Hidden apps are now available</string>
 
 </resources>
