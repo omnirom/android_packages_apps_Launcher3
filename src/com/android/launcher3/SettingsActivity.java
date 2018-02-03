@@ -121,7 +121,7 @@ public class SettingsActivity extends Activity {
             hiddenApp.setOnPreferenceClickListener(
                 preference -> {
                     Intent intent = new Intent("com.android.launcher3.hideapps.HIDE_APPS")
-                            .setPackage("com.android.launcher3");
+                            .setPackage(getActivity().getPackageName());
                     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                     getActivity().startActivity(intent);
                     return false;
