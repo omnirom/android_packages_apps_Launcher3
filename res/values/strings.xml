@@ -363,4 +363,6 @@
     <string name="reset_hidden_apps">Reset all</string>
     <string name="reset_hidden_apps_done">Hidden apps are now available</string>
 
+    <string name="show_swipeup_arrow">Enable swipe up indicator</string>
+    <string name="show_swipeup_arrow_summary">Show the swipe up arrow indicator on top of the dock</string>
 </resources>

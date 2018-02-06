@@ -129,6 +129,13 @@ public final class Utilities {
     public static final String KEY_HIDDEN_APPS = "hidden_app";
     public static final String KEY_HIDDEN_APPS_SET = "hidden_app_set";
 
+    public static final String KEY_SHOW_SWIPEUP_ARROW = "pref_show_swipeup_arrow";
+
+    public static boolean showSwipeUpIndicator(Context context) {
+        return getPrefs(context).getBoolean(KEY_SHOW_SWIPEUP_ARROW,
+                true);
+    }
+
     public static boolean isPropertyEnabled(String propertyName) {
         return Log.isLoggable(propertyName, Log.VERBOSE);
     }

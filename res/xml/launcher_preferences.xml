@@ -39,6 +39,12 @@
             android:summary="@string/pref_show_google_now_summary"
             android:defaultValue="true" />
 
+        <SwitchPreference
+            android:key="pref_show_swipeup_arrow"
+            android:title="@string/show_swipeup_arrow"
+            android:summary="@string/show_swipeup_arrow_summary"
+            android:defaultValue="true" />
+
     </PreferenceCategory>
 
     <PreferenceCategory

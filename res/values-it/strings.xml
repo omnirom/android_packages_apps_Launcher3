@@ -165,4 +165,7 @@
     <string name="hide_selected">Nascondi le app selezionate</string>
     <string name="more">Altro</string>
     <string name="reset_hidden_apps_done">Tutte le apps sono ora disponibili</string>
+
+    <string name="show_swipeup_arrow">Attiva indicatore swipe</string>
+    <string name="show_swipeup_arrow_summary">Mostra una freccia sopra la dock per indicare lo swipe in alto per aprire il drawer</string>
 </resources>
