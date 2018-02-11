@@ -56,6 +56,8 @@ public class NexusLauncher {
 
     class NexusLauncherCallbacks implements LauncherCallbacks, SharedPreferences.OnSharedPreferenceChangeListener, WallpaperColorInfo.OnChangeListener {
         private SmartspaceView mSmartspace;
+        
+        private static final String KEY_SHOW_WEATHER_CLOCK = "pref_show_clock_weather";
 
         private ItemInfoUpdateReceiver getUpdateReceiver() {
             if (mItemInfoUpdateReceiver == null) {
@@ -255,6 +257,9 @@ public class NexusLauncher {
         public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
             if (SettingsActivity.ENABLE_MINUS_ONE_PREF.equals(key)) {
                 fy.RB(dZ(sharedPreferences));
+            }
+            if (KEY_SHOW_WEATHER_CLOCK.equals(key)) {
+                mSmartspace.setClockWeather(Integer.valueOf(sharedPreferences.getString("KEY_SHOW_WEATHER_CLOCK", "0")));
             }
         }
 

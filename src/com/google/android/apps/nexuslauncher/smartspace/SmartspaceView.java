@@ -1,5 +1,7 @@
 package com.google.android.apps.nexuslauncher.smartspace;
 
+import static com.android.launcher3.Utilities.getDevicePrefs;
+
 import android.animation.ValueAnimator;
 import android.content.ActivityNotFoundException;
 import android.content.ComponentName;
@@ -160,16 +162,39 @@ public class SmartspaceView extends FrameLayout implements ISmartspace, ValueAni
     }
 
     private void loadSingleLine(final SmartspaceDataContainer e) {
+        int mode = Integer.valueOf(getDevicePrefs(getContext()).getString("pref_show_clock_weather", "0"));
+        setClockWeather(mode);
+    }
+
+    public void setClockWeather(int mode) {
+        switch(mode) {
+            case 0:
+                setVisibilities(dq, true, true, true);
+                break;
+            case 1:
+                setVisibilities(dq, false, false, false);
+                break;
+            case 2:
+                setVisibilities(dq, true, false, false);
+                break;
+            case 3:
+                setVisibilities(dq, false, false, true);
+                break;
+        }
+    }
+
+    private void setVisibilities(final SmartspaceDataContainer e, boolean clockVisible, boolean titleSeparatorVisible, boolean weatherContentVisible) {
         setBackgroundResource(0);
-        mClockView.setOnClickListener(mCalendarClickListener);
-        mClockView.setOnLongClickListener(co());
+        mClockView.setVisibility(clockVisible ? View.VISIBLE : View.GONE);
+        mClockView.setOnClickListener(clockVisible ? mCalendarClickListener : null);
+        mClockView.setOnLongClickListener(clockVisible ? co() : null);
         if (e.isWeatherAvailable()) {
-            mTitleSeparator.setVisibility(View.VISIBLE);
-            mTitleWeatherContent.setVisibility(View.VISIBLE);
-            mTitleWeatherContent.setOnClickListener(mWeatherClickListener);
-            mTitleWeatherContent.setOnLongClickListener(co());
-            mTitleWeatherText.setText(e.dO.getTitle());
-            mTitleWeatherIcon.setImageBitmap(e.dO.getIcon());
+            mTitleSeparator.setVisibility(titleSeparatorVisible ? View.VISIBLE : View.GONE);
+            mTitleWeatherContent.setVisibility(weatherContentVisible ? View.VISIBLE : View.GONE);
+            mTitleWeatherContent.setOnClickListener(weatherContentVisible ? mWeatherClickListener : null);
+            mTitleWeatherContent.setOnLongClickListener(weatherContentVisible ? co() : null);
+            mTitleWeatherText.setText(weatherContentVisible ? e.dO.getTitle(): null);
+            mTitleWeatherIcon.setImageBitmap(weatherContentVisible ? e.dO.getIcon() : null);
         } else {
             mTitleWeatherContent.setVisibility(View.GONE);
             mTitleSeparator.setVisibility(View.GONE);

@@ -365,4 +365,10 @@
 
     <string name="show_swipeup_arrow">Enable swipe up indicator</string>
     <string name="show_swipeup_arrow_summary">Show the swipe up arrow indicator on top of the dock</string>
+
+    <string name="pref_show_clock_weather">Home screen date and weather</string>
+    <string name="pref_show_clock_weather_both">Show both date and weather</string>
+    <string name="pref_show_clock_weather_nothing">Don\'t show</string>
+    <string name="pref_show_clock_weather_clock_only">Show date only</string>
+    <string name="pref_show_clock_weather_weather_only">Show weather only</string>
 </resources>

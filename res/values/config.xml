@@ -150,4 +150,17 @@
     <item type="id" name="search_container_hotseat" />
     <item type="id" name="search_container_all_apps" />
 
+    <string-array translatable="false" name="pref_show_clock_weather_values">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+    </string-array>
+
+    <string-array name="pref_show_clock_weather_names">
+        <item>@string/pref_show_clock_weather_both</item>
+        <item>@string/pref_show_clock_weather_nothing</item>
+        <item>@string/pref_show_clock_weather_clock_only</item>
+        <item>@string/pref_show_clock_weather_weather_only</item>
+    </string-array>
 </resources>

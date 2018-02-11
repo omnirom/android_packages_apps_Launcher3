@@ -45,6 +45,14 @@
             android:summary="@string/show_swipeup_arrow_summary"
             android:defaultValue="true" />
 
+        <ListPreference
+            android:key="pref_show_clock_weather"
+            android:title="@string/pref_show_clock_weather"
+            android:summary="%s"
+            android:entries="@array/pref_show_clock_weather_names"
+            android:entryValues="@array/pref_show_clock_weather_values"
+            android:defaultValue=""
+            android:persistent="false" />
     </PreferenceCategory>
 
     <PreferenceCategory
