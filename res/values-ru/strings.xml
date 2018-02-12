@@ -172,4 +172,10 @@
 
     <string name="show_swipeup_arrow">Индикатор открытия меню приложений</string>
     <string name="show_swipeup_arrow_summary">Отображать индикатор в виде стрелки на рабочем столе</string>
+
+    <string name="pref_show_clock_weather">Погода и дата на рабочем столе</string>
+    <string name="pref_show_clock_weather_both">Отображать и погоду и дату</string>
+    <string name="pref_show_clock_weather_nothing">Не отображать</string>
+    <string name="pref_show_clock_weather_clock_only">Отображать только дату</string>
+    <string name="pref_show_clock_weather_weather_only">Отображать только погоду</string>
 </resources>
