@@ -413,4 +413,6 @@
     <string name="number_of_hotseat_title">Hotseat icons</string>
 
     <string name="icon_shape_rounded_square">Rounded square</string>
+
+    <string name="action_edit">Edit</string>
 </resources>
