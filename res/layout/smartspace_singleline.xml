@@ -28,6 +28,8 @@
         android:id="@+id/clock"
         style="@style/TextTitle"
         android:visibility="gone"
+        android:scrollHorizontally="true"
+        android:ellipsize="end"
         android:layout_width="wrap_content"
         android:layout_height="fill_parent"
         android:layout_gravity="center"
