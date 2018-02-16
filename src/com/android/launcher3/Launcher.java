@@ -4233,7 +4233,8 @@ public class Launcher extends BaseActivity
             }
             if (Utilities.ICON_PACK_PREFERENCE_KEY.equals(key) || Utilities.ADAPTIVE_ICONS_PREFERENCE_KEY.equals(key)
                     || Utilities.LEGACY_ICON_PREFERENCE_KEY.equals(key) || Utilities.ICON_SHAPE_PREFERENCE_KEY.equals(key)
-                    || Utilities.ICON_SHADOW_PREFERENCE_KEY.equals(key)) {
+                    || Utilities.ICON_SHADOW_PREFERENCE_KEY.equals(key) || Utilities.SHOW_NOTIFICATION_DOT_NUMBERS.equals(key)) {
+                mDeviceProfile.setShowNotifcationDotNumbers(Utilities.isShowNotificationDotNumbers(Launcher.this));
                 mModel.clearIconCache();
                 mModel.forceReload();
                 mOnResumeNeedsLoad = true;
