@@ -218,6 +218,7 @@ public class DeviceProfile {
 
         // This is done last, after iconSizePx is calculated above.
         mBadgeRenderer = new BadgeRenderer(context, iconSizePx);
+        mBadgeRenderer.setShowNotifcationDotNumbers(Utilities.isShowNotificationDotNumbers(context));
     }
 
     DeviceProfile getMultiWindowProfile(Context context, Point mwSize) {
@@ -667,5 +668,9 @@ public class DeviceProfile {
             height += hotseatQsbHeight;
         }
         return height;
+    }
+
+    public void setShowNotifcationDotNumbers(boolean value) {
+       mBadgeRenderer.setShowNotifcationDotNumbers(value);
     }
 }

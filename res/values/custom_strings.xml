@@ -79,4 +79,6 @@
     <string name="left_tab_label">Google Now tab</string>
     <string name="left_tab_description">Toggle Google Now integration</string>
     <string name="show_dark_theme_title">Dark theme</string>
+    <string name="pref_icon_badging_numbers_title">Notification dot numbers</string>
+    <string name="pref_icon_badging_numbers_summary">Show the notification count inside of the dot</string>
 </resources>

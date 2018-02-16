@@ -63,6 +63,7 @@ public class BadgeRenderer {
     private final Paint mBackgroundPaint = new Paint(Paint.ANTI_ALIAS_FLAG
             | Paint.FILTER_BITMAP_FLAG);
     private final SparseArray<Bitmap> mBackgroundsWithShadow;
+    private boolean mShowNotifcationDotNumbers = !DOTS_ONLY;
 
     public BadgeRenderer(Context context, int iconSizePx) {
         mContext = context;
@@ -103,7 +104,8 @@ public class BadgeRenderer {
         String notificationCount = badgeInfo == null ? "0"
                 : String.valueOf(badgeInfo.getNotificationCount());
         int numChars = notificationCount.length();
-        int width = DOTS_ONLY ? mSize : mSize + mCharSize * (numChars - 1);
+        final boolean dotsOnly = !mShowNotifcationDotNumbers;
+        int width = dotsOnly ? mSize : mSize + mCharSize * (numChars - 1);
         // Lazily load the background with shadow.
         Bitmap backgroundWithShadow = mBackgroundsWithShadow.get(numChars);
         if (backgroundWithShadow == null) {
@@ -114,8 +116,8 @@ public class BadgeRenderer {
         // We draw the badge relative to its center.
         int badgeCenterX = iconBounds.right - width / 2;
         int badgeCenterY = iconBounds.top + mSize / 2;
-        boolean isText = !DOTS_ONLY && badgeInfo != null && badgeInfo.getNotificationCount() != 0;
-        boolean isIcon = !DOTS_ONLY && icon != null;
+        boolean isText = !dotsOnly && badgeInfo != null && badgeInfo.getNotificationCount() != 0;
+        boolean isIcon = !dotsOnly && icon != null;
         boolean isDot = !(isText || isIcon);
         if (isDot) {
             badgeScale *= DOT_SCALE;
@@ -152,6 +154,10 @@ public class BadgeRenderer {
                     -backgroundWithShadowSize / 2, mBackgroundPaint);
         }
         canvas.restore();
+    }
+
+    public void setShowNotifcationDotNumbers(boolean value) {
+        mShowNotifcationDotNumbers = value;
     }
 
     /** Draws the notification icon with padding of a given size. */
