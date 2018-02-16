@@ -141,6 +141,7 @@ public class DeviceProfile {
     // Icon badges
     public BadgeRenderer mBadgeRenderer;
     private Context mContext;
+    private boolean mShowNotifcationDotNumbers;
 
     public DeviceProfile(Context context, InvariantDeviceProfile inv,
             Point minSize, Point maxSize,
@@ -216,8 +217,9 @@ public class DeviceProfile {
         updateAvailableDimensions(dm, res);
         computeAllAppsButtonSize(context);
 
+        mShowNotifcationDotNumbers = Utilities.isShowNotificationDotNumbers(context);
         // This is done last, after iconSizePx is calculated above.
-        mBadgeRenderer = new BadgeRenderer(context, iconSizePx);
+        mBadgeRenderer = new BadgeRenderer(context, iconSizePx, this);
     }
 
     DeviceProfile getMultiWindowProfile(Context context, Point mwSize) {
@@ -667,5 +669,13 @@ public class DeviceProfile {
             height += hotseatQsbHeight;
         }
         return height;
+    }
+
+    public void setShowNotifcationDotNumbers(boolean value) {
+        mShowNotifcationDotNumbers = value;
+    }
+
+    public boolean isShowNotificationDotNumbers() {
+        return mShowNotifcationDotNumbers;
     }
 }
