@@ -343,6 +343,7 @@ public class Launcher extends BaseActivity
     private LauncherTab mLauncherTab;
     private boolean mLauncherTabEnabled;
     private boolean mDarkMode;
+    private boolean mShowNotifcationDotNumbers;
 
     @Thunk void setOrientation() {
         if (mRotationEnabled) {
@@ -4233,7 +4234,8 @@ public class Launcher extends BaseActivity
             }
             if (Utilities.ICON_PACK_PREFERENCE_KEY.equals(key) || Utilities.ADAPTIVE_ICONS_PREFERENCE_KEY.equals(key)
                     || Utilities.LEGACY_ICON_PREFERENCE_KEY.equals(key) || Utilities.ICON_SHAPE_PREFERENCE_KEY.equals(key)
-                    || Utilities.ICON_SHADOW_PREFERENCE_KEY.equals(key)) {
+                    || Utilities.ICON_SHADOW_PREFERENCE_KEY.equals(key) || Utilities.SHOW_NOTIFICATION_DOT_NUMBERS.equals(key)) {
+                mShowNotifcationDotNumbers = Utilities.isShowNotificationDotNumbers(Launcher.this);
                 mModel.clearIconCache();
                 mModel.forceReload();
                 mOnResumeNeedsLoad = true;
@@ -4331,5 +4333,9 @@ public class Launcher extends BaseActivity
                 Log.w(TAG, "Can't change theme", e);
             }
         }
+    }
+
+    public boolean isShowNotificationDotNumbers() {
+        return mShowNotifcationDotNumbers;
     }
 }
