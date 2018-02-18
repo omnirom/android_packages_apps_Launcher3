@@ -6,12 +6,14 @@ import android.app.Dialog;
 import android.app.DialogFragment;
 import android.app.Fragment;
 import android.app.FragmentManager;
+import android.app.ProgressDialog;
 import android.content.ComponentName;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
 import android.preference.ListPreference;
 import android.preference.Preference;
 import android.preference.PreferenceFragment;
@@ -125,11 +127,21 @@ public class IconsActivity extends com.android.launcher3.SettingsActivity implem
             switch (preference.getKey()) {
                 case ICON_PACK_PREF:
                     if (!CustomIconUtils.getCurrentPack(mContext).equals(newValue)) {
-                        /*if (((String) newValue).isEmpty()) {
-                            CustomAppFilter.emptyAppFilter(mContext);
-                        }*/
-                        CustomIconProvider.clearDisabledApps(mContext);
+                        final ProgressDialog applyingDialog = ProgressDialog.show(mContext,
+                                null /* title */,
+                                mContext.getString(R.string.state_loading),
+                                true /* indeterminate */,
+                                false /* cancelable */);
+
+                        CustomIconUtils.setCurrentPack(getActivity(), (String) newValue);
                         CustomIconUtils.applyIconPackAsync(mContext);
+
+                        new Handler().postDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                applyingDialog.cancel();
+                            }
+                        }, 1000);
                     }
                     return true;
             }
