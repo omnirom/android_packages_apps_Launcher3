@@ -65,4 +65,6 @@
   <string name="search_bar_location_top">Por encima de hotseat</string>
   <string name="pref_show_events_title">Ver próximos eventos</string>
   <string name="left_tab_label">Pestaña Google Now</string>
+  <string name="left_tab_description">Alternar la integración de Google Now</string>
+  <string name="show_dark_theme_title">Tema oscuro</string>
 </resources>

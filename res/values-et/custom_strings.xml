@@ -18,8 +18,11 @@
 */
 -->
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+  <string name="show_predictive_apps_title">Ennustatud rakendused</string>
   <string name="icon_pack">Ikoonipakk</string>
   <string name="icon_pack_summary">Vali ikoonipakk</string>
+  <string name="adaptive_icons_title">Adaptiivsed ikoonid</string>
+  <string name="legacy_icons_title">Maskeeri pärandikoonid</string>
   <string name="icon_mask_square">Ristkülik</string>
   <string name="icon_mask_rounded_square">Ümar ristkülik</string>
   <string name="icon_mask_squircle">Ringkülik</string>
@@ -31,6 +34,7 @@
   <string name="icon_shadow_title">Lisa ikoonivari</string>
   <string name="show_search_bar_title">Kuva otsinguriba</string>
   <string name="widget_category_title">Vidinad</string>
+  <string name="show_top_widget_title">Kuva ülavidinat</string>
   <string name="omnijaws_service_error">Viga</string>
   <string name="omnijaws_service_unkown">Ilmateade puudub</string>
   <string name="omnijaws_service_error_long">Ilmateate laadimisel esines viga</string>
@@ -42,8 +46,14 @@
   <string name="omnijaws_service_last_update">Viimane uuendus:</string>
   <string name="weather_settings_drop_target_label">Seadista</string>
   <string name="show_hotseat_bg_color_title">Taustavärv</string>
+  <string name="show_hotseat_bg_color_summary">Rakenda dokile taustavärv, põhinedes tasutapildil</string>
   <string name="calendar_view_status_perms">Koputa seadistamiseks</string>
+  <string name="show_hotseat_title">Kuva dokki</string>
+  <string name="calendar_event_no_title_label">Pealkirja pole</string>
+  <string name="weather_icon_pack_title">Ilmateate ikoonipakk</string>
   <string name="hotseat_category_title">Dokk</string>
+  <string name="pref_allDayEvents_title">Kuva kogu päeva sündmusi</string>
+  <string name="preferences_widget_days_title">Kuvatav periood</string>
   <string name="one_week">1 nädal</string>
   <string name="two_weeks">2 nädalat</string>
   <string name="three_weeks">3 nädalat</string>
@@ -51,5 +61,10 @@
   <string name="three_months">3 kuud</string>
   <string name="pref_show_today_title">Näita kuupäeva</string>
   <string name="show_search_bar_location_title">Otsinguriba paigutus</string>
+  <string name="search_bar_location_bottom">Doki all</string>
+  <string name="search_bar_location_top">Doki kohal</string>
+  <string name="pref_show_events_title">Näita tulevaid sündmusi</string>
   <string name="left_tab_label">Google Now vahekaart</string>
+  <string name="left_tab_description">Lülita Google Now integreerimist</string>
+  <string name="show_dark_theme_title">Tume teema</string>
 </resources>

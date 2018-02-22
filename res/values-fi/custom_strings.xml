@@ -17,4 +17,45 @@
 * limitations under the License.
 */
 -->
-<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2"></resources>
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+  <string name="show_predictive_apps_title">Sovellusennakointi</string>
+  <string name="icon_pack">Kuvakepaketti</string>
+  <string name="icon_pack_summary">Valitse kuvakepaketti</string>
+  <string name="adaptive_icons_title">Adaptiiviset kuvakkeet</string>
+  <string name="icon_mask_square">Neliö</string>
+  <string name="icon_mask_rounded_square">Pyöristetty neliö</string>
+  <string name="icon_mask_circle">Ympyrä</string>
+  <string name="icon_mask_teardrop">Pisara</string>
+  <string name="icon_category_title">Kuvakkeet</string>
+  <string name="other_category_title">Muu</string>
+  <string name="icon_shadow_title">Lisää kuvakkeen varjo</string>
+  <string name="show_search_bar_title">Näytä hakupalkki</string>
+  <string name="widget_category_title">Widgetit</string>
+  <string name="show_top_widget_title">Näytä yläwidgetti</string>
+  <string name="omnijaws_service_error">Virhe</string>
+  <string name="omnijaws_service_unkown">Ei säätietoja</string>
+  <string name="omnijaws_service_error_long">Virhe ladattaessa säätietoja</string>
+  <string name="omnijaws_service_disabled">Palvelu ei ole käytössä</string>
+  <string name="omnijaws_detail_header">Sää</string>
+  <string name="omnijaws_label_default">Sää</string>
+  <string name="omnijaws_current_text">Nyt</string>
+  <string name="omnijaws_package_not_available">OmniJaws ei saatavilla</string>
+  <string name="omnijaws_service_last_update">Päivitetty viimeksi:</string>
+  <string name="weather_settings_drop_target_label">Määritä</string>
+  <string name="show_hotseat_bg_color_title">Taustaväri</string>
+  <string name="calendar_view_status_perms">Kosketa määrittääksesi</string>
+  <string name="weather_icon_pack_title">Sääkuvakepaketti</string>
+  <string name="hotseat_category_title">Telakka</string>
+  <string name="pref_allDayEvents_title">Näytä koko päivän tapahtumat</string>
+  <string name="preferences_widget_days_title">Näyttöjakso</string>
+  <string name="one_week">1 viikko</string>
+  <string name="two_weeks">2 viikkoa</string>
+  <string name="three_weeks">3 viikkoa</string>
+  <string name="one_month">1 kuukausi</string>
+  <string name="three_months">3 kuukautta</string>
+  <string name="pref_show_today_title">Näytä päivämäärä</string>
+  <string name="show_search_bar_location_title">Hakupalkin sijainti</string>
+  <string name="pref_show_events_title">Näytä tulevat tapahtumat</string>
+  <string name="left_tab_label">Google Now sivu</string>
+  <string name="show_dark_theme_title">Tumma teema</string>
+</resources>

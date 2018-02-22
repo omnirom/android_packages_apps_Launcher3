@@ -53,7 +53,7 @@
   <string name="weather_icon_pack_title">Hava durumu simge paketi</string>
   <string name="hotseat_category_title">Alt menü</string>
   <string name="pref_allDayEvents_title">Gün boyu süren faaliyetleri göster</string>
-  <string name="preferences_widget_days_title">Görüntüleme devri</string>
+  <string name="preferences_widget_days_title">Gösterme devri</string>
   <string name="one_week">1 hafta</string>
   <string name="two_weeks">2 hafta</string>
   <string name="three_weeks">3 hafta</string>

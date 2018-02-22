@@ -17,4 +17,54 @@
 * limitations under the License.
 */
 -->
-<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2"></resources>
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+  <string name="show_predictive_apps_title">置顶最近使用的应用</string>
+  <string name="icon_pack">图标包</string>
+  <string name="icon_pack_summary">选择图标包</string>
+  <string name="adaptive_icons_title">自适应图标</string>
+  <string name="legacy_icons_title">传统mask图标</string>
+  <string name="icon_mask_square">方形</string>
+  <string name="icon_mask_rounded_square">圆形正方形</string>
+  <string name="icon_mask_squircle">圆角</string>
+  <string name="icon_mask_circle">圆形</string>
+  <string name="icon_mask_teardrop">泪珠形</string>
+  <string name="adaptive_icon_mask_title">图标包</string>
+  <string name="icon_category_title">图标</string>
+  <string name="other_category_title">其他</string>
+  <string name="icon_shadow_title">添加图标阴影</string>
+  <string name="show_search_bar_title">显示搜索栏</string>
+  <string name="widget_category_title">小部件</string>
+  <string name="show_top_widget_title">显示顶部小部件</string>
+  <string name="omnijaws_service_error">错误</string>
+  <string name="omnijaws_service_unkown">没有天气数据</string>
+  <string name="omnijaws_service_error_long">读取天气数据时出现错误</string>
+  <string name="omnijaws_service_disabled">服务已禁用</string>
+  <string name="omnijaws_detail_header">天气</string>
+  <string name="omnijaws_label_default">天气</string>
+  <string name="omnijaws_current_text">现在</string>
+  <string name="omnijaws_package_not_available">OmniJaws无法使用</string>
+  <string name="omnijaws_service_last_update">最后更新</string>
+  <string name="weather_settings_drop_target_label">设置</string>
+  <string name="show_hotseat_bg_color_title">背景颜色</string>
+  <string name="show_hotseat_bg_color_summary">为dock栏使用壁纸的颜色</string>
+  <string name="calendar_view_status_perms">触摸设置</string>
+  <string name="show_hotseat_title">显示热键</string>
+  <string name="calendar_event_no_title_label">无标题</string>
+  <string name="weather_icon_pack_title">天气状况图标</string>
+  <string name="hotseat_category_title">Dock</string>
+  <string name="pref_allDayEvents_title">显示所有日期事件</string>
+  <string name="preferences_widget_days_title">显示周期</string>
+  <string name="one_week">1 周</string>
+  <string name="two_weeks">2 周</string>
+  <string name="three_weeks">3 周</string>
+  <string name="one_month">1个月</string>
+  <string name="three_months">3个月</string>
+  <string name="pref_show_today_title">显示日期</string>
+  <string name="show_search_bar_location_title">搜索栏位置</string>
+  <string name="search_bar_location_bottom">热键下方</string>
+  <string name="search_bar_location_top">热键上方</string>
+  <string name="pref_show_events_title">显示即将发生事件</string>
+  <string name="left_tab_label">Google即时标签</string>
+  <string name="left_tab_description">切换谷歌现在集成</string>
+  <string name="show_dark_theme_title">暗色主题</string>
+</resources>
