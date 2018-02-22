@@ -34,6 +34,7 @@ import com.android.launcher3.LauncherAppState;
 import com.android.launcher3.LauncherModel;
 import com.android.launcher3.R;
 import com.android.launcher3.Utilities;
+import com.android.launcher3.dynamicui.WallpaperColorInfo;
 import com.android.launcher3.util.LooperExecutor;
 import com.google.android.apps.nexuslauncher.AboutDialog;
 import com.google.android.apps.nexuslauncher.smartspace.SmartspaceController;
@@ -47,6 +48,8 @@ public class SettingsActivity extends com.android.launcher3.SettingsActivity imp
     public static final String KEY_SHOW_WEATHER_CLOCK = "pref_show_clock_weather";
 
     private static final String GOOGLE_NOW_PACKAGE = "com.google.android.googlequicksearchbox";
+
+    private static final long WAIT_BEFORE_RESTART = 250;
 
     @Override
     protected void onCreate(final Bundle bundle) {
@@ -89,6 +92,9 @@ public class SettingsActivity extends com.android.launcher3.SettingsActivity imp
             mGoogleNowPanel = (SwitchPreference) findPreference(ENABLE_MINUS_ONE_PREF);
             mAtGlanceWidget = (PreferenceScreen) findPreference(SMARTSPACE_PREF);
             mShowClockWeather = (ListPreference) findPreference(KEY_SHOW_WEATHER_CLOCK);
+
+            findPreference(Utilities.BOTTOM_SEARCH_BAR_KEY).setOnPreferenceChangeListener(this);
+            findPreference(Utilities.TOP_SEARCH_BAR_KEY).setOnPreferenceChangeListener(this);
 
             mGoogleNowPanel.setTitle(getDisplayGoogleTitle());
             if (!isPackageInstalled(GOOGLE_NOW_PACKAGE, mContext)) {
@@ -219,6 +225,18 @@ public class SettingsActivity extends com.android.launcher3.SettingsActivity imp
                     getDevicePrefs(mContext).edit().putString(KEY_SHOW_WEATHER_CLOCK, value).commit();
                     mShowClockWeather.setValue(value);
                     break;
+                case Utilities.BOTTOM_SEARCH_BAR_KEY:
+                    if (preference instanceof TwoStatePreference) {
+                        ((TwoStatePreference) preference).setChecked((boolean) newValue);
+                    }
+                    restart(mContext);
+                    break;
+                case Utilities.TOP_SEARCH_BAR_KEY:
+                    if (preference instanceof TwoStatePreference) {
+                        ((TwoStatePreference) preference).setChecked((boolean) newValue);
+                    }
+                    reloadTheme(mContext);
+                    break;
             }
             return false;
         }
@@ -260,5 +278,35 @@ public class SettingsActivity extends com.android.launcher3.SettingsActivity imp
         }
         ft.addToBackStack(null);
         dialog.show(ft, "dialog");
+    }
+
+    public static void reloadTheme(Context context) {
+        WallpaperColorInfo.getInstance(context).notifyChange(true);
+    }
+
+    public static void restart(final Context context) {
+        ProgressDialog.show(context, null, context.getString(R.string.state_loading), true, false);
+        new LooperExecutor(LauncherModel.getWorkerLooper()).execute(new Runnable() {
+            @SuppressLint("ApplySharedPref")
+            @Override
+            public void run() {
+                try {
+                    Thread.sleep(WAIT_BEFORE_RESTART);
+                } catch (Exception e) {
+                    Log.e("SettingsActivity", "Error waiting", e);
+                }
+
+                Intent intent = new Intent(Intent.ACTION_MAIN)
+                        .addCategory(Intent.CATEGORY_HOME)
+                        .setPackage(context.getPackageName())
+                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+
+                PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_CANCEL_CURRENT | PendingIntent.FLAG_ONE_SHOT);
+                AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+                alarmManager.setExact(AlarmManager.ELAPSED_REALTIME, SystemClock.elapsedRealtime() + 50, pendingIntent);
+
+                android.os.Process.killProcess(android.os.Process.myPid());
+            }
+        });
     }
 }

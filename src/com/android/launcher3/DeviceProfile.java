@@ -218,10 +218,14 @@ public class DeviceProfile {
 
         hotseatBarTopPaddingPx =
                 res.getDimensionPixelSize(R.dimen.dynamic_grid_hotseat_top_padding);
-        hotseatBarBottomPaddingPx =
-                res.getDimensionPixelSize(R.dimen.dynamic_grid_hotseat_bottom_padding);
-        hotseatBarLeftNavBarRightPaddingPx = res.getDimensionPixelSize(
-                R.dimen.dynamic_grid_hotseat_land_left_nav_bar_right_padding);
+
+        hotseatBarTopPaddingPx = Utilities.isBottomSearchBarVisible(context)
+                ? res.getDimensionPixelSize(R.dimen.dynamic_grid_hotseat_top_padding)
+                : res.getDimensionPixelSize(R.dimen.dynamic_grid_hotseat_top_padding_hidden_bottom_qsb);
+        hotseatBarBottomPaddingPx = Utilities.isBottomSearchBarVisible(context)
+                ? res.getDimensionPixelSize(R.dimen.dynamic_grid_hotseat_bottom_padding)
+                : res.getDimensionPixelSize(R.dimen.dynamic_grid_hotseat_bottom_padding_hidden_bottom_qsb);
+
         hotseatBarRightNavBarRightPaddingPx = res.getDimensionPixelSize(
                 R.dimen.dynamic_grid_hotseat_land_right_nav_bar_right_padding);
         hotseatBarLeftNavBarLeftPaddingPx = res.getDimensionPixelSize(

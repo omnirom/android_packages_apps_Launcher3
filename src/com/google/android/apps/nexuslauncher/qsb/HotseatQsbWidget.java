@@ -57,6 +57,8 @@ public class HotseatQsbWidget extends AbstractQsbLayout implements WallpaperColo
         mIsDefaultLiveWallpaper = isDefaultLiveWallpaper();
         setColors();
         setOnClickListener(this);
+
+        setVisibility(Utilities.isBottomSearchBarVisible(context) ? VISIBLE : GONE);
     }
 
     static int getBottomMargin(Launcher launcher) {

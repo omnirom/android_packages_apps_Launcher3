@@ -58,6 +58,8 @@ public class AllAppsQsbLayout extends AbstractQsbLayout implements SearchUiManag
                 allAppsQsbLayout.setTranslationY(Math.round(mStartY + v));
             }
         }, 0f);
+
+        setVisibility(Utilities.isTopSearchBarVisible(context) ? VISIBLE : GONE);
     }
 
     private void searchFallback() {
