@@ -144,9 +144,9 @@ public class InvariantDeviceProfile {
                 invDistWeightedInterpolate(minWidthDps,  minHeightDps, closestProfiles);
 
         InvariantDeviceProfile closestProfile = closestProfiles.get(0);
-        numRows = closestProfile.numRows;
-        numColumns = closestProfile.numColumns;
-        numHotseatIcons = closestProfile.numHotseatIcons;
+        numRows = Utilities.getGridRows(context, closestProfile.numRows);
+        numColumns = Utilities.getGridColumns(context, closestProfile.numColumns);
+        numHotseatIcons = Utilities.getHotseatIcons(context, closestProfile.numHotseatIcons);
         defaultLayoutId = closestProfile.defaultLayoutId;
         numFolderRows = closestProfile.numFolderRows;
         numFolderColumns = closestProfile.numFolderColumns;
