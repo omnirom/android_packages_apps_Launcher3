@@ -467,7 +467,7 @@ public class DeviceProfile {
     }
 
     public void updateAppsViewNumCols() {
-        allAppsNumCols = allAppsNumPredictiveCols = inv.numColumns;
+        allAppsNumCols = allAppsNumPredictiveCols = inv.numAllAppColumns;
     }
 
     /** Returns the width and height of the search bar, ignoring any padding. */

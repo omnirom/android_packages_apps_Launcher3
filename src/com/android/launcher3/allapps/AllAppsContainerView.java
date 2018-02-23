@@ -249,10 +249,10 @@ public class AllAppsContainerView extends BaseContainerView implements DragSourc
         // Update the number of items in the grid before we measure the view
         grid.updateAppsViewNumCols();
 
-        if (mNumAppsPerRow != grid.inv.numColumns ||
-                mNumPredictedAppsPerRow != grid.inv.numColumns) {
-            mNumAppsPerRow = grid.inv.numColumns;
-            mNumPredictedAppsPerRow = grid.inv.numColumns;
+        if (mNumAppsPerRow != grid.inv.numAllAppColumns ||
+                mNumPredictedAppsPerRow != grid.inv.numAllAppColumns) {
+            mNumAppsPerRow = grid.inv.numAllAppColumns;
+            mNumPredictedAppsPerRow = grid.inv.numAllAppColumns;
 
             mAppsRecyclerView.setNumAppsPerRow(grid, mNumAppsPerRow);
             mAdapter.setNumAppsPerRow(mNumAppsPerRow);

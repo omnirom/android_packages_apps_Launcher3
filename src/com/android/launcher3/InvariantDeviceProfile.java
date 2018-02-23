@@ -63,6 +63,7 @@ public class InvariantDeviceProfile {
      */
     public int numRows;
     public int numColumns;
+    public int numAllAppColumns;
 
     /**
      * The minimum number of predicted apps in all apps.
@@ -98,19 +99,20 @@ public class InvariantDeviceProfile {
     }
 
     public InvariantDeviceProfile(InvariantDeviceProfile p) {
-        this(p.name, p.minWidthDps, p.minHeightDps, p.numRows, p.numColumns,
+        this(p.name, p.minWidthDps, p.minHeightDps, p.numRows, p.numColumns,  p.numAllAppColumns,
                 p.numFolderRows, p.numFolderColumns, p.minAllAppsPredictionColumns,
                 p.iconSize, p.landscapeIconSize, p.iconTextSize, p.numHotseatIcons,
                 p.defaultLayoutId, p.demoModeLayoutId);
     }
 
-    InvariantDeviceProfile(String n, float w, float h, int r, int c, int fr, int fc, int maapc,
+    InvariantDeviceProfile(String n, float w, float h, int r, int c, int nac, int fr, int fc, int maapc,
             float is, float lis, float its, int hs, int dlId, int dmlId) {
         name = n;
         minWidthDps = w;
         minHeightDps = h;
         numRows = r;
         numColumns = c;
+        numAllAppColumns = nac;
         numFolderRows = fr;
         numFolderColumns = fc;
         minAllAppsPredictionColumns = maapc;
@@ -145,6 +147,7 @@ public class InvariantDeviceProfile {
         InvariantDeviceProfile closestProfile = closestProfiles.get(0);
         numRows = Utilities.getGridRows(context, closestProfile.numRows);
         numColumns = Utilities.getGridColumns(context, closestProfile.numColumns);
+        numAllAppColumns = closestProfile.numColumns;
         numHotseatIcons = Utilities.getHotseatIcons(context, closestProfile.numHotseatIcons);
         defaultLayoutId = closestProfile.defaultLayoutId;
         demoModeLayoutId = closestProfile.demoModeLayoutId;
@@ -198,6 +201,7 @@ public class InvariantDeviceProfile {
                             Xml.asAttributeSet(parser), R.styleable.InvariantDeviceProfile);
                     int numRows = a.getInt(R.styleable.InvariantDeviceProfile_numRows, 0);
                     int numColumns = a.getInt(R.styleable.InvariantDeviceProfile_numColumns, 0);
+                    int numAllAppColumns = a.getInt(R.styleable.InvariantDeviceProfile_numAllAppColumns, 0);
                     float iconSize = a.getFloat(R.styleable.InvariantDeviceProfile_iconSize, 0);
                     profiles.add(new InvariantDeviceProfile(
                             a.getString(R.styleable.InvariantDeviceProfile_name),
@@ -205,6 +209,7 @@ public class InvariantDeviceProfile {
                             a.getFloat(R.styleable.InvariantDeviceProfile_minHeightDps, 0),
                             numRows,
                             numColumns,
+                            numAllAppColumns,
                             a.getInt(R.styleable.InvariantDeviceProfile_numFolderRows, numRows),
                             a.getInt(R.styleable.InvariantDeviceProfile_numFolderColumns, numColumns),
                             a.getInt(R.styleable.InvariantDeviceProfile_minAllAppsPredictionColumns, numColumns),
