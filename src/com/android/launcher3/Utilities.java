@@ -137,6 +137,13 @@ public final class Utilities {
 
     public static final String KEY_SHOW_SWIPEUP_ARROW = "pref_show_swipeup_arrow";
 
+    public static final String GRID_COLUMNS = "pref_grid_columns";
+    public static final String GRID_ROWS = "pref_grid_rows";
+    public static final String HOTSEAT_ICONS = "pref_hotseat_icons";
+    private static final String GRID_COLUMNS_DEFAULT = "default";
+    private static final String GRID_ROWS_DEFAULT = "default";
+    private static final String HOTSEAT_ICONS_DEFAULTS = "default";
+
     public static boolean showSwipeUpIndicator(Context context) {
         return getPrefs(context).getBoolean(KEY_SHOW_SWIPEUP_ARROW,
                 true);
@@ -173,6 +180,47 @@ public final class Utilities {
 
     public static boolean qsbEnabled(Context context) {
         return Integer.valueOf(getDevicePrefs(context).getString("pref_show_clock_weather", "0")) != 1;
+    }
+
+    public static int getGridColumns(Context context, int fallback) {
+        return getIconCount(context, GRID_COLUMNS, GRID_COLUMNS_DEFAULT, fallback);
+    }
+
+    public static int getGridRows(Context context, int fallback) {
+        return getIconCount(context, GRID_ROWS, GRID_ROWS_DEFAULT, fallback);
+    }
+
+    public static int getHotseatIcons(Context context, int fallback) {
+        return getIconCount(context, HOTSEAT_ICONS, HOTSEAT_ICONS_DEFAULTS, fallback);
+    }
+
+    private static int getIconCount(Context context, String preferenceName, String preferenceFallback, int deviceProfileFallback) {
+        String saved = getPrefs(context).getString(preferenceName, preferenceFallback);
+        int num;
+        switch (saved) {
+            case "default":
+                num = deviceProfileFallback;
+                break;
+            case "three":
+                num = 3;
+                break;
+            case "four":
+                num = 4;
+                break;
+            case "five":
+                num = 5;
+                break;
+            case "six":
+                num = 6;
+                break;
+            case "seven":
+                num = 7;
+                break;
+            default:
+                num = deviceProfileFallback;
+                break;
+        }
+        return num;
     }
 
     /**

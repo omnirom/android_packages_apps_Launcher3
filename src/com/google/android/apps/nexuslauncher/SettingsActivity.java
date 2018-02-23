@@ -96,6 +96,10 @@ public class SettingsActivity extends com.android.launcher3.SettingsActivity imp
             findPreference(Utilities.BOTTOM_SEARCH_BAR_KEY).setOnPreferenceChangeListener(this);
             findPreference(Utilities.TOP_SEARCH_BAR_KEY).setOnPreferenceChangeListener(this);
 
+            findPreference(Utilities.GRID_COLUMNS).setOnPreferenceChangeListener(this);
+            findPreference(Utilities.GRID_ROWS).setOnPreferenceChangeListener(this);
+            findPreference(Utilities.HOTSEAT_ICONS).setOnPreferenceChangeListener(this);
+
             mGoogleNowPanel.setTitle(getDisplayGoogleTitle());
             if (!isPackageInstalled(GOOGLE_NOW_PACKAGE, mContext)) {
                 mGoogleNowPanel.setEnabled(false);
@@ -237,6 +241,14 @@ public class SettingsActivity extends com.android.launcher3.SettingsActivity imp
                         ((TwoStatePreference) preference).setChecked((boolean) newValue);
                     }
                     reloadTheme(mContext);
+                    break;
+                case Utilities.GRID_COLUMNS:
+                case Utilities.GRID_ROWS:
+                case Utilities.HOTSEAT_ICONS:
+                    if (preference instanceof ListPreference) {
+                        ((ListPreference) preference).setValue((String) newValue);
+                    }
+                    restart(mContext);
                     break;
             }
             return false;
