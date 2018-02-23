@@ -171,6 +171,10 @@ public final class Utilities {
         return getPrefs(context).getBoolean(TOP_SEARCH_BAR_KEY, TOP_SEARCH_BAR_DEFAULT);
     }
 
+    public static boolean qsbEnabled(Context context) {
+        return Integer.valueOf(getDevicePrefs(context).getString("pref_show_clock_weather", "0")) != 1;
+    }
+
     /**
      * Given a coordinate relative to the descendant, find the coordinate in a parent view's
      * coordinates.

@@ -224,6 +224,7 @@ public class SettingsActivity extends com.android.launcher3.SettingsActivity imp
                     String value = (String) newValue;
                     getDevicePrefs(mContext).edit().putString(KEY_SHOW_WEATHER_CLOCK, value).commit();
                     mShowClockWeather.setValue(value);
+                    restart(mContext);
                     break;
                 case Utilities.BOTTOM_SEARCH_BAR_KEY:
                     if (preference instanceof TwoStatePreference) {
