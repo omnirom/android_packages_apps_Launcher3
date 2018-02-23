@@ -24,4 +24,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
     <string name="allow_swipe_down_clearall_title">Clear all on swipe down from recents view</string>
     <string name="allow_swipe_down_clearall_desc">Doesn\'t works if P navbar gestures are enable</string>
     <string name="icon_shape_rounded_square">Rounded square</string>
+
+    <!-- Grid -->
+    <string name="num_default">Default</string>
+    <string name="grid_category_title">Columns and rows</string>
+    <string name="number_of_columns_title">Grid and app drawer columns</string>
+    <string name="number_of_rows_title">Grid and app drawer rows</string>
+    <string name="number_of_hotseat_title">Homescreen quicklaunch icons</string>
+    <string name="state_loading">Applying\u2026</string>
+    <string name="app_drawer_category_title">App drawer</string>
+
 </resources>

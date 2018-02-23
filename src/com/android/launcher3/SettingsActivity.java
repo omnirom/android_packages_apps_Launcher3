@@ -29,9 +29,14 @@ import android.content.ComponentName;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.app.AlarmManager;
+import android.app.PendingIntent;
+import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.preference.ListPreference;
 import android.preference.Preference;
 import android.preference.PreferenceFragment;
@@ -48,6 +53,9 @@ import com.android.launcher3.notification.NotificationListener;
 import com.android.launcher3.util.ListViewHighlighter;
 import com.android.launcher3.util.SettingsObserver;
 import com.android.launcher3.views.ButtonPreference;
+import android.util.Log;
+import android.view.MenuItem;
+import com.android.launcher3.util.LooperExecutor;
 
 import java.util.Objects;
 
@@ -57,6 +65,7 @@ import java.util.Objects;
 public class SettingsActivity extends Activity {
 
     private static final String ICON_BADGING_PREFERENCE_KEY = "pref_icon_badging";
+
     /** Hidden field Settings.Secure.NOTIFICATION_BADGING */
     public static final String NOTIFICATION_BADGING = "notification_badging";
     /** Hidden field Settings.Secure.ENABLED_NOTIFICATION_LISTENERS */
@@ -68,6 +77,7 @@ public class SettingsActivity extends Activity {
     private static final String SAVE_HIGHLIGHTED_KEY = "android:preference_highlighted";
 
     public static final String PREF_THEME_STYLE_KEY = "pref_theme_style";
+    private static final long WAIT_BEFORE_RESTART = 250;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -150,6 +160,39 @@ public class SettingsActivity extends Activity {
                     String newValue = (String) o;
                     int valueIndex = mThemeStyle.findIndexOfValue(newValue);
                     mThemeStyle.setSummary(mThemeStyle.getEntries()[valueIndex]);
+                    return true;
+                }
+            });
+
+            final ListPreference gridColumns = (ListPreference) findPreference(Utilities.GRID_COLUMNS);
+            gridColumns.setSummary(gridColumns.getEntry());
+            gridColumns.setOnPreferenceChangeListener(new OnPreferenceChangeListener() {
+                public boolean onPreferenceChange(Preference preference, Object newValue) {
+                    int index = gridColumns.findIndexOfValue((String) newValue);
+                    gridColumns.setSummary(gridColumns.getEntries()[index]);
+                    restart(getActivity());
+                    return true;
+                }
+            });
+
+            final ListPreference gridRows = (ListPreference) findPreference(Utilities.GRID_ROWS);
+            gridRows.setSummary(gridRows.getEntry());
+            gridRows.setOnPreferenceChangeListener(new OnPreferenceChangeListener() {
+                public boolean onPreferenceChange(Preference preference, Object newValue) {
+                    int index = gridRows.findIndexOfValue((String) newValue);
+                    gridRows.setSummary(gridRows.getEntries()[index]);
+                    restart(getActivity());
+                    return true;
+                }
+            });
+
+            final ListPreference hotseatColumns = (ListPreference) findPreference(Utilities.HOTSEAT_ICONS);
+            hotseatColumns.setSummary(hotseatColumns.getEntry());
+            hotseatColumns.setOnPreferenceChangeListener(new OnPreferenceChangeListener() {
+                public boolean onPreferenceChange(Preference preference, Object newValue) {
+                    int index = hotseatColumns.findIndexOfValue((String) newValue);
+                    hotseatColumns.setSummary(hotseatColumns.getEntries()[index]);
+                    restart(getActivity());
                     return true;
                 }
             });
@@ -312,5 +355,30 @@ public class SettingsActivity extends Activity {
                     .putExtra(EXTRA_SHOW_FRAGMENT_ARGS, showFragmentArgs);
             getActivity().startActivity(intent);
         }
+    }
+
+    public static void restart(final Context context) {
+        ProgressDialog.show(context, null, context.getString(R.string.state_loading), true, false);
+        new LooperExecutor(LauncherModel.getWorkerLooper()).execute(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    Thread.sleep(WAIT_BEFORE_RESTART);
+                } catch (Exception e) {
+                    Log.e("SettingsActivity", "Error waiting", e);
+                }
+
+                Intent intent = new Intent(Intent.ACTION_MAIN)
+                        .addCategory(Intent.CATEGORY_HOME)
+                        .setPackage(context.getPackageName())
+                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+
+                PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_CANCEL_CURRENT | PendingIntent.FLAG_ONE_SHOT);
+                AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+                alarmManager.setExact(AlarmManager.ELAPSED_REALTIME, SystemClock.elapsedRealtime() + 50, pendingIntent);
+
+                android.os.Process.killProcess(android.os.Process.myPid());
+            }
+        });
     }
 }
