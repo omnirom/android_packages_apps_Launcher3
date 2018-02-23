@@ -93,12 +93,6 @@
             android:persistent="true" />
 
         <SwitchPreference
-            android:key="pref_showPredictiveApps"
-            android:title="@string/show_predictive_apps_title"
-            android:defaultValue="true"
-            android:persistent="true" />
-
-        <SwitchPreference
             android:key="pref_left_tab"
             android:title="@string/left_tab_label"
             android:summary="@string/left_tab_description"
@@ -110,10 +104,46 @@
             android:defaultValue="false"
             android:persistent="true" />
 
-       <Preference
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:key="app_drawer_category"
+        android:title="@string/app_drawer_category_title" >
+
+        <SwitchPreference
+            android:key="pref_showPredictiveApps"
+            android:title="@string/show_predictive_apps_title"
+            android:defaultValue="true"
+            android:persistent="true" />
+
+        <Preference
             android:key="hidden_app"
             android:title="@string/hide_app"
             android:summary="@string/hide_app_sum"/>
+
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:key="grid_category"
+        android:title="@string/grid_category_title">
+
+        <ListPreference
+            android:key="pref_grid_columns"
+            android:title="@string/number_of_columns_title"
+            android:summary="%s"
+            android:entries="@array/grid_names"
+            android:entryValues="@array/grid_values"
+            android:defaultValue="-1"
+            android:persistent="true" />
+
+        <ListPreference
+            android:key="pref_grid_rows"
+            android:title="@string/number_of_rows_title"
+            android:summary="%s"
+            android:entries="@array/grid_names"
+            android:entryValues="@array/grid_values"
+            android:defaultValue="-1"
+            android:persistent="true" />
 
     </PreferenceCategory>
 
@@ -149,6 +179,15 @@
             android:title="@string/show_hotseat_bg_color_title"
             android:summary="@string/show_hotseat_bg_color_summary"
             android:defaultValue="true"
+            android:persistent="true" />
+
+        <ListPreference
+            android:key="pref_hotseat_icons"
+            android:title="@string/number_of_hotseat_title"
+            android:summary="%s"
+            android:entries="@array/grid_names"
+            android:entryValues="@array/grid_values"
+            android:defaultValue="-1"
             android:persistent="true" />
 
     </PreferenceCategory>
