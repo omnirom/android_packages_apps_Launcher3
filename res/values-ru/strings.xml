@@ -178,4 +178,22 @@
     <string name="pref_show_clock_weather_nothing">Не отображать</string>
     <string name="pref_show_clock_weather_clock_only">Отображать только дату</string>
     <string name="pref_show_clock_weather_weather_only">Отображать только погоду</string>
+
+    <!-- Hide/Show search bars -->
+    <string name="bottom_search_bar_title">Нижняя панель поиска</string>
+    <string name="bottom_search_bar_summary">Отображать панель поиска в док-баре</string>
+    <string name="top_search_bar_title">Верхняя панель поиска</string>
+    <string name="top_search_bar_summary">Отображать панель поиска в верхней части меню приложений</string>
+
+    <string name="num_default">По умолчанию</string>
+    <string name="num_three">Три</string>
+    <string name="num_four">Четыре</string>
+    <string name="num_five">Пять</string>
+    <string name="num_six">Шесть</string>
+    <string name="num_seven">Семь</string>
+
+    <string name="grid_category_title">Столбцы и ряды</string>
+    <string name="number_of_columns_title">Количество столбцов</string>
+    <string name="number_of_rows_title">Количество рядов</string>
+    <string name="number_of_hotseat_title">Количество значков в док-баре</string>
 </resources>
