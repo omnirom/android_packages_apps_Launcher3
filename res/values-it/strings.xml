@@ -174,4 +174,33 @@
     <string name="pref_show_clock_weather_nothing">Nascondi entrambi</string>
     <string name="pref_show_clock_weather_clock_only">Mostra solo la data</string>
     <string name="pref_show_clock_weather_weather_only">Mostra solo il meteo</string>
+
+    <!-- Swipe up indicator -->
+    <string name="show_swipeup_arrow">Indicatore swipe</string>
+    <string name="show_swipeup_arrow_summary">Mostra la freccia sopra la dockbar per lo swipe verso l\'alto</string>
+
+
+    <string name="pref_show_clock_weather">Data e meteo home screen</string>
+    <string name="pref_show_clock_weather_both">Mostra data e meteo</string>
+    <string name="pref_show_clock_weather_nothing">Non mostrare nulla</string>
+    <string name="pref_show_clock_weather_clock_only">Mostra solo la data</string>
+    <string name="pref_show_clock_weather_weather_only">Mostra solo il meteo</string>
+
+    <!-- Hide/Show search bars -->
+    <string name="bottom_search_bar_title">Barra di ricerca inferiore</string>
+    <string name="bottom_search_bar_summary">Mostra la barra di ricerca sotto la dock</string>
+    <string name="top_search_bar_title">Barra di ricerca superiore</string>
+    <string name="top_search_bar_summary">Mostra la barra di ricerca in alto nell\'app drawer</string>
+
+    <string name="num_default">Predefinito</string>
+    <string name="num_three">Tre</string>
+    <string name="num_four">Quattro</string>
+    <string name="num_five">Cinque</string>
+    <string name="num_six">Sei</string>
+    <string name="num_seven">Sette</string>
+
+    <string name="grid_category_title">Griglia</string>
+    <string name="number_of_columns_title">Colonne della griglia</string>
+    <string name="number_of_rows_title">Righe della griglia</string>
+    <string name="number_of_hotseat_title">Icone dock</string>
 </resources>
