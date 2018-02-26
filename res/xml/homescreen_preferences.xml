@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <SwitchPreference
+        android:key="pref_enable_minus_one"
+        android:title="@string/title_show_google_app"
+        android:summary="@string/pref_show_google_now_summary"
+        android:defaultValue="true" />
+
+    <SwitchPreference
+        android:key="pref_show_swipeup_arrow"
+        android:title="@string/show_swipeup_arrow"
+        android:summary="@string/show_swipeup_arrow_summary"
+        android:defaultValue="true" />
+
+    <SwitchPreference
+        android:key="pref_bottom_search_bar"
+        android:title="@string/bottom_search_bar_title"
+        android:summary="@string/bottom_search_bar_summary"
+        android:defaultValue="true"
+        android:persistent="true" />
+
+    <PreferenceCategory
+        android:key="grid_category"
+        android:title="@string/grid_category_title">
+
+        <ListPreference
+            android:key="pref_grid_columns"
+            android:title="@string/number_of_columns_title"
+            android:summary="%s"
+            android:entries="@array/grid_names"
+            android:entryValues="@array/grid_values"
+            android:defaultValue="default"
+            android:persistent="true" />
+
+        <ListPreference
+            android:key="pref_grid_rows"
+            android:title="@string/number_of_rows_title"
+            android:summary="%s"
+            android:entries="@array/grid_names"
+            android:entryValues="@array/grid_values"
+            android:defaultValue="default"
+            android:persistent="true" />
+
+        <ListPreference
+            android:key="pref_hotseat_icons"
+            android:title="@string/number_of_hotseat_title"
+            android:summary="%s"
+            android:entries="@array/grid_names"
+            android:entryValues="@array/grid_values"
+            android:defaultValue="default"
+            android:persistent="true" />
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:key="widget_category"
+        android:title="@string/widget_category_title">
+
+        <PreferenceScreen
+            android:key="pref_smartspace"
+            android:title="@string/smartspace_preferences_in_settings"
+            android:summary="@string/smartspace_preferences_in_settings_desc"
+            android:persistent="false" />
+
+        <ListPreference
+            android:key="pref_show_clock_weather"
+            android:title="@string/pref_show_clock_weather"
+            android:summary="%s"
+            android:entries="@array/pref_show_clock_weather_names"
+            android:entryValues="@array/pref_show_clock_weather_values"
+            android:defaultValue=""
+            android:persistent="false" />
+
+    </PreferenceCategory>
+
+</PreferenceScreen>

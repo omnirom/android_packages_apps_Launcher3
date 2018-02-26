@@ -12,7 +12,7 @@ public class CustomDrawableFactory extends DynamicDrawableFactory {
 
     public CustomDrawableFactory(Context context) {
         super(context);
-        hasIconPack = !Utilities.getPrefs(context).getString(SettingsActivity.ICON_PACK_PREF, "").isEmpty();
+        hasIconPack = !Utilities.getPrefs(context).getString(IconsActivity.ICON_PACK_PREF, "").isEmpty();
     }
 
     @Override

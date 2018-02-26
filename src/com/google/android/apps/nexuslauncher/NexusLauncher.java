@@ -51,12 +51,12 @@ public class NexusLauncher {
 
     private static GoogleNow.IntegerReference dZ(SharedPreferences sharedPreferences) {
         return new GoogleNow.IntegerReference(
-                (sharedPreferences.getBoolean(SettingsActivity.ENABLE_MINUS_ONE_PREF, true) ? 1 : 0) | 0x2 | 0x4 | 0x8);
+                (sharedPreferences.getBoolean(HomeScreenActivity.ENABLE_MINUS_ONE_PREF, true) ? 1 : 0) | 0x2 | 0x4 | 0x8);
     }
 
     class NexusLauncherCallbacks implements LauncherCallbacks, SharedPreferences.OnSharedPreferenceChangeListener, WallpaperColorInfo.OnChangeListener {
         private SmartspaceView mSmartspace;
-        
+
         private static final String KEY_SHOW_WEATHER_CLOCK = "pref_show_clock_weather";
 
         private ItemInfoUpdateReceiver getUpdateReceiver() {
@@ -255,7 +255,7 @@ public class NexusLauncher {
 
         @Override
         public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-            if (SettingsActivity.ENABLE_MINUS_ONE_PREF.equals(key)) {
+            if (HomeScreenActivity.ENABLE_MINUS_ONE_PREF.equals(key)) {
                 fy.RB(dZ(sharedPreferences));
             }
             if (KEY_SHOW_WEATHER_CLOCK.equals(key)) {

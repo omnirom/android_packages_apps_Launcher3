@@ -96,7 +96,7 @@ public class CustomIconProvider extends DynamicIconProvider implements Runnable 
 
     @Override
     public void run() {
-        mIconPack = Utilities.getPrefs(mContext).getString(SettingsActivity.ICON_PACK_PREF, "");
+        mIconPack = Utilities.getPrefs(mContext).getString(IconsActivity.ICON_PACK_PREF, "");
         if (CustomIconUtils.isPackProvider(mContext, mIconPack)) {
             try {
                 Resources res = mPackageManager.getResourcesForApplication(mIconPack);

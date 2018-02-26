@@ -177,12 +177,12 @@ public class CustomAppPredictor extends UserEventDispatcher implements SharedPre
     }
 
     private boolean isPredictorEnabled() {
-        return Utilities.getPrefs(mContext).getBoolean(SettingsActivity.SHOW_PREDICTIONS_PREF, false);
+        return Utilities.getPrefs(mContext).getBoolean(AppDrawerActivity.SHOW_PREDICTIONS_PREF, false);
     }
 
     @Override
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-        if (key.equals(SettingsActivity.SHOW_PREDICTIONS_PREF) && !isPredictorEnabled()) {
+        if (key.equals(AppDrawerActivity.SHOW_PREDICTIONS_PREF) && !isPredictorEnabled()) {
             Set<String> predictionSet = getStringSetCopy();
 
             SharedPreferences.Editor edit = mPrefs.edit();
