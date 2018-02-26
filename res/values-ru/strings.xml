@@ -196,4 +196,6 @@
     <string name="number_of_columns_title">Количество столбцов</string>
     <string name="number_of_rows_title">Количество рядов</string>
     <string name="number_of_hotseat_title">Количество значков в док-баре</string>
+
+    <string name="icon_shape_rounded_square">Квадрат с закругленными углами</string>
 </resources>
