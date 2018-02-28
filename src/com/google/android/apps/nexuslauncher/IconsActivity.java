@@ -1,11 +1,14 @@
 package com.google.android.apps.nexuslauncher;
 
+import android.annotation.SuppressLint;
 import android.app.ActionBar;
+import android.app.AlarmManager;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.DialogFragment;
 import android.app.Fragment;
 import android.app.FragmentManager;
+import android.app.PendingIntent;
 import android.app.ProgressDialog;
 import android.content.ComponentName;
 import android.content.ContentResolver;
@@ -13,19 +16,22 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.Handler;
+import android.os.SystemClock;
 import android.preference.ListPreference;
 import android.preference.Preference;
 import android.preference.PreferenceFragment;
 import android.provider.Settings;
 import android.view.MenuItem;
 
+import com.android.launcher3.LauncherAppState;
 import com.android.launcher3.LauncherFiles;
+import com.android.launcher3.LauncherModel;
 import com.android.launcher3.R;
 import com.android.launcher3.SessionCommitReceiver;
 import com.android.launcher3.Utilities;
 import com.android.launcher3.graphics.IconShapeOverride;
 import com.android.launcher3.notification.NotificationListener;
+import com.android.launcher3.util.LooperExecutor;
 import com.android.launcher3.util.SettingsObserver;
 import com.android.launcher3.views.ButtonPreference;
 
@@ -36,8 +42,6 @@ public class IconsActivity extends com.android.launcher3.SettingsActivity implem
     public static final String NOTIFICATION_BADGING = "notification_badging";
     /** Hidden field Settings.Secure.ENABLED_NOTIFICATION_LISTENERS */
     private static final String NOTIFICATION_ENABLED_LISTENERS = "enabled_notification_listeners";
-
-    public final static String ICON_PACK_PREF = "pref_icon_pack";
 
     @Override
     protected void onCreate(final Bundle bundle) {
@@ -63,7 +67,6 @@ public class IconsActivity extends com.android.launcher3.SettingsActivity implem
 
         ActionBar actionBar;
         private Context mContext;
-        private CustomIconPreference mIconPackPref;
         private IconBadgingObserver mIconBadgingObserver;
 
         @Override
@@ -78,9 +81,6 @@ public class IconsActivity extends com.android.launcher3.SettingsActivity implem
             actionBar.setDisplayHomeAsUpEnabled(true);
 
             ContentResolver resolver = getActivity().getContentResolver();
-
-            mIconPackPref = (CustomIconPreference) findPreference(ICON_PACK_PREF);
-            mIconPackPref.setOnPreferenceChangeListener(this);
 
             ButtonPreference iconBadgingPref =
                     (ButtonPreference) findPreference(ICON_BADGING_PREFERENCE_KEY);
@@ -110,7 +110,6 @@ public class IconsActivity extends com.android.launcher3.SettingsActivity implem
         @Override
         public void onResume() {
             super.onResume();
-            mIconPackPref.reloadIconPacks();
         }
 
         @Override
@@ -125,25 +124,8 @@ public class IconsActivity extends com.android.launcher3.SettingsActivity implem
         @Override
         public boolean onPreferenceChange(Preference preference, final Object newValue) {
             switch (preference.getKey()) {
-                case ICON_PACK_PREF:
-                    if (!CustomIconUtils.getCurrentPack(mContext).equals(newValue)) {
-                        final ProgressDialog applyingDialog = ProgressDialog.show(mContext,
-                                null /* title */,
-                                mContext.getString(R.string.state_loading),
-                                true /* indeterminate */,
-                                false /* cancelable */);
-
-                        CustomIconUtils.setCurrentPack(getActivity(), (String) newValue);
-                        CustomIconUtils.applyIconPackAsync(mContext);
-
-                        new Handler().postDelayed(new Runnable() {
-                            @Override
-                            public void run() {
-                                applyingDialog.cancel();
-                            }
-                        }, 1000);
-                    }
-                    return true;
+                /*case ICON_PACK_PREF:
+                    return true;*/
             }
             return false;
         }
