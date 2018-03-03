@@ -231,9 +231,9 @@ public class IconsHandler {
     }
 
     Drawable getIconFromHandler(Context context, LauncherActivityInfo info) {
-        if (isDefaultIconPack()) {
+        /*if (isDefaultIconPack()) {
             return getRoundIcon(context, info.getComponentName().getPackageName(), LauncherAppState.getIDP(context).fillResIconDpi);
-        }
+        }*/
 
         Bitmap bm = getDrawableIconForPackage(info.getComponentName());
         if (bm == null) {
@@ -383,11 +383,15 @@ public class IconsHandler {
     }
 
     private Bitmap generateBitmap(ComponentName componentName, Bitmap defaultBitmap) {
+        Drawable d = new BitmapDrawable(mContext.getResources(), defaultBitmap);
         if (mBackImages.isEmpty()) {
-            Drawable d = new BitmapDrawable(mContext.getResources(), defaultBitmap);
             return LauncherIcons.createBadgedIconBitmap(d, Process.myUserHandle(),
                     mContext, Build.VERSION.SDK_INT, true);
         }
+
+        Bitmap wrapped = LauncherIcons.createBadgedIconBitmap(d, Process.myUserHandle(),
+                mContext, Build.VERSION.SDK_INT, true);
+
         Random random = new Random();
         int id = random.nextInt(mBackImages.size());
         Bitmap backImage = mBackImages.get(id);
@@ -398,7 +402,7 @@ public class IconsHandler {
         Canvas canvas = new Canvas(result);
         canvas.drawBitmap(backImage, 0, 0, null);
 
-        Bitmap scaledBitmap = Bitmap.createScaledBitmap(defaultBitmap,
+        Bitmap scaledBitmap = Bitmap.createScaledBitmap(wrapped,
                 (int) (w * mFactor), (int) (h * mFactor), false);
 
         Bitmap mutableMask = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
