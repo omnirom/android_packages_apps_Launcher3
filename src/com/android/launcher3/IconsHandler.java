@@ -210,31 +210,7 @@ public class IconsHandler {
         return mDrawables;
     }
 
-    Drawable getRoundIcon(Context context,String packageName, int iconDpi) {
-
-        try {
-            Resources resourcesForApplication = mPackageManager.getResourcesForApplication(packageName);
-            AssetManager assets = resourcesForApplication.getAssets();
-            XmlResourceParser parseXml = assets.openXmlResourceParser("AndroidManifest.xml");
-            int eventType;
-            while ((eventType = parseXml.nextToken()) != XmlPullParser.END_DOCUMENT)
-                if (eventType == XmlPullParser.START_TAG && parseXml.getName().equals("application"))
-                    for (int i = 0; i < parseXml.getAttributeCount(); i++)
-                        if (parseXml.getAttributeName(i).equals("roundIcon"))
-                            return resourcesForApplication.getDrawableForDensity(Integer.parseInt(parseXml.getAttributeValue(i).substring(1)), iconDpi, context.getTheme());
-            parseXml.close();
-        }
-        catch (Exception ex) {
-            Log.w("getRoundIcon", ex);
-        }
-        return null;
-    }
-
     Drawable getIconFromHandler(Context context, LauncherActivityInfo info) {
-        /*if (isDefaultIconPack()) {
-            return getRoundIcon(context, info.getComponentName().getPackageName(), LauncherAppState.getIDP(context).fillResIconDpi);
-        }*/
-
         Bitmap bm = getDrawableIconForPackage(info.getComponentName());
         if (bm == null) {
             return null;
