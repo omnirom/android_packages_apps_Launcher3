@@ -4025,17 +4025,15 @@ public class Launcher extends BaseActivity
                             mIconCache.addCustomInfoToDataBase(new BitmapDrawable(res, appliedIcon), info, mEditText.getText());
                             mIconPackDialog.dismiss();
                         }
-                });
-                if (!mIconsHandler.isDefaultIconPack()) {
-                    builder.setNeutralButton(R.string.reset_icon,
+                })
+                .setNeutralButton(R.string.reset_icon,
                         new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
                                 mIconCache.addCustomInfoToDataBase(mIconsHandler.getResetIconDrawable(Launcher.this, app, info), info, null);
                                 mIconPackDialog.dismiss();
                             }
-                    });
-                }
+                });
         mIconPackDialog = builder.create();
         mPackageIcon.setOnClickListener(new View.OnClickListener() {
             @Override

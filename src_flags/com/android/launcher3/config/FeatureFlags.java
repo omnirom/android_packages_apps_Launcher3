@@ -25,7 +25,7 @@ public final class FeatureFlags extends BaseFlags {
     public static final boolean LAUNCHER3_UPDATE_SOFT_INPUT_MODE = true;
 
     // When enabled, icons not supporting {@link AdaptiveIconDrawable} will be wrapped in {@link FixedScaleDrawable}.
-    public static final boolean LEGACY_ICON_TREATMENT = false;
+    public static final boolean LEGACY_ICON_TREATMENT = false; // handling this from IconsHandler
 
     private FeatureFlags() {}
 }
