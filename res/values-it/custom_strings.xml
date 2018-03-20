@@ -41,7 +41,7 @@
   <string name="omnijaws_service_disabled">Servizio disabilitato</string>
   <string name="omnijaws_detail_header">Meteo</string>
   <string name="omnijaws_label_default">Meteo</string>
-  <string name="omnijaws_current_text">Ora</string>
+  <string name="omnijaws_current_text">Adesso</string>
   <string name="omnijaws_package_not_available">OmniJaws non disponibile</string>
   <string name="omnijaws_service_last_update">Ultimo aggiornamento:</string>
   <string name="weather_settings_drop_target_label">Configura</string>
