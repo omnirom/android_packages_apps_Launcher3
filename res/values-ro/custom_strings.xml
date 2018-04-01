@@ -48,7 +48,6 @@
   <string name="show_hotseat_bg_color_title">Culoare fundal</string>
   <string name="show_hotseat_bg_color_summary">Aplicare culoarea de fundal doc bazat pe imaginea de fundal</string>
   <string name="calendar_view_status_perms">Atingeţi pentru a configura</string>
-  <string name="show_hotseat_title">Afişare doc</string>
   <string name="calendar_event_no_title_label">Fără titlu</string>
   <string name="weather_icon_pack_title">Pachet pictograme condiţii meteo</string>
   <string name="hotseat_category_title">Doc</string>
@@ -61,8 +60,7 @@
   <string name="three_months">3 luni</string>
   <string name="pref_show_today_title">Afișați data</string>
   <string name="show_search_bar_location_title">Amplasarea barei de căutare</string>
-  <string name="search_bar_location_bottom">Mai jos de doc</string>
-  <string name="search_bar_location_top">Deasupra doc-ului</string>
   <string name="pref_show_events_title">Afişare evenimente viitoare</string>
   <string name="left_tab_label">Fila Google Now</string>
+  <!-- Hidden app -->
 </resources>

@@ -48,7 +48,7 @@
   <string name="show_hotseat_bg_color_title">Háttérszín</string>
   <string name="show_hotseat_bg_color_summary">Dokk háttérszín alkalmazása a háttérkép alapján</string>
   <string name="calendar_view_status_perms">Érintse meg a beállításhoz</string>
-  <string name="show_hotseat_title">Dokkoló megjelenítése</string>
+  <string name="show_hotseat_title">Dokk megjelenítése</string>
   <string name="calendar_event_no_title_label">Nincs cím</string>
   <string name="weather_icon_pack_title">Időjárás állapot ikon csomag</string>
   <string name="hotseat_category_title">Dokkoló</string>
@@ -61,10 +61,19 @@
   <string name="three_months">3 hónap</string>
   <string name="pref_show_today_title">Dátum megjelenítése</string>
   <string name="show_search_bar_location_title">Keresősáv elhelyezése</string>
-  <string name="search_bar_location_bottom">Dokkoló alatt</string>
-  <string name="search_bar_location_top">Dokkoló felett</string>
+  <string name="search_bar_location_bottom">Dokk alatt</string>
+  <string name="search_bar_location_top">Dokk felett</string>
   <string name="pref_show_events_title">Közelgő események megjelenítése</string>
   <string name="left_tab_label">Google Now lap</string>
   <string name="left_tab_description">Google Now integráció váltása</string>
   <string name="show_dark_theme_title">Sötét téma</string>
+  <string name="pref_icon_badging_numbers_title">Értesítések száma</string>
+  <string name="pref_icon_badging_numbers_summary">Mutassa a ponton belül az értesítések számát</string>
+  <!-- Hidden app -->
+  <string name="hide_app">Alkalmazások elrejtése</string>
+  <string name="hide_app_sum">Alkalmazások elrejtése az alkalmazás fiókból</string>
+  <string name="hide_app_selected">&#160;kiválasztva</string>
+  <string name="hidden_app">Összes alkalmazás</string>
+  <string name="hide_selected">Kiválasztott alkalmazás(ok) elrejtése</string>
+  <string name="more">Egyebek</string>
 </resources>

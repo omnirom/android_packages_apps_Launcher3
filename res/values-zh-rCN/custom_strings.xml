@@ -48,7 +48,7 @@
   <string name="show_hotseat_bg_color_title">背景颜色</string>
   <string name="show_hotseat_bg_color_summary">为dock栏使用壁纸的颜色</string>
   <string name="calendar_view_status_perms">触摸设置</string>
-  <string name="show_hotseat_title">显示热键</string>
+  <string name="show_hotseat_title">显示底座</string>
   <string name="calendar_event_no_title_label">无标题</string>
   <string name="weather_icon_pack_title">天气状况图标</string>
   <string name="hotseat_category_title">Dock</string>
@@ -61,10 +61,19 @@
   <string name="three_months">3个月</string>
   <string name="pref_show_today_title">显示日期</string>
   <string name="show_search_bar_location_title">搜索栏位置</string>
-  <string name="search_bar_location_bottom">热键下方</string>
-  <string name="search_bar_location_top">热键上方</string>
+  <string name="search_bar_location_bottom">显示底座</string>
+  <string name="search_bar_location_top">底座上方</string>
   <string name="pref_show_events_title">显示即将发生事件</string>
   <string name="left_tab_label">Google即时标签</string>
   <string name="left_tab_description">切换谷歌现在集成</string>
   <string name="show_dark_theme_title">暗色主题</string>
+  <string name="pref_icon_badging_numbers_title">通知音量</string>
+  <string name="pref_icon_badging_numbers_summary">在点内显示通知计数</string>
+  <!-- Hidden app -->
+  <string name="hide_app">隐藏应用</string>
+  <string name="hide_app_sum">从抽屉里隐藏应用</string>
+  <string name="hide_app_selected">&#160;选定</string>
+  <string name="hidden_app">所有应用程序</string>
+  <string name="hide_selected">隐藏选定的应用程序(s)</string>
+  <string name="more">更多</string>
 </resources>

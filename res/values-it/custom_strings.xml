@@ -48,7 +48,6 @@
   <string name="show_hotseat_bg_color_title">Colore di sfondo</string>
   <string name="show_hotseat_bg_color_summary">Applica un colore di sfondo alla dock basato sullo sfondo</string>
   <string name="calendar_view_status_perms">Tocca per configurare</string>
-  <string name="show_hotseat_title">Mostra hotseat</string>
   <string name="calendar_event_no_title_label">Senza nome</string>
   <string name="weather_icon_pack_title">Pacchetto icone per il meteo</string>
   <string name="hotseat_category_title">Dock</string>
@@ -61,10 +60,9 @@
   <string name="three_months">3 mesi</string>
   <string name="pref_show_today_title">Mostra data</string>
   <string name="show_search_bar_location_title">Posizionamento della barra di ricerca</string>
-  <string name="search_bar_location_bottom">Sotto l\'hotseat</string>
-  <string name="search_bar_location_top">Sopra l\'hotseat</string>
   <string name="pref_show_events_title">Mosta i prossimi eventi</string>
   <string name="left_tab_label">Tab di Google Now</string>
   <string name="left_tab_description">Abilita l\'integrazione di Google Now</string>
   <string name="show_dark_theme_title">Tema scuro</string>
+  <!-- Hidden app -->
 </resources>

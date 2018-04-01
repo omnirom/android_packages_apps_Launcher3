@@ -48,7 +48,6 @@
   <string name="show_hotseat_bg_color_title">Warna latar belakang</string>
   <string name="show_hotseat_bg_color_summary">Terapkan warna latar belakang dok berdasarkan wallpaper</string>
   <string name="calendar_view_status_perms">Sentuh untuk menyiapkan</string>
-  <string name="show_hotseat_title">Tampilkan hotseat</string>
   <string name="calendar_event_no_title_label">Tampa judul</string>
   <string name="weather_icon_pack_title">Kondisi cuaca ikon pak</string>
   <string name="hotseat_category_title">Dermaga</string>
@@ -61,8 +60,7 @@
   <string name="three_months">3 bulan</string>
   <string name="pref_show_today_title">Tampilkan tanggal</string>
   <string name="show_search_bar_location_title">Cari penampatan bar</string>
-  <string name="search_bar_location_bottom">Di bawah hotseat</string>
-  <string name="search_bar_location_top">Diatas hotseat</string>
   <string name="pref_show_events_title">Tampilkan acara mendatang</string>
   <string name="left_tab_label">Tab Google Now</string>
+  <!-- Hidden app -->
 </resources>

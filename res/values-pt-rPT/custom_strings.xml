@@ -61,10 +61,19 @@
   <string name="three_months">3 meses</string>
   <string name="pref_show_today_title">Mostrar a data</string>
   <string name="show_search_bar_location_title">Localização da barra de pesquisa</string>
-  <string name="search_bar_location_bottom">Abaixo da doca</string>
+  <string name="search_bar_location_bottom">Por baixo da doca</string>
   <string name="search_bar_location_top">Acima da doca</string>
   <string name="pref_show_events_title">Mostrar próximos eventos</string>
   <string name="left_tab_label">Separador do Google Feed</string>
   <string name="left_tab_description">Ativar/desativar a integração do Google Feed</string>
   <string name="show_dark_theme_title">Tema escuro</string>
+  <string name="pref_icon_badging_numbers_title">Números nos pontos de notificação</string>
+  <string name="pref_icon_badging_numbers_summary">Mostrar o contador de notificações dentro do ponto</string>
+  <!-- Hidden app -->
+  <string name="hide_app">Esconder aplicações</string>
+  <string name="hide_app_sum">Esconder aplicações do painel de aplicações</string>
+  <string name="hide_app_selected">&#160;selecionadas</string>
+  <string name="hidden_app">Todas as aplicações</string>
+  <string name="hide_selected">Esconder as aplicações selecionadas</string>
+  <string name="more">Mais</string>
 </resources>

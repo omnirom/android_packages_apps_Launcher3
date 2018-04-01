@@ -48,7 +48,7 @@
   <string name="show_hotseat_bg_color_title">Color de fondo</string>
   <string name="show_hotseat_bg_color_summary">Aplicar color de fondo de dock basado en fondo de pantalla</string>
   <string name="calendar_view_status_perms">Toca para configurar</string>
-  <string name="show_hotseat_title">Mostrar hotseat</string>
+  <string name="show_hotseat_title">Mostrar Dock</string>
   <string name="calendar_event_no_title_label">Sin título</string>
   <string name="weather_icon_pack_title">Paquete de iconos de condiciones meteorológicas</string>
   <string name="hotseat_category_title">Muelle</string>
@@ -61,10 +61,18 @@
   <string name="three_months">3 meses</string>
   <string name="pref_show_today_title">Mostrar fecha</string>
   <string name="show_search_bar_location_title">Ubicación de la barra de búsqueda</string>
-  <string name="search_bar_location_bottom">Debajo del hotseat</string>
-  <string name="search_bar_location_top">Por encima de hotseat</string>
+  <string name="search_bar_location_bottom">Por debajo del Dock</string>
+  <string name="search_bar_location_top">Sobre el Dock</string>
   <string name="pref_show_events_title">Ver próximos eventos</string>
   <string name="left_tab_label">Pestaña Google Now</string>
   <string name="left_tab_description">Alternar la integración de Google Now</string>
   <string name="show_dark_theme_title">Tema oscuro</string>
+  <string name="pref_icon_badging_numbers_title">Mostrar número de notificaciones</string>
+  <string name="pref_icon_badging_numbers_summary">Mostrar la cuenta de notificaciones dentro del punto</string>
+  <!-- Hidden app -->
+  <string name="hide_app">Ocultar aplicaciones</string>
+  <string name="hide_app_sum">Ocultar aplicaciones en el cajón de aplicaciónes</string>
+  <string name="hidden_app">Todas las aplicaciones</string>
+  <string name="hide_selected">Ocultar aplicaciónes</string>
+  <string name="more">Más</string>
 </resources>

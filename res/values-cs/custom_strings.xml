@@ -48,7 +48,7 @@
   <string name="show_hotseat_bg_color_title">Barva pozadí</string>
   <string name="show_hotseat_bg_color_summary">Použít barvu pozadí doku podle tapety</string>
   <string name="calendar_view_status_perms">Dotykem nastavíte</string>
-  <string name="show_hotseat_title">Zobrazit hotseat</string>
+  <string name="show_hotseat_title">Zobrazit dok</string>
   <string name="calendar_event_no_title_label">Bez názvu</string>
   <string name="weather_icon_pack_title">Balíček stavu počasí</string>
   <string name="hotseat_category_title">Dokovací stanice</string>
@@ -61,10 +61,19 @@
   <string name="three_months">3 měsíce</string>
   <string name="pref_show_today_title">Zobrazit datum</string>
   <string name="show_search_bar_location_title">Umístění vyhledávacího panelu</string>
-  <string name="search_bar_location_bottom">Pod hotseat</string>
-  <string name="search_bar_location_top">Nad hotseat</string>
+  <string name="search_bar_location_bottom">Pod dokem</string>
+  <string name="search_bar_location_top">Nad dokem</string>
   <string name="pref_show_events_title">Zobrazit nadcházející události</string>
   <string name="left_tab_label">Karta Google Now</string>
   <string name="left_tab_description">Přepnutí integrace Google Now</string>
   <string name="show_dark_theme_title">Tmavý motiv</string>
+  <string name="pref_icon_badging_numbers_title">Čísla v bodech oznámení</string>
+  <string name="pref_icon_badging_numbers_summary">Zobrazit počet oznámení uvnitř bodu</string>
+  <!-- Hidden app -->
+  <string name="hide_app">Skrýt aplikace</string>
+  <string name="hide_app_sum">Skrýt aplikace ze seznamu aplikací</string>
+  <string name="hide_app_selected">&#160;vybráno</string>
+  <string name="hidden_app">Všechny aplikace</string>
+  <string name="hide_selected">Skrýt vybrané aplikace</string>
+  <string name="more">Další</string>
 </resources>

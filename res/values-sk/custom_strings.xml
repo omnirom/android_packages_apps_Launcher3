@@ -48,7 +48,7 @@
   <string name="show_hotseat_bg_color_title">Farba pozadia</string>
   <string name="show_hotseat_bg_color_summary">Použiť farbu pozadia doku podľa tapety</string>
   <string name="calendar_view_status_perms">Nastavte dotykom</string>
-  <string name="show_hotseat_title">Zobraziť hotseat</string>
+  <string name="show_hotseat_title">Zobraziť dok</string>
   <string name="calendar_event_no_title_label">Bez názvu</string>
   <string name="weather_icon_pack_title">Balíček stavu počasia</string>
   <string name="hotseat_category_title">Dok</string>
@@ -61,10 +61,19 @@
   <string name="three_months">3 mesiace</string>
   <string name="pref_show_today_title">Zobraziť dátum</string>
   <string name="show_search_bar_location_title">Umiestnenie vyhľadávacieho panelu</string>
-  <string name="search_bar_location_bottom">Pod hotseat</string>
-  <string name="search_bar_location_top">Nad hotseat</string>
+  <string name="search_bar_location_bottom">Pod dokom</string>
+  <string name="search_bar_location_top">Nad dokom</string>
   <string name="pref_show_events_title">Zobraziť nadchádzajúce udalosti</string>
   <string name="left_tab_label">Karta Asistent Google</string>
   <string name="left_tab_description">Prepnutie integrácie služby Asistent Google</string>
   <string name="show_dark_theme_title">Tmavá téma</string>
+  <string name="pref_icon_badging_numbers_title">Počet upozornení</string>
+  <string name="pref_icon_badging_numbers_summary">Zobraziť počet upozornení vnútri bodky</string>
+  <!-- Hidden app -->
+  <string name="hide_app">Skryť aplikácie</string>
+  <string name="hide_app_sum">Skryť aplikácie zo zoznamu aplikácií</string>
+  <string name="hide_app_selected">&#160;vybraných</string>
+  <string name="hidden_app">Všetky aplikácie</string>
+  <string name="hide_selected">Skryť vybrané aplikácie</string>
+  <string name="more">Dalšie</string>
 </resources>

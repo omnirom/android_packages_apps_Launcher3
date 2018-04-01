@@ -48,7 +48,7 @@
   <string name="show_hotseat_bg_color_title">Couleur d\'arrière-plan</string>
   <string name="show_hotseat_bg_color_summary">Appliquer la couleur d\'arrière-plan du dock en fonction du fond d\'écran</string>
   <string name="calendar_view_status_perms">Touchez pour configurer</string>
-  <string name="show_hotseat_title">Afficher lanceur d\'accueil</string>
+  <string name="show_hotseat_title">Afficher le dock</string>
   <string name="calendar_event_no_title_label">Pas de titre</string>
   <string name="weather_icon_pack_title">Pack d\'icônes de condition météo</string>
   <string name="hotseat_category_title">Dock</string>
@@ -61,10 +61,19 @@
   <string name="three_months">3 mois</string>
   <string name="pref_show_today_title">Afficher la date</string>
   <string name="show_search_bar_location_title">Emplacement de la barre de recherche</string>
-  <string name="search_bar_location_bottom">Sous le lanceur d\'accueil</string>
-  <string name="search_bar_location_top">Au-dessus du lanceur d\'accueil</string>
+  <string name="search_bar_location_bottom">Maquer le dock</string>
+  <string name="search_bar_location_top">Au-dessus du dock</string>
   <string name="pref_show_events_title">Afficher les événements à venir</string>
   <string name="left_tab_label">Onglet Google Now</string>
   <string name="left_tab_description">Activer/désactiver l\'intégration de Google Now</string>
   <string name="show_dark_theme_title">Thème sombre</string>
+  <string name="pref_icon_badging_numbers_title">Nombres des pastilles de notification</string>
+  <string name="pref_icon_badging_numbers_summary">Afficher le nombre de notification à l’intérieur de la pastille</string>
+  <!-- Hidden app -->
+  <string name="hide_app">Masquer des applications</string>
+  <string name="hide_app_sum">Masquer des applications du tiroir d’application</string>
+  <string name="hide_app_selected">&#160;sélectionné</string>
+  <string name="hidden_app">Toutes les applications</string>
+  <string name="hide_selected">Supprimer les applications sélectionnée(s)</string>
+  <string name="more">Afficher plus</string>
 </resources>

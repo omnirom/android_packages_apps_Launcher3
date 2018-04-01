@@ -48,7 +48,7 @@
   <string name="show_hotseat_bg_color_title">Taustavärv</string>
   <string name="show_hotseat_bg_color_summary">Rakenda dokile taustavärv, põhinedes tasutapildil</string>
   <string name="calendar_view_status_perms">Koputa seadistamiseks</string>
-  <string name="show_hotseat_title">Kuva dokki</string>
+  <string name="show_hotseat_title">Näita dokki</string>
   <string name="calendar_event_no_title_label">Pealkirja pole</string>
   <string name="weather_icon_pack_title">Ilmateate ikoonipakk</string>
   <string name="hotseat_category_title">Dokk</string>
@@ -67,4 +67,13 @@
   <string name="left_tab_label">Google Now vahekaart</string>
   <string name="left_tab_description">Lülita Google Now integreerimist</string>
   <string name="show_dark_theme_title">Tume teema</string>
+  <string name="pref_icon_badging_numbers_title">Teadete täpi arvud</string>
+  <string name="pref_icon_badging_numbers_summary">Kuva teadete arvu täpi sees</string>
+  <!-- Hidden app -->
+  <string name="hide_app">Peida rakendusi</string>
+  <string name="hide_app_sum">Peida rakendused rakendustesahtlist</string>
+  <string name="hide_app_selected">&#160;valitud</string>
+  <string name="hidden_app">Kõik rakendused</string>
+  <string name="hide_selected">Peida valitud rakendus(ed)</string>
+  <string name="more">Veel</string>
 </resources>

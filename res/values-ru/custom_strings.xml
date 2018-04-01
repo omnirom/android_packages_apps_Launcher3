@@ -48,7 +48,7 @@
   <string name="show_hotseat_bg_color_title">Цвет фона</string>
   <string name="show_hotseat_bg_color_summary">Применить фоновый цвет к доку на основе обоев</string>
   <string name="calendar_view_status_perms">Нажмите для настройки</string>
-  <string name="show_hotseat_title">Отображать ярлыки</string>
+  <string name="show_hotseat_title">Отображать док-бар</string>
   <string name="calendar_event_no_title_label">Без заголовка</string>
   <string name="weather_icon_pack_title">Набор значков состояния погоды</string>
   <string name="hotseat_category_title">Док-станция</string>
@@ -61,10 +61,16 @@
   <string name="three_months">3 месяца</string>
   <string name="pref_show_today_title">Отображать дату</string>
   <string name="show_search_bar_location_title">Размещение панели поиска</string>
-  <string name="search_bar_location_bottom">Ниже ярлыков на док-станции</string>
-  <string name="search_bar_location_top">Выше ярлыков на док-станции</string>
   <string name="pref_show_events_title">Отображать предстоящие события</string>
   <string name="left_tab_label">Вкладка Google Now</string>
   <string name="left_tab_description">Переключить интеграцию Google Now</string>
   <string name="show_dark_theme_title">Тёмная тема</string>
+  <!-- Hidden app -->
+  <string name="hide_app">Скрыть приложения</string>
+  <string name="hide_app_sum">
+Скрыть приложения в меню приложений</string>
+  <string name="hide_app_selected">&#160;выбрано</string>
+  <string name="hidden_app">Все приложения</string>
+  <string name="hide_selected">Скрыть выбранные приложения</string>
+  <string name="more">Больше</string>
 </resources>

@@ -61,10 +61,19 @@
   <string name="three_months">3 ay</string>
   <string name="pref_show_today_title">Târihi göster</string>
   <string name="show_search_bar_location_title">Arama çubuğu yerleşimi</string>
-  <string name="search_bar_location_bottom">Alt menünün altı</string>
-  <string name="search_bar_location_top">Alt menünün üstü</string>
+  <string name="search_bar_location_bottom">Alt menünün altında</string>
+  <string name="search_bar_location_top">Alt menünün üstünde</string>
   <string name="pref_show_events_title">Yaklaşan faaliyetleri göster</string>
   <string name="left_tab_label">Google Now sekmesi</string>
   <string name="left_tab_description">Google Now ile bütünleştirmeyi aç veyâ kapat</string>
   <string name="show_dark_theme_title">Koyu tema</string>
+  <string name="pref_icon_badging_numbers_title">Noktalı bildirim adetleri</string>
+  <string name="pref_icon_badging_numbers_summary">Bildirim adetini noktanın içinde göster</string>
+  <!-- Hidden app -->
+  <string name="hide_app">Uygulamaları sakla</string>
+  <string name="hide_app_sum">Uygulamaları uygulama menüsünde göstermeyin</string>
+  <string name="hide_app_selected">&#160;tane seçildi</string>
+  <string name="hidden_app">Bütün uygulamalar</string>
+  <string name="hide_selected">Seçilen uygulama(lar)ı sakla</string>
+  <string name="more">Daha fazla</string>
 </resources>
