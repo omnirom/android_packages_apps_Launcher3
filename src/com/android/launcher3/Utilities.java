@@ -131,13 +131,13 @@ public final class Utilities {
     public static final String ICON_SHAPE_PREFERENCE_KEY = "pref_iconShape";
     public static final String ICON_SHADOW_PREFERENCE_KEY = "pref_iconShadow";
     public static final String SHOW_SEARCH_BAR_PREFERENCE_KEY = "pref_searchBar";
-    public static final String SHOW_TOP_WIDGET_PREFERENCE_KEY = "pref_topWidget";
     public static final String SHOW_HOTSEAT_BG_PREFERENCE_KEY = "pref_hotSeatBgColor";
     public static final String SHOW_HOTSEAT_PREFERENCE_KEY = "pref_hotSeat";
     public static final String WEATHER_ICON_PACK_PREFERENCE_KEY = "pref_weatherIconPack";
     public static final String SHOW_ALL_DAY_EVENTS_PREFERENCE_KEY = "pref_allDayEvents";
     public static final String SHOW_EVENTS_PERIOD_PREFERENCE_KEY = "pref_showEventsPeriod";
     public static final String SHOW_TODAY_PREFERENCE_KEY = "pref_showToday";
+    public static final String SHOW_WEATHER_PREFERENCE_KEY = "pref_showWeather";
     public static final String SHOW_SEARCH_BAR_LOCATION_PREFERENCE_KEY = "pref_searchBarLocation";
     public static final String SHOW_EVENTS_PREFERENCE_KEY = "pref_showEvents";
     public static final String SHOW_LEFT_TAB_PREFERENCE_KEY = "pref_left_tab";
@@ -177,7 +177,9 @@ public final class Utilities {
     }
 
     public static boolean isTopSpaceReserved(Context context) {
-        return getPrefs(context).getBoolean(SHOW_TOP_WIDGET_PREFERENCE_KEY, true);
+        return isShowToday(context)
+                || isShowWeather(context)
+                || isShowEvents(context);
     }
 
     public static boolean isShowHotseatBgColor(Context context) {
@@ -198,6 +200,10 @@ public final class Utilities {
 
     public static boolean isShowToday(Context context) {
         return getPrefs(context).getBoolean(SHOW_TODAY_PREFERENCE_KEY, true);
+    }
+
+    public static boolean isShowWeather(Context context) {
+        return getPrefs(context).getBoolean(SHOW_WEATHER_PREFERENCE_KEY, true);
     }
 
     public static int getEventDisplayPeriod(Context context) {
