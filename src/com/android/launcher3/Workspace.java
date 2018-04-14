@@ -4204,10 +4204,24 @@ public class Workspace extends PagedView
     }
 
     public void updateTopWidgetVisibility(boolean visible) {
+        /*
+         * There is a nasty bug, mWorkspaceScreens can lost the reference to the
+         * first screen under certain conditions like :
+         *
+         * - Main workspace has no icons
+         * - Disable all top widgets
+         * - Put an icon at main workspace
+         * - Remove the icon
+         * - Enable a top widget, like show events
+         * - UI crashes
+         *
+         * Now the UI don't crashes but the widget will not be show until
+         * the view is refreshed by other event like screen rotation
+         */
         CellLayout firstPage = mWorkspaceScreens.get(FIRST_SCREEN_ID);
         View topContainer = mLauncher.getTopContainer();
         if (!visible) {
-            firstPage.markCellsAsUnoccupiedForView(topContainer);
+            if (firstPage != null) firstPage.markCellsAsUnoccupiedForView(topContainer);
             if (((ViewGroup) topContainer.getParent()) != null) {
                 ((ViewGroup) topContainer.getParent()).removeView(topContainer);
             }
@@ -4215,7 +4229,8 @@ public class Workspace extends PagedView
             if (((ViewGroup) topContainer.getParent()) != null) {
                 ((ViewGroup) topContainer.getParent()).removeView(topContainer);
             }
-            firstPage.addViewToCellLayout(topContainer, 0, R.id.top_container, mLp, visible);
+            // Bug is here, firstPage can be null
+            if (firstPage != null) firstPage.addViewToCellLayout(topContainer, 0, R.id.top_container, mLp, visible);
         }
     }
 }

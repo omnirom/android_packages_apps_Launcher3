@@ -158,9 +158,9 @@
         android:title="@string/widget_category_title" >
 
         <SwitchPreference
-            android:key="pref_topWidget"
-            android:title="@string/show_top_widget_title"
-            android:summary="@string/show_top_widget_summary"
+            android:key="pref_showWeather"
+            android:title="@string/pref_show_weather_title"
+            android:summary="@string/pref_show_weather_summary"
             android:defaultValue="true"
             android:persistent="true" />
 
@@ -168,15 +168,14 @@
             android:key="pref_weatherIconPack"
             android:title="@string/weather_icon_pack_title"
             android:persistent="true"
-            android:dependency="pref_topWidget" />
+            android:dependency="pref_showWeather" />
 
         <SwitchPreference
             android:key="pref_showEvents"
             android:title="@string/pref_show_events_title"
             android:summary="@string/pref_show_events_summary"
             android:defaultValue="true"
-            android:persistent="true"
-            android:dependency="pref_topWidget" />
+            android:persistent="true" />
 
         <SwitchPreference
             android:key="pref_allDayEvents"
@@ -199,8 +198,7 @@
             android:title="@string/pref_show_today_title"
             android:summary="@string/pref_show_today_summary"
             android:defaultValue="true"
-            android:persistent="true"
-            android:dependency="pref_topWidget" />
+            android:persistent="true" />
 
     </PreferenceCategory>
 </PreferenceScreen>
