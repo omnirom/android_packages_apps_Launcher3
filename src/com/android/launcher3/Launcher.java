@@ -4246,6 +4246,12 @@ public class Launcher extends BaseActivity
             if (Utilities.SHOW_TOP_WIDGET_PREFERENCE_KEY.equals(key)) {
                 updateTopWidgetVisibility();
             }
+
+            if (Utilities.SHOW_WEATHER_PREFERENCE_KEY.equals(key)) {
+                mTopContainer.updateTopWidgetVisibility(false);
+                updateTopWidgetVisibility();
+            }
+
             if (Utilities.SHOW_HOTSEAT_BG_PREFERENCE_KEY.equals(key)) {
                 mHotseat.setShowBackgroundColor(Utilities.isShowHotseatBgColor(Launcher.this));
             }

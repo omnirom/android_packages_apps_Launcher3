@@ -202,5 +202,13 @@
             android:persistent="true"
             android:dependency="pref_topWidget" />
 
+        <SwitchPreference
+            android:key="pref_showWeather"
+            android:title="@string/pref_show_weather_title"
+            android:summary="@string/pref_show_weather_summary"
+            android:defaultValue="true"
+            android:persistent="true"
+            android:dependency="pref_topWidget" />
+
     </PreferenceCategory>
 </PreferenceScreen>
