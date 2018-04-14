@@ -138,6 +138,7 @@ public final class Utilities {
     public static final String SHOW_ALL_DAY_EVENTS_PREFERENCE_KEY = "pref_allDayEvents";
     public static final String SHOW_EVENTS_PERIOD_PREFERENCE_KEY = "pref_showEventsPeriod";
     public static final String SHOW_TODAY_PREFERENCE_KEY = "pref_showToday";
+    public static final String SHOW_WEATHER_PREFERENCE_KEY = "pref_showWeather";
     public static final String SHOW_SEARCH_BAR_LOCATION_PREFERENCE_KEY = "pref_searchBarLocation";
     public static final String SHOW_EVENTS_PREFERENCE_KEY = "pref_showEvents";
     public static final String SHOW_LEFT_TAB_PREFERENCE_KEY = "pref_left_tab";
@@ -198,6 +199,10 @@ public final class Utilities {
 
     public static boolean isShowToday(Context context) {
         return getPrefs(context).getBoolean(SHOW_TODAY_PREFERENCE_KEY, true);
+    }
+
+    public static boolean isShowWeather(Context context) {
+        return getPrefs(context).getBoolean(SHOW_WEATHER_PREFERENCE_KEY, true);
     }
 
     public static int getEventDisplayPeriod(Context context) {
