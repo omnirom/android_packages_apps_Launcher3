@@ -40,8 +40,6 @@
     <string name="show_search_bar_title">Show search bar</string>
     <string name="show_search_bar_summary"></string>
     <string name="widget_category_title">Widgets</string>
-    <string name="show_top_widget_title">Show top widget</string>
-    <string name="show_top_widget_summary"></string>
     <string name="omnijaws_service_error">Error</string>
     <string name="omnijaws_service_unkown">No weather data</string>
     <string name="omnijaws_service_error_long">Error loading weather data</string>
@@ -71,6 +69,8 @@
     <string name="preferences_widget_days_default" translatable="false" >14</string>
     <string name="pref_show_today_title">Show date</string>
     <string name="pref_show_today_summary"></string>
+    <string name="pref_show_weather_title">Show weather</string>
+    <string name="pref_show_weather_summary"></string>
     <string name="show_search_bar_location_title">Search bar placement</string>
     <string name="search_bar_location_bottom">Below dock</string>
     <string name="search_bar_location_top">Above dock</string>

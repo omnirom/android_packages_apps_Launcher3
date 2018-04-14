@@ -387,6 +387,9 @@ public class Launcher extends BaseActivity
 
         super.onCreate(savedInstanceState);
 
+        // Top widget backward compatibility
+        Utilities.backwardCompatibility(this);
+
         LauncherAppState app = LauncherAppState.getInstance(this);
 
         // Load configuration-specific DeviceProfile
@@ -4243,9 +4246,16 @@ public class Launcher extends BaseActivity
                 updateHotseatQsbVisibility();
                 mDeviceProfile.layout(Launcher.this, false /* notifyListeners */);
             }
-            if (Utilities.SHOW_TOP_WIDGET_PREFERENCE_KEY.equals(key)) {
+            if (Utilities.SHOW_TODAY_PREFERENCE_KEY.equals(key)
+                    || Utilities.SHOW_WEATHER_PREFERENCE_KEY.equals(key)
+                    || Utilities.SHOW_EVENTS_PREFERENCE_KEY.equals(key)) {
+
+                if (mTopContainer != null) { // Reset current view if any
+                    mTopContainer.updateTopWidgetVisibility(false);
+                }
                 updateTopWidgetVisibility();
             }
+
             if (Utilities.SHOW_HOTSEAT_BG_PREFERENCE_KEY.equals(key)) {
                 mHotseat.setShowBackgroundColor(Utilities.isShowHotseatBgColor(Launcher.this));
             }
