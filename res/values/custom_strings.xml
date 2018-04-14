@@ -71,6 +71,8 @@
     <string name="preferences_widget_days_default" translatable="false" >14</string>
     <string name="pref_show_today_title">Show date</string>
     <string name="pref_show_today_summary"></string>
+    <string name="pref_show_weather_title">Show weather</string>
+    <string name="pref_show_weather_summary"></string>
     <string name="show_search_bar_location_title">Search bar placement</string>
     <string name="search_bar_location_bottom">Below dock</string>
     <string name="search_bar_location_top">Above dock</string>
