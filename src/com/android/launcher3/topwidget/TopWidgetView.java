@@ -29,6 +29,7 @@ import android.view.ViewGroup.LayoutParams;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 
+import com.android.launcher3.Utilities;
 import com.android.launcher3.R;
 
 public class TopWidgetView extends FrameLayout {
@@ -77,24 +78,30 @@ public class TopWidgetView extends FrameLayout {
     public void updateTopWidgetVisibility(boolean visible) {
         setVisibility(visible ? View.VISIBLE : View.GONE);
         if (!visible) {
-            if (mCalendarView != null && mWeatherView != null) {
+            if (mCalendarView != null) {
                 LinearLayout v = (LinearLayout) findViewById(R.id.calendar_view_container);
                 v.removeAllViews();
-                v = (LinearLayout) findViewById(R.id.current_weather_view_container);
+                mCalendarView = null;
+            }
+
+            if (mWeatherView != null) {
+                LinearLayout v = (LinearLayout) findViewById(R.id.current_weather_view_container);
                 v.removeAllViews();
                 v = (LinearLayout) findViewById(R.id.detailed_weather_view_container);
                 v.removeAllViews();
-                mCalendarView = null;
                 mWeatherView = null;
                 mDetailedWeatherView = null;
             }
         } else {
-            if (mCalendarView == null && mWeatherView == null) {
+            if (mCalendarView == null) {
                 mCalendarView = (CalendarView) mInflater.inflate(R.layout.calendar_view, null);
                 LinearLayout v = (LinearLayout) findViewById(R.id.calendar_view_container);
                 v.addView(mCalendarView, new ViewGroup.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
+            }
+
+            if (mWeatherView == null && Utilities.isShowWeather(getContext())) {
                 mWeatherView = (CurrentWeatherView) mInflater.inflate(R.layout.current_weather_view, null);
-                v = (LinearLayout) findViewById(R.id.current_weather_view_container);
+                LinearLayout v = (LinearLayout) findViewById(R.id.current_weather_view_container);
                 v.addView(mWeatherView, new ViewGroup.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
                 mDetailedWeatherView = (DetailedWeatherView) mInflater.inflate(R.layout.detailed_weather_view, null);
                 v = (LinearLayout) findViewById(R.id.detailed_weather_view_container);
