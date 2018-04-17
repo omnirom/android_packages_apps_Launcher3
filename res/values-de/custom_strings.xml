@@ -48,6 +48,7 @@
   <string name="show_hotseat_bg_color_title">Hintergrundfarbe</string>
   <string name="show_hotseat_bg_color_summary">Dock-Hintergrundfarbe basierend auf Displayhintergrund anpassen</string>
   <string name="calendar_view_status_perms">Zum Einrichten berühren</string>
+  <string name="show_hotseat_title">Dock anzeigen</string>
   <string name="calendar_event_no_title_label">Kein Titel</string>
   <string name="weather_icon_pack_title">Wetter-Symbolpaket</string>
   <string name="hotseat_category_title">Dock</string>
@@ -60,9 +61,15 @@
   <string name="three_months">3 Monate</string>
   <string name="pref_show_today_title">Datum anzeigen</string>
   <string name="show_search_bar_location_title">Platzierung der Suchleiste</string>
+  <string name="search_bar_location_bottom">Unterhalb des Docks</string>
+  <string name="search_bar_location_top">Oberhalb des Docks</string>
   <string name="pref_show_events_title">Bevorstehende Ereignisse anzeigen</string>
   <string name="left_tab_label">Registerkarte \"Google Now\"</string>
   <string name="left_tab_description">\"Google Now\"-Integration umschalten</string>
   <string name="show_dark_theme_title">Dunkles Design</string>
   <!-- Hidden app -->
+  <string name="hide_app">Apps ausblenden</string>
+  <string name="hidden_app">Alle Apps</string>
+  <string name="hide_selected">Ausgewählte App(s) ausblenden</string>
+  <string name="more">Mehr</string>
 </resources>

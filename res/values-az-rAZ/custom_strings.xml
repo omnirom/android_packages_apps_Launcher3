@@ -18,5 +18,31 @@
 */
 -->
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+  <string name="icon_pack">İkon paketi</string>
+  <string name="icon_mask_circle">Dairə</string>
+  <string name="adaptive_icon_mask_title">İkon paketi</string>
+  <string name="icon_category_title">Nişanlar</string>
+  <string name="other_category_title">Digər</string>
+  <string name="widget_category_title">Widget</string>
+  <string name="omnijaws_service_error">Xəta</string>
+  <string name="omnijaws_service_unkown">Hava məlumatı yoxdur</string>
+  <string name="omnijaws_service_error_long">Hava məlumatı yüklənərkən problem yarandı</string>
+  <string name="omnijaws_service_disabled">Servis bağlıdır</string>
+  <string name="omnijaws_detail_header">Hava</string>
+  <string name="omnijaws_label_default">Hava</string>
+  <string name="omnijaws_current_text">İndi</string>
+  <string name="omnijaws_package_not_available">Omnijaws mövcüd deyil</string>
+  <string name="omnijaws_service_last_update">Sonuncu yenilənmiş:</string>
+  <string name="weather_settings_drop_target_label">Ayarla</string>
+  <string name="calendar_event_no_title_label">Başlıq yoxdur</string>
+  <string name="hotseat_category_title">Tax</string>
+  <string name="preferences_widget_days_title">Ekran periyodu</string>
+  <string name="one_week">1 həftə</string>
+  <string name="two_weeks">2 həftə</string>
+  <string name="three_weeks">3 həftə</string>
+  <string name="one_month">1 ay</string>
+  <string name="three_months">3 ay</string>
+  <string name="pref_show_today_title">Tarixi göstər</string>
+  <string name="show_dark_theme_title">Qaranlıq tema</string>
   <!-- Hidden app -->
 </resources>

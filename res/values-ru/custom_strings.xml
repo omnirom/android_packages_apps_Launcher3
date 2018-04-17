@@ -67,8 +67,7 @@
   <string name="show_dark_theme_title">Тёмная тема</string>
   <!-- Hidden app -->
   <string name="hide_app">Скрыть приложения</string>
-  <string name="hide_app_sum">
-Скрыть приложения в меню приложений</string>
+  <string name="hide_app_sum">Скрыть приложения в меню приложений</string>
   <string name="hide_app_selected">&#160;выбрано</string>
   <string name="hidden_app">Все приложения</string>
   <string name="hide_selected">Скрыть выбранные приложения</string>

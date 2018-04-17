@@ -44,6 +44,8 @@
   <string name="weather_settings_drop_target_label">Määritä</string>
   <string name="show_hotseat_bg_color_title">Taustaväri</string>
   <string name="calendar_view_status_perms">Kosketa määrittääksesi</string>
+  <string name="show_hotseat_title">Näytä telakka</string>
+  <string name="calendar_event_no_title_label">Ei otsikkoa</string>
   <string name="weather_icon_pack_title">Sääkuvakepaketti</string>
   <string name="hotseat_category_title">Telakka</string>
   <string name="pref_allDayEvents_title">Näytä koko päivän tapahtumat</string>
@@ -55,8 +57,16 @@
   <string name="three_months">3 kuukautta</string>
   <string name="pref_show_today_title">Näytä päivämäärä</string>
   <string name="show_search_bar_location_title">Hakupalkin sijainti</string>
+  <string name="search_bar_location_bottom">Telakan alapuolella</string>
+  <string name="search_bar_location_top">Telakan yläpuolella</string>
   <string name="pref_show_events_title">Näytä tulevat tapahtumat</string>
   <string name="left_tab_label">Google Now sivu</string>
   <string name="show_dark_theme_title">Tumma teema</string>
   <!-- Hidden app -->
+  <string name="hide_app">Piilota sovelluksia</string>
+  <string name="hide_app_sum">Piilota sovelluksia sovellusvalikosta</string>
+  <string name="hide_app_selected">&#160;valittu</string>
+  <string name="hidden_app">Kaikki sovellukset</string>
+  <string name="hide_selected">Piilota valitut sovellukset</string>
+  <string name="more">Lisää</string>
 </resources>

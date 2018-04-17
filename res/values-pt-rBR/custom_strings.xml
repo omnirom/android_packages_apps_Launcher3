@@ -18,5 +18,16 @@
 */
 -->
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+  <string name="icon_pack">Pacote de ícones</string>
+  <string name="icon_mask_square">Quadrado</string>
+  <string name="icon_mask_circle">Círculo</string>
+  <string name="icon_category_title">Ícones</string>
+  <string name="omnijaws_current_text">Agora</string>
+  <string name="one_week">1 semana</string>
+  <string name="two_weeks">2 Semanas</string>
+  <string name="three_weeks">3 semanas</string>
+  <string name="one_month">1 mês</string>
+  <string name="three_months">3 meses</string>
+  <string name="show_dark_theme_title">Tema escuro</string>
   <!-- Hidden app -->
 </resources>

@@ -74,6 +74,6 @@
   <string name="hide_app_sum">Masquer des applications du tiroir d’application</string>
   <string name="hide_app_selected">&#160;sélectionné</string>
   <string name="hidden_app">Toutes les applications</string>
-  <string name="hide_selected">Supprimer les applications sélectionnée(s)</string>
+  <string name="hide_selected">Masquer les ou l\'application(s) sélectionnée(s)</string>
   <string name="more">Afficher plus</string>
 </resources>
