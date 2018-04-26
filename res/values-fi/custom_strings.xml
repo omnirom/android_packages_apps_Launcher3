@@ -31,7 +31,6 @@
   <string name="icon_shadow_title">Lisää kuvakkeen varjo</string>
   <string name="show_search_bar_title">Näytä hakupalkki</string>
   <string name="widget_category_title">Widgetit</string>
-  <string name="show_top_widget_title">Näytä yläwidgetti</string>
   <string name="omnijaws_service_error">Virhe</string>
   <string name="omnijaws_service_unkown">Ei säätietoja</string>
   <string name="omnijaws_service_error_long">Virhe ladattaessa säätietoja</string>
@@ -56,11 +55,11 @@
   <string name="one_month">1 kuukausi</string>
   <string name="three_months">3 kuukautta</string>
   <string name="pref_show_today_title">Näytä päivämäärä</string>
+  <string name="pref_show_weather_title">Näytä sää</string>
   <string name="show_search_bar_location_title">Hakupalkin sijainti</string>
   <string name="search_bar_location_bottom">Telakan alapuolella</string>
   <string name="search_bar_location_top">Telakan yläpuolella</string>
   <string name="pref_show_events_title">Näytä tulevat tapahtumat</string>
-  <string name="left_tab_label">Google Now sivu</string>
   <string name="show_dark_theme_title">Tumma teema</string>
   <!-- Hidden app -->
   <string name="hide_app">Piilota sovelluksia</string>
@@ -69,4 +68,9 @@
   <string name="hidden_app">Kaikki sovellukset</string>
   <string name="hide_selected">Piilota valitut sovellukset</string>
   <string name="more">Lisää</string>
+  <!-- grid -->
+  <string name="num_default">Oletus</string>
+  <string name="grid_category_title">Sarakkeet ja rivit</string>
+  <string name="number_of_hotseat_title">Sarakkeet</string>
+  <string name="app_drawer_category_title">Sovellusvalikko</string>
 </resources>

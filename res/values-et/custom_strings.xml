@@ -34,7 +34,6 @@
   <string name="icon_shadow_title">Lisa ikoonivari</string>
   <string name="show_search_bar_title">Kuva otsinguriba</string>
   <string name="widget_category_title">Vidinad</string>
-  <string name="show_top_widget_title">Kuva ülavidinat</string>
   <string name="omnijaws_service_error">Viga</string>
   <string name="omnijaws_service_unkown">Ilmateade puudub</string>
   <string name="omnijaws_service_error_long">Ilmateate laadimisel esines viga</string>
@@ -60,12 +59,11 @@
   <string name="one_month">1 kuu</string>
   <string name="three_months">3 kuud</string>
   <string name="pref_show_today_title">Näita kuupäeva</string>
+  <string name="pref_show_weather_title">Kuva ilma</string>
   <string name="show_search_bar_location_title">Otsinguriba paigutus</string>
   <string name="search_bar_location_bottom">Doki all</string>
   <string name="search_bar_location_top">Doki kohal</string>
   <string name="pref_show_events_title">Näita tulevaid sündmusi</string>
-  <string name="left_tab_label">Google Now vahekaart</string>
-  <string name="left_tab_description">Lülita Google Now integreerimist</string>
   <string name="show_dark_theme_title">Tume teema</string>
   <string name="pref_icon_badging_numbers_title">Teadete täpi arvud</string>
   <string name="pref_icon_badging_numbers_summary">Kuva teadete arvu täpi sees</string>
@@ -76,4 +74,5 @@
   <string name="hidden_app">Kõik rakendused</string>
   <string name="hide_selected">Peida valitud rakendus(ed)</string>
   <string name="more">Veel</string>
+  <!-- grid -->
 </resources>

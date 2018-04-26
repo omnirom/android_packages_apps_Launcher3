@@ -34,7 +34,6 @@
   <string name="icon_shadow_title">Ajouter l\'ombre de l\'icône</string>
   <string name="show_search_bar_title">Afficher la barre de recherche</string>
   <string name="widget_category_title">Widgets</string>
-  <string name="show_top_widget_title">Afficher le widget supérieur</string>
   <string name="omnijaws_service_error">Erreur</string>
   <string name="omnijaws_service_unkown">Aucune donnée météo</string>
   <string name="omnijaws_service_error_long">Erreur lors du chargement des données météo</string>
@@ -60,12 +59,11 @@
   <string name="one_month">1 mois</string>
   <string name="three_months">3 mois</string>
   <string name="pref_show_today_title">Afficher la date</string>
+  <string name="pref_show_weather_title">Afficher la météo</string>
   <string name="show_search_bar_location_title">Emplacement de la barre de recherche</string>
   <string name="search_bar_location_bottom">Maquer le dock</string>
   <string name="search_bar_location_top">Au-dessus du dock</string>
   <string name="pref_show_events_title">Afficher les événements à venir</string>
-  <string name="left_tab_label">Onglet Google Now</string>
-  <string name="left_tab_description">Activer/désactiver l\'intégration de Google Now</string>
   <string name="show_dark_theme_title">Thème sombre</string>
   <string name="pref_icon_badging_numbers_title">Nombres des pastilles de notification</string>
   <string name="pref_icon_badging_numbers_summary">Afficher le nombre de notification à l’intérieur de la pastille</string>
@@ -76,4 +74,5 @@
   <string name="hidden_app">Toutes les applications</string>
   <string name="hide_selected">Masquer les ou l\'application(s) sélectionnée(s)</string>
   <string name="more">Afficher plus</string>
+  <!-- grid -->
 </resources>

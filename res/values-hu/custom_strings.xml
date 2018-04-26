@@ -34,7 +34,6 @@
   <string name="icon_shadow_title">Ikon árnyék hozzáadása</string>
   <string name="show_search_bar_title">Keresési sáv megjelenítése</string>
   <string name="widget_category_title">Modulok</string>
-  <string name="show_top_widget_title">Legjobb modulok megjelenítése</string>
   <string name="omnijaws_service_error">Hiba</string>
   <string name="omnijaws_service_unkown">Nincs időjárási adat</string>
   <string name="omnijaws_service_error_long">Hiba az időjárási adatok betöltésekor</string>
@@ -60,20 +59,29 @@
   <string name="one_month">1 hónap</string>
   <string name="three_months">3 hónap</string>
   <string name="pref_show_today_title">Dátum megjelenítése</string>
+  <string name="pref_show_weather_title">Időjárás megjelenítése</string>
   <string name="show_search_bar_location_title">Keresősáv elhelyezése</string>
   <string name="search_bar_location_bottom">Dokk alatt</string>
   <string name="search_bar_location_top">Dokk felett</string>
   <string name="pref_show_events_title">Közelgő események megjelenítése</string>
-  <string name="left_tab_label">Google Now lap</string>
-  <string name="left_tab_description">Google Now integráció váltása</string>
+  <string name="left_tab_label">Google hírfolyam fül</string>
+  <string name="left_tab_description">Google hírfolyam beépítésének engedélyezése</string>
   <string name="show_dark_theme_title">Sötét téma</string>
   <string name="pref_icon_badging_numbers_title">Értesítések száma</string>
   <string name="pref_icon_badging_numbers_summary">Mutassa a ponton belül az értesítések számát</string>
   <!-- Hidden app -->
   <string name="hide_app">Alkalmazások elrejtése</string>
-  <string name="hide_app_sum">Alkalmazások elrejtése az alkalmazás fiókból</string>
+  <string name="hide_app_sum">Alkalmazások elrejtése az alkalmazásfiókban</string>
   <string name="hide_app_selected">&#160;kiválasztva</string>
   <string name="hidden_app">Összes alkalmazás</string>
   <string name="hide_selected">Kiválasztott alkalmazás(ok) elrejtése</string>
   <string name="more">Egyebek</string>
+  <!-- grid -->
+  <string name="num_default">Alapértelmezett</string>
+  <string name="grid_category_title">Oszlopok és sorok</string>
+  <string name="number_of_columns_title">Az alkalmazásfiók és a rács oszlopai</string>
+  <string name="number_of_rows_title">Rácssorok</string>
+  <string name="number_of_hotseat_title">Oszlopok</string>
+  <string name="state_loading">Alkalmazás\u2026</string>
+  <string name="app_drawer_category_title">Alkalmazásfiók</string>
 </resources>

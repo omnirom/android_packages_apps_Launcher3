@@ -34,7 +34,6 @@
   <string name="icon_shadow_title">Přidat stín ikony</string>
   <string name="show_search_bar_title">Zobrazit vyhledávací lištu</string>
   <string name="widget_category_title">Widgety</string>
-  <string name="show_top_widget_title">Zobrazit widget nahoře</string>
   <string name="omnijaws_service_error">Chyba</string>
   <string name="omnijaws_service_unkown">Žádné údaje o počasí</string>
   <string name="omnijaws_service_error_long">Chyba při načítání údajů o počasí</string>
@@ -60,12 +59,13 @@
   <string name="one_month">1 měsíc</string>
   <string name="three_months">3 měsíce</string>
   <string name="pref_show_today_title">Zobrazit datum</string>
+  <string name="pref_show_weather_title">Zobrazit počasí</string>
   <string name="show_search_bar_location_title">Umístění vyhledávacího panelu</string>
   <string name="search_bar_location_bottom">Pod dokem</string>
   <string name="search_bar_location_top">Nad dokem</string>
   <string name="pref_show_events_title">Zobrazit nadcházející události</string>
-  <string name="left_tab_label">Karta Google Now</string>
-  <string name="left_tab_description">Přepnutí integrace Google Now</string>
+  <string name="left_tab_label">Karta Google Feed</string>
+  <string name="left_tab_description">Povolit integraci Google Feed</string>
   <string name="show_dark_theme_title">Tmavý motiv</string>
   <string name="pref_icon_badging_numbers_title">Čísla v bodech oznámení</string>
   <string name="pref_icon_badging_numbers_summary">Zobrazit počet oznámení uvnitř bodu</string>
@@ -76,4 +76,12 @@
   <string name="hidden_app">Všechny aplikace</string>
   <string name="hide_selected">Skrýt vybrané aplikace</string>
   <string name="more">Další</string>
+  <!-- grid -->
+  <string name="num_default">Výchozí</string>
+  <string name="grid_category_title">Sloupce a řádky</string>
+  <string name="number_of_columns_title">Mřížka a sloupce seznamu aplikací</string>
+  <string name="number_of_rows_title">Řádky mřížky</string>
+  <string name="number_of_hotseat_title">Sloupce</string>
+  <string name="state_loading">Aplikuji\u2026</string>
+  <string name="app_drawer_category_title">Seznam aplikací</string>
 </resources>

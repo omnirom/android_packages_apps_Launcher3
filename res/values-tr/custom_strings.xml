@@ -34,7 +34,6 @@
   <string name="icon_shadow_title">Simgeye gölge ekle</string>
   <string name="show_search_bar_title">Arama çubuğunu göster</string>
   <string name="widget_category_title">Araçlar</string>
-  <string name="show_top_widget_title">En iyi aracı göster</string>
   <string name="omnijaws_service_error">Hatâ</string>
   <string name="omnijaws_service_unkown">Hava durumu verisi yok</string>
   <string name="omnijaws_service_error_long">Hava durumu verisi yüklenemedi</string>
@@ -52,7 +51,7 @@
   <string name="calendar_event_no_title_label">Başlık yok</string>
   <string name="weather_icon_pack_title">Hava durumu simge paketi</string>
   <string name="hotseat_category_title">Alt menü</string>
-  <string name="pref_allDayEvents_title">Gün boyu süren faaliyetleri göster</string>
+  <string name="pref_allDayEvents_title">Gün boyu süren hadiseleri göster</string>
   <string name="preferences_widget_days_title">Gösterme devri</string>
   <string name="one_week">1 hafta</string>
   <string name="two_weeks">2 hafta</string>
@@ -60,12 +59,13 @@
   <string name="one_month">1 ay</string>
   <string name="three_months">3 ay</string>
   <string name="pref_show_today_title">Târihi göster</string>
+  <string name="pref_show_weather_title">Hava durumunu göster</string>
   <string name="show_search_bar_location_title">Arama çubuğu yerleşimi</string>
   <string name="search_bar_location_bottom">Alt menünün altında</string>
   <string name="search_bar_location_top">Alt menünün üstünde</string>
-  <string name="pref_show_events_title">Yaklaşan faaliyetleri göster</string>
-  <string name="left_tab_label">Google Now sekmesi</string>
-  <string name="left_tab_description">Google Now ile bütünleştirmeyi aç veyâ kapat</string>
+  <string name="pref_show_events_title">Yaklaşan hadiseleri göster</string>
+  <string name="left_tab_label">Google haber kaynağı sekmesi</string>
+  <string name="left_tab_description">Google haber kaynağı ile bütünleşmeyi fa\'âl hâle getir</string>
   <string name="show_dark_theme_title">Koyu tema</string>
   <string name="pref_icon_badging_numbers_title">Noktalı bildirim adetleri</string>
   <string name="pref_icon_badging_numbers_summary">Bildirim adetini noktanın içinde göster</string>
@@ -76,4 +76,12 @@
   <string name="hidden_app">Bütün uygulamalar</string>
   <string name="hide_selected">Seçilen uygulama(lar)ı sakla</string>
   <string name="more">Daha fazla</string>
+  <!-- grid -->
+  <string name="num_default">Standart</string>
+  <string name="grid_category_title">Sütunlar ve satırlar</string>
+  <string name="number_of_columns_title">Izgara ve uygulama menüsü sütunları</string>
+  <string name="number_of_rows_title">Izgara satırları</string>
+  <string name="number_of_hotseat_title">Sütunlar</string>
+  <string name="state_loading">Uygulanıyor\u2026</string>
+  <string name="app_drawer_category_title">Uygulama menüsü</string>
 </resources>

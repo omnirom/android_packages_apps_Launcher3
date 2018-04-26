@@ -34,7 +34,6 @@
   <string name="icon_shadow_title">Adicionar sombra ao ícone</string>
   <string name="show_search_bar_title">Mostrar barra de pesquisa</string>
   <string name="widget_category_title">Widgets</string>
-  <string name="show_top_widget_title">Mostrar widget superior</string>
   <string name="omnijaws_service_error">Erro</string>
   <string name="omnijaws_service_unkown">Sem informação meteorológica</string>
   <string name="omnijaws_service_error_long">Erro ao carregar dados meteorológicos</string>
@@ -60,12 +59,13 @@
   <string name="one_month">1 mês</string>
   <string name="three_months">3 meses</string>
   <string name="pref_show_today_title">Mostrar a data</string>
+  <string name="pref_show_weather_title">Mostrar meteorologia</string>
   <string name="show_search_bar_location_title">Localização da barra de pesquisa</string>
   <string name="search_bar_location_bottom">Por baixo da doca</string>
   <string name="search_bar_location_top">Acima da doca</string>
   <string name="pref_show_events_title">Mostrar próximos eventos</string>
   <string name="left_tab_label">Separador do Google Feed</string>
-  <string name="left_tab_description">Ativar/desativar a integração do Google Feed</string>
+  <string name="left_tab_description">Ativar a integração do Google Feed</string>
   <string name="show_dark_theme_title">Tema escuro</string>
   <string name="pref_icon_badging_numbers_title">Números nos pontos de notificação</string>
   <string name="pref_icon_badging_numbers_summary">Mostrar o contador de notificações dentro do ponto</string>
@@ -76,4 +76,12 @@
   <string name="hidden_app">Todas as aplicações</string>
   <string name="hide_selected">Esconder as aplicações selecionadas</string>
   <string name="more">Mais</string>
+  <!-- grid -->
+  <string name="num_default">Predefinição</string>
+  <string name="grid_category_title">Colunas e linhas</string>
+  <string name="number_of_columns_title">Colunas da grelha e gaveta de aplicações</string>
+  <string name="number_of_rows_title">Linhas da grelha</string>
+  <string name="number_of_hotseat_title">Colunas</string>
+  <string name="state_loading">A aplicar\u2026</string>
+  <string name="app_drawer_category_title">Gaveta de aplicações</string>
 </resources>

@@ -34,7 +34,6 @@
   <string name="icon_shadow_title">Symbol-Schatten hinzufügen</string>
   <string name="show_search_bar_title">Suchleiste anzeigen</string>
   <string name="widget_category_title">Widgets</string>
-  <string name="show_top_widget_title">Oberes Widget anzeigen</string>
   <string name="omnijaws_service_error">Fehler</string>
   <string name="omnijaws_service_unkown">Keine Wetterdaten</string>
   <string name="omnijaws_service_error_long">Fehler beim Laden der Wetterdaten</string>
@@ -64,12 +63,11 @@
   <string name="search_bar_location_bottom">Unterhalb des Docks</string>
   <string name="search_bar_location_top">Oberhalb des Docks</string>
   <string name="pref_show_events_title">Bevorstehende Ereignisse anzeigen</string>
-  <string name="left_tab_label">Registerkarte \"Google Now\"</string>
-  <string name="left_tab_description">\"Google Now\"-Integration umschalten</string>
   <string name="show_dark_theme_title">Dunkles Design</string>
   <!-- Hidden app -->
   <string name="hide_app">Apps ausblenden</string>
   <string name="hidden_app">Alle Apps</string>
   <string name="hide_selected">Ausgewählte App(s) ausblenden</string>
   <string name="more">Mehr</string>
+  <!-- grid -->
 </resources>

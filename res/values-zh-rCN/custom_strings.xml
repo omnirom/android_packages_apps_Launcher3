@@ -34,7 +34,6 @@
   <string name="icon_shadow_title">添加图标阴影</string>
   <string name="show_search_bar_title">显示搜索栏</string>
   <string name="widget_category_title">小部件</string>
-  <string name="show_top_widget_title">显示顶部小部件</string>
   <string name="omnijaws_service_error">错误</string>
   <string name="omnijaws_service_unkown">没有天气数据</string>
   <string name="omnijaws_service_error_long">读取天气数据时出现错误</string>
@@ -60,12 +59,13 @@
   <string name="one_month">1个月</string>
   <string name="three_months">3个月</string>
   <string name="pref_show_today_title">显示日期</string>
+  <string name="pref_show_weather_title">显示天气</string>
   <string name="show_search_bar_location_title">搜索栏位置</string>
   <string name="search_bar_location_bottom">显示底座</string>
   <string name="search_bar_location_top">底座上方</string>
   <string name="pref_show_events_title">显示即将发生事件</string>
-  <string name="left_tab_label">Google即时标签</string>
-  <string name="left_tab_description">切换谷歌现在集成</string>
+  <string name="left_tab_label">谷歌 feed 标签</string>
+  <string name="left_tab_description">启用谷歌 feed 集成</string>
   <string name="show_dark_theme_title">暗色主题</string>
   <string name="pref_icon_badging_numbers_title">通知音量</string>
   <string name="pref_icon_badging_numbers_summary">在点内显示通知计数</string>
@@ -76,4 +76,12 @@
   <string name="hidden_app">所有应用程序</string>
   <string name="hide_selected">隐藏选定的应用程序(s)</string>
   <string name="more">更多</string>
+  <!-- grid -->
+  <string name="num_default">默认</string>
+  <string name="grid_category_title">列和行</string>
+  <string name="number_of_columns_title">网格和应用抽屉专栏</string>
+  <string name="number_of_rows_title">网格行</string>
+  <string name="number_of_hotseat_title">列数</string>
+  <string name="state_loading">应用中\u2026</string>
+  <string name="app_drawer_category_title">应用程序的抽屉里</string>
 </resources>

@@ -34,7 +34,6 @@
   <string name="icon_shadow_title">Добавить тень значка</string>
   <string name="show_search_bar_title">Показывать строку поиска</string>
   <string name="widget_category_title">Виджеты</string>
-  <string name="show_top_widget_title">Показать верхний виджет</string>
   <string name="omnijaws_service_error">Ошибка</string>
   <string name="omnijaws_service_unkown">Нет данных погоды</string>
   <string name="omnijaws_service_error_long">Ошибка загрузки данных о погоде</string>
@@ -62,8 +61,6 @@
   <string name="pref_show_today_title">Отображать дату</string>
   <string name="show_search_bar_location_title">Размещение панели поиска</string>
   <string name="pref_show_events_title">Отображать предстоящие события</string>
-  <string name="left_tab_label">Вкладка Google Now</string>
-  <string name="left_tab_description">Переключить интеграцию Google Now</string>
   <string name="show_dark_theme_title">Тёмная тема</string>
   <!-- Hidden app -->
   <string name="hide_app">Скрыть приложения</string>
@@ -72,4 +69,5 @@
   <string name="hidden_app">Все приложения</string>
   <string name="hide_selected">Скрыть выбранные приложения</string>
   <string name="more">Больше</string>
+  <!-- grid -->
 </resources>

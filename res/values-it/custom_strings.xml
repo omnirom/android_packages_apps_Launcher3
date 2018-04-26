@@ -34,7 +34,6 @@
   <string name="icon_shadow_title">Aggiungi ombra alle icone</string>
   <string name="show_search_bar_title">Visualizza barra di ricerca</string>
   <string name="widget_category_title">Widgets</string>
-  <string name="show_top_widget_title">Visualizza widget in alto</string>
   <string name="omnijaws_service_error">Errore</string>
   <string name="omnijaws_service_unkown">Dati meteo non disponibili</string>
   <string name="omnijaws_service_error_long">Errore durante il caricamento dei dati meteo</string>
@@ -61,8 +60,7 @@
   <string name="pref_show_today_title">Mostra data</string>
   <string name="show_search_bar_location_title">Posizionamento della barra di ricerca</string>
   <string name="pref_show_events_title">Mosta i prossimi eventi</string>
-  <string name="left_tab_label">Tab di Google Now</string>
-  <string name="left_tab_description">Abilita l\'integrazione di Google Now</string>
   <string name="show_dark_theme_title">Tema scuro</string>
   <!-- Hidden app -->
+  <!-- grid -->
 </resources>

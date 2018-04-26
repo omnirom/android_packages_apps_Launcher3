@@ -34,7 +34,6 @@
   <string name="icon_shadow_title">Pridať tieň ikony</string>
   <string name="show_search_bar_title">Zobrazovať vyhľadávaciu lištu</string>
   <string name="widget_category_title">Miniaplikácie</string>
-  <string name="show_top_widget_title">Zobraziť všetky miniaplikácie</string>
   <string name="omnijaws_service_error">Chyba</string>
   <string name="omnijaws_service_unkown">Žiadne údaje o počasí</string>
   <string name="omnijaws_service_error_long">Chyba pri načítavaní údajov o počasí</string>
@@ -60,12 +59,13 @@
   <string name="one_month">1 mesiac</string>
   <string name="three_months">3 mesiace</string>
   <string name="pref_show_today_title">Zobraziť dátum</string>
+  <string name="pref_show_weather_title">Zobraziť počasie</string>
   <string name="show_search_bar_location_title">Umiestnenie vyhľadávacieho panelu</string>
   <string name="search_bar_location_bottom">Pod dokom</string>
   <string name="search_bar_location_top">Nad dokom</string>
   <string name="pref_show_events_title">Zobraziť nadchádzajúce udalosti</string>
-  <string name="left_tab_label">Karta Asistent Google</string>
-  <string name="left_tab_description">Prepnutie integrácie služby Asistent Google</string>
+  <string name="left_tab_label">Karta Google feed</string>
+  <string name="left_tab_description">Povoliť integráciu Google feed</string>
   <string name="show_dark_theme_title">Tmavá téma</string>
   <string name="pref_icon_badging_numbers_title">Počet upozornení</string>
   <string name="pref_icon_badging_numbers_summary">Zobraziť počet upozornení vnútri bodky</string>
@@ -76,4 +76,12 @@
   <string name="hidden_app">Všetky aplikácie</string>
   <string name="hide_selected">Skryť vybrané aplikácie</string>
   <string name="more">Dalšie</string>
+  <!-- grid -->
+  <string name="num_default">Predvolené</string>
+  <string name="grid_category_title">Riadky a stĺpce</string>
+  <string name="number_of_columns_title">Mriežka a stĺpce zoznamu aplikácií</string>
+  <string name="number_of_rows_title">Riadky mriežky</string>
+  <string name="number_of_hotseat_title">Stĺpce</string>
+  <string name="state_loading">Nastavujem\u2026</string>
+  <string name="app_drawer_category_title">Ponuka aplikácií</string>
 </resources>
