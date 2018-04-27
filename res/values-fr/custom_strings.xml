@@ -75,4 +75,5 @@
   <string name="hide_selected">Masquer les ou l\'application(s) sélectionnée(s)</string>
   <string name="more">Afficher plus</string>
   <!-- grid -->
+  <string name="num_default">Par défaut</string>
 </resources>
