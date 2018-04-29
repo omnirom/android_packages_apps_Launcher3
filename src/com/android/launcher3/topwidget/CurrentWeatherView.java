@@ -67,6 +67,7 @@ public class CurrentWeatherView extends FrameLayout implements OmniJawsClient.Om
     private ImageView mEmptyViewImage;
     private TopWidgetView mTopWidget;
     private DetailedWeatherView mDetailedWeatherView;
+    private SlashDrawable mServiceStateImage;
 
     public CurrentWeatherView(Context context) {
         this(context, null);
@@ -122,6 +123,9 @@ public class CurrentWeatherView extends FrameLayout implements OmniJawsClient.Om
         mCurrentImage  = (ImageView) findViewById(R.id.current_image);
         mEmptyView = findViewById(android.R.id.empty);
         mEmptyViewImage = (ImageView) findViewById(R.id.empty_weather_image);
+        Drawable d = mContext.getResources().getDrawable(R.drawable.ic_qs_weather_default_on);
+        mServiceStateImage = new SlashDrawable(d);
+        mEmptyViewImage.setImageDrawable(mServiceStateImage);
 
         mEmptyViewImage.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -171,11 +175,7 @@ public class CurrentWeatherView extends FrameLayout implements OmniJawsClient.Om
 
         if (!mWeatherClient.isOmniJawsEnabled() || weatherData == null) {
             setErrorView();
-            if (mWeatherClient.isOmniJawsEnabled()) {
-                mEmptyViewImage.setImageResource(R.drawable.ic_qs_weather_default_on);
-            } else {
-                mEmptyViewImage.setImageResource(R.drawable.ic_qs_weather_default_off);
-            }
+            mServiceStateImage.setSlashed(!mWeatherClient.isOmniJawsEnabled());
             return;
         }
         mEmptyView.setVisibility(View.GONE);
@@ -254,12 +254,7 @@ public class CurrentWeatherView extends FrameLayout implements OmniJawsClient.Om
         if (DEBUG) Log.d(TAG, "weatherError " + errorReason);
         mProgressContainer.setVisibility(View.GONE);
         setErrorView();
-
-        if (errorReason == OmniJawsClient.EXTRA_ERROR_DISABLED) {
-            mEmptyViewImage.setImageResource(R.drawable.ic_qs_weather_default_off);
-        } else {
-            mEmptyViewImage.setImageResource(R.drawable.ic_qs_weather_default_on);
-        }
+        mServiceStateImage.setSlashed(errorReason == OmniJawsClient.EXTRA_ERROR_DISABLED);
         if (mTopWidget != null && mDetailedWeatherView != null) {
             mTopWidget.showDetailedWeather(false);
         }
