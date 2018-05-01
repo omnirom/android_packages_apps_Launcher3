@@ -64,6 +64,8 @@
   <string name="search_bar_location_bottom">Maquer le dock</string>
   <string name="search_bar_location_top">Au-dessus du dock</string>
   <string name="pref_show_events_title">Afficher les événements à venir</string>
+  <string name="left_tab_label">Fenêtre Google feed</string>
+  <string name="left_tab_description">Activer l\'intégration de Google feed</string>
   <string name="show_dark_theme_title">Thème sombre</string>
   <string name="pref_icon_badging_numbers_title">Nombres des pastilles de notification</string>
   <string name="pref_icon_badging_numbers_summary">Afficher le nombre de notification à l’intérieur de la pastille</string>
@@ -75,4 +77,11 @@
   <string name="hide_selected">Masquer les ou l\'application(s) sélectionnée(s)</string>
   <string name="more">Afficher plus</string>
   <!-- grid -->
+  <string name="num_default">Par défaut</string>
+  <string name="grid_category_title">Colonnes et lignes</string>
+  <string name="number_of_columns_title">Colonnes de la grille et du tiroir d\'application</string>
+  <string name="number_of_rows_title">Lignes de la grille</string>
+  <string name="number_of_hotseat_title">Colonnes</string>
+  <string name="state_loading">Application en cours\u2026</string>
+  <string name="app_drawer_category_title">Tiroir d\'application</string>
 </resources>
