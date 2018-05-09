@@ -64,15 +64,20 @@
   <string name="search_bar_location_bottom">Por debajo del Dock</string>
   <string name="search_bar_location_top">Sobre el Dock</string>
   <string name="pref_show_events_title">Ver próximos eventos</string>
+  <string name="left_tab_label">Pestaña Google Now</string>
+  <string name="left_tab_description">Activar la integración de Google Now</string>
   <string name="show_dark_theme_title">Tema oscuro</string>
   <string name="pref_icon_badging_numbers_title">Mostrar número de notificaciones</string>
   <string name="pref_icon_badging_numbers_summary">Mostrar la cuenta de notificaciones dentro del punto</string>
   <!-- Hidden app -->
   <string name="hide_app">Ocultar aplicaciones</string>
-  <string name="hide_app_sum">Ocultar aplicaciones en el cajón de aplicaciónes</string>
+  <string name="hide_app_sum">Ocultar aplicaciones en el cajón de aplicaciones</string>
   <string name="hide_app_selected">&#160;seleccionado</string>
   <string name="hidden_app">Todas las aplicaciones</string>
-  <string name="hide_selected">Ocultar aplicaciónes</string>
+  <string name="hide_selected">Ocultar aplicaciones</string>
   <string name="more">Más</string>
   <!-- grid -->
+  <string name="num_default">Por defecto</string>
+  <string name="grid_category_title">Columnas y filas</string>
+  <string name="number_of_hotseat_title">Columnas</string>
 </resources>

@@ -41,7 +41,7 @@
   <string name="omnijaws_detail_header">Hava durumu</string>
   <string name="omnijaws_label_default">Hava durumu</string>
   <string name="omnijaws_current_text">Şu ân</string>
-  <string name="omnijaws_package_not_available">OmniJaws mevcûd değil</string>
+  <string name="omnijaws_package_not_available">OmniJaws müsait değil</string>
   <string name="omnijaws_service_last_update">Son güncelleme:</string>
   <string name="weather_settings_drop_target_label">Ayarla</string>
   <string name="show_hotseat_bg_color_title">Arka plan rengi</string>
