@@ -47,6 +47,7 @@
   <string name="show_hotseat_bg_color_title">Colore di sfondo</string>
   <string name="show_hotseat_bg_color_summary">Applica un colore di sfondo alla dock basato sullo sfondo</string>
   <string name="calendar_view_status_perms">Tocca per configurare</string>
+  <string name="show_hotseat_title">Mostra dock</string>
   <string name="calendar_event_no_title_label">Senza nome</string>
   <string name="weather_icon_pack_title">Pacchetto icone per il meteo</string>
   <string name="hotseat_category_title">Dock</string>
@@ -58,9 +59,29 @@
   <string name="one_month">1 mese</string>
   <string name="three_months">3 mesi</string>
   <string name="pref_show_today_title">Mostra data</string>
+  <string name="pref_show_weather_title">Mostra meteo</string>
   <string name="show_search_bar_location_title">Posizionamento della barra di ricerca</string>
+  <string name="search_bar_location_bottom">Sotto la dock</string>
+  <string name="search_bar_location_top">Sopra la dock</string>
   <string name="pref_show_events_title">Mosta i prossimi eventi</string>
+  <string name="left_tab_label">Feed di Google</string>
+  <string name="left_tab_description">Abilita l\'integrazione di Google Now</string>
   <string name="show_dark_theme_title">Tema scuro</string>
+  <string name="pref_icon_badging_numbers_title">Numeri del puntino di notifica</string>
+  <string name="pref_icon_badging_numbers_summary">Visualizza il numero di notifiche all\'interno del punto</string>
   <!-- Hidden app -->
+  <string name="hide_app">Nascondi app</string>
+  <string name="hide_app_sum">Nascondi app dal menù delle app</string>
+  <string name="hide_app_selected">&#160;selezionato</string>
+  <string name="hidden_app">Tutte le app</string>
+  <string name="hide_selected">Nascondi app selezionata(e)</string>
+  <string name="more">Altro</string>
   <!-- grid -->
+  <string name="num_default">Predefinita</string>
+  <string name="grid_category_title">Colonne e righe</string>
+  <string name="number_of_columns_title">Griglia e colonne nel menù delle app</string>
+  <string name="number_of_rows_title">Righe della griglia</string>
+  <string name="number_of_hotseat_title">Colonne</string>
+  <string name="state_loading">Applicando\u2026</string>
+  <string name="app_drawer_category_title">Menù delle app</string>
 </resources>
