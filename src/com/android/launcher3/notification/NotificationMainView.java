@@ -20,6 +20,7 @@ import android.animation.ObjectAnimator;
 import android.content.Context;
 import android.content.res.ColorStateList;
 import android.graphics.drawable.ColorDrawable;
+import android.graphics.drawable.Drawable;
 import android.graphics.drawable.RippleDrawable;
 import android.text.TextUtils;
 import android.util.AttributeSet;
@@ -64,8 +65,8 @@ public class NotificationMainView extends FrameLayout implements SwipeHelper.Cal
         super.onFinishInflate();
 
         mTextAndBackground = (ViewGroup) findViewById(R.id.text_and_background);
-        ColorDrawable colorBackground = (ColorDrawable) mTextAndBackground.getBackground();
-        mBackgroundColor = colorBackground.getColor();
+        Drawable colorBackground = mTextAndBackground.getBackground();
+        mBackgroundColor = getResources().getColor(R.color.popup_background_color);
         RippleDrawable rippleBackground = new RippleDrawable(ColorStateList.valueOf(
                 Themes.getAttrColor(getContext(), android.R.attr.colorControlHighlight)),
                 colorBackground, null);
