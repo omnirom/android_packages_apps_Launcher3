@@ -218,4 +218,5 @@
     <dimen name="qsb_hotseat_height">80dp</dimen>
 
     <dimen name="top_widget_padding">0dp</dimen>
+    <dimen name="event_item_height">24dp</dimen>
 </resources>
