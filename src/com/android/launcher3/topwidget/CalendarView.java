@@ -55,7 +55,7 @@ public class CalendarView extends FrameLayout implements CalendarClient.Calendar
 
     private static final String TAG = "Launcher3:CalendarView";
     private static final boolean DEBUG = false;
-    private static final int SHOW_NUM_EVENTS = 3;
+    private static int SHOW_NUM_EVENTS = 3;
 
     private View mCalendarData;
     private ListView mEventList;
@@ -98,6 +98,11 @@ public class CalendarView extends FrameLayout implements CalendarClient.Calendar
             });
             return convertView;
         }
+
+        @Override
+        public int getCount() {
+            Math.min(mEventData.size(), SHOW_NUM_EVENTS);
+        }
     }
 
     public CalendarView(Context context) {
@@ -110,6 +115,17 @@ public class CalendarView extends FrameLayout implements CalendarClient.Calendar
 
     public CalendarView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
+    }
+
+    @Override
+    public void onLayout (boolean changed, int left, int top, int right, int bottom) {
+        super.onLayout(changed, left, top, right, bottom);
+        int itemHeight = getContext().getResources().getDimensionPixelSize(R.dimen.event_item_height);
+        int numEvents  = (bottom - top) / itemHeight - (Utilities.isShowToday(getContext()) ? 1 : 0);
+        if (numEvents != SHOW_NUM_EVENTS) {
+            SHOW_NUM_EVENTS = numEvents;
+            mEventAdapter.notifyDataSetChanged();
+        }
     }
 
     public void checkPermissions() {
