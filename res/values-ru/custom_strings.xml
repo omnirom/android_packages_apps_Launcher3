@@ -67,6 +67,7 @@
   <string name="left_tab_label">Вкладка ленты Google</string>
   <string name="left_tab_description">Включить интеграцию с лентой Google</string>
   <string name="show_dark_theme_title">Тёмная тема</string>
+  <string name="pref_icon_badging_numbers_title">Отображать количество уведомлений</string>
   <string name="pref_icon_badging_numbers_summary">Показывать количество уведомлений внутри точки</string>
   <!-- Hidden app -->
   <string name="hide_app">Скрыть приложения</string>

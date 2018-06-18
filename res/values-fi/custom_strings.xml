@@ -60,6 +60,8 @@
   <string name="search_bar_location_bottom">Telakan alapuolella</string>
   <string name="search_bar_location_top">Telakan yläpuolella</string>
   <string name="pref_show_events_title">Näytä tulevat tapahtumat</string>
+  <string name="left_tab_label">Google feed -välilehti</string>
+  <string name="left_tab_description">Ota käyttöön Google feed integraatio</string>
   <string name="show_dark_theme_title">Tumma teema</string>
   <!-- Hidden app -->
   <string name="hide_app">Piilota sovelluksia</string>
