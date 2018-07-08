@@ -45,7 +45,7 @@
   <string name="omnijaws_service_last_update">Darrera actualització:</string>
   <string name="weather_settings_drop_target_label">Configuració</string>
   <string name="show_hotseat_bg_color_title">Color de fons</string>
-  <string name="show_hotseat_bg_color_summary">Aplica el el color de fons de l\'acoblador segons el fons de pantalla</string>
+  <string name="show_hotseat_bg_color_summary">Aplica el color de fons de l\'acoblador segons el fons de pantalla</string>
   <string name="calendar_view_status_perms">Toqueu per configurar</string>
   <string name="show_hotseat_title">Mostra l\'acoblador</string>
   <string name="calendar_event_no_title_label">Sense títol</string>
@@ -71,7 +71,7 @@
   <string name="pref_icon_badging_numbers_summary">Mostra el recompte d\'avisos al punt</string>
   <!-- Hidden app -->
   <string name="hide_app">Oculta apps</string>
-  <string name="hide_app_sum">Oculta apps del calaix</string>
+  <string name="hide_app_sum">Oculta apps del calaix d\'apps</string>
   <string name="hide_app_selected">&#160;seleccionat</string>
   <string name="hidden_app">Totes les apps</string>
   <string name="hide_selected">Oculta les apps seleccionades</string>
