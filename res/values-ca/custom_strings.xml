@@ -24,8 +24,8 @@
   <string name="adaptive_icons_title">Icones adaptables</string>
   <string name="legacy_icons_title">Emmascara les icones antigues</string>
   <string name="icon_mask_square">Quadrat</string>
-  <string name="icon_mask_rounded_square">Quadrat amb angles rodons</string>
-  <string name="icon_mask_squircle">Quadrat arrodonit</string>
+  <string name="icon_mask_rounded_square">Quadrat arrodonit</string>
+  <string name="icon_mask_squircle">Quadrat amb angles rodons</string>
   <string name="icon_mask_circle">Cercle</string>
   <string name="icon_mask_teardrop">Llàgrima</string>
   <string name="adaptive_icon_mask_title">Emmascarat d\'icones</string>
@@ -63,16 +63,16 @@
   <string name="show_search_bar_location_title">Col·locació de la barra de cerca</string>
   <string name="search_bar_location_bottom">Per sota de l\'acoblador</string>
   <string name="search_bar_location_top">Per damunt de l\'acoblador</string>
-  <string name="pref_show_events_title">Mostra els esdeveniments propers</string>
+  <string name="pref_show_events_title">Mostra els propers esdeveniments</string>
   <string name="left_tab_label">Pestanya del canal de Google</string>
   <string name="left_tab_description">Habilita la integració dels canals de Google</string>
   <string name="show_dark_theme_title">Tema fosc</string>
-  <string name="pref_icon_badging_numbers_title">Mostra el nombre d\'avisos</string>
-  <string name="pref_icon_badging_numbers_summary">Mostra el recompte d\'avisos al punt</string>
+  <string name="pref_icon_badging_numbers_title">Nombres al punt d\'avís</string>
+  <string name="pref_icon_badging_numbers_summary">Mostra el recompte d\'avisos dins del punt</string>
   <!-- Hidden app -->
   <string name="hide_app">Oculta apps</string>
   <string name="hide_app_sum">Oculta apps del calaix d\'apps</string>
-  <string name="hide_app_selected">&#160;seleccionat</string>
+  <string name="hide_app_selected">&#160;seleccionades</string>
   <string name="hidden_app">Totes les apps</string>
   <string name="hide_selected">Oculta les apps seleccionades</string>
   <string name="more">Més</string>
