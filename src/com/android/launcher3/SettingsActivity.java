@@ -49,6 +49,7 @@ import android.widget.ListView;
 
 import com.android.launcher3.graphics.IconShapeOverride;
 import com.android.launcher3.notification.NotificationListener;
+import com.android.launcher3.searchlauncher.SearchLauncherCallbacks;
 import com.android.launcher3.util.ListViewHighlighter;
 import com.android.launcher3.util.SettingsObserver;
 import com.android.launcher3.views.ButtonPreference;
@@ -74,6 +75,7 @@ public class SettingsActivity extends Activity {
     private static final int DELAY_HIGHLIGHT_DURATION_MILLIS = 600;
     private static final String SAVE_HIGHLIGHTED_KEY = "android:preference_highlighted";
 
+    public static final String KEY_MINUS_ONE = "pref_enable_minus_one";
     public static final String PREF_THEME_STYLE_KEY = "pref_theme_style";
 
     private static boolean mRestartNeeded;
@@ -158,6 +160,12 @@ public class SettingsActivity extends Activity {
             } else {
                 // Initialize the UI once
                 rotationPref.setDefaultValue(getAllowRotationDefaultValue());
+
+                SwitchPreference minusOne = (SwitchPreference) findPreference(KEY_MINUS_ONE);
+            if (!Utilities.hasPackageInstalled(getContext(),
+                    SearchLauncherCallbacks.SEARCH_PACKAGE)) {
+                 getPreferenceScreen().removePreference(minusOne);
+                }
             }
 
             mThemeStyle = (ListPreference) findPreference(PREF_THEME_STYLE_KEY);
