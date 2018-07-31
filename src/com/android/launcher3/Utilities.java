@@ -794,4 +794,13 @@ public final class Utilities {
             android.os.Process.killProcess(android.os.Process.myPid());
         });
     }
+
+    public static boolean hasPackageInstalled(Context context, String pkgName) {
+        try {
+            ApplicationInfo ai = context.getPackageManager().getApplicationInfo(pkgName, 0);
+            return ai.enabled;
+        } catch (PackageManager.NameNotFoundException e) {
+            return false;
+        }
+    }
 }
