@@ -32,11 +32,14 @@ import android.os.Bundle;
 import android.provider.Settings;
 import android.text.TextUtils;
 
+import com.android.internal.util.omni.PackageUtils;
+// 
 import com.android.launcher3.LauncherFiles;
 import com.android.launcher3.R;
 import com.android.launcher3.Utilities;
 import com.android.launcher3.config.FeatureFlags;
 import com.android.launcher3.graphics.GridOptionsProvider;
+import com.android.launcher3.searchlauncher.SearchLauncherCallbacks;
 import com.android.launcher3.uioverrides.plugins.PluginManagerWrapper;
 import com.android.launcher3.util.SecureSettingsObserver;
 
@@ -64,6 +67,7 @@ public class SettingsActivity extends Activity
 
     public static final String EXTRA_FRAGMENT_ARG_KEY = ":settings:fragment_args_key";
     public static final String EXTRA_SHOW_FRAGMENT_ARGS = ":settings:show_fragment_args";
+    public static final String KEY_MINUS_ONE = "pref_enable_minus_one";
     private static final int DELAY_HIGHLIGHT_DURATION_MILLIS = 600;
     public static final String SAVE_HIGHLIGHTED_KEY = "android:preference_highlighted";
 
@@ -214,6 +218,9 @@ public class SettingsActivity extends Activity
                     return false;
                 case DEVELOPER_OPTIONS_KEY:
                     return false;
+
+                case KEY_MINUS_ONE:
+                    return PackageUtils.isAvailableApp(SearchLauncherCallbacks.SEARCH_PACKAGE, getActivity());
             }
 
             return true;
