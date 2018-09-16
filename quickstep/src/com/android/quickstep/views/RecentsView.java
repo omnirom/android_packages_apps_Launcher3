@@ -779,10 +779,16 @@ public abstract class RecentsView<T extends BaseActivity> extends PagedView impl
         mIgnoreResetTaskViews.remove(taskView);
     }
 
-    private void addDismissedTaskAnimations(View taskView, AnimatorSet anim, long duration) {
+    private void addDismissedTaskAnimations(View taskView, AnimatorSet anim, long duration, boolean goingUp) {
         addAnim(ObjectAnimator.ofFloat(taskView, ALPHA, 0), duration, ACCEL_2, anim);
-        addAnim(ObjectAnimator.ofFloat(taskView, TRANSLATION_Y, -taskView.getHeight()),
-                duration, LINEAR, anim);
+
+        if (goingUp) {
+            addAnim(ObjectAnimator.ofFloat(taskView, TRANSLATION_Y, -taskView.getHeight()),
+                    duration, LINEAR, anim);
+        } else if (getSwipeForClearAllState()) {
+            addAnim(ObjectAnimator.ofFloat(taskView, TRANSLATION_Y, taskView.getHeight()),
+                    duration, LINEAR, anim);
+        }
     }
 
     private void removeTask(Task task, int index, PendingAnimation.OnEndListener onEndListener,
@@ -830,7 +836,7 @@ public abstract class RecentsView<T extends BaseActivity> extends PagedView impl
             View child = getChildAt(i);
             if (child == taskView) {
                 if (animateTaskView) {
-                    addDismissedTaskAnimations(taskView, anim, duration);
+                    addDismissedTaskAnimations(taskView, anim, duration, true);
                 }
             } else {
                 // If we just take newScroll - oldScroll, everything to the right of dragged task
@@ -904,7 +910,7 @@ public abstract class RecentsView<T extends BaseActivity> extends PagedView impl
 
         int count = getChildCount();
         for (int i = 0; i < count; i++) {
-            addDismissedTaskAnimations(getChildAt(i), anim, duration);
+            addDismissedTaskAnimations(getChildAt(i), anim, duration, false);
         }
 
         mPendingAnimation = pendingAnimation;
@@ -1369,5 +1375,9 @@ public abstract class RecentsView<T extends BaseActivity> extends PagedView impl
 
     public boolean performTaskAccessibilityActionExtra(int action) {
         return false;
+    }
+
+    public boolean getSwipeForClearAllState() {
+        return Utilities.getPrefs(mActivity).getBoolean("pref_allowSwipeDownClearAll", false);
     }
 }
