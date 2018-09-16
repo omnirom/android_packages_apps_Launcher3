@@ -21,5 +21,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
     <string name="theme_style_auto">Wallpaper based</string>
     <string name="theme_style_light">Light style</string>
     <string name="theme_style_dark">Dark style</string>
-
+    <string name="allow_swipe_down_clearall_title">Clear all on swipe down from recents view</string>
+    <string name="allow_swipe_down_clearall_desc">Doesn\'t works if P navbar gestures are enable</string>
 </resources>
