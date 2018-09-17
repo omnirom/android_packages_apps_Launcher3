@@ -117,6 +117,16 @@ public class QsbContainerView extends FrameLayout {
                 return QsbWidgetHostView.getDefaultView(container);
             }
 
+            if (mWidgetInfo.provider.getClassName().equals("com.google.android.googlequicksearchbox.SearchWidgetProvider")) {
+                try {
+                    int resId = activity.getPackageManager().getReceiverInfo(mWidgetInfo.provider, 128).metaData.getInt("com.google.android.gsa.searchwidget.alt_initial_layout_cqsb", -1);
+                    if (resId != -1) {
+                        mWidgetInfo.initialLayout = resId;
+                    }
+                } catch (Exception e) {
+                }
+            }
+
             AppWidgetManager widgetManager = AppWidgetManager.getInstance(activity);
             InvariantDeviceProfile idp = LauncherAppState.getIDP(activity);
 
@@ -126,6 +136,8 @@ public class QsbContainerView extends FrameLayout {
             opts.putInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT, size.top);
             opts.putInt(AppWidgetManager.OPTION_APPWIDGET_MAX_WIDTH, size.right);
             opts.putInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT, size.bottom);
+            opts.putString("attached-launcher-identifier", getActivity().getPackageName());
+            opts.putString("requested-widget-style", "cqsb");
 
             int widgetId = Utilities.getPrefs(activity).getInt(QSB_WIDGET_ID, -1);
             AppWidgetProviderInfo widgetInfo = widgetManager.getAppWidgetInfo(widgetId);
