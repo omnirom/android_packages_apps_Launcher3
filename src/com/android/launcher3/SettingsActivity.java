@@ -74,6 +74,8 @@ public class SettingsActivity extends Activity {
 
     public static final String PREF_THEME_STYLE_KEY = "pref_theme_style";
 
+    private static boolean mRestartNeeded;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -110,6 +112,14 @@ public class SettingsActivity extends Activity {
 
             getPreferenceManager().setSharedPreferencesName(LauncherFiles.SHARED_PREFERENCES_KEY);
             addPreferencesFromResource(R.xml.launcher_preferences);
+
+            HomeKeyWatcher mHomeKeyListener = new HomeKeyWatcher(getActivity());
+            mHomeKeyListener.setOnHomePressedListener(() -> {
+                if (mRestartNeeded) {
+                    Utilities.restart(getActivity());
+                }
+            });
+            mHomeKeyListener.startWatch();
 
             ContentResolver resolver = getActivity().getContentResolver();
 
@@ -165,7 +175,7 @@ public class SettingsActivity extends Activity {
                 public boolean onPreferenceChange(Preference preference, Object newValue) {
                     int index = gridColumns.findIndexOfValue((String) newValue);
                     gridColumns.setSummary(gridColumns.getEntries()[index]);
-                    Utilities.restart(getActivity());
+                    mRestartNeeded = true;
                     return true;
                 }
             });
@@ -176,7 +186,7 @@ public class SettingsActivity extends Activity {
                 public boolean onPreferenceChange(Preference preference, Object newValue) {
                     int index = gridRows.findIndexOfValue((String) newValue);
                     gridRows.setSummary(gridRows.getEntries()[index]);
-                    Utilities.restart(getActivity());
+                    mRestartNeeded = true;
                     return true;
                 }
             });
@@ -187,7 +197,7 @@ public class SettingsActivity extends Activity {
                 public boolean onPreferenceChange(Preference preference, Object newValue) {
                     int index = hotseatColumns.findIndexOfValue((String) newValue);
                     hotseatColumns.setSummary(hotseatColumns.getEntries()[index]);
-                    Utilities.restart(getActivity());
+                    mRestartNeeded = true;
                     return true;
                 }
             });
@@ -196,13 +206,13 @@ public class SettingsActivity extends Activity {
             SwitchPreference allAppsShowLabel = (SwitchPreference) findPreference(Utilities.ALLAPPS_SHOW_LABEL);
             desktopShowLabel.setOnPreferenceChangeListener(new OnPreferenceChangeListener() {
                 public boolean onPreferenceChange(Preference preference, Object newValue) {
-                    Utilities.restart(getActivity());
+                    mRestartNeeded = true;
                     return true;
                 }
             });
             allAppsShowLabel.setOnPreferenceChangeListener(new OnPreferenceChangeListener() {
                 public boolean onPreferenceChange(Preference preference, Object newValue) {
-                    Utilities.restart(getActivity());
+                    mRestartNeeded = true;
                     return true;
                 }
             });
@@ -213,14 +223,14 @@ public class SettingsActivity extends Activity {
                 public boolean onPreferenceChange(Preference preference, Object newValue) {
                     int index = iconSizes.findIndexOfValue((String) newValue);
                     iconSizes.setSummary(iconSizes.getEntries()[index]);
-                    Utilities.restart(getActivity());
+                    mRestartNeeded = true;
                     return true;
                 }
             });
             SwitchPreference showQsbWidget = (SwitchPreference) findPreference(Utilities.QSB_SHOW);
             showQsbWidget.setOnPreferenceChangeListener(new OnPreferenceChangeListener() {
                 public boolean onPreferenceChange(Preference preference, Object newValue) {
-                    Utilities.restart(getActivity());
+                    mRestartNeeded = true;
                     return true;
                 }
             });
@@ -283,6 +293,9 @@ public class SettingsActivity extends Activity {
                 mIconBadgingObserver = null;
             }
             super.onDestroy();
+            if (mRestartNeeded) {
+                Utilities.restart(getActivity());
+            }
         }
 
         @TargetApi(Build.VERSION_CODES.O)
