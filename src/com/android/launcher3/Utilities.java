@@ -16,6 +16,7 @@
 
 package com.android.launcher3;
 
+import android.app.ProgressDialog;
 import android.app.WallpaperManager;
 import android.content.ComponentName;
 import android.content.Context;
@@ -38,6 +39,7 @@ import android.os.DeadObjectException;
 import android.os.Handler;
 import android.os.Message;
 import android.os.PowerManager;
+import android.os.SystemClock;
 import android.os.TransactionTooLargeException;
 import android.text.Spannable;
 import android.text.SpannableString;
@@ -50,6 +52,7 @@ import android.util.TypedValue;
 import android.view.View;
 
 import com.android.launcher3.config.FeatureFlags;
+import com.android.launcher3.util.LooperExecutor;
 
 import java.io.ByteArrayOutputStream;
 import java.io.Closeable;
@@ -135,8 +138,9 @@ public final class Utilities {
     public static final String HOTSEAT_ICONS = "pref_hotseat_icons";
     public static final String DESKTOP_SHOW_LABEL = "pref_desktop_show_label";
     public static final String ALLAPPS_SHOW_LABEL = "pref_allapps_show_label";
-
     public static final String ICON_SIZE = "pref_icon_size";
+
+    private static final long WAIT_BEFORE_RESTART = 250;
 
     public static boolean showDesktopLabel(Context context) {
         return getPrefs(context).getBoolean(DESKTOP_SHOW_LABEL, true);
@@ -657,5 +661,16 @@ public final class Utilities {
         Message msg = Message.obtain(handler, callback);
         msg.setAsynchronous(true);
         handler.sendMessage(msg);
+    }
+
+    public static void restart(final Context context) {
+        ProgressDialog.show(context, null, context.getString(R.string.state_loading), true, false);
+        new LooperExecutor(LauncherModel.getWorkerLooper()).execute(() -> {
+            try {
+                Thread.sleep(WAIT_BEFORE_RESTART);
+            } catch (Exception ignored) {
+            }
+            android.os.Process.killProcess(android.os.Process.myPid());
+        });
     }
 }
