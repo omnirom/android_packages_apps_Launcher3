@@ -217,6 +217,13 @@ public class SettingsActivity extends Activity {
                     return true;
                 }
             });
+            SwitchPreference showQsbWidget = (SwitchPreference) findPreference(Utilities.QSB_SHOW);
+            showQsbWidget.setOnPreferenceChangeListener(new OnPreferenceChangeListener() {
+                public boolean onPreferenceChange(Preference preference, Object newValue) {
+                    Utilities.restart(getActivity());
+                    return true;
+                }
+            });
         }
 
         @Override
