@@ -24,6 +24,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.XmlResourceParser;
 import android.os.Bundle;
+import android.os.Handler;
 import android.text.TextUtils;
 import android.util.Log;
 import android.util.Xml;
@@ -235,6 +236,14 @@ public class SettingsActivity extends FragmentActivity
                 }
                 getActivity().setTitle(getPreferenceScreen().getTitle());
             }
+
+            Preference showQsbWidget = findPreference(Utilities.QSB_SHOW);
+            showQsbWidget.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+                public boolean onPreferenceChange(Preference preference, Object newValue) {
+                    new Handler().postDelayed(() -> Utilities.restart(getActivity()), Utilities.WAIT_BEFORE_RESTART);
+                    return true;
+                }
+            });
 
             final DropDownPreference grid = (DropDownPreference) findPreference(GRID_SIZE_PREFERENCE_KEY);
             InvariantDeviceProfile idp = InvariantDeviceProfile.INSTANCE.get(getContext());
