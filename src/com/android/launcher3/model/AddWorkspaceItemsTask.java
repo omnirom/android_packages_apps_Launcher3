@@ -29,6 +29,7 @@ import com.android.launcher3.InvariantDeviceProfile;
 import com.android.launcher3.LauncherAppState;
 import com.android.launcher3.LauncherModel.CallbackTask;
 import com.android.launcher3.LauncherSettings;
+import com.android.launcher3.Utilities;
 import com.android.launcher3.config.FeatureFlags;
 import com.android.launcher3.logging.FileLog;
 import com.android.launcher3.model.BgDataModel.Callbacks;
@@ -297,7 +298,7 @@ public class AddWorkspaceItemsTask extends BaseModelUpdateTask {
         int screenCount = workspaceScreens.size();
         // First check the preferred screen.
         IntSet screensToExclude = new IntSet();
-        if (FeatureFlags.QSB_ON_FIRST_SCREEN) {
+        if (Utilities.showQsbWidget(app.getContext())) {
             screensToExclude.add(FIRST_SCREEN_ID);
         }
 
