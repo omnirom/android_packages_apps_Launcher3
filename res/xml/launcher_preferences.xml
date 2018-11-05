@@ -50,6 +50,13 @@
         android:defaultValue="false"
         android:persistent="true" />
 
+    <SwitchPreference
+        android:defaultValue="true"
+        android:key="pref_qsb_show"
+        android:persistent="true"
+        android:summary="@string/pref_qsb_show_summary"
+        android:title="@string/pref_qsb_show_title"/>
+
     <androidx.preference.PreferenceScreen
         android:key="pref_developer_options"
         android:persistent="false"
