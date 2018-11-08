@@ -21,6 +21,7 @@ import static com.android.launcher3.states.RotationHelper.getAllowRotationDefaul
 
 import android.annotation.TargetApi;
 import android.app.Activity;
+import android.app.ActionBar;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.DialogFragment;
@@ -41,6 +42,7 @@ import android.preference.Preference.OnPreferenceChangeListener;
 import android.preference.SwitchPreference;
 import android.provider.Settings;
 import android.text.TextUtils;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Adapter;
 import android.widget.ListView;
@@ -79,6 +81,7 @@ public class SettingsActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        getActionBar().setDisplayOptions(ActionBar.DISPLAY_HOME_AS_UP | ActionBar.DISPLAY_SHOW_TITLE);
 
         if (savedInstanceState == null) {
             // Display the fragment as the main content.
@@ -90,6 +93,14 @@ public class SettingsActivity extends Activity {
 
     protected PreferenceFragment getNewFragment() {
         return new LauncherSettingsFragment();
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == android.R.id.home) {
+            finish();
+        }
+        return true;
     }
 
     /**
@@ -112,14 +123,6 @@ public class SettingsActivity extends Activity {
 
             getPreferenceManager().setSharedPreferencesName(LauncherFiles.SHARED_PREFERENCES_KEY);
             addPreferencesFromResource(R.xml.launcher_preferences);
-
-            HomeKeyWatcher mHomeKeyListener = new HomeKeyWatcher(getActivity());
-            mHomeKeyListener.setOnHomePressedListener(() -> {
-                if (mRestartNeeded) {
-                    Utilities.restart(getActivity());
-                }
-            });
-            mHomeKeyListener.startWatch();
 
             ContentResolver resolver = getActivity().getContentResolver();
 
@@ -245,6 +248,7 @@ public class SettingsActivity extends Activity {
         @Override
         public void onResume() {
             super.onResume();
+            mRestartNeeded = false;
 
             Intent intent = getActivity().getIntent();
             mPreferenceKey = intent.getStringExtra(EXTRA_FRAGMENT_ARG_KEY);
@@ -293,8 +297,14 @@ public class SettingsActivity extends Activity {
                 mIconBadgingObserver = null;
             }
             super.onDestroy();
+        }
+
+        @Override
+        public void onPause() {
+            super.onPause();
             if (mRestartNeeded) {
                 Utilities.restart(getActivity());
+                mRestartNeeded = false;
             }
         }
 
