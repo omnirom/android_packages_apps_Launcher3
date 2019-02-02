@@ -70,7 +70,6 @@ public class WorkspaceTouchListener implements OnTouchListener, Runnable {
 
     @Override
     public boolean onTouch(View view, MotionEvent ev) {
-        mWorkspace.checkDoubleTap(ev);
         int action = ev.getActionMasked();
         if (action == ACTION_DOWN) {
             // Check if we can handle long press.
