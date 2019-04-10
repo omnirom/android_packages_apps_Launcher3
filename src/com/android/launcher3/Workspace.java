@@ -49,6 +49,7 @@ import android.os.UserHandle;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.util.SparseArray;
+import android.view.GestureDetector;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
@@ -247,6 +248,8 @@ public class Workspace extends PagedView<WorkspacePageIndicator>
     // Handles workspace state transitions
     private final WorkspaceStateTransitionAnimation mStateTransitionAnimation;
 
+    private GestureDetector mGestureListener;
+
     /**
      * Used to inflate the Workspace from XML.
      *
@@ -278,7 +281,43 @@ public class Workspace extends PagedView<WorkspacePageIndicator>
 
         // Disable multitouch across the workspace/all apps/customize tray
         setMotionEventSplittingEnabled(true);
+
+        mGestureListener =
+                new GestureDetector(context, new GestureDetector.SimpleOnGestureListener() {
+            @Override
+            public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
+                try {
+                    // skip horizontal unwanted swipes
+                    if (Math.abs(e1.getX() - e2.getX()) > 250) {
+                        return true;
+                    }
+                    if (e2.getY() - e1.getY() > 120/*min distance*/
+                            && Math.abs(velocityY) > 200/*min speed*/) {
+                        openNotifications();
+                    }
+                } catch (Exception e) {
+
+                }
+                return true;
+            }
+        });
+
         setOnTouchListener(new WorkspaceTouchListener(mLauncher, this));
+    }
+
+    private boolean openNotifications() {
+        try {
+            Class.forName("android.app.StatusBarManager")
+                    .getMethod("expandNotificationsPanel")
+                    .invoke(mLauncher.getSystemService("statusbar"));
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    public boolean checkCustomGestures(MotionEvent ev) {
+        return mGestureListener.onTouchEvent(ev);
     }
 
     @Override
