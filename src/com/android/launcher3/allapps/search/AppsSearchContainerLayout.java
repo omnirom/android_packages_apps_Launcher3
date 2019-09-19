@@ -38,6 +38,7 @@ import com.android.launcher3.BaseDraggingActivity;
 import com.android.launcher3.DeviceProfile;
 import com.android.launcher3.ExtendedEditText;
 import com.android.launcher3.Insettable;
+import com.android.launcher3.Launcher;
 import com.android.launcher3.R;
 import com.android.launcher3.allapps.AllAppsContainerView;
 import com.android.launcher3.allapps.AllAppsStore;
@@ -45,6 +46,7 @@ import com.android.launcher3.allapps.AlphabeticalAppsList;
 import com.android.launcher3.allapps.SearchUiManager;
 import com.android.launcher3.anim.PropertySetter;
 import com.android.launcher3.util.ComponentKey;
+import com.android.launcher3.views.ActivityContext;
 
 import java.util.ArrayList;
 
@@ -55,7 +57,8 @@ public class AppsSearchContainerLayout extends ExtendedEditText
         implements SearchUiManager, AllAppsSearchBarController.Callbacks,
         AllAppsStore.OnUpdateListener, Insettable {
 
-    private final BaseDraggingActivity mLauncher;
+    private final Launcher mLauncher;
+    private final ActivityContext mActivity;
     private final AllAppsSearchBarController mSearchBarController;
     private final SpannableStringBuilder mSearchQueryBuilder;
 
@@ -76,7 +79,8 @@ public class AppsSearchContainerLayout extends ExtendedEditText
     public AppsSearchContainerLayout(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
 
-        mLauncher = BaseDraggingActivity.fromContext(context);
+        mActivity = ActivityContext.lookupContext(context);
+        mLauncher = tryGetLauncher(context);
         mSearchBarController = new AllAppsSearchBarController();
 
         mSearchQueryBuilder = new SpannableStringBuilder();
@@ -85,6 +89,14 @@ public class AppsSearchContainerLayout extends ExtendedEditText
 
         mContentOverlap =
                 getResources().getDimensionPixelSize(R.dimen.all_apps_search_bar_field_height) / 2;
+    }
+
+    private Launcher tryGetLauncher(Context context) {
+        try {
+            return Launcher.getLauncher(context);
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
     }
 
     @Override
@@ -102,10 +114,11 @@ public class AppsSearchContainerLayout extends ExtendedEditText
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         // Update the width to match the grid padding
-        DeviceProfile dp = mLauncher.getDeviceProfile();
+        DeviceProfile dp = mActivity.getDeviceProfile();
         int myRequestedWidth = getSize(widthMeasureSpec);
-        int rowWidth = myRequestedWidth - mAppsView.getActiveRecyclerView().getPaddingLeft()
-                - mAppsView.getActiveRecyclerView().getPaddingRight();
+        int leftRightPadding = dp.desiredWorkspaceLeftRightMarginPx
+                + dp.cellLayoutPaddingLeftRightPx;
+        int rowWidth = myRequestedWidth - leftRightPadding * 2;
 
         int cellWidth = DeviceProfile.calculateCellWidth(rowWidth, dp.inv.numHotseatIcons);
         int iconVisibleSize = Math.round(ICON_VISIBLE_AREA_FACTOR * dp.iconSizePx);
@@ -202,7 +215,7 @@ public class AppsSearchContainerLayout extends ExtendedEditText
 
     @Override
     public float getScrollRangeDelta(Rect insets) {
-        if (mLauncher.getDeviceProfile().isVerticalBarLayout()) {
+        if (mActivity.getDeviceProfile().isVerticalBarLayout()) {
             return 0;
         } else {
             return insets.bottom + insets.top;
