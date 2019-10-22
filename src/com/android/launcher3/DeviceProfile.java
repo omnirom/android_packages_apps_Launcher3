@@ -455,7 +455,7 @@ public class DeviceProfile {
             hotseatBarSizePx += extraHotseatBottomPadding;
 
             qsbBottomMarginPx = Math.round(qsbBottomMarginOriginalPx * cellScaleToFit);
-        } else if (!isVerticalBarLayout() && isPhone && isTallDevice) {
+        } /*else if (!isVerticalBarLayout() && isPhone && isTallDevice) {
             // We increase the hotseat size when there is extra space.
 
             if (Float.compare(aspectRatio, TALLER_DEVICE_ASPECT_RATIO_THRESHOLD) >= 0
@@ -486,7 +486,7 @@ public class DeviceProfile {
 
             // Recalculate the available dimensions using the new hotseat size.
             updateAvailableDimensions(res);
-        }
+        }*/
 
         int cellLayoutPadding =
                 isTwoPanels ? cellLayoutBorderSpacePx.x / 2 : res.getDimensionPixelSize(
