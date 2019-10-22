@@ -221,11 +221,11 @@ public class DeviceProfile {
             // Note: This calculation was created after noticing a pattern in the design spec.
             int extraSpace = getCellSize().y - iconSizePx - iconDrawablePaddingPx * 2
                     - verticalDragHandleSizePx;
-            hotseatBarSizePx += extraSpace;
-            hotseatBarBottomPaddingPx += extraSpace;
+            //hotseatBarSizePx += extraSpace;
+            //hotseatBarBottomPaddingPx += extraSpace;
 
             // Recalculate the available dimensions using the new hotseat size.
-            updateAvailableDimensions(dm, res);
+            //updateAvailableDimensions(dm, res);
         }
         updateWorkspacePadding();
 
