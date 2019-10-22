@@ -24,13 +24,14 @@
         launcher:numFolderRows="2"
         launcher:numFolderColumns="3"
         launcher:numHotseatIcons="3"
-        launcher:defaultLayoutId="@xml/default_workspace_3x3" >
+        launcher:defaultLayoutId="@xml/default_workspace_3x3"
+        launcher:numColumnsAllApps="5" >
 
         <display-option
             launcher:name="Super Short Stubby"
             launcher:minWidthDps="255"
             launcher:minHeightDps="300"
-            launcher:iconImageSize="48"
+            launcher:iconImageSize="54"
             launcher:iconTextSize="13.0"
             launcher:canBeDefault="true" />
 
@@ -38,7 +39,7 @@
             launcher:name="Shorter Stubby"
             launcher:minWidthDps="255"
             launcher:minHeightDps="400"
-            launcher:iconImageSize="48"
+            launcher:iconImageSize="54"
             launcher:iconTextSize="13.0"
             launcher:canBeDefault="true" />
 
@@ -51,13 +52,14 @@
         launcher:numFolderRows="3"
         launcher:numFolderColumns="4"
         launcher:numHotseatIcons="4"
-        launcher:defaultLayoutId="@xml/default_workspace_4x4" >
+        launcher:defaultLayoutId="@xml/default_workspace_4x4"
+        launcher:numColumnsAllApps="5" >
 
         <display-option
             launcher:name="Short Stubby"
             launcher:minWidthDps="275"
             launcher:minHeightDps="420"
-            launcher:iconImageSize="48"
+            launcher:iconImageSize="54"
             launcher:iconTextSize="13.0"
             launcher:canBeDefault="true" />
 
@@ -65,7 +67,7 @@
             launcher:name="Stubby"
             launcher:minWidthDps="255"
             launcher:minHeightDps="450"
-            launcher:iconImageSize="48"
+            launcher:iconImageSize="54"
             launcher:iconTextSize="13.0"
             launcher:canBeDefault="true" />
 
@@ -73,7 +75,7 @@
             launcher:name="Nexus S"
             launcher:minWidthDps="296"
             launcher:minHeightDps="491.33"
-            launcher:iconImageSize="48"
+            launcher:iconImageSize="54"
             launcher:iconTextSize="13.0"
             launcher:canBeDefault="true" />
 
@@ -102,21 +104,22 @@
         launcher:numFolderRows="4"
         launcher:numFolderColumns="4"
         launcher:numHotseatIcons="5"
-        launcher:defaultLayoutId="@xml/default_workspace_5x5" >
+        launcher:defaultLayoutId="@xml/default_workspace_5x5"
+        launcher:numColumnsAllApps="5" >
 
         <display-option
             launcher:name="Large Phone"
             launcher:minWidthDps="406"
             launcher:minHeightDps="694"
-            launcher:iconImageSize="56"
-            launcher:iconTextSize="14.4"
+            launcher:iconImageSize="54"
+            launcher:iconTextSize="13.0"
             launcher:canBeDefault="true" />
 
         <display-option
             launcher:name="Shorter Stubby"
             launcher:minWidthDps="255"
             launcher:minHeightDps="400"
-            launcher:iconImageSize="48"
+            launcher:iconImageSize="54"
             launcher:iconTextSize="13.0"
             launcher:canBeDefault="true" />
 
