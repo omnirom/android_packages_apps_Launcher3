@@ -81,7 +81,7 @@ public class AlphabeticalAppsList implements AllAppsStore.OnUpdateListener {
     private ArrayList<AdapterItem> mSearchResults;
     private AllAppsGridAdapter mAdapter;
     private AppInfoComparator mAppNameComparator;
-    private final int mNumAppsPerRow;
+    private int mNumAppsPerRow;
     private int mNumAppRowsInAdapter;
     private ItemInfoMatcher mItemFilter;
 
@@ -91,7 +91,7 @@ public class AlphabeticalAppsList implements AllAppsStore.OnUpdateListener {
         mLauncher = BaseDraggingActivity.fromContext(context);
         mAppNameComparator = new AppInfoComparator(context);
         mWorkAdapterProvider = adapterProvider;
-        mNumAppsPerRow = mLauncher.getDeviceProfile().inv.numColumns;
+        mNumAppsPerRow = mLauncher.getDeviceProfile().inv.numAllAppsColumns;
         mAllAppsStore.addUpdateListener(this);
     }
 
@@ -383,5 +383,9 @@ public class AlphabeticalAppsList implements AllAppsStore.OnUpdateListener {
                     break;
             }
         }
+    }
+
+    public void onDeviceProfileChanged(int appsPerRow) {
+        mNumAppsPerRow = appsPerRow;
     }
 }
