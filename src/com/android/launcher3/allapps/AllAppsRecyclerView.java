@@ -53,7 +53,7 @@ import java.util.List;
 public class AllAppsRecyclerView extends BaseRecyclerView implements LogContainerProvider {
 
     private AlphabeticalAppsList mApps;
-    private final int mNumAppsPerRow;
+    private int mNumAppsPerRow;
 
     // The specific view heights that we use to calculate scroll
     private final SparseIntArray mViewHeights = new SparseIntArray();
@@ -447,5 +447,10 @@ public class AllAppsRecyclerView extends BaseRecyclerView implements LogContaine
     @Override
     public boolean hasOverlappingRendering() {
         return false;
+    }
+
+    public void onDeviceProfileChanged(int appsPerRow) {
+        mNumAppsPerRow = appsPerRow;
+        updatePoolSize();
     }
 }
