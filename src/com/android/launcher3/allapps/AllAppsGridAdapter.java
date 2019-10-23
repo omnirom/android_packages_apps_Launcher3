@@ -440,4 +440,9 @@ public class AllAppsGridAdapter extends
                 adapterProvider -> adapterProvider.isViewSupported(viewType)).findFirst().orElse(
                 null);
     }
+
+    public void onDeviceProfileChanged(int appsPerRow) {
+        mAppsPerRow = appsPerRow;
+        mGridLayoutMgr.setSpanCount(mAppsPerRow);
+    }
 }

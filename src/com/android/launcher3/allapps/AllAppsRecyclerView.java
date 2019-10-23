@@ -56,7 +56,7 @@ public class AllAppsRecyclerView extends BaseRecyclerView {
     private static final boolean DEBUG = false;
 
     private AlphabeticalAppsList mApps;
-    private final int mNumAppsPerRow;
+    private int mNumAppsPerRow;
 
     // The specific view heights that we use to calculate scroll
     private final SparseIntArray mViewHeights = new SparseIntArray();
@@ -459,5 +459,10 @@ public class AllAppsRecyclerView extends BaseRecyclerView {
         int totalWidth = getMeasuredWidth() - getPaddingLeft() - getPaddingRight();
         int iconPadding = totalWidth / grid.numShownAllAppsColumns - grid.allAppsIconSizePx;
         return totalWidth - iconPadding - grid.allAppsIconDrawablePaddingPx;
+    }
+
+    public void onDeviceProfileChanged(int appsPerRow) {
+        mNumAppsPerRow = appsPerRow;
+        updatePoolSize();
     }
 }

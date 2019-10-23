@@ -227,6 +227,7 @@ public class AllAppsContainerView extends SpringRelativeLayout implements DragSo
         for (AdapterHolder holder : mAH) {
             holder.adapter.setAppsPerRow(dp.numShownAllAppsColumns);
             if (holder.recyclerView != null) {
+                holder.onDeviceProfileChanged(dp);
                 // Remove all views and clear the pool, while keeping the data same. After this
                 // call, all the viewHolders will be recreated.
                 holder.recyclerView.swapAdapter(holder.recyclerView.getAdapter(), true);
@@ -788,8 +789,14 @@ public class AllAppsContainerView extends SpringRelativeLayout implements DragSo
             mAH[AdapterHolder.MAIN].recyclerView.setVerticalFadingEdgeEnabled(!mUsingTabs
                     && verticalFadingEdge);
         }
-    }
 
+        public void onDeviceProfileChanged(DeviceProfile dp) {
+            int appsPerRow = dp.inv.numAllAppsColumns;
+            recyclerView.onDeviceProfileChanged(appsPerRow);
+            adapter.onDeviceProfileChanged(appsPerRow);
+            appsList.onDeviceProfileChanged(appsPerRow);
+        }
+    }
 
     protected void updateHeaderScroll(int scrolledOffset) {
         float prog = Math.max(0, Math.min(1, (float) scrolledOffset / mHeaderThreshold));
