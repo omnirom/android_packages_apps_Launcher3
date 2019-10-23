@@ -153,6 +153,7 @@ public class AllAppsContainerView extends SpringRelativeLayout implements DragSo
     public void onDeviceProfileChanged(DeviceProfile dp) {
         for (AdapterHolder holder : mAH) {
             if (holder.recyclerView != null) {
+                holder.onDeviceProfileChanged(dp);
                 // Remove all views and clear the pool, while keeping the data same. After this
                 // call, all the viewHolders will be recreated.
                 holder.recyclerView.swapAdapter(holder.recyclerView.getAdapter(), true);
@@ -608,6 +609,13 @@ public class AllAppsContainerView extends SpringRelativeLayout implements DragSo
             verticalFadingEdge = enabled;
             mAH[AdapterHolder.MAIN].recyclerView.setVerticalFadingEdgeEnabled(!mUsingTabs
                     && verticalFadingEdge);
+        }
+
+        public void onDeviceProfileChanged(DeviceProfile dp) {
+            int appsPerRow = dp.inv.numColumnsAllApps;
+            recyclerView.onDeviceProfileChanged(appsPerRow);
+            adapter.onDeviceProfileChanged(appsPerRow);
+            appsList.onDeviceProfileChanged(appsPerRow);
         }
     }
 
