@@ -50,7 +50,7 @@ public class AllAppsRecyclerView extends BaseRecyclerView implements LogContaine
 
     private AlphabeticalAppsList mApps;
     private AllAppsFastScrollHelper mFastScrollHelper;
-    private final int mNumAppsPerRow;
+    private int mNumAppsPerRow;
 
     // The specific view heights that we use to calculate scroll
     private SparseIntArray mViewHeights = new SparseIntArray();
@@ -428,5 +428,10 @@ public class AllAppsRecyclerView extends BaseRecyclerView implements LogContaine
         if (state == SCROLL_STATE_IDLE) {
             AccessibilityManagerCompat.sendScrollFinishedEventToTest(getContext());
         }
+    }
+
+    public void onDeviceProfileChanged(int appsPerRow) {
+        mNumAppsPerRow = appsPerRow;
+        updatePoolSize();
     }
 }
