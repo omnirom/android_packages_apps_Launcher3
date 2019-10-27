@@ -47,7 +47,7 @@
     <SwitchPreference
         android:key="pref_grid_options"
         android:title="Enable grid options"
-        android:defaultValue="false"
+        android:defaultValue="true"
         android:persistent="true" />
 
     <SwitchPreference
