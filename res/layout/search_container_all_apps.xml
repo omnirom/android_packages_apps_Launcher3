@@ -21,7 +21,7 @@
     android:layout_centerHorizontal="true"
     android:layout_gravity="top|center_horizontal"
     android:background="@drawable/bg_all_apps_searchbox"
-    android:elevation="1dp"
+    android:elevation="2dp"
     android:focusableInTouchMode="true"
     android:gravity="center"
     android:hint="@string/all_apps_search_bar_hint"
@@ -35,4 +35,4 @@
     android:textColor="?android:attr/textColorSecondary"
     android:textColorHint="@drawable/all_apps_search_hint"
     android:textSize="16sp"
-    android:translationY="24dp" />
+    android:translationY="@*android:dimen/status_bar_height" />
