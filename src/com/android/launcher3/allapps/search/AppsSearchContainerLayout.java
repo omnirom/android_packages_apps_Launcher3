@@ -212,20 +212,11 @@ public class AppsSearchContainerLayout extends ExtendedEditText
 
     @Override
     public void setInsets(Rect insets) {
-        MarginLayoutParams mlp = (MarginLayoutParams) getLayoutParams();
-        mlp.topMargin = Math.round(Math.max(-mFixedTranslationY, insets.top - mMarginTopAdjusting));
-        requestLayout();
     }
 
     @Override
     public float getScrollRangeDelta(Rect insets) {
-        if (mActivity.getDeviceProfile().isVerticalBarLayout()) {
-            return 0;
-        } else {
-            int topMargin = Math.round(Math.max(
-                    -mFixedTranslationY, insets.top - mMarginTopAdjusting));
-           return insets.bottom + topMargin + mFixedTranslationY;
-        }
+        return 0;
     }
 
     @Override
