@@ -497,7 +497,7 @@ public class Workspace extends PagedView<WorkspacePageIndicator>
      * @param qsb an existing qsb to recycle or null.
      */
     public void bindAndInitFirstWorkspaceScreen(View qsb) {
-        if (!Utilities.showQsbWidget(getContext())) {
+        if (!FeatureFlags.QSB_ON_FIRST_SCREEN) {
             return;
         }
         // Add the first page
@@ -806,7 +806,7 @@ public class Workspace extends PagedView<WorkspacePageIndicator>
             int id = mWorkspaceScreens.keyAt(i);
             CellLayout cl = mWorkspaceScreens.valueAt(i);
             // FIRST_SCREEN_ID can never be removed.
-            if ((!Utilities.showQsbWidget(getContext()) || id > FIRST_SCREEN_ID)
+            if ((!FeatureFlags.QSB_ON_FIRST_SCREEN || id > FIRST_SCREEN_ID)
                     && cl.getShortcutsAndWidgets().getChildCount() == 0) {
                 removeScreens.add(id);
             }
