@@ -17,7 +17,6 @@
 package com.android.quickstep.views;
 
 import static androidx.dynamicanimation.animation.DynamicAnimation.MIN_VISIBLE_CHANGE_PIXELS;
-
 import static com.android.launcher3.BaseActivity.STATE_HANDLER_INVISIBILITY_FLAGS;
 import static com.android.launcher3.InvariantDeviceProfile.CHANGE_FLAG_ICON_PARAMS;
 import static com.android.launcher3.LauncherAnimUtils.SCALE_PROPERTY;
@@ -97,6 +96,7 @@ import com.android.launcher3.graphics.RotationMode;
 import com.android.launcher3.userevent.nano.LauncherLogProto;
 import com.android.launcher3.userevent.nano.LauncherLogProto.Action.Direction;
 import com.android.launcher3.userevent.nano.LauncherLogProto.Action.Touch;
+import com.android.launcher3.util.ComponentKey;
 import com.android.launcher3.util.OverScroller;
 import com.android.launcher3.util.PendingAnimation;
 import com.android.launcher3.util.Themes;
@@ -571,9 +571,13 @@ public abstract class RecentsView<T extends BaseActivity> extends PagedView impl
             final TaskView taskView = (TaskView) getChildAt(pageIndex);
             taskView.bind(task);
         }
-        TaskView runningTaskView = getRunningTaskView();
-        if (runningTaskView != null) {
-            setCurrentPage(indexOfChild(runningTaskView));
+
+        if (mNextPage == INVALID_PAGE) {
+            // Set the current page to the running task, but not if settling on new task.
+            TaskView runningTaskView = getRunningTaskView();
+            if (runningTaskView != null) {
+                setCurrentPage(indexOfChild(runningTaskView));
+            }
         }
 
         if (mIgnoreResetTaskId != -1 && getTaskView(mIgnoreResetTaskId) != ignoreRestTaskView) {
@@ -824,7 +828,7 @@ public abstract class RecentsView<T extends BaseActivity> extends PagedView impl
      */
     public void onSwipeUpAnimationSuccess() {
         if (getRunningTaskView() != null) {
-            float startProgress = ENABLE_QUICKSTEP_LIVE_TILE.get()
+            float startProgress = ENABLE_QUICKSTEP_LIVE_TILE.get() && mLiveTileOverlay != null
                     ? mLiveTileOverlay.cancelIconAnimation()
                     : 0f;
             animateUpRunningTaskIconScale(startProgress);
@@ -940,6 +944,10 @@ public abstract class RecentsView<T extends BaseActivity> extends PagedView impl
         }
     }
 
+    public boolean isTaskIconScaledDown(TaskView taskView) {
+        return mRunningTaskIconScaledDown && getRunningTaskView() == taskView;
+    }
+
     private void applyRunningTaskIconScale() {
         TaskView firstTask = getRunningTaskView();
         if (firstTask != null) {
@@ -1051,9 +1059,10 @@ public abstract class RecentsView<T extends BaseActivity> extends PagedView impl
         if (task != null) {
             ActivityManagerWrapper.getInstance().removeTask(task.key.id);
             if (shouldLog) {
+                ComponentKey componentKey = TaskUtils.getLaunchComponentKeyForTask(task.key);
                 mActivity.getUserEventDispatcher().logTaskLaunchOrDismiss(
-                        onEndListener.logAction, Direction.UP, index,
-                        TaskUtils.getLaunchComponentKeyForTask(task.key));
+                        onEndListener.logAction, Direction.UP, index, componentKey);
+                mActivity.getStatsLogManager().logTaskDismiss(this, componentKey);
             }
         }
     }
