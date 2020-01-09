@@ -23,4 +23,9 @@
         <item name="widgetsTheme">@style/WidgetContainerTheme.Dark</item>
     </style>
 
+    <style name="WidgetContainerTheme.Dark" parent="AppTheme.Dark">
+        <item name="android:colorEdgeEffect">?android:attr/textColorSecondary</item>
+        <item name="android:colorPrimary">@color/omni_color1</item>
+        <item name="android:colorPrimaryDark">@color/omni_color2</item>
+    </style>
 </resources>
