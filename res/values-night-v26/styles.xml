@@ -42,7 +42,7 @@
         <item name="allAppsNavBarScrimColor">#80000000</item>
         <item name="popupColorPrimary">@color/omni_color2</item>
         <item name="popupColorSecondary">@color/omni_color1</item> 
-        <item name="popupColorTertiary">#757575</item> <!-- Gray 600 -->
+        <item name="popupColorTertiary">@color/omni_color1</item> <!-- Gray 600 -->
         <item name="widgetsTheme">@style/WidgetContainerTheme.Dark</item>
         <item name="folderDotColor">#FF464646</item>
         <item name="folderFillColor">@color/omni_color2</item> <!-- 87% GM2 800 -->
@@ -50,5 +50,10 @@
         <item name="folderTextColor">@android:color/white</item>
         <item name="isMainColorDark">true</item>
         <item name="loadingIconColor">#99FFFFFF</item>
+    </style>
+
+    <style name="LauncherTheme.Dark.DarkMainColor" parent="@style/LauncherTheme.Dark">
+        <item name="folderFillColor">@color/omni_color2</item> <!-- 100% GM2 800 -->
+        <item name="folderTextColor">@android:color/white</item>
     </style>
 </resources>
