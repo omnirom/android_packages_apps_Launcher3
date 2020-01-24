@@ -35,7 +35,7 @@
     <string name="show_search_bar_title">Arama çubuğunu göster</string>
     <string name="widget_category_title">Widgetlar</string>
     <string name="omnijaws_service_error">Hatâ</string>
-    <string name="omnijaws_service_unkown">Hava durumu âid bir malumat yok</string>
+    <string name="omnijaws_service_unkown">Hava durumu malumatı yoktur</string>
     <string name="omnijaws_service_error_long">Hava durumuna dair veriler yüklenemedi</string>
     <string name="omnijaws_service_disabled">Hizmet devre dışı bırakıldı</string>
     <string name="omnijaws_detail_header">Hava durumu</string>
