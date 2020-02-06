@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3163bba2_68ef1124",
+        "filename": "res/values/custom_strings.xml",
+        "patchSetId": 6
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 1000026
+      },
+      "writtenOn": "2020-02-06T18:58:35Z",
+      "side": 1,
+      "message": "isnt it called Google feed these days?",
+      "revId": "974da6a62fbd7e1e1d4bb9a9ab9abd4a02eb81b7",
+      "serverId": "56841c99-7c94-43d4-bf0b-cb4707e66d55",
+      "unresolved": true
+    }
+  ]
+}
