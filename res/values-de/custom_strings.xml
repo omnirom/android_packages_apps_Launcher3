@@ -17,4 +17,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="state_loading">Wende\u2026 an</string>
     <string name="pref_qsb_show_title">Such-Widget anzeigen</string>
+    <string name="left_tab_label">\"Google Feed\" Registerkarte</string>
+    <string name="left_tab_description">\"Google Feed\" Integration aktivieren</string>
 </resources>

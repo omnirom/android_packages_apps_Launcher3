@@ -17,4 +17,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="state_loading">Zatosowanie\u2026</string>
     <string name="pref_qsb_show_title">Pokaż widżet wyszukiwania</string>
+    <string name="left_tab_label">Karta kanału Google</string>
+    <string name="left_tab_description">Przełącz intergrację kanału Google</string>
 </resources>
