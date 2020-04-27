@@ -17,4 +17,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="state_loading">Применение\u2026</string>
     <string name="pref_qsb_show_title">Показать виджет поиска</string>
+    <string name="left_tab_label">Вкладка ленты новостей Google</string>
+    <string name="left_tab_description">Переключить интерграцию ленты Google</string>
 </resources>
