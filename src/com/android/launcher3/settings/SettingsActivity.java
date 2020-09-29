@@ -78,8 +78,8 @@ public class SettingsActivity extends FragmentActivity
             !Utilities.IS_DEBUG_DEVICE ? Collections.emptyList()
                     : Collections.singletonList(DeveloperOptionsFragment.class.getName());
 
-    private static final String DEVELOPER_OPTIONS_KEY = "pref_developer_options";
-    private static final String FLAGS_PREFERENCE_KEY = "flag_toggler";
+    //private static final String DEVELOPER_OPTIONS_KEY = "pref_developer_options";
+    //private static final String FLAGS_PREFERENCE_KEY = "flag_toggler";
 
     private static final String NOTIFICATION_DOTS_PREFERENCE_KEY = "pref_icon_badging";
     private static final String GRID_SIZE_PREFERENCE_KEY = "pref_grid";
@@ -325,13 +325,13 @@ public class SettingsActivity extends FragmentActivity
                             RotationHelper.getAllowRotationDefaultValue(deviceProfile));
                     return true;
 
-                case FLAGS_PREFERENCE_KEY:
+                /*case FLAGS_PREFERENCE_KEY:
                     // Only show flag toggler UI if this build variant implements that.
-                    return FeatureFlags.showFlagTogglerUi(getContext());
+                    return FeatureFlags.showFlagTogglerUi(getContext());*/
 
-                case DEVELOPER_OPTIONS_KEY:
+                /*case DEVELOPER_OPTIONS_KEY:
                     mDeveloperOptionPref = preference;
-                    return updateDeveloperOption();
+                    return updateDeveloperOption();*/
             }
 
             return true;
