@@ -55,8 +55,8 @@ public class SettingsActivity extends FragmentActivity
         implements OnPreferenceStartFragmentCallback, OnPreferenceStartScreenCallback,
         SharedPreferences.OnSharedPreferenceChangeListener{
 
-    private static final String DEVELOPER_OPTIONS_KEY = "pref_developer_options";
-    private static final String FLAGS_PREFERENCE_KEY = "flag_toggler";
+    //private static final String DEVELOPER_OPTIONS_KEY = "pref_developer_options";
+    //private static final String FLAGS_PREFERENCE_KEY = "flag_toggler";
 
     private static final String NOTIFICATION_DOTS_PREFERENCE_KEY = "pref_icon_badging";
     /** Hidden field Settings.Secure.ENABLED_NOTIFICATION_LISTENERS */
@@ -200,14 +200,14 @@ public class SettingsActivity extends FragmentActivity
                     preference.setDefaultValue(getAllowRotationDefaultValue());
                     return true;
 
-                case FLAGS_PREFERENCE_KEY:
+                /*case FLAGS_PREFERENCE_KEY:
                     // Only show flag toggler UI if this build variant implements that.
-                    return FeatureFlags.showFlagTogglerUi(getContext());
+                    return FeatureFlags.showFlagTogglerUi(getContext());*/
 
-                case DEVELOPER_OPTIONS_KEY:
+                /*case DEVELOPER_OPTIONS_KEY:
                     // Show if plugins are enabled or flag UI is enabled.
                     return FeatureFlags.showFlagTogglerUi(getContext()) ||
-                            PluginManagerWrapper.hasPlugins(getContext());
+                            PluginManagerWrapper.hasPlugins(getContext());*/
             }
 
             return true;
