@@ -19,7 +19,7 @@ import static android.view.View.MeasureSpec.EXACTLY;
 import static android.view.View.MeasureSpec.makeMeasureSpec;
 import static android.view.View.VISIBLE;
 
-import static com.android.launcher3.config.FeatureFlags.ENABLE_LAUNCHER_PREVIEW_IN_GRID_PICKER;
+//import static com.android.launcher3.config.FeatureFlags.ENABLE_LAUNCHER_PREVIEW_IN_GRID_PICKER;
 import static com.android.launcher3.model.ModelUtils.filterCurrentWorkspaceItems;
 import static com.android.launcher3.model.ModelUtils.getMissingHotseatRanks;
 import static com.android.launcher3.model.ModelUtils.sortWorkspaceItemsSpatially;
@@ -33,6 +33,8 @@ import android.content.ContextWrapper;
 import android.content.Intent;
 import android.content.pm.ShortcutInfo;
 import android.content.res.TypedArray;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Rect;
 import android.graphics.drawable.AdaptiveIconDrawable;
@@ -40,6 +42,7 @@ import android.graphics.drawable.ColorDrawable;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
+import android.os.Message;
 import android.os.Process;
 import android.util.AttributeSet;
 import android.util.Log;
@@ -66,6 +69,7 @@ import com.android.launcher3.config.FeatureFlags;
 import com.android.launcher3.folder.FolderIcon;
 import com.android.launcher3.icons.BaseIconFactory;
 import com.android.launcher3.icons.BitmapInfo;
+import com.android.launcher3.icons.BitmapRenderer;
 import com.android.launcher3.icons.LauncherIcons;
 import com.android.launcher3.model.AllAppsList;
 import com.android.launcher3.model.BgDataModel;
@@ -98,6 +102,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.FutureTask;
@@ -113,7 +118,7 @@ import java.util.concurrent.TimeoutException;
  *   4) Measure and draw the view on a canvas
  */
 @TargetApi(Build.VERSION_CODES.O)
-public class LauncherPreviewRenderer {
+public class LauncherPreviewRenderer implements Callable<Bitmap> {
 
     private static final String TAG = "LauncherPreviewRenderer";
 
@@ -214,7 +219,7 @@ public class LauncherPreviewRenderer {
         mUiHandler = new Handler(Looper.getMainLooper());
         mContext = context;
         mIdp = idp;
-        mDp = idp.portraitProfile.copy(context);
+        mDp = idp.getDeviceProfile(context).copy(context);
         mMigrated = migrated;
 
         // TODO: get correct insets once display cutout API is available.
@@ -242,6 +247,38 @@ public class LauncherPreviewRenderer {
         MainThreadRenderer renderer = new MainThreadRenderer(mContext);
         renderer.populate();
         return renderer.mRootView;
+    }
+
+    @Override
+    public Bitmap call() {
+        return BitmapRenderer.createHardwareBitmap(mDp.widthPx, mDp.heightPx, c -> {
+            if (Looper.myLooper() == Looper.getMainLooper()) {
+                View v = getRenderedView();
+                v.draw(c);
+            } else {
+                CountDownLatch latch = new CountDownLatch(1);
+                postAsyncCallback(mUiHandler, () -> {
+                    View v = getRenderedView();
+                    v.draw(c);
+                    latch.countDown();
+                });
+
+                try {
+                    latch.await();
+                } catch (Exception e) {
+                    Log.e(TAG, "Error drawing on main thread", e);
+                }
+            }
+        });
+    }
+
+    /**
+     * Utility method to post a runnable on the handler, skipping the synchronization barriers.
+     */
+    private  void postAsyncCallback(Handler handler, Runnable callback) {
+        Message msg = Message.obtain(handler, callback);
+        msg.setAsynchronous(true);
+        handler.sendMessage(msg);
     }
 
     private class MainThreadRenderer extends ContextThemeWrapper
@@ -378,7 +415,8 @@ public class LauncherPreviewRenderer {
         }
 
         private void populate() {
-            if (ENABLE_LAUNCHER_PREVIEW_IN_GRID_PICKER.get()) {
+            if (true /*ENABLE_LAUNCHER_PREVIEW_IN_GRID_PICKER.get()*/) {
+                Log.d(TAG, "populate");
                 WorkspaceFetcher fetcher;
                 PreviewContext previewContext = null;
                 if (mMigrated) {
