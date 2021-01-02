@@ -52,6 +52,7 @@ public final class FeatureFlags {
      * Enable moving the QSB on the 0th screen of the workspace. This is not a configuration feature
      * and should be modified at a project level.
      */
+    // NOTE: replaced by resource qsb_show_default
     public static final boolean QSB_ON_FIRST_SCREEN = true;
 
     /**
