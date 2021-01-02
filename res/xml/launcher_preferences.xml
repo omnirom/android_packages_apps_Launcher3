@@ -49,7 +49,8 @@
         android:key="pref_qsb_show"
         android:persistent="true"
         android:summary="@string/pref_qsb_show_summary"
-        android:title="@string/pref_qsb_show_title"/>
+        android:title="@string/pref_qsb_show_title"
+        android:defaultValue="@bool/qsb_show_default"/>
 
     <SwitchPreference
         android:key="pref_left_tab"
