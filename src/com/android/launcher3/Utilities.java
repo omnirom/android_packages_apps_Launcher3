@@ -168,7 +168,8 @@ public final class Utilities {
     }
 
     public static boolean showQsbWidget(Context context) {
-         return getPrefs(context).getBoolean(QSB_SHOW, FeatureFlags.QSB_ON_FIRST_SCREEN);
+         return getPrefs(context).getBoolean(QSB_SHOW,
+                context.getResources().getBoolean(R.bool.qsb_show_default));
     }
 
     public static boolean isShowLeftTab(Context context) {
