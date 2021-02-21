@@ -17,6 +17,7 @@ package com.android.launcher3.uioverrides;
 
 import static com.android.launcher3.LauncherState.OVERVIEW_BUTTONS;
 import static com.android.launcher3.anim.Interpolators.LINEAR;
+import static com.android.launcher3.states.StateAnimationConfig.ANIM_OVERVIEW_ACTIONS_FADE;
 import static com.android.quickstep.views.RecentsView.CONTENT_ALPHA;
 import static com.android.quickstep.views.RecentsView.FULLSCREEN_PROGRESS;
 import static com.android.quickstep.views.RecentsView.TASK_MODALNESS;
@@ -56,7 +57,7 @@ public final class RecentsViewStateController extends
             mRecentsView.updateEmptyMessage();
             mRecentsView.resetTaskVisuals();
         }
-        setAlphas(PropertySetter.NO_ANIM_PROPERTY_SETTER, state);
+        setAlphas(PropertySetter.NO_ANIM_PROPERTY_SETTER, new StateAnimationConfig(), state);
         mRecentsView.setFullscreenProgress(state.getOverviewFullscreenProgress());
     }
 
@@ -74,15 +75,17 @@ public final class RecentsViewStateController extends
                     AnimationSuccessListener.forRunnable(mRecentsView::resetTaskVisuals));
         }
 
-        setAlphas(builder, toState);
+        setAlphas(builder, config, toState);
         builder.setFloat(mRecentsView, FULLSCREEN_PROGRESS,
                 toState.getOverviewFullscreenProgress(), LINEAR);
     }
 
-    private void setAlphas(PropertySetter propertySetter, LauncherState state) {
+    private void setAlphas(PropertySetter propertySetter, StateAnimationConfig config,
+            LauncherState state) {
         float buttonAlpha = (state.getVisibleElements(mLauncher) & OVERVIEW_BUTTONS) != 0 ? 1 : 0;
         propertySetter.setFloat(mLauncher.getActionsView().getVisibilityAlpha(),
-                MultiValueAlpha.VALUE, buttonAlpha, LINEAR);
+                MultiValueAlpha.VALUE, buttonAlpha, config.getInterpolator(
+                        ANIM_OVERVIEW_ACTIONS_FADE, LINEAR));
     }
 
     @Override
