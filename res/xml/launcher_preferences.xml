@@ -57,6 +57,11 @@
         android:summary="@string/pref_qsb_show_summary"
         android:title="@string/pref_qsb_show_title"/>
 
+    <DropDownPreference
+        android:key="pref_grid"
+        android:title="@string/pref_grid_title"
+        android:persistent="false"/>
+
     <!--<androidx.preference.PreferenceScreen
         android:key="pref_developer_options"
         android:persistent="false"
