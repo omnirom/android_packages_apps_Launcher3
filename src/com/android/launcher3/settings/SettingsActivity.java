@@ -23,8 +23,11 @@ import static com.android.launcher3.states.RotationHelper.ALLOW_ROTATION_PREFERE
 
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.res.XmlResourceParser;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Log;
+import android.util.Xml;
 import android.view.MenuItem;
 import android.view.View;
 
@@ -35,6 +38,7 @@ import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 import androidx.fragment.app.FragmentManager;
+import androidx.preference.DropDownPreference;
 import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
 import androidx.preference.PreferenceFragmentCompat.OnPreferenceStartFragmentCallback;
@@ -45,6 +49,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.android.launcher3.DeviceProfile;
 import com.android.launcher3.InvariantDeviceProfile;
+import com.android.launcher3.InvariantDeviceProfile.GridOption;
 import com.android.launcher3.LauncherFiles;
 import com.android.launcher3.LauncherPrefs;
 import com.android.launcher3.R;
@@ -56,6 +61,11 @@ import com.android.launcher3.uioverrides.flags.DeveloperOptionsFragment;
 import com.android.launcher3.uioverrides.plugins.PluginManagerWrapper;
 import com.android.launcher3.util.DisplayController;
 
+import org.xmlpull.v1.XmlPullParser;
+import org.xmlpull.v1.XmlPullParserException;
+
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -65,6 +75,7 @@ import java.util.List;
 public class SettingsActivity extends FragmentActivity
         implements OnPreferenceStartFragmentCallback, OnPreferenceStartScreenCallback,
         SharedPreferences.OnSharedPreferenceChangeListener{
+    private static final String TAG = "SettingsActivity";
 
     /** List of fragments that can be hosted by this activity. */
     private static final List<String> VALID_PREFERENCE_FRAGMENTS =
@@ -75,6 +86,7 @@ public class SettingsActivity extends FragmentActivity
     private static final String FLAGS_PREFERENCE_KEY = "flag_toggler";
 
     private static final String NOTIFICATION_DOTS_PREFERENCE_KEY = "pref_icon_badging";
+    private static final String GRID_SIZE_PREFERENCE_KEY = "pref_grid";
 
     public static final String EXTRA_FRAGMENT_ARG_KEY = ":settings:fragment_args_key";
     public static final String EXTRA_SHOW_FRAGMENT_ARGS = ":settings:show_fragment_args";
@@ -234,6 +246,48 @@ public class SettingsActivity extends FragmentActivity
                 }
                 getActivity().setTitle(getPreferenceScreen().getTitle());
             }
+
+            final DropDownPreference grid = (DropDownPreference) findPreference(GRID_SIZE_PREFERENCE_KEY);
+            InvariantDeviceProfile idp = InvariantDeviceProfile.INSTANCE.get(getContext());
+            ArrayList<String> entries = new ArrayList<>();
+            ArrayList<String> values = new ArrayList<>();
+            for (GridOption gridOption : parseAllGridOptions(idp.deviceType)) {
+                values.add(gridOption.name);
+                entries.add("    " + gridOption.numColumns + " x " + gridOption.numRows + "    ");
+            }
+
+            grid.setEntries(entries.toArray(new String[entries.size()]));
+            grid.setEntryValues(values.toArray(new String[values.size()]));
+
+            String currentGrid = idp.getCurrentGridName(getContext());
+            int valueIndex = grid.findIndexOfValue(currentGrid);
+            grid.setValueIndex(valueIndex >= 0 ? valueIndex : 0);
+            grid.setSummary(grid.getEntry());
+
+            grid.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+                public boolean onPreferenceChange(Preference preference, Object newValue) {
+                    // Verify that this is a valid grid option
+                    String gridName = (String) newValue;
+                    GridOption match = null;
+                    for (GridOption option : parseAllGridOptions(idp.deviceType)) {
+                        if (option.name.equals(gridName)) {
+                            match = option;
+                            break;
+                        }
+                    }
+                    if (match == null) {
+                        return false;
+                    }
+
+                    InvariantDeviceProfile.INSTANCE.get(getContext())
+                            .setCurrentGrid(getContext(), gridName);
+
+                    int valueIndex = grid.findIndexOfValue(gridName);
+                    grid.setValueIndex(valueIndex >= 0 ? valueIndex : 0);
+                    grid.setSummary(grid.getEntries()[valueIndex]);
+                    return true;
+                }
+            });
         }
 
         @Override
@@ -355,6 +409,28 @@ public class SettingsActivity extends FragmentActivity
                             .performAccessibilityAction(ACTION_ACCESSIBILITY_FOCUS, null);
                 }
             });
+        }
+
+        private List<GridOption> parseAllGridOptions(int deviceType) {
+            List<GridOption> result = new ArrayList<>();
+            try (XmlResourceParser parser = getContext().getResources().getXml(R.xml.device_profiles)) {
+                final int depth = parser.getDepth();
+                int type;
+                while (((type = parser.next()) != XmlPullParser.END_TAG ||
+                        parser.getDepth() > depth) && type != XmlPullParser.END_DOCUMENT) {
+                    if ((type == XmlPullParser.START_TAG)
+                            && GridOption.TAG_NAME.equals(parser.getName())) {
+                        GridOption gridOption = new GridOption(getContext(), Xml.asAttributeSet(parser));
+                        if (gridOption.isEnabled(deviceType)) {
+                            result.add(gridOption);
+                        }
+                    }
+                }
+            } catch (IOException | XmlPullParserException e) {
+                Log.e(TAG, "Error parsing device profile", e);
+                return Collections.emptyList();
+            }
+            return result;
         }
     }
 }
