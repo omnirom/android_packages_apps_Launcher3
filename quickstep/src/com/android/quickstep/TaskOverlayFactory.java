@@ -24,6 +24,7 @@ import static com.android.quickstep.views.OverviewActionsView.DISABLED_ROTATED;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.res.Configuration;
 import android.graphics.Insets;
 import android.graphics.Matrix;
 import android.graphics.Rect;
@@ -80,19 +81,20 @@ public class TaskOverlayFactory implements ResourceBasedOverride {
         }
         RecentsOrientedState orientedState = taskView.getRecentsView().getPagedViewOrientedState();
         boolean canLauncherRotate = orientedState.canRecentsActivityRotate();
-        boolean isInLandscape = orientedState.getTouchRotation() != ROTATION_0;
+        boolean isInLandscape = activity.getResources().getConfiguration().orientation != Configuration.ORIENTATION_PORTRAIT;
+
+        // Always add screenshot action to task menu.
+        SystemShortcut screenshotShortcut = TaskShortcutFactory.SCREENSHOT
+                .getShortcut(activity, taskView);
+        if (screenshotShortcut != null) {
+            screenshotShortcut.setHasFinishRecentsInAction(true);
+            shortcuts.add(screenshotShortcut);
+        }
 
         // Add overview actions to the menu when in in-place rotate landscape mode.
         if (!canLauncherRotate && isInLandscape) {
-            // Add screenshot action to task menu.
-            SystemShortcut screenshotShortcut = TaskShortcutFactory.SCREENSHOT
-                    .getShortcut(activity, taskView);
-            if (screenshotShortcut != null) {
-                screenshotShortcut.setHasFinishRecentsInAction(true);
-                shortcuts.add(screenshotShortcut);
-            }
-
             // Add modal action only if display orientation is the same as the device orientation.
+            // maxwen: this is always disabled because getModalStateSystemShortcut == null
             if (orientedState.getDisplayRotation() == ROTATION_0) {
                 SystemShortcut modalShortcut = TaskShortcutFactory.MODAL
                         .getShortcut(activity, taskView);

@@ -1309,8 +1309,7 @@ public abstract class RecentsView<ACTIVITY_TYPE extends StatefulActivity<STATE_T
             mActivity.getDragLayer().recreateControllers();
         }
 
-        boolean isInLandscape = mOrientationState.getTouchRotation() != ROTATION_0
-                || mOrientationState.getRecentsActivityRotation() != ROTATION_0;
+        boolean isInLandscape = getResources().getConfiguration().orientation != Configuration.ORIENTATION_PORTRAIT;
         mActionsView.updateHiddenFlags(HIDDEN_NON_ZERO_ROTATION,
                 !mOrientationState.canRecentsActivityRotate() && isInLandscape);
 
