@@ -91,6 +91,22 @@ public class TaskOverlayFactory implements ResourceBasedOverride {
             shortcuts.add(screenshotShortcut);
         }
 
+        // clear task shortcut
+        SystemShortcut clearTaskShortcut = TaskShortcutFactory.CLEAR_TASK
+                .getShortcut(activity, taskView);
+        if (clearTaskShortcut != null) {
+            clearTaskShortcut.setHasFinishRecentsInAction(true);
+            shortcuts.add(clearTaskShortcut);
+        }
+
+        // clear all
+        SystemShortcut clearAllTaskShortcut = TaskShortcutFactory.CLEAR_ALL_TASK
+                .getShortcut(activity, taskView);
+        if (clearAllTaskShortcut != null) {
+            clearAllTaskShortcut.setHasFinishRecentsInAction(true);
+            shortcuts.add(clearAllTaskShortcut);
+        }
+
         // Add overview actions to the menu when in in-place rotate landscape mode.
         if (!canLauncherRotate && isInLandscape) {
             // Add modal action only if display orientation is the same as the device orientation.

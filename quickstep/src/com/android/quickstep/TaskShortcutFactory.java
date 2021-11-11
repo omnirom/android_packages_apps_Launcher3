@@ -337,4 +337,49 @@ public interface TaskShortcutFactory {
         }
         return null;
     };
+
+    TaskShortcutFactory CLEAR_TASK = (activity, tv) -> {
+        return new ClearTaskSystemShortcut(activity, tv);
+    };
+
+    class ClearTaskSystemShortcut extends SystemShortcut {
+
+        private static final String TAG = "ClearTaskSystemShortcut";
+
+        private final TaskView mTaskView;
+
+        public ClearTaskSystemShortcut(BaseDraggingActivity target, TaskView tv) {
+            super(R.drawable.ic_close, R.string.recents_clear, target, tv.getItemInfo());
+            mTaskView = tv;
+        }
+
+        @Override
+        public void onClick(View view) {
+            dismissTaskMenuView(mTarget);
+            mTaskView.getRecentsView().dismissTask(mTaskView, true /*animateTaskView*/,
+                    true /*removeTask*/);
+        }
+    }
+
+    TaskShortcutFactory CLEAR_ALL_TASK = (activity, tv) -> {
+        return new ClearAllTaskSystemShortcut(activity, tv);
+    };
+
+    class ClearAllTaskSystemShortcut extends SystemShortcut {
+
+        private static final String TAG = "ClearAllTaskSystemShortcut";
+
+        private final TaskView mTaskView;
+
+        public ClearAllTaskSystemShortcut(BaseDraggingActivity target, TaskView tv) {
+            super(R.drawable.ic_close_all, R.string.recents_clear_all, target, tv.getItemInfo());
+            mTaskView = tv;
+        }
+
+        @Override
+        public void onClick(View view) {
+            dismissTaskMenuView(mTarget);
+            mTaskView.getRecentsView().dismissAllTasks(null);
+        }
+    }
 }
