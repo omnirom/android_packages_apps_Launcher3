@@ -91,16 +91,31 @@ public class TaskOverlayFactory implements ResourceBasedOverride {
         boolean canLauncherRotate = orientedState.isRecentsActivityRotationAllowed();
         boolean isInLandscape = orientedState.getTouchRotation() != ROTATION_0;
 
+        // Always add screenshot action to task menu.
+        SystemShortcut screenshotShortcut = TaskShortcutFactory.SCREENSHOT
+                .getShortcut(activity, taskContainer);
+        if (screenshotShortcut != null) {
+            shortcuts.add(screenshotShortcut);
+        }
+
+        // clear task shortcut
+        SystemShortcut clearTaskShortcut = TaskShortcutFactory.CLEAR_TASK
+                .getShortcut(activity, taskContainer);
+        if (clearTaskShortcut != null) {
+            shortcuts.add(clearTaskShortcut);
+        }
+
+        // clear all
+        SystemShortcut clearAllTaskShortcut = TaskShortcutFactory.CLEAR_ALL_TASK
+                .getShortcut(activity, taskContainer);
+        if (clearAllTaskShortcut != null) {
+            shortcuts.add(clearAllTaskShortcut);
+        }
+
         // Add overview actions to the menu when in in-place rotate landscape mode.
         if (!canLauncherRotate && isInLandscape) {
-            // Add screenshot action to task menu.
-            SystemShortcut screenshotShortcut = TaskShortcutFactory.SCREENSHOT
-                    .getShortcut(activity, taskContainer);
-            if (screenshotShortcut != null) {
-                shortcuts.add(screenshotShortcut);
-            }
-
             // Add modal action only if display orientation is the same as the device orientation.
+            // maxwen: this is always disabled because getModalStateSystemShortcut == null
             if (orientedState.getDisplayRotation() == ROTATION_0) {
                 SystemShortcut modalShortcut = TaskShortcutFactory.MODAL
                         .getShortcut(activity, taskContainer);
