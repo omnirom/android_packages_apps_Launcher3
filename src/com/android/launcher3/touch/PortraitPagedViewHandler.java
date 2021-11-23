@@ -277,7 +277,7 @@ public class PortraitPagedViewHandler implements PagedOrientationHandler {
     public void setTaskOptionsMenuLayoutOrientation(DeviceProfile deviceProfile,
             LinearLayout taskMenuLayout, int dividerSpacing,
             ShapeDrawable dividerDrawable) {
-        if (deviceProfile.isLandscape && !deviceProfile.isTablet) {
+        if (deviceProfile.isLandscape || deviceProfile.isTablet) {
             // Phone landscape
             taskMenuLayout.setOrientation(LinearLayout.HORIZONTAL);
             dividerDrawable.setIntrinsicWidth(dividerSpacing);
@@ -292,7 +292,7 @@ public class PortraitPagedViewHandler implements PagedOrientationHandler {
     @Override
     public void setLayoutParamsForTaskMenuOptionItem(LinearLayout.LayoutParams lp,
             LinearLayout viewGroup, DeviceProfile deviceProfile) {
-        if (deviceProfile.isLandscape && !deviceProfile.isTablet) {
+        if (deviceProfile.isLandscape || deviceProfile.isTablet) {
             // Phone landscape
             viewGroup.setOrientation(LinearLayout.VERTICAL);
             lp.width = 0;
