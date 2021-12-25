@@ -337,6 +337,4 @@
     <dimen name="search_row_small_icon_size">32dp</dimen>
     <dimen name="padded_rounded_button_padding">8dp</dimen>
 
-    <dimen name="search_box_radius">28dp</dimen>
-
 </resources>
