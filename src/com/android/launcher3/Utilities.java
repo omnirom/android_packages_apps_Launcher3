@@ -884,4 +884,8 @@ public final class Utilities {
             return mSize;
         }
     }
+
+    public static boolean isTaskbarDisable(Context context) {
+        return Settings.System.getInt(context.getContentResolver(), Settings.System.OMNI_TASKBAR_DISABLE, 0) == 1;
+    }
 }
