@@ -884,4 +884,8 @@ public final class Utilities {
             return mSize;
         }
     }
+
+    public static boolean isTabletOverwritten(Context context) {
+        return Settings.System.getInt(context.getContentResolver(), "override_is_tablet", 0) == 1;
+    }
 }
