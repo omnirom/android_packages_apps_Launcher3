@@ -19,4 +19,6 @@
     <item type="id" name="volume_plus" />
     <item type="id" name="volume_minus" />
     <item type="id" name="notifications" />
+    <item type="id" name="dpad_left" />
+    <item type="id" name="dpad_right" />
 </resources>
