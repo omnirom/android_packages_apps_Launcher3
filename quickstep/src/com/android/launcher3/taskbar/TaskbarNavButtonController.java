@@ -23,6 +23,7 @@ import static com.android.systemui.shared.system.QuickStepContract.SYSUI_STATE_S
 
 import android.os.Bundle;
 import android.os.Handler;
+import android.view.KeyEvent;
 
 import androidx.annotation.IntDef;
 
@@ -56,6 +57,11 @@ public class TaskbarNavButtonController {
             BUTTON_RECENTS,
             BUTTON_IME_SWITCH,
             BUTTON_A11Y,
+            BUTTON_POWER,
+            BUTTON_VOLUME_UP,
+            BUTTON_VOLUME_DOWN,
+            BUTTON_SETTINGS,
+            BUTTON_NOTIFICATIONS,
     })
 
     public @interface TaskbarButton {}
@@ -65,6 +71,11 @@ public class TaskbarNavButtonController {
     static final int BUTTON_RECENTS = BUTTON_HOME << 1;
     static final int BUTTON_IME_SWITCH = BUTTON_RECENTS << 1;
     static final int BUTTON_A11Y = BUTTON_IME_SWITCH << 1;
+    static final int BUTTON_POWER = BUTTON_A11Y << 1;
+    static final int BUTTON_VOLUME_UP = BUTTON_POWER << 1;
+    static final int BUTTON_VOLUME_DOWN = BUTTON_VOLUME_UP << 1;
+    static final int BUTTON_SETTINGS = BUTTON_VOLUME_DOWN << 1;
+    static final int BUTTON_NOTIFICATIONS = BUTTON_SETTINGS << 1;
 
     private static final int SCREEN_UNPIN_COMBO = BUTTON_BACK | BUTTON_RECENTS;
     private int mLongPressedButtons = 0;
@@ -99,7 +110,21 @@ public class TaskbarNavButtonController {
             case BUTTON_A11Y:
                 notifyA11yClick(false /* longClick */);
                 break;
-        }
+            case BUTTON_POWER:
+                executePower(false);
+                break;
+            case BUTTON_VOLUME_DOWN:
+                executeKey(KeyEvent.KEYCODE_VOLUME_DOWN);
+                break;
+            case BUTTON_VOLUME_UP:
+                executeKey(KeyEvent.KEYCODE_VOLUME_UP);
+                break;
+            case BUTTON_SETTINGS:
+                break;
+            case BUTTON_NOTIFICATIONS:
+                mSystemUiProxy.expandNotificationPanel();
+                break;
+            }
     }
 
     public boolean onButtonLongClick(@TaskbarButton int buttonType) {
@@ -109,6 +134,9 @@ public class TaskbarNavButtonController {
                 return true;
             case BUTTON_A11Y:
                 notifyA11yClick(true /* longClick */);
+                return true;
+            case BUTTON_POWER:
+                executePower(true);
                 return true;
             case BUTTON_BACK:
             case BUTTON_RECENTS:
@@ -201,5 +229,17 @@ public class TaskbarNavButtonController {
         Bundle args = new Bundle();
         args.putInt(INVOCATION_TYPE_KEY, INVOCATION_TYPE_HOME_BUTTON_LONG_PRESS);
         mSystemUiProxy.startAssistant(args);
+    }
+
+    private void executeKey(int keyCode) {
+        mSystemUiProxy.onKeyPressed(keyCode);
+    }
+
+    private void executePower(boolean longPress) {
+        if (longPress) {
+            mSystemUiProxy.onKeyLongPressed(KeyEvent.KEYCODE_POWER);
+        } else {
+            mSystemUiProxy.onKeyPressed(KeyEvent.KEYCODE_POWER);
+        }
     }
 }
