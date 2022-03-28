@@ -904,4 +904,26 @@ public class SystemUiProxy implements ISystemUiProxy, DisplayController.DisplayI
         }
         return new ArrayList<>();
     }
+
+    //
+    
+    public void onKeyPressed(int keyCode) {
+        if (mSystemUiProxy != null) {
+            try {
+                mSystemUiProxy.onKeyPressed(keyCode);
+            } catch (RemoteException e) {
+                Log.w(TAG, "Failed call onKeyPressed", e);
+            }
+        }
+    }
+
+    public void onKeyLongPressed(int keyCode) {
+        if (mSystemUiProxy != null) {
+            try {
+                mSystemUiProxy.onKeyLongPressed(keyCode);
+            } catch (RemoteException e) {
+                Log.w(TAG, "Failed call onKeyLongPressed", e);
+            }
+        }
+    }
 }

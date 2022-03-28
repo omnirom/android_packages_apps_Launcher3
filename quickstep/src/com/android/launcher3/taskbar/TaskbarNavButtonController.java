@@ -33,6 +33,7 @@ import static com.android.systemui.shared.system.QuickStepContract.SYSUI_STATE_S
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
+import android.view.KeyEvent;
 
 import androidx.annotation.IntDef;
 import androidx.annotation.Nullable;
@@ -83,6 +84,10 @@ public class TaskbarNavButtonController implements TaskbarControllers.LoggableTa
             BUTTON_IME_SWITCH,
             BUTTON_A11Y,
             BUTTON_QUICK_SETTINGS,
+            BUTTON_POWER,
+            BUTTON_VOLUME_UP,
+            BUTTON_VOLUME_DOWN,
+            BUTTON_SETTINGS,
             BUTTON_NOTIFICATIONS,
     })
 
@@ -95,6 +100,10 @@ public class TaskbarNavButtonController implements TaskbarControllers.LoggableTa
     static final int BUTTON_A11Y = BUTTON_IME_SWITCH << 1;
     static final int BUTTON_QUICK_SETTINGS = BUTTON_A11Y << 1;
     static final int BUTTON_NOTIFICATIONS = BUTTON_QUICK_SETTINGS << 1;
+    static final int BUTTON_POWER = BUTTON_NOTIFICATIONS << 1;
+    static final int BUTTON_VOLUME_UP = BUTTON_POWER << 1;
+    static final int BUTTON_VOLUME_DOWN = BUTTON_VOLUME_UP << 1;
+    static final int BUTTON_SETTINGS = BUTTON_VOLUME_DOWN << 1;
 
     private static final int SCREEN_UNPIN_COMBO = BUTTON_BACK | BUTTON_RECENTS;
     private int mLongPressedButtons = 0;
@@ -141,7 +150,18 @@ public class TaskbarNavButtonController implements TaskbarControllers.LoggableTa
             case BUTTON_NOTIFICATIONS:
                 showNotifications();
                 break;
-        }
+            case BUTTON_POWER:
+                executePower(false);
+                break;
+            case BUTTON_VOLUME_DOWN:
+                executeKey(KeyEvent.KEYCODE_VOLUME_DOWN);
+                break;
+            case BUTTON_VOLUME_UP:
+                executeKey(KeyEvent.KEYCODE_VOLUME_UP);
+                break;
+            case BUTTON_SETTINGS:
+                break;
+            }
     }
 
     public boolean onButtonLongClick(@TaskbarButton int buttonType) {
@@ -153,6 +173,9 @@ public class TaskbarNavButtonController implements TaskbarControllers.LoggableTa
             case BUTTON_A11Y:
                 logEvent(LAUNCHER_TASKBAR_A11Y_BUTTON_LONGPRESS);
                 notifyA11yClick(true /* longClick */);
+                return true;
+            case BUTTON_POWER:
+                executePower(true);
                 return true;
             case BUTTON_BACK:
                 logEvent(LAUNCHER_TASKBAR_BACK_BUTTON_LONGPRESS);
@@ -298,5 +321,17 @@ public class TaskbarNavButtonController implements TaskbarControllers.LoggableTa
 
     private void showNotifications() {
         mSystemUiProxy.toggleNotificationPanel();
+    }
+
+    private void executeKey(int keyCode) {
+        mSystemUiProxy.onKeyPressed(keyCode);
+    }
+
+    private void executePower(boolean longPress) {
+        if (longPress) {
+            mSystemUiProxy.onKeyLongPressed(KeyEvent.KEYCODE_POWER);
+        } else {
+            mSystemUiProxy.onKeyPressed(KeyEvent.KEYCODE_POWER);
+        }
     }
 }
