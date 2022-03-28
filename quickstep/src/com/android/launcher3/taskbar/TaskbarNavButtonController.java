@@ -89,6 +89,8 @@ public class TaskbarNavButtonController implements TaskbarControllers.LoggableTa
             BUTTON_VOLUME_DOWN,
             BUTTON_SETTINGS,
             BUTTON_NOTIFICATIONS,
+            BUTTON_DPAD_LEFT,
+            BUTTON_DPAD_RIGHT,
     })
 
     public @interface TaskbarButton {}
@@ -104,6 +106,8 @@ public class TaskbarNavButtonController implements TaskbarControllers.LoggableTa
     static final int BUTTON_VOLUME_UP = BUTTON_POWER << 1;
     static final int BUTTON_VOLUME_DOWN = BUTTON_VOLUME_UP << 1;
     static final int BUTTON_SETTINGS = BUTTON_VOLUME_DOWN << 1;
+    static final int BUTTON_DPAD_LEFT = BUTTON_SETTINGS << 1;
+    static final int BUTTON_DPAD_RIGHT = BUTTON_DPAD_LEFT << 1;
 
     private static final int SCREEN_UNPIN_COMBO = BUTTON_BACK | BUTTON_RECENTS;
     private int mLongPressedButtons = 0;
@@ -160,6 +164,12 @@ public class TaskbarNavButtonController implements TaskbarControllers.LoggableTa
                 executeKey(KeyEvent.KEYCODE_VOLUME_UP);
                 break;
             case BUTTON_SETTINGS:
+                break;
+            case BUTTON_DPAD_LEFT:
+                executeKey(KeyEvent.KEYCODE_DPAD_LEFT);
+                break;
+            case BUTTON_DPAD_RIGHT:
+                executeKey(KeyEvent.KEYCODE_DPAD_RIGHT);
                 break;
             }
     }

@@ -31,19 +31,25 @@ public class AlphaUpdateListener extends AnimatorListenerAdapter
     public static final float ALPHA_CUTOFF_THRESHOLD = 0.01f;
 
     private View mView;
+    private boolean mVisibilityGone;
 
     public AlphaUpdateListener(View v) {
         mView = v;
     }
 
+    public AlphaUpdateListener(View v, boolean visibilityGone) {
+        mView = v;
+        mVisibilityGone = visibilityGone;
+    }
+
     @Override
     public void onAnimationUpdate(ValueAnimator arg0) {
-        updateVisibility(mView);
+        updateVisibility(mView, mVisibilityGone);
     }
 
     @Override
     public void onAnimationEnd(Animator animator) {
-        updateVisibility(mView);
+        updateVisibility(mView, mVisibilityGone);
     }
 
     @Override
@@ -52,9 +58,9 @@ public class AlphaUpdateListener extends AnimatorListenerAdapter
         mView.setVisibility(View.VISIBLE);
     }
 
-    public static void updateVisibility(View view) {
-        if (view.getAlpha() < ALPHA_CUTOFF_THRESHOLD && view.getVisibility() != View.INVISIBLE) {
-            view.setVisibility(View.INVISIBLE);
+    private static void updateVisibility(View view, boolean visibilityGone) {
+        if (view.getAlpha() < ALPHA_CUTOFF_THRESHOLD && view.getVisibility() != (visibilityGone ? View.GONE : View.INVISIBLE)) {
+            view.setVisibility(visibilityGone ? View.GONE : View.INVISIBLE);
         } else if (view.getAlpha() > ALPHA_CUTOFF_THRESHOLD
                 && view.getVisibility() != View.VISIBLE) {
             if (view instanceof ViewGroup) {
@@ -67,5 +73,9 @@ public class AlphaUpdateListener extends AnimatorListenerAdapter
                 view.setVisibility(View.VISIBLE);
             }
         }
+    }
+
+    public static void updateVisibility(View view) {
+        updateVisibility(view, false);
     }
 }
