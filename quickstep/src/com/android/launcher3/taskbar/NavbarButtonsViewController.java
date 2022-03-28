@@ -25,6 +25,8 @@ import static com.android.launcher3.taskbar.TaskbarNavButtonController.BUTTON_PO
 import static com.android.launcher3.taskbar.TaskbarNavButtonController.BUTTON_VOLUME_UP;
 import static com.android.launcher3.taskbar.TaskbarNavButtonController.BUTTON_VOLUME_DOWN;
 import static com.android.launcher3.taskbar.TaskbarNavButtonController.BUTTON_NOTIFICATIONS;
+import static com.android.launcher3.taskbar.TaskbarNavButtonController.BUTTON_DPAD_LEFT;
+import static com.android.launcher3.taskbar.TaskbarNavButtonController.BUTTON_DPAD_RIGHT;
 import static com.android.launcher3.taskbar.TaskbarViewController.ALPHA_INDEX_KEYGUARD;
 import static com.android.systemui.shared.system.QuickStepContract.SYSUI_STATE_A11Y_BUTTON_CLICKABLE;
 import static com.android.systemui.shared.system.QuickStepContract.SYSUI_STATE_A11Y_BUTTON_LONG_CLICKABLE;
@@ -49,6 +51,7 @@ import android.graphics.Rect;
 import android.graphics.Region;
 import android.graphics.Region.Op;
 import android.graphics.drawable.AnimatedVectorDrawable;
+import android.provider.Settings;
 import android.util.Property;
 import android.view.Gravity;
 import android.view.MotionEvent;
@@ -251,6 +254,7 @@ public class NavbarButtonsViewController {
                     flags -> (flags & FLAG_IME_VISIBLE) != 0));
         }
 
+        initDPadButtons(mControllers.navButtonController);
         applyState();
         mPropertyHolders.forEach(StatePropertyHolder::endAnimation);
     }
@@ -510,6 +514,27 @@ public class NavbarButtonsViewController {
                     flags -> (flags & FLAG_IME_VISIBLE) == 0));
     }
 
+    private void initDPadButtons(TaskbarNavButtonController navButtonController) {
+        View dPadLeftButton = addButton(R.drawable.ic_navbar_chevron_left, BUTTON_DPAD_LEFT,
+                mStartContextualContainer, navButtonController, R.id.dpad_left,
+                R.layout.taskbar_contextual_button);
+
+        mPropertyHolders.add(new StatePropertyHolder(dPadLeftButton,
+                    flags -> (flags & FLAG_IME_VISIBLE) != 0 && showDpadArrowKeys(), true));
+
+        View dPadRightButton = addButton(R.drawable.ic_navbar_chevron_right, BUTTON_DPAD_RIGHT,
+                mStartContextualContainer, navButtonController, R.id.dpad_right,
+                R.layout.taskbar_contextual_button);
+
+        mPropertyHolders.add(new StatePropertyHolder(dPadRightButton,
+                    flags -> (flags & FLAG_IME_VISIBLE) != 0 && showDpadArrowKeys(), true));
+    }
+
+    private boolean showDpadArrowKeys() {
+        return Settings.System.getInt(mContext.getContentResolver(),
+                Settings.System.OMNI_NAVIGATION_BAR_ARROW_KEYS, 0) != 0;
+    }
+
     private class RotationButtonListener implements RotationButton.RotationButtonUpdatesCallback {
         @Override
         public void onVisibilityChanged(boolean isVisible) {
@@ -610,6 +635,11 @@ public class NavbarButtonsViewController {
         StatePropertyHolder(View view, IntPredicate enableCondition) {
             this(view, enableCondition, LauncherAnimUtils.VIEW_ALPHA, 1, 0);
             mAnimator.addListener(new AlphaUpdateListener(view));
+        }
+
+        StatePropertyHolder(View view, IntPredicate enableCondition, boolean visibilityGone) {
+            this(view, enableCondition, LauncherAnimUtils.VIEW_ALPHA, 1, 0);
+            mAnimator.addListener(new AlphaUpdateListener(view, visibilityGone));
         }
 
         <T> StatePropertyHolder(T target, IntPredicate enabledCondition,
