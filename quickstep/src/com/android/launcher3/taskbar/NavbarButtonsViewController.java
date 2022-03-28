@@ -21,6 +21,10 @@ import static com.android.launcher3.taskbar.TaskbarNavButtonController.BUTTON_BA
 import static com.android.launcher3.taskbar.TaskbarNavButtonController.BUTTON_HOME;
 import static com.android.launcher3.taskbar.TaskbarNavButtonController.BUTTON_IME_SWITCH;
 import static com.android.launcher3.taskbar.TaskbarNavButtonController.BUTTON_RECENTS;
+import static com.android.launcher3.taskbar.TaskbarNavButtonController.BUTTON_POWER;
+import static com.android.launcher3.taskbar.TaskbarNavButtonController.BUTTON_VOLUME_UP;
+import static com.android.launcher3.taskbar.TaskbarNavButtonController.BUTTON_VOLUME_DOWN;
+import static com.android.launcher3.taskbar.TaskbarNavButtonController.BUTTON_NOTIFICATIONS;
 import static com.android.launcher3.taskbar.TaskbarViewController.ALPHA_INDEX_KEYGUARD;
 import static com.android.systemui.shared.system.QuickStepContract.SYSUI_STATE_A11Y_BUTTON_CLICKABLE;
 import static com.android.systemui.shared.system.QuickStepContract.SYSUI_STATE_A11Y_BUTTON_LONG_CLICKABLE;
@@ -101,6 +105,7 @@ public class NavbarButtonsViewController {
     // Used for IME+A11Y buttons
     private final ViewGroup mEndContextualContainer;
     private final ViewGroup mStartContextualContainer;
+    private final ViewGroup mHardwareButtonContainer;
     private final int mLightIconColor;
     private final int mDarkIconColor;
 
@@ -132,6 +137,7 @@ public class NavbarButtonsViewController {
         mNavButtonContainer = mNavButtonsView.findViewById(R.id.end_nav_buttons);
         mEndContextualContainer = mNavButtonsView.findViewById(R.id.end_contextual_buttons);
         mStartContextualContainer = mNavButtonsView.findViewById(R.id.start_contextual_buttons);
+        mHardwareButtonContainer = mNavButtonsView.findViewById(R.id.start_hardware_buttons);
 
         mLightIconColor = context.getColor(R.color.taskbar_nav_icon_light_color);
         mDarkIconColor = context.getColor(R.color.taskbar_nav_icon_dark_color);
@@ -144,6 +150,10 @@ public class NavbarButtonsViewController {
         mControllers = controllers;
         mNavButtonsView.getLayoutParams().height = mContext.getDeviceProfile().taskbarSize;
         mNavButtonTranslationYMultiplier.value = 1;
+
+        if (mContext.getResources().getBoolean(R.bool.taskbar_add_hardware_buttons)) {
+            initHardwareButtons(mControllers.navButtonController);
+        }
 
         boolean isThreeButtonNav = mContext.isThreeButtonNav();
         // IME switcher
@@ -481,6 +491,23 @@ public class NavbarButtonsViewController {
         if (mFloatingRotationButton != null) {
             mFloatingRotationButton.hide();
         }
+    }
+    
+    private void initHardwareButtons(TaskbarNavButtonController navButtonController) {
+        View powerButton = addButton(R.drawable.ic_sysbar_power, BUTTON_POWER,
+                mHardwareButtonContainer, navButtonController, R.id.power,
+                R.layout.taskbar_contextual_button);
+
+        View volDownButton = addButton(R.drawable.ic_sysbar_volume_low, BUTTON_VOLUME_DOWN,
+                mHardwareButtonContainer, navButtonController, R.id.volume_minus,
+                R.layout.taskbar_contextual_button);
+
+        View volUpButton = addButton(R.drawable.ic_sysbar_volume_high, BUTTON_VOLUME_UP,
+                mHardwareButtonContainer, navButtonController, R.id.volume_plus,
+                R.layout.taskbar_contextual_button);
+
+        mPropertyHolders.add(new StatePropertyHolder(mHardwareButtonContainer,
+                    flags -> (flags & FLAG_IME_VISIBLE) == 0));
     }
 
     private class RotationButtonListener implements RotationButton.RotationButtonUpdatesCallback {

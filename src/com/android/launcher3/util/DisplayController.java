@@ -374,8 +374,10 @@ public class DisplayController implements DisplayListener, ComponentCallbacks, S
          * Returns true if the bounds represent a tablet
          */
         public boolean isTablet(WindowBounds bounds) {
-            return dpiFromPx(Math.min(bounds.bounds.width(), bounds.bounds.height()),
-                    densityDpi) >= MIN_TABLET_WIDTH;
+            float dpi = dpiFromPx(Math.min(bounds.bounds.width(), bounds.bounds.height()),
+                    densityDpi);
+            Log.d(TAG, "isTablet " + dpi);
+            return dpi >= MIN_TABLET_WIDTH;
         }
     }
 
