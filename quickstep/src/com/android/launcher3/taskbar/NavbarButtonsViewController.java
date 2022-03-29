@@ -222,9 +222,12 @@ public class NavbarButtonsViewController {
             // Animate taskbar background when any of these flags are enabled
             int flagsToShowBg = FLAG_ONLY_BACK_FOR_BOUNCER_VISIBLE
                     | FLAG_NOTIFICATION_SHADE_EXPANDED;
+            int flagsToHideBg = FLAG_KEYGUARD_OCCLUDED
+                    | FLAG_KEYGUARD_VISIBLE;
             mPropertyHolders.add(new StatePropertyHolder(
                     mControllers.taskbarDragLayerController.getNavbarBackgroundAlpha(),
-                    flags -> (flags & flagsToShowBg) != 0, AnimatedFloat.VALUE, 1, 0));
+                    flags -> (flags & flagsToShowBg) != 0 && (flags & flagsToHideBg) == 0,
+                    AnimatedFloat.VALUE, 1, 0));
 
             // Rotation button
             RotationButton rotationButton = new RotationButtonImpl(
