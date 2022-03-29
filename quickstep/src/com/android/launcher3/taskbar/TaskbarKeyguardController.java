@@ -72,7 +72,7 @@ public class TaskbarKeyguardController implements TaskbarControllers.LoggableTas
         mBouncerShowing = bouncerShowing;
 
         mNavbarButtonsViewController.setKeyguardVisible(keyguardShowing || dozing,
-                keyguardOccluded);
+                keyguardOccluded, dozing);
         updateIconsForBouncer();
 
         if (keyguardShowing) {
