@@ -65,7 +65,7 @@ public class TaskbarKeyguardController {
         mBouncerShowing = bouncerShowing;
 
         mNavbarButtonsViewController.setKeyguardVisible(keyguardShowing || dozing,
-                keyguardOccluded);
+                keyguardOccluded, dozing);
         updateIconsForBouncer();
     }
 
