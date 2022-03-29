@@ -112,6 +112,7 @@ public class NavbarButtonsViewController implements TaskbarControllers.LoggableT
     private static final int FLAG_DISABLE_BACK = 1 << 9;
     private static final int FLAG_NOTIFICATION_SHADE_EXPANDED = 1 << 10;
     private static final int FLAG_SCREEN_PINNING_ACTIVE = 1 << 11;
+    private static final int FLAG_AOD_VISIBLE = 1 << 12;
 
     private static final int MASK_IME_SWITCHER_VISIBLE = FLAG_SWITCHER_SUPPORTED | FLAG_IME_VISIBLE;
 
@@ -442,7 +443,8 @@ public class NavbarButtonsViewController implements TaskbarControllers.LoggableT
                 R.layout.taskbar_contextual_button);
         mPropertyHolders.add(new StatePropertyHolder(mA11yButton,
                 flags -> (flags & FLAG_A11Y_VISIBLE) != 0
-                        && (flags & FLAG_ROTATION_BUTTON_VISIBLE) == 0));
+                        && (flags & FLAG_ROTATION_BUTTON_VISIBLE) == 0
+                        && (flags & FLAG_AOD_VISIBLE) == 0));
     }
 
     private void parseSystemUiFlags(int sysUiStateFlags) {
@@ -499,9 +501,10 @@ public class NavbarButtonsViewController implements TaskbarControllers.LoggableT
      * Slightly misnamed, but should be called when keyguard OR AOD is showing.
      * We consider keyguardVisible when it's showing bouncer OR is occlucded by another app
      */
-    public void setKeyguardVisible(boolean isKeyguardVisible, boolean isKeyguardOccluded) {
+    public void setKeyguardVisible(boolean isKeyguardVisible, boolean isKeyguardOccluded, boolean isAODShowing) {
         updateStateForFlag(FLAG_KEYGUARD_VISIBLE, isKeyguardVisible || isKeyguardOccluded);
         updateStateForFlag(FLAG_KEYGUARD_OCCLUDED, isKeyguardOccluded);
+        updateStateForFlag(FLAG_AOD_VISIBLE, isAODShowing);
         applyState();
     }
 
@@ -792,7 +795,7 @@ public class NavbarButtonsViewController implements TaskbarControllers.LoggableT
                 R.layout.taskbar_contextual_button);
 
         mPropertyHolders.add(new StatePropertyHolder(mHardwareButtonContainer,
-                    flags -> (flags & FLAG_IME_VISIBLE) == 0));
+                    flags -> (flags & FLAG_IME_VISIBLE) == 0 && (flags & FLAG_AOD_VISIBLE) == 0));
     }
 
     private void initDPadButtons(TaskbarNavButtonController navButtonController) {
