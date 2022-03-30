@@ -72,6 +72,13 @@
         android:summary="@string/left_tab_description"
         android:persistent="true" />
 
+    <SwitchPreference
+        android:key="pref_allapps_themed_icons"
+        android:title="@string/pref_themed_icons_title"
+        android:summary="@string/pref_themed_icons_summary"
+        android:defaultValue="false"
+        android:persistent="true" />
+
     <ListPreference
         android:key="pref_grid"
         android:title="@string/pref_grid_title"
