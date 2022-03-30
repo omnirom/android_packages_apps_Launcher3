@@ -155,11 +155,12 @@ public class NavbarButtonsViewController {
         mNavButtonsView.getLayoutParams().height = mContext.getDeviceProfile().taskbarSize;
         mNavButtonTranslationYMultiplier.value = 1;
 
-        if (mContext.getResources().getBoolean(R.bool.taskbar_add_hardware_buttons)) {
+        boolean isThreeButtonNav = mContext.isThreeButtonNav();
+
+        if (isThreeButtonNav && mContext.getResources().getBoolean(R.bool.taskbar_add_hardware_buttons)) {
             initHardwareButtons(mControllers.navButtonController);
         }
 
-        boolean isThreeButtonNav = mContext.isThreeButtonNav();
         // IME switcher
         View imeSwitcherButton = addButton(R.drawable.ic_ime_switcher, BUTTON_IME_SWITCH,
                 isThreeButtonNav ? mStartContextualContainer : mEndContextualContainer,
@@ -221,13 +222,10 @@ public class NavbarButtonsViewController {
             }
 
             // Animate taskbar background when any of these flags are enabled
-            int flagsToShowBg = FLAG_ONLY_BACK_FOR_BOUNCER_VISIBLE
-                    | FLAG_NOTIFICATION_SHADE_EXPANDED;
-            int flagsToHideBg = FLAG_KEYGUARD_OCCLUDED
-                    | FLAG_KEYGUARD_VISIBLE;
+            int flagsToShowBg = FLAG_ONLY_BACK_FOR_BOUNCER_VISIBLE;
             mPropertyHolders.add(new StatePropertyHolder(
                     mControllers.taskbarDragLayerController.getNavbarBackgroundAlpha(),
-                    flags -> (flags & flagsToShowBg) != 0 && (flags & flagsToHideBg) == 0,
+                    flags -> (flags & flagsToShowBg) != 0,
                     AnimatedFloat.VALUE, 1, 0));
 
             // Rotation button
@@ -517,7 +515,9 @@ public class NavbarButtonsViewController {
                 R.layout.taskbar_contextual_button);
 
         mPropertyHolders.add(new StatePropertyHolder(mHardwareButtonContainer,
-                    flags -> (flags & FLAG_IME_VISIBLE) == 0 && (flags & FLAG_AOD_VISIBLE) == 0));
+                    flags -> (flags & FLAG_IME_VISIBLE) == 0 &&
+                    (flags & FLAG_AOD_VISIBLE) == 0 &&
+                    (flags & FLAG_KEYGUARD_VISIBLE) == 0));
     }
 
     private void initDPadButtons(TaskbarNavButtonController navButtonController) {
