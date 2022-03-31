@@ -944,6 +944,9 @@ public class DeviceProfile {
             // Note that taskbarSize = 0 unless isTaskbarPresent.
             return Math.min(qsbBottomMarginPx + taskbarSize, freeSpace);
         } else {
+            if (isTaskbarPresent) {
+                return Math.max(taskbarSize, freeSpace);
+            }
             return (int) (freeSpace * QSB_CENTER_FACTOR)
                     + (isTaskbarPresent ? taskbarSize : mInsets.bottom);
         }
