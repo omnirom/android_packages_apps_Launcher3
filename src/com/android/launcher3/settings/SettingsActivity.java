@@ -100,6 +100,8 @@ public class SettingsActivity extends FragmentActivity
     private static final String SEARCH_PACKAGE = "com.google.android.googlequicksearchbox";
     private static final String SHOW_LEFT_TAB_PREFERENCE_KEY = "pref_left_tab";
 
+    public static final String TASKBAR_TRANSPARENT_PREFERENCE_KEY = "pref_taskbar_transparent";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -302,6 +304,12 @@ public class SettingsActivity extends FragmentActivity
                     return true;
                 }
             });
+
+            DeviceProfile deviceProfile = idp.getDeviceProfile(getContext());
+            Preference transparentTaskbar = findPreference(TASKBAR_TRANSPARENT_PREFERENCE_KEY);
+            if (transparentTaskbar != null && !deviceProfile.isTaskbarPresent) {
+                getPreferenceScreen().removePreference(transparentTaskbar);
+            }
         }
 
         @Override
