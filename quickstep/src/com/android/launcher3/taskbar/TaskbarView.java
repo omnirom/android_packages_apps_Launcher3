@@ -78,6 +78,8 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
     // Only non-null when device supports having an All Apps button.
     private @Nullable AllAppsButton mAllAppsButton;
 
+    private boolean mHwButtons;
+
     public TaskbarView(@NonNull Context context) {
         this(context, null);
     }
@@ -98,7 +100,7 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
 
         Resources resources = getResources();
         mIconTouchSize = resources.getDimensionPixelSize(R.dimen.taskbar_icon_touch_size);
-
+        mHwButtons = resources.getBoolean(R.bool.taskbar_add_hardware_buttons);
         int actualMargin = resources.getDimensionPixelSize(R.dimen.taskbar_icon_spacing);
         int actualIconSize = mActivityContext.getDeviceProfile().iconSizePx;
 
@@ -275,6 +277,8 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
         int count = getChildCount();
         int spaceNeeded = count * (mItemMarginLeftRight * 2 + mIconTouchSize);
         int navSpaceNeeded = ApiWrapper.getHotseatEndOffset(getContext());
+        int hwButtonSpaceNeeded = mHwButtons ? 3 * mIconTouchSize : 0;
+
         boolean layoutRtl = isLayoutRtl();
         int iconEnd = right - (right - left - spaceNeeded) / 2;
         boolean needMoreSpaceForNav = layoutRtl ?
@@ -294,6 +298,11 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
             View child = getChildAt(i - 1);
             iconEnd -= mItemMarginLeftRight;
             int iconStart = iconEnd - mIconTouchSize;
+            if (iconStart < hwButtonSpaceNeeded) {
+                child.setVisibility(View.GONE);
+                continue;
+            }
+            child.setVisibility(View.VISIBLE);
             child.layout(iconStart, mIconLayoutBounds.top, iconEnd, mIconLayoutBounds.bottom);
             iconEnd = iconStart - mItemMarginLeftRight;
         }
