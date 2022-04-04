@@ -30,4 +30,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
     <string name="left_tab_label">Google feed tab</string>
     <string name="left_tab_description">Toggle Google feed intergration</string>
 
+    <string name="pref_taskbar_transparent_title">Transparent taskbar</string>
+    <string name="pref_taskbar_transparent_summary"></string>
 </resources>

@@ -15,11 +15,15 @@
  */
 package com.android.launcher3.taskbar;
 
+import static com.android.launcher3.settings.SettingsActivity.TASKBAR_TRANSPARENT_PREFERENCE_KEY;
+
+import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.graphics.Rect;
 
 import com.android.launcher3.R;
 import com.android.launcher3.util.TouchController;
+import com.android.launcher3.Utilities;
 import com.android.quickstep.AnimatedFloat;
 import com.android.systemui.shared.system.ViewTreeObserverWrapper.InsetsInfo;
 
@@ -28,7 +32,8 @@ import java.io.PrintWriter;
 /**
  * Handles properties/data collection, then passes the results to TaskbarDragLayer to render.
  */
-public class TaskbarDragLayerController implements TaskbarControllers.LoggableTaskbarController {
+public class TaskbarDragLayerController implements TaskbarControllers.LoggableTaskbarController,
+        SharedPreferences.OnSharedPreferenceChangeListener {
 
     private final TaskbarActivityContext mActivity;
     private final TaskbarDragLayer mTaskbarDragLayer;
@@ -52,6 +57,7 @@ public class TaskbarDragLayerController implements TaskbarControllers.LoggableTa
     private AnimatedFloat mNavButtonDarkIntensityMultiplier;
 
     private float mLastSetBackgroundAlpha;
+    private boolean mTransparentBackground;
 
     public TaskbarDragLayerController(TaskbarActivityContext activity,
             TaskbarDragLayer taskbarDragLayer) {
@@ -59,6 +65,10 @@ public class TaskbarDragLayerController implements TaskbarControllers.LoggableTa
         mTaskbarDragLayer = taskbarDragLayer;
         final Resources resources = mTaskbarDragLayer.getResources();
         mFolderMargin = resources.getDimensionPixelSize(R.dimen.taskbar_folder_margin);
+
+        SharedPreferences prefs = Utilities.getPrefs(mActivity);
+        prefs.registerOnSharedPreferenceChangeListener(this);
+        mTransparentBackground = prefs.getBoolean(TASKBAR_TRANSPARENT_PREFERENCE_KEY, false);
     }
 
     public void init(TaskbarControllers controllers) {
@@ -77,6 +87,9 @@ public class TaskbarDragLayerController implements TaskbarControllers.LoggableTa
     }
 
     public void onDestroy() {
+        SharedPreferences prefs = Utilities.getPrefs(mActivity);
+        prefs.unregisterOnSharedPreferenceChangeListener(this);
+
         mTaskbarDragLayer.onDestroy();
     }
 
@@ -123,6 +136,9 @@ public class TaskbarDragLayerController implements TaskbarControllers.LoggableTa
         final float bgTaskbar = mBgTaskbar.value * mKeyguardBgTaskbar.value
                 * mNotificationShadeBgTaskbar.value * mImeBgTaskbar.value;
         mLastSetBackgroundAlpha = mBgOverride.value * Math.max(bgNavbar, bgTaskbar);
+        if (mTransparentBackground) {
+            mLastSetBackgroundAlpha = 0f;
+        }
         mTaskbarDragLayer.setTaskbarBackgroundAlpha(mLastSetBackgroundAlpha);
 
         updateNavBarDarkIntensityMultiplier();
@@ -148,6 +164,14 @@ public class TaskbarDragLayerController implements TaskbarControllers.LoggableTa
         pw.println(String.format("%s\tmFolderMargin=%dpx", prefix, mFolderMargin));
         pw.println(String.format(
                 "%s\tmLastSetBackgroundAlpha=%.2f", prefix, mLastSetBackgroundAlpha));
+    }
+
+    @Override
+    public void onSharedPreferenceChanged(SharedPreferences prefs, String key) {
+        if (TASKBAR_TRANSPARENT_PREFERENCE_KEY.equals(key)) {
+            mTransparentBackground = prefs.getBoolean(TASKBAR_TRANSPARENT_PREFERENCE_KEY, false);
+            updateBackgroundAlpha();
+        }
     }
 
     /**
