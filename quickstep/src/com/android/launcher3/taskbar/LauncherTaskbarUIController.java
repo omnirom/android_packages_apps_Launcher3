@@ -20,6 +20,8 @@ import static com.android.systemui.shared.system.WindowManagerWrapper.ITYPE_EXTR
 
 import android.animation.Animator;
 import android.annotation.ColorInt;
+import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.os.RemoteException;
 import android.util.Log;
 import android.view.MotionEvent;
@@ -50,9 +52,10 @@ import java.util.stream.Stream;
 /**
  * A data source which integrates with a Launcher instance
  */
-public class LauncherTaskbarUIController extends TaskbarUIController {
+public class LauncherTaskbarUIController extends TaskbarUIController implements SharedPreferences.OnSharedPreferenceChangeListener {
 
     private static final String TAG = "TaskbarUIController";
+    private static final String TASKBAR_TRANSPARENT_PREFERENCE_KEY = "pref_taskbar_transparent";
 
     private final BaseQuickstepLauncher mLauncher;
 
@@ -64,6 +67,7 @@ public class LauncherTaskbarUIController extends TaskbarUIController {
     private TaskbarKeyguardController mKeyguardController;
     private final TaskbarLauncherStateController
             mTaskbarLauncherStateController = new TaskbarLauncherStateController();
+    private boolean mTransparentBackground;
 
     private final DeviceProfile.OnDeviceProfileChangeListener mProfileChangeListener =
             new DeviceProfile.OnDeviceProfileChangeListener() {
@@ -91,6 +95,10 @@ public class LauncherTaskbarUIController extends TaskbarUIController {
 
         onLauncherResumedOrPaused(mLauncher.hasBeenResumed(), true /* fromInit */);
 
+        SharedPreferences prefs = Utilities.getPrefs(mLauncher);
+        prefs.registerOnSharedPreferenceChangeListener(this);
+        mTransparentBackground = prefs.getBoolean(TASKBAR_TRANSPARENT_PREFERENCE_KEY, false);
+
         onStashedInAppChanged(mLauncher.getDeviceProfile());
         mLauncher.addOnDeviceProfileChangeListener(mOnDeviceProfileChangeListener);
         mLauncher.addOnDeviceProfileChangeListener(mProfileChangeListener);
@@ -106,6 +114,9 @@ public class LauncherTaskbarUIController extends TaskbarUIController {
         mLauncher.setTaskbarUIController(null);
         mLauncher.removeOnDeviceProfileChangeListener(mProfileChangeListener);
         updateTaskTransitionSpec(true);
+
+        SharedPreferences prefs = Utilities.getPrefs(mLauncher);
+        prefs.unregisterOnSharedPreferenceChangeListener(this);
     }
 
     @Override
@@ -167,7 +178,7 @@ public class LauncherTaskbarUIController extends TaskbarUIController {
     private void onStashedInAppChanged(DeviceProfile deviceProfile) {
         boolean taskbarStashedInApps = mControllers.taskbarStashController.isStashedInApp();
         deviceProfile.isTaskbarPresentInApps = !taskbarStashedInApps;
-        updateTaskTransitionSpec(taskbarStashedInApps);
+        updateTaskTransitionSpec(taskbarStashedInApps || mTransparentBackground);
     }
 
     private void updateTaskTransitionSpec(boolean taskbarIsHidden) {
@@ -245,5 +256,13 @@ public class LauncherTaskbarUIController extends TaskbarUIController {
         // Launcher's ScrimView will draw the background throughout the gesture. But once the
         // gesture ends, start drawing taskbar's background again since launcher might stop drawing.
         forceHideBackground(inProgress);
+    }
+
+    @Override
+    public void onSharedPreferenceChanged(SharedPreferences prefs, String key) {
+        if (TASKBAR_TRANSPARENT_PREFERENCE_KEY.equals(key)) {
+            mTransparentBackground = prefs.getBoolean(TASKBAR_TRANSPARENT_PREFERENCE_KEY, false);
+            onStashedInAppChanged(mLauncher.getDeviceProfile());
+        }
     }
 }

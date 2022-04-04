@@ -68,6 +68,12 @@
         android:title="@string/pref_grid_title"
         android:persistent="false"/>
 
+    <SwitchPreference
+        android:key="pref_taskbar_transparent"
+        android:title="@string/pref_taskbar_transparent_title"
+        android:summary="@string/pref_taskbar_transparent_summary"
+        android:persistent="true" />
+
     <!--<androidx.preference.PreferenceScreen
         android:key="pref_developer_options"
         android:persistent="false"
