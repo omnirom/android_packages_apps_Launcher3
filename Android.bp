@@ -298,7 +298,7 @@ android_library {
         "Launcher3CommonDepsLib",
         "QuickstepResLib",
         "OmniLib",
-        "//vendor/gapps:libGoogleFeed",
+        "//vendor/omni:libGoogleFeed",
     ],
     manifest: "quickstep/AndroidManifest.xml",
     platform_apis: true,
