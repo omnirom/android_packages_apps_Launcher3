@@ -175,5 +175,18 @@
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
+
+        <!-- all apps shortcut -->
+        <activity
+            android:name="com.android.launcher3.AllAppsShortcutActivity"
+            android:theme="@style/AppTheme"
+            android:icon="@mipmap/ic_apps_shortcut"
+            android:label="@string/all_apps_label"
+            android:exported="true" >
+            <intent-filter>
+                <action android:name="android.intent.action.CREATE_SHORTCUT" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
     </application>
 </manifest>
