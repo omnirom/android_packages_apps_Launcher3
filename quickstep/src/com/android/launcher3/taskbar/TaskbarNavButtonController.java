@@ -215,6 +215,18 @@ public class TaskbarNavButtonController implements TaskbarControllers.LoggableTa
                 return R.string.taskbar_button_notifications;
             case BUTTON_QUICK_SETTINGS:
                 return R.string.taskbar_button_quick_settings;
+            case BUTTON_POWER:
+                return R.string.taskbar_button_power;
+            case BUTTON_VOLUME_DOWN:
+                return R.string.taskbar_button_vol_down;
+            case BUTTON_VOLUME_UP:
+                return R.string.taskbar_button_vol_up;
+            case BUTTON_SETTINGS:
+                return R.string.taskbar_button_settings;
+            case BUTTON_DPAD_LEFT:
+                return R.string.taskbar_button_dpad_left;
+            case BUTTON_DPAD_RIGHT:
+                return R.string.taskbar_button_dpad_right;
             default:
                 return 0;
         }
