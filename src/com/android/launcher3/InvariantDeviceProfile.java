@@ -642,8 +642,7 @@ public class InvariantDeviceProfile {
                             + "\nconfig: " + config
                             + "\ndisplayMetrics: " + res.getDisplayMetrics()
                             + "\nrotation: " + rotation
-                            + "\n" + stringWriter.toString(),
-                    new Exception());
+                            + "\n" + stringWriter.toString());
         }
         return getBestMatch(screenWidth, screenHeight, rotation);
     }
