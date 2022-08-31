@@ -306,7 +306,7 @@ android_library {
         "Launcher3CommonDepsLib",
         "QuickstepResLib",
         "SystemUIAnimationLib",
-        "OmniLib",
+        "OmniLibCore",
         "//vendor/omni:libGoogleFeed",
     ],
     manifest: "quickstep/AndroidManifest.xml",
