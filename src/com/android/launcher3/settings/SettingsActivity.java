@@ -58,7 +58,7 @@ import com.android.launcher3.model.WidgetsModel;
 import com.android.launcher3.states.RotationHelper;
 import com.android.launcher3.uioverrides.plugins.PluginManagerWrapper;
 
-import org.omnirom.omnilib.utils.PackageUtils;
+import org.omnirom.omnilibcore.utils.PackageUtils;
 
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
