@@ -240,6 +240,8 @@ public class DeviceProfile {
     // DragController
     public int flingToDeleteThresholdVelocity;
 
+    private boolean mHwButtons;
+
     /** TODO: Once we fully migrate to staged split, remove "isMultiWindowMode" */
     DeviceProfile(Context context, InvariantDeviceProfile inv, Info info, WindowBounds windowBounds,
             boolean isMultiWindowMode, boolean transposeLayoutWithOrientation,
@@ -280,6 +282,8 @@ public class DeviceProfile {
         aspectRatio = ((float) Math.max(widthPx, heightPx)) / Math.min(widthPx, heightPx);
         boolean isTallDevice = Float.compare(aspectRatio, TALL_DEVICE_ASPECT_RATIO_THRESHOLD) >= 0;
         mQsbCenterFactor = res.getFloat(R.dimen.qsb_center_factor);
+
+        mHwButtons = res.getBoolean(R.bool.taskbar_add_hardware_buttons);
 
         if (isTwoPanels) {
             if (isLandscape) {
@@ -370,7 +374,7 @@ public class DeviceProfile {
         // We shrink hotseat sizes regardless of orientation, if nav buttons are inline and QSB
         // might be inline in either orientations, to keep hotseat size consistent across rotation.
         areNavButtonsInline = isTaskbarPresent && !isGestureMode;
-        if (areNavButtonsInline && canQsbInline) {
+        if ((areNavButtonsInline && canQsbInline) || mHwButtons) {
             numShownHotseatIcons = inv.numShrunkenHotseatIcons;
         } else {
             numShownHotseatIcons =
@@ -1083,10 +1087,11 @@ public class DeviceProfile {
                     + hotseatBorderSpace * (numShownHotseatIcons - 1)
                     + additionalQsbSpace;
             int endOffset = ApiWrapper.getHotseatEndOffset(context);
-            int hotseatWidth = Math.min(requiredWidth, availableWidthPx - endOffset);
+            int startOffset = mHwButtons ? iconSizePx * 3 : 0;
+            int hotseatWidth = Math.min(requiredWidth, availableWidthPx - endOffset - startOffset);
             int sideSpacing = (availableWidthPx - hotseatWidth) / 2;
 
-            mHotseatPadding.set(sideSpacing, hotseatTopPadding, sideSpacing, hotseatBottomPadding);
+            mHotseatPadding.set(Math.max(startOffset, sideSpacing), hotseatTopPadding, sideSpacing, hotseatBottomPadding);
 
             boolean isRtl = Utilities.isRtl(context.getResources());
             if (isRtl) {
