@@ -288,8 +288,9 @@ public class LauncherTaskbarUIController extends TaskbarUIController implements 
      * Whether the taskbar education should be shown.
      */
     public boolean shouldShowEdu() {
-        return !Utilities.IS_RUNNING_IN_TEST_HARNESS
-                && !mLauncher.getOnboardingPrefs().getBoolean(OnboardingPrefs.TASKBAR_EDU_SEEN);
+        return false;
+        //return !Utilities.IS_RUNNING_IN_TEST_HARNESS
+        //        && !mLauncher.getOnboardingPrefs().getBoolean(OnboardingPrefs.TASKBAR_EDU_SEEN);
     }
 
     /**
