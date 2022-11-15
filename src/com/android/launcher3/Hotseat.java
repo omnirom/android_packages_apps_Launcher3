@@ -27,6 +27,8 @@ import android.view.ViewDebug;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 
+import com.android.launcher3.Utilities;
+
 import androidx.annotation.Nullable;
 
 import java.util.function.Consumer;
@@ -60,10 +62,14 @@ public class Hotseat extends CellLayout implements Insettable {
     public Hotseat(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
 
-        mQsb = LayoutInflater.from(context).inflate(R.layout.search_container_hotseat, this, false);
+        if (Utilities.showHotseatQsbWidget(context)) {
+            mQsb = LayoutInflater.from(context).inflate(R.layout.search_container_hotseat, this, false);
+            mQsbHeight = context.getResources().getDimensionPixelSize(R.dimen.qsb_widget_height);
+        } else {
+            mQsb = LayoutInflater.from(context).inflate(R.layout.search_container_hotseat_empty, this, false);
+            mQsbHeight = 0;
+        }
         addView(mQsb);
-
-        mQsbHeight = getResources().getDimensionPixelSize(R.dimen.qsb_widget_height);
     }
 
     /**
