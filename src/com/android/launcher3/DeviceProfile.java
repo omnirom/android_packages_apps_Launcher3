@@ -36,6 +36,7 @@ import android.graphics.Rect;
 import android.util.DisplayMetrics;
 import android.view.Surface;
 
+import com.android.launcher3.Utilities;
 import com.android.launcher3.CellLayout.ContainerType;
 import com.android.launcher3.DevicePaddings.DevicePadding;
 import com.android.launcher3.icons.DotRenderer;
@@ -363,7 +364,7 @@ public class DeviceProfile {
 
         workspaceCellPaddingXPx = res.getDimensionPixelSize(R.dimen.dynamic_grid_cell_padding_x);
 
-        hotseatQsbHeight = res.getDimensionPixelSize(R.dimen.qsb_widget_height);
+        hotseatQsbHeight = Utilities.showHotseatQsbWidget(context) ? res.getDimensionPixelSize(R.dimen.qsb_widget_height) : 0;
         // Whether QSB might be inline in appropriate orientation (e.g. landscape).
         boolean canQsbInline = (isTwoPanels ? inv.inlineQsb[INDEX_TWO_PANEL_PORTRAIT]
                 || inv.inlineQsb[INDEX_TWO_PANEL_LANDSCAPE]
@@ -550,7 +551,7 @@ public class DeviceProfile {
         } else {
             hotseatBarSizePx = hotseatIconSizePx + hotseatBarTopPaddingPx
                     + hotseatBarBottomPaddingPx + (isScalableGrid ? 0 : hotseatExtraVerticalSize)
-                    + hotseatBarSizeExtraSpacePx;
+                    + hotseatBarSizeExtraSpacePx + hotseatQsbHeight;
         }
     }
 

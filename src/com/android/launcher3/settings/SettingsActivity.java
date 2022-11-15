@@ -39,6 +39,7 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 import androidx.fragment.app.FragmentManager;
 import androidx.preference.DropDownPreference;
+import androidx.preference.ListPreference;
 import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
 import androidx.preference.PreferenceFragmentCompat.OnPreferenceStartFragmentCallback;
@@ -86,6 +87,7 @@ public class SettingsActivity extends FragmentActivity
 
     private static final String NOTIFICATION_DOTS_PREFERENCE_KEY = "pref_icon_badging";
     private static final String GRID_SIZE_PREFERENCE_KEY = "pref_grid";
+    public static final String QSB_LOCATION_PREFERENCE_KEY = "pref_qsb_location";
 
     public static final String EXTRA_FRAGMENT_ARG_KEY = ":settings:fragment_args_key";
     public static final String EXTRA_SHOW_FRAGMENT_ARGS = ":settings:show_fragment_args";
@@ -310,6 +312,16 @@ public class SettingsActivity extends FragmentActivity
             if (transparentTaskbar != null && !deviceProfile.isTaskbarPresent) {
                 getPreferenceScreen().removePreference(transparentTaskbar);
             }
+
+            final ListPreference qsbLocation = (ListPreference) findPreference(QSB_LOCATION_PREFERENCE_KEY);
+            valueIndex = qsbLocation.findIndexOfValue(qsbLocation.getValue());
+            qsbLocation.setSummary(qsbLocation.getEntries()[valueIndex]);
+            qsbLocation.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+                public boolean onPreferenceChange(Preference preference, Object newValue) {
+                    new Handler().postDelayed(() -> Utilities.restart(getActivity()), Utilities.WAIT_BEFORE_RESTART);
+                    return true;
+                }
+            });
         }
 
         @Override
