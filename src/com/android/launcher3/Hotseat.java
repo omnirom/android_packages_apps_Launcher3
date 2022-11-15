@@ -27,6 +27,7 @@ import android.view.ViewDebug;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 
+import com.android.launcher3.Utilities;
 /**
  * View class that represents the bottom row of the home screen.
  */
@@ -53,7 +54,11 @@ public class Hotseat extends CellLayout implements Insettable {
     public Hotseat(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
 
-        mQsb = LayoutInflater.from(context).inflate(R.layout.search_container_hotseat, this, false);
+       if (Utilities.showHotseatQsbWidget(context)) {
+            mQsb = LayoutInflater.from(context).inflate(R.layout.search_container_hotseat, this, false);
+        } else {
+            mQsb = LayoutInflater.from(context).inflate(R.layout.search_container_hotseat_empty, this, false);
+        }
         addView(mQsb);
     }
 
@@ -149,7 +154,8 @@ public class Hotseat extends CellLayout implements Insettable {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
 
         DeviceProfile dp = mActivity.getDeviceProfile();
-        mQsb.measure(MeasureSpec.makeMeasureSpec(dp.hotseatQsbWidth, MeasureSpec.EXACTLY),
+        int hotseatQsbWidth = dp.isQsbInline ? dp.hotseatQsbWidth : dp.getHostseatQsbWidth();
+        mQsb.measure(MeasureSpec.makeMeasureSpec(hotseatQsbWidth, MeasureSpec.EXACTLY),
                 MeasureSpec.makeMeasureSpec(dp.hotseatQsbHeight, MeasureSpec.EXACTLY));
     }
 
