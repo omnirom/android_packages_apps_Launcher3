@@ -40,6 +40,7 @@
         <item name="switchPreferenceStyle">@style/HomeSettings.SwitchPreferenceStyle</item>
         <item name="android:fontFamily">google-sans-text</item>
         <item name="dropdownPreferenceStyle">@style/HomeSettings.DropDownPreferenceStyle</item>
+        <item name="dialogPreferenceStyle">@style/HomeSettings.DialogPreferenceStyle</item>
     </style>
 
     <style name="HomeSettings.CategoryStyle" parent="@style/Preference.Category.Material">
@@ -64,6 +65,11 @@
 
     <style name="HomeSettings.DropDownPreferenceStyle"
             parent="@style/Preference.DropDown.Material">
+        <item name="iconSpaceReserved">@bool/home_settings_icon_space_reserved</item>
+    </style>
+
+    <style name="HomeSettings.DialogPreferenceStyle"
+            parent="@style/Preference.DialogPreference.Material">
         <item name="iconSpaceReserved">@bool/home_settings_icon_space_reserved</item>
     </style>
 

@@ -466,7 +466,7 @@ public class LoaderCursor extends CursorWrapper {
                 // container.
                 int spanX = mIDP.numSearchContainerColumns;
                 int spanY = FeatureFlags.EXPANDED_SMARTSPACE.get() ? 2 : 1;
-                screen.markCells(0, 0, spanX, spanY,  Utilities.showQsbWidget(mContext));
+                screen.markCells(0, 0, spanX, spanY,  Utilities.showWorkspaceQsbWidget(mContext));
             }
             occupied.put(item.screenId, screen);
         }
