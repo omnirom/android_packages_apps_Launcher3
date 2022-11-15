@@ -628,6 +628,13 @@ public class DeviceProfile {
     }
 
     /**
+     * used in Hotseat only for !isQsbInline
+     */
+    public int getHostseatQsbWidth() {
+        return calculateQsbWidth(0);
+    }
+
+    /**
      * Calculates the width of the hotseat, changing spaces between the icons and removing icons if
      * necessary.
      */
