@@ -71,6 +71,7 @@ import com.android.launcher3.util.IconSizeSteps;
 import com.android.launcher3.util.ResourceHelper;
 import com.android.launcher3.util.WindowBounds;
 import com.android.launcher3.util.window.WindowManagerProxy;
+import com.android.launcher3.Utilities;
 
 import java.io.PrintWriter;
 import java.util.Locale;
@@ -540,7 +541,7 @@ public class DeviceProfile {
 
         workspaceCellPaddingXPx = res.getDimensionPixelSize(R.dimen.dynamic_grid_cell_padding_x);
 
-        hotseatQsbHeight = res.getDimensionPixelSize(R.dimen.qsb_widget_height);
+        hotseatQsbHeight = Utilities.showHotseatQsbWidget(context) ? res.getDimensionPixelSize(R.dimen.qsb_widget_height) : 0;
         hotseatQsbShadowHeight = res.getDimensionPixelSize(R.dimen.qsb_shadow_height);
         hotseatQsbVisualHeight = hotseatQsbHeight - 2 * hotseatQsbShadowHeight;
 
@@ -884,6 +885,13 @@ public class DeviceProfile {
                     + hotseatQsbVisualHeight
                     + hotseatBarBottomSpacePx;
         }
+    }
+
+    /**
+     * used in Hotseat only for !isQsbInline
+     */
+    public int getHostseatQsbWidth() {
+        return calculateQsbWidth(0);
     }
 
     /**
