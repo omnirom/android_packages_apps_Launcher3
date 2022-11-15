@@ -504,7 +504,7 @@ public class LauncherPreviewRenderer extends ContextWrapper
         }
 
         // Add first page QSB
-        if (Utilities.showQsbWidget(mContext) && dataModel.isFirstPagePinnedItemEnabled
+        if (Utilities.showWorkspaceQsbWidget(mContext) && dataModel.isFirstPagePinnedItemEnabled
                 && !SHOULD_SHOW_FIRST_PAGE_WIDGET) {
             CellLayout firstScreen = mWorkspaceScreens.get(FIRST_SCREEN_ID);
             View qsb = mHomeElementInflater.inflate(R.layout.qsb_preview, firstScreen, false);
