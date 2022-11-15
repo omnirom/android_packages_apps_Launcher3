@@ -2322,11 +2322,11 @@ public class Launcher extends StatefulActivity<LauncherState>
     @Override
     public void bindScreens(IntArray orderedScreenIds) {
         int firstScreenPosition = 0;
-        if (Utilities.showQsbWidget(this) &&
+        if (Utilities.showWorkspaceQsbWidget(this) &&
                 orderedScreenIds.indexOf(Workspace.FIRST_SCREEN_ID) != firstScreenPosition) {
             orderedScreenIds.removeValue(Workspace.FIRST_SCREEN_ID);
             orderedScreenIds.add(firstScreenPosition, Workspace.FIRST_SCREEN_ID);
-        } else if (!Utilities.showQsbWidget(this) && orderedScreenIds.isEmpty()) {
+        } else if (!Utilities.showWorkspaceQsbWidget(this) && orderedScreenIds.isEmpty()) {
             // If there are no screens, we need to have an empty screen
             mWorkspace.addExtraEmptyScreens();
         }
@@ -2350,7 +2350,7 @@ public class Launcher extends StatefulActivity<LauncherState>
         int count = orderedScreenIds.size();
         for (int i = 0; i < count; i++) {
             int screenId = orderedScreenIds.get(i);
-            if (Utilities.showQsbWidget(this) && screenId == Workspace.FIRST_SCREEN_ID) {
+            if (Utilities.showWorkspaceQsbWidget(this) && screenId == Workspace.FIRST_SCREEN_ID) {
                 // No need to bind the first screen, as its always bound.
                 continue;
             }
