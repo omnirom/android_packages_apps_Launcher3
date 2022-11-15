@@ -347,7 +347,7 @@ public class GridSizeMigrationUtil {
         final GridOccupancy occupied = new GridOccupancy(trgX, trgY);
         final Point trg = new Point(trgX, trgY);
         final Point next = new Point(0, screenId == 0
-                && (FeatureFlags.QSB_ON_FIRST_SCREEN
+                && (Utilities.showWorkspaceQsbWidget(destReader.mContext)
                 && (!enableSmartspaceRemovalToggle() || LauncherPrefs.getPrefs(destReader.mContext)
                 .getBoolean(SMARTSPACE_ON_HOME_SCREEN, true))
                 && !SHOULD_SHOW_FIRST_PAGE_WIDGET)
