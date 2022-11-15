@@ -29,6 +29,7 @@
         <item name="android:windowNoTitle">true</item>
         <item name="preferenceTheme">@style/HomeSettings.PreferenceTheme</item>
         <item name="android:windowAnimationStyle">@style/Animation.SharedBackground</item>
+        <item name="alertDialogTheme">@style/Theme.AppCompat.DayNight.Dialog</item>
     </style>
 
     <style name="Animation.SharedBackground" parent="@android:style/Animation.Activity">
