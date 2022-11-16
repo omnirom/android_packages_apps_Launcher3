@@ -83,7 +83,7 @@
     <style name="HomeSettings.PreferenceTitle"
             parent="@android:style/TextAppearance.Material.Subhead">
         <item name="android:fontFamily">google-sans</item>
-        <item name="android:textSize">20sp</item>
+        <item name="android:textSize">18sp</item>
     </style>
 
     <style name="HomeSettings.CategoryTitle" parent="@android:style/TextAppearance.Material.Body2">
@@ -104,6 +104,6 @@
     </style>
 
     <style name="HomeSettings.ExpandedToolbarTitle" parent="HomeSettings.CollapsedToolbarTitle">
-        <item name="android:textSize">36sp</item>
+        <item name="android:textSize">32sp</item>
     </style>
 </resources>
