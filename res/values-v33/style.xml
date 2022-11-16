@@ -42,11 +42,9 @@
     <style name="AlertDialogTheme" parent="@style/Theme.AppCompat.DayNight.Dialog.Alert">
         <item name="colorAccent">@color/home_settings_header_accent</item>
         <item name="android:colorBackground">@color/home_settings_header_expanded</item>
-
         <item name="android:windowSoftInputMode">adjustResize</item>
         <item name="android:clipToPadding">true</item>
         <item name="android:clipChildren">true</item>
-
-        <item name="dialogCornerRadius">8dp</item>
+        <item name="dialogCornerRadius">@dimen/default_dialog_corner_radius</item>
     </style>
 </resources>
