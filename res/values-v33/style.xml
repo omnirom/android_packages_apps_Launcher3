@@ -24,10 +24,10 @@
         <item name="android:navigationBarColor">@android:color/transparent</item>
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:switchStyle">@style/SwitchStyle</item>
-        <item name="android:textAppearanceListItem">@style/HomeSettings.PreferenceTitle</item>
+        <item name="android:textAppearanceListItem">@style/Omni.PreferenceTitle</item>
         <item name="android:windowActionBar">false</item>
         <item name="android:windowNoTitle">true</item>
-        <item name="preferenceTheme">@style/HomeSettings.PreferenceTheme</item>
+        <item name="preferenceTheme">@style/Omni.PreferenceTheme</item>
         <item name="android:windowAnimationStyle">@style/Animation.SharedBackground</item>
         <item name="alertDialogTheme">@style/AlertDialogTheme</item>
     </style>
