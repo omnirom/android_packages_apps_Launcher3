@@ -63,4 +63,5 @@
     <color name="preload_icon_background_color_dark">@android:color/system_neutral2_700</color>
 
     <color name="all_apps_button_color">?android:attr/textColorSecondary</color>
+
 </resources>
