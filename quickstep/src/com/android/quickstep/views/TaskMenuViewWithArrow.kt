@@ -29,6 +29,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import android.widget.LinearLayout
+import android.widget.TextView
 import com.android.launcher3.BaseDraggingActivity
 import com.android.launcher3.DeviceProfile
 import com.android.launcher3.InsettableFrameLayout
@@ -39,6 +40,7 @@ import com.android.launcher3.popup.SystemShortcut
 import com.android.launcher3.util.Themes
 import com.android.quickstep.KtR
 import com.android.quickstep.TaskOverlayFactory
+import com.android.quickstep.TaskUtils
 import com.android.quickstep.views.TaskView.TaskIdAttributeContainer
 
 class TaskMenuViewWithArrow<T : BaseDraggingActivity> : ArrowPopup<T> {
@@ -89,6 +91,7 @@ class TaskMenuViewWithArrow<T : BaseDraggingActivity> : ArrowPopup<T> {
     private lateinit var taskView: TaskView
     private lateinit var optionLayout: LinearLayout
     private lateinit var taskContainer: TaskIdAttributeContainer
+    private lateinit var mTaskName: TextView
 
     private var optionMeasuredHeight = 0
     private val arrowHorizontalPadding: Int
@@ -119,6 +122,7 @@ class TaskMenuViewWithArrow<T : BaseDraggingActivity> : ArrowPopup<T> {
 
     override fun onFinishInflate() {
         super.onFinishInflate()
+        mTaskName = findViewById(KtR.id.task_name);
         optionLayout = findViewById(KtR.id.menu_option_layout)
     }
 
@@ -162,6 +166,8 @@ class TaskMenuViewWithArrow<T : BaseDraggingActivity> : ArrowPopup<T> {
     }
 
     private fun addMenuOptions() {
+        mTaskName.setText(TaskUtils.getTitle(getContext(), taskContainer.getTask()))
+        mTaskName.setOnClickListener { view: View? -> close(true) }
         // Add the options
         TaskOverlayFactory
             .getEnabledShortcuts(taskView, mActivityContext.deviceProfile, taskContainer)
