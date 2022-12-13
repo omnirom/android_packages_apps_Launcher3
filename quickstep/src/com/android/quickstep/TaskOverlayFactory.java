@@ -80,24 +80,24 @@ public class TaskOverlayFactory implements ResourceBasedOverride {
         boolean isInLandscape = orientedState.getTouchRotation() != ROTATION_0;
 
         // Always add screenshot action to task menu.
-        SystemShortcut screenshotShortcut = TaskShortcutFactory.SCREENSHOT
-                .getShortcut(activity, taskContainer);
+        List<SystemShortcut> screenshotShortcut = TaskShortcutFactory.SCREENSHOT
+                .getShortcuts(activity, taskContainer);
         if (screenshotShortcut != null) {
-            shortcuts.add(screenshotShortcut);
+            shortcuts.addAll(screenshotShortcut);
         }
 
         // clear task shortcut
-        SystemShortcut clearTaskShortcut = TaskShortcutFactory.CLEAR_TASK
-                .getShortcut(activity, taskContainer);
+        List<SystemShortcut> clearTaskShortcut = TaskShortcutFactory.CLEAR_TASK
+                .getShortcuts(activity, taskContainer);
         if (clearTaskShortcut != null) {
-            shortcuts.add(clearTaskShortcut);
+            shortcuts.addAll(clearTaskShortcut);
         }
 
         // clear all
-        SystemShortcut clearAllTaskShortcut = TaskShortcutFactory.CLEAR_ALL_TASK
-                .getShortcut(activity, taskContainer);
+        List<SystemShortcut> clearAllTaskShortcut = TaskShortcutFactory.CLEAR_ALL_TASK
+                .getShortcuts(activity, taskContainer);
         if (clearAllTaskShortcut != null) {
-            shortcuts.add(clearAllTaskShortcut);
+            shortcuts.addAll(clearAllTaskShortcut);
         }
 
         // Add overview actions to the menu when in in-place rotate landscape mode.

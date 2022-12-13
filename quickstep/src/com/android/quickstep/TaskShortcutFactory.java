@@ -398,8 +398,12 @@ public interface TaskShortcutFactory {
         }
     };
 
-    TaskShortcutFactory CLEAR_TASK = (activity, taskContainer) -> {
-        return new ClearTaskSystemShortcut(activity, taskContainer);
+    TaskShortcutFactory CLEAR_TASK = new TaskShortcutFactory() {
+        @Override
+        public List<SystemShortcut> getShortcuts(BaseDraggingActivity activity,
+                TaskIdAttributeContainer taskContainer) {
+            return Collections.singletonList(new ClearTaskSystemShortcut(activity, taskContainer));
+        }
     };
 
     class ClearTaskSystemShortcut extends SystemShortcut<BaseDraggingActivity> {
@@ -422,8 +426,12 @@ public interface TaskShortcutFactory {
         }
     }
 
-    TaskShortcutFactory CLEAR_ALL_TASK = (activity, taskContainer) -> {
-        return new ClearAllTaskSystemShortcut(activity, taskContainer);
+    TaskShortcutFactory CLEAR_ALL_TASK = new TaskShortcutFactory() {
+        @Override
+        public List<SystemShortcut> getShortcuts(BaseDraggingActivity activity,
+                TaskIdAttributeContainer taskContainer) {
+            return Collections.singletonList(new ClearAllTaskSystemShortcut(activity, taskContainer));
+        }
     };
 
     class ClearAllTaskSystemShortcut extends SystemShortcut<BaseDraggingActivity> {
