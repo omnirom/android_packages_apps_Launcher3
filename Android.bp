@@ -392,9 +392,44 @@ android_app {
 
 // Build rule for Quickstep app.
 android_app {
-    name: "Launcher3QuickStep",
+    name: "Launcher3QuickStepGoogle",
 
-    static_libs: ["Launcher3QuickStepLib"],
+    static_libs: ["Launcher3QuickStepLibGoogle"],
+    optimize: {
+        enabled: false,
+    },
+
+    platform_apis: true,
+    min_sdk_version: "current",
+    target_sdk_version: "current",
+
+    privileged: true,
+    system_ext_specific: true,
+    overrides: [
+        "Home",
+        "Launcher2",
+        "Launcher3",
+    ],
+    required: ["privapp_whitelist_com.android.launcher3"],
+
+    resource_dirs: ["quickstep/res"],
+
+    additional_manifests: [
+        "quickstep/AndroidManifest-launcher.xml",
+        "AndroidManifest-common.xml",
+    ],
+
+    manifest: "quickstep/AndroidManifest.xml",
+    jacoco: {
+        include_filter: ["com.android.launcher3.*"],
+    }
+
+}
+
+android_app {
+    name: "Launcher3QuickStepMock",
+
+    static_libs: ["Launcher3QuickStepLibMock"],
     optimize: {
         enabled: false,
     },
