@@ -170,7 +170,7 @@ class TaskMenuViewWithArrow<T : BaseDraggingActivity> : ArrowPopup<T> {
         mTaskName.setOnClickListener { view: View? -> close(true) }
         // Add the options
         TaskOverlayFactory
-            .getEnabledShortcuts(taskView, mActivityContext.deviceProfile, taskContainer)
+            .getEnabledShortcuts(taskView, taskContainer)
             .forEach { this.addMenuOption(it) }
 
         // Add the spaces between items

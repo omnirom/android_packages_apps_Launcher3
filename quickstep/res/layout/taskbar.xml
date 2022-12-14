@@ -67,9 +67,6 @@
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:orientation="horizontal"
-            android:paddingLeft="@dimen/taskbar_nav_buttons_spacing"
-            android:paddingRight="@dimen/taskbar_nav_buttons_spacing"
-            android:layout_marginEnd="@dimen/taskbar_contextual_button_margin"
             android:gravity="center_vertical"
             android:layout_gravity="end"/>
 
@@ -77,8 +74,6 @@
             android:id="@+id/end_contextual_buttons"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
-            android:paddingLeft="@dimen/taskbar_nav_buttons_spacing"
-            android:paddingRight="@dimen/taskbar_nav_buttons_spacing"
             android:paddingTop="@dimen/taskbar_contextual_padding_top"
             android:gravity="center_vertical"
             android:layout_gravity="end"/>

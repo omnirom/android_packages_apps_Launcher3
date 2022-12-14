@@ -16,10 +16,14 @@
 package com.android.launcher3.taskbar;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.res.Resources;
 import android.graphics.Canvas;
 import android.graphics.Rect;
+import android.os.SystemProperties;
 import android.util.AttributeSet;
+import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -31,6 +35,7 @@ import androidx.annotation.Nullable;
 import androidx.core.graphics.ColorUtils;
 
 import com.android.launcher3.BubbleTextView;
+import com.android.launcher3.DeviceProfile;
 import com.android.launcher3.Insettable;
 import com.android.launcher3.R;
 import com.android.launcher3.Utilities;
@@ -40,7 +45,6 @@ import com.android.launcher3.icons.ThemedIconDrawable;
 import com.android.launcher3.model.data.FolderInfo;
 import com.android.launcher3.model.data.ItemInfo;
 import com.android.launcher3.model.data.WorkspaceItemInfo;
-import com.android.launcher3.uioverrides.ApiWrapper;
 import com.android.launcher3.util.LauncherBindableItemsContainer;
 import com.android.launcher3.views.ActivityContext;
 import com.android.launcher3.views.AllAppsButton;
@@ -52,6 +56,7 @@ import java.util.function.Predicate;
  * Hosts the Taskbar content such as Hotseat and Recent Apps. Drawn on top of other apps.
  */
 public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconParent, Insettable {
+    private static final String TAG = TaskbarView.class.getSimpleName();
 
     private static final float TASKBAR_BACKGROUND_LUMINANCE = 0.30f;
     public int mThemeIconsBackground;
@@ -79,6 +84,14 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
     private @Nullable AllAppsButton mAllAppsButton;
 
     private boolean mHwButtons;
+
+    private View mQsb;
+
+    // Only non-null when device supports having a floating task.
+    private @Nullable BubbleTextView mFloatingTaskButton;
+    private @Nullable Intent mFloatingTaskIntent;
+    private static final boolean FLOATING_TASKS_ENABLED =
+            SystemProperties.getBoolean("persist.wm.debug.floating_tasks", false);
 
     public TaskbarView(@NonNull Context context) {
         this(context, null);
@@ -119,6 +132,22 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
                     new ViewGroup.LayoutParams(mIconTouchSize, mIconTouchSize));
             mAllAppsButton.setPadding(mItemPadding, mItemPadding, mItemPadding, mItemPadding);
         }
+
+        // TODO: Disable touch events on QSB otherwise it can crash.
+        mQsb = LayoutInflater.from(context).inflate(R.layout.search_container_hotseat, this, false);
+
+        if (FLOATING_TASKS_ENABLED) {
+            mFloatingTaskIntent = FloatingTaskIntentResolver.getIntent(context);
+            if (mFloatingTaskIntent != null) {
+                mFloatingTaskButton = new LaunchFloatingTaskButton(context);
+                mFloatingTaskButton.setLayoutParams(
+                        new ViewGroup.LayoutParams(mIconTouchSize, mIconTouchSize));
+                mFloatingTaskButton.setPadding(mItemPadding, mItemPadding, mItemPadding,
+                        mItemPadding);
+            } else {
+                Log.d(TAG, "Floating tasks is enabled but no intent was found!");
+            }
+        }
     }
 
     private int getColorWithGivenLuminance(int color, float luminance) {
@@ -146,6 +175,10 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
         if (mAllAppsButton != null) {
             mAllAppsButton.setOnClickListener(mControllerCallbacks.getAllAppsButtonClickListener());
         }
+        if (mFloatingTaskButton != null) {
+            mFloatingTaskButton.setOnClickListener(
+                    mControllerCallbacks.getFloatingTaskButtonListener(mFloatingTaskIntent));
+        }
     }
 
     private void removeAndRecycle(View view) {
@@ -167,6 +200,11 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
 
         if (mAllAppsButton != null) {
             removeView(mAllAppsButton);
+        }
+        removeView(mQsb);
+
+        if (mFloatingTaskButton != null) {
+            removeView(mFloatingTaskButton);
         }
 
         for (int i = 0; i < hotseatItemInfos.length; i++) {
@@ -244,6 +282,16 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
             int index = Utilities.isRtl(getResources()) ? 0 : getChildCount();
             addView(mAllAppsButton, index);
         }
+        if (mActivityContext.getDeviceProfile().isQsbInline) {
+            addView(mQsb, Utilities.isRtl(getResources()) ? getChildCount() : 0);
+            // Always set QSB to invisible after re-adding.
+            mQsb.setVisibility(View.INVISIBLE);
+        }
+
+        if (mFloatingTaskButton != null) {
+            int index = Utilities.isRtl(getResources()) ? 0 : getChildCount();
+            addView(mFloatingTaskButton, index);
+        }
 
         mThemeIconsBackground = calculateThemeIconsBackground();
         setThemedIconsBackgroundColor(mThemeIconsBackground);
@@ -275,8 +323,13 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
     @Override
     protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
         int count = getChildCount();
-        int spaceNeeded = count * (mItemMarginLeftRight * 2 + mIconTouchSize);
-        int navSpaceNeeded = ApiWrapper.getHotseatEndOffset(getContext());
+        int countExcludingQsb = count;
+        DeviceProfile deviceProfile = mActivityContext.getDeviceProfile();
+        if (deviceProfile.isQsbInline) {
+            countExcludingQsb--;
+        }
+        int spaceNeeded = countExcludingQsb * (mItemMarginLeftRight * 2 + mIconTouchSize);
+        int navSpaceNeeded = deviceProfile.hotseatBarEndOffset;
         int hwButtonSpaceNeeded = mHwButtons ? 3 * mIconTouchSize : 0;
 
         boolean layoutRtl = isLayoutRtl();
@@ -296,15 +349,30 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
         mIconLayoutBounds.bottom = mIconLayoutBounds.top + mIconTouchSize;
         for (int i = count; i > 0; i--) {
             View child = getChildAt(i - 1);
-            iconEnd -= mItemMarginLeftRight;
-            int iconStart = iconEnd - mIconTouchSize;
-            if (iconStart < hwButtonSpaceNeeded) {
-                child.setVisibility(View.GONE);
-                continue;
+            if (child == mQsb) {
+                int qsbStart;
+                int qsbEnd;
+                if (layoutRtl) {
+                    qsbStart = iconEnd + mItemMarginLeftRight;
+                    qsbEnd = qsbStart + deviceProfile.hotseatQsbWidth;
+                } else {
+                    qsbEnd = iconEnd - mItemMarginLeftRight;
+                    qsbStart = qsbEnd - deviceProfile.hotseatQsbWidth;
+                }
+                int qsbTop = (bottom - top - deviceProfile.hotseatQsbHeight) / 2;
+                int qsbBottom = qsbTop + deviceProfile.hotseatQsbHeight;
+                child.layout(qsbStart, qsbTop, qsbEnd, qsbBottom);
+            } else {
+                iconEnd -= mItemMarginLeftRight;
+                int iconStart = iconEnd - mIconTouchSize;
+                if (iconStart < hwButtonSpaceNeeded) {
+                    child.setVisibility(View.GONE);
+                    continue;
+                }
+                child.setVisibility(View.VISIBLE);
+                child.layout(iconStart, mIconLayoutBounds.top, iconEnd, mIconLayoutBounds.bottom);
+                iconEnd = iconStart - mItemMarginLeftRight;
             }
-            child.setVisibility(View.VISIBLE);
-            child.layout(iconStart, mIconLayoutBounds.top, iconEnd, mIconLayoutBounds.bottom);
-            iconEnd = iconStart - mItemMarginLeftRight;
         }
         mIconLayoutBounds.left = iconEnd;
     }
@@ -374,6 +442,13 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
      */
     public View getAllAppsButtonView() {
         return mAllAppsButton;
+    }
+
+    /**
+     * Returns the QSB in the taskbar.
+     */
+    public View getQsb() {
+        return mQsb;
     }
 
     // FolderIconParent implemented methods.
