@@ -63,10 +63,8 @@ public class Hotseat extends CellLayout implements Insettable {
 
         if (Utilities.showHotseatQsbWidget(context)) {
             mQsb = LayoutInflater.from(context).inflate(R.layout.search_container_hotseat, this, false);
-            mQsbHeight = context.getResources().getDimensionPixelSize(R.dimen.qsb_widget_height);
         } else {
             mQsb = LayoutInflater.from(context).inflate(R.layout.search_container_hotseat_empty, this, false);
-            mQsbHeight = 0;
         }
         addView(mQsb);
     }
