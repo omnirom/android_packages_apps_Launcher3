@@ -566,7 +566,6 @@ public class DeviceProfile {
         } else {
             hotseatBarSizePx = hotseatIconSizePx
                     + hotseatQsbSpace
-                    + hotseatQsbVisualHeight
                     + hotseatBarBottomSpacePx
                     + hotseatQsbHeight;
         }
@@ -1242,7 +1241,9 @@ public class DeviceProfile {
         } else if (isTaskbarPresent) { // QSB on top
             return hotseatBarSizePx - hotseatQsbHeight + hotseatQsbShadowHeight;
         } else {
-            return hotseatBarBottomSpacePx - hotseatQsbShadowHeight;
+            int availableHeight = hotseatBarSizePx - hotseatCellHeightPx - mInsets.bottom;
+            int bottom = mInsets.bottom + (availableHeight - hotseatQsbHeight) / 2;
+            return bottom;
         }
     }
 
