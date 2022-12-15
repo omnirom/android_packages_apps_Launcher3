@@ -452,7 +452,11 @@ public class SettingsActivity extends FragmentActivity
                         parser.getDepth() > depth) && type != XmlPullParser.END_DOCUMENT) {
                     if ((type == XmlPullParser.START_TAG)
                             && GridOption.TAG_NAME.equals(parser.getName())) {
-                        result.add(new GridOption(getContext(), Xml.asAttributeSet(parser), deviceType));
+                        GridOption gridOption = new GridOption(getContext(), Xml.asAttributeSet(parser),
+                            deviceType);
+                        if (gridOption.isEnabled) {
+                            result.add(gridOption);
+                        }
                     }
                 }
             } catch (IOException | XmlPullParserException e) {
