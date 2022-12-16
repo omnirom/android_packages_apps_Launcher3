@@ -330,7 +330,10 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
         }
         int spaceNeeded = countExcludingQsb * (mItemMarginLeftRight * 2 + mIconTouchSize);
         int navSpaceNeeded = deviceProfile.hotseatBarEndOffset;
-        int hwButtonSpaceNeeded = mHwButtons ? 3 * mIconTouchSize : 0;
+        int hwButtonSpaceNeeded = deviceProfile.hotseatBarStartOffset;
+        int spaceAvailable = right - left - navSpaceNeeded - hwButtonSpaceNeeded;
+        int itemMarginAvailable = countExcludingQsb != 0 ? ((spaceAvailable - countExcludingQsb * mIconTouchSize) / countExcludingQsb) : mItemMarginLeftRight;
+        itemMarginAvailable = Math.min(itemMarginAvailable, mItemMarginLeftRight);
 
         boolean layoutRtl = isLayoutRtl();
         int iconEnd = right - (right - left - spaceNeeded) / 2;
@@ -344,6 +347,7 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
             iconEnd += offset;
         }
         // Layout the children
+        mIconLayoutBounds.left = hwButtonSpaceNeeded;
         mIconLayoutBounds.right = iconEnd;
         mIconLayoutBounds.top = (bottom - top - mIconTouchSize) / 2;
         mIconLayoutBounds.bottom = mIconLayoutBounds.top + mIconTouchSize;
@@ -353,25 +357,21 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
                 int qsbStart;
                 int qsbEnd;
                 if (layoutRtl) {
-                    qsbStart = iconEnd + mItemMarginLeftRight;
+                    qsbStart = iconEnd + itemMarginAvailable;
                     qsbEnd = qsbStart + deviceProfile.hotseatQsbWidth;
                 } else {
-                    qsbEnd = iconEnd - mItemMarginLeftRight;
+                    qsbEnd = iconEnd - itemMarginAvailable;
                     qsbStart = qsbEnd - deviceProfile.hotseatQsbWidth;
                 }
                 int qsbTop = (bottom - top - deviceProfile.hotseatQsbHeight) / 2;
                 int qsbBottom = qsbTop + deviceProfile.hotseatQsbHeight;
                 child.layout(qsbStart, qsbTop, qsbEnd, qsbBottom);
             } else {
-                iconEnd -= mItemMarginLeftRight;
+                iconEnd -= itemMarginAvailable;
                 int iconStart = iconEnd - mIconTouchSize;
-                if (iconStart < hwButtonSpaceNeeded) {
-                    child.setVisibility(View.GONE);
-                    continue;
-                }
                 child.setVisibility(View.VISIBLE);
                 child.layout(iconStart, mIconLayoutBounds.top, iconEnd, mIconLayoutBounds.bottom);
-                iconEnd = iconStart - mItemMarginLeftRight;
+                iconEnd = iconStart - itemMarginAvailable;
             }
         }
         mIconLayoutBounds.left = iconEnd;
