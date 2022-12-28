@@ -258,6 +258,8 @@ public interface TaskShortcutFactory {
             final PagedOrientationHandler orientationHandler =
                     recentsView.getPagedOrientationHandler();
 
+            final Task.TaskKey taskKey = task.key;
+            final int taskId = taskKey.id;
             int[] taskViewTaskIds = taskView.getTaskIds();
             boolean taskViewHasMultipleTasks = taskViewTaskIds[0] != -1 &&
                     taskViewTaskIds[1] != -1;
@@ -265,10 +267,10 @@ public interface TaskShortcutFactory {
             boolean isFocusedTask = deviceProfile.isTablet && taskView.isFocusedTask();
             boolean isTaskInExpectedScrollPosition =
                     recentsView.isTaskInExpectedScrollPosition(recentsView.indexOfChild(taskView));
-            boolean isTaskSplitNotSupported = !task.isDockable;
+            boolean isTaskSplitNotSupported = taskViewHasMultipleTasks ? taskId == taskViewTaskIds[1] : !task.isDockable;
             boolean hideForExistingMultiWindow = activity.getDeviceProfile().isMultiWindowMode;
 
-            if (taskViewHasMultipleTasks ||
+            if (/*taskViewHasMultipleTasks ||*/
                     notEnoughTasksToSplit ||
                     isTaskSplitNotSupported ||
                     hideForExistingMultiWindow ||
@@ -281,6 +283,10 @@ public interface TaskShortcutFactory {
                     .map((Function<SplitPositionOption, SystemShortcut>) option ->
                             new SplitSelectSystemShortcut(activity, taskView, option))
                     .collect(Collectors.toList());
+        }
+        @Override
+        public boolean showForSplitscreen() {
+            return true;
         }
     };
 
