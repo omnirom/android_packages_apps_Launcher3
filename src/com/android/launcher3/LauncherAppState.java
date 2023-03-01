@@ -19,6 +19,8 @@ package com.android.launcher3;
 import static android.app.admin.DevicePolicyManager.ACTION_DEVICE_POLICY_RESOURCE_UPDATED;
 
 import static com.android.launcher3.Utilities.getDevicePrefs;
+import static com.android.launcher3.util.DisplayController.CHANGE_OVERLAYS;
+import static com.android.launcher3.util.DisplayController.CHANGE_UI_MODE;
 import static com.android.launcher3.util.Executors.MODEL_EXECUTOR;
 import static com.android.launcher3.util.SettingsCache.NOTIFICATION_BADGING_URI;
 
@@ -43,6 +45,9 @@ import com.android.launcher3.notification.NotificationListener;
 import com.android.launcher3.pm.InstallSessionHelper;
 import com.android.launcher3.pm.InstallSessionTracker;
 import com.android.launcher3.pm.UserCache;
+import com.android.launcher3.util.DisplayController;
+import com.android.launcher3.util.DisplayController.DisplayInfoChangeListener;
+import com.android.launcher3.util.DisplayController.Info;
 import com.android.launcher3.util.MainThreadInitializedObject;
 import com.android.launcher3.util.Preconditions;
 import com.android.launcher3.util.RunnableList;
@@ -145,6 +150,20 @@ public class LauncherAppState implements SafeCloseable {
         mModel = new LauncherModel(context, this, mIconCache, new AppFilter(mContext),
                 iconCacheFileName != null);
         mOnTerminateCallback.add(mIconCache::close);
+        
+        DisplayInfoChangeListener displayListener = new DisplayInfoChangeListener() {
+            @Override
+            public void onDisplayInfoChanged(Context context, Info info, int flags) {
+                if ((flags & CHANGE_UI_MODE) != 0 || (flags & CHANGE_OVERLAYS) != 0) {
+                    Log.d(Launcher.TAG, "onDisplayInfoChanged " + flags);
+                    MODEL_EXECUTOR.execute(() -> mIconCache.clear());
+                    mModel.forceReload();
+                }
+            }
+        };
+        DisplayController.INSTANCE.get(mContext).addChangeListener(displayListener);
+        mOnTerminateCallback.add(
+                () -> DisplayController.INSTANCE.get(mContext).removeChangeListener(displayListener));
     }
 
     private void onNotificationSettingsChanged(boolean areNotificationDotsEnabled) {

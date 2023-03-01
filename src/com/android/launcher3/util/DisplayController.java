@@ -71,9 +71,12 @@ public class DisplayController implements ComponentCallbacks, SafeCloseable {
     public static final int CHANGE_DENSITY = 1 << 2;
     public static final int CHANGE_SUPPORTED_BOUNDS = 1 << 3;
     public static final int CHANGE_NAVIGATION_MODE = 1 << 4;
+    public static final int CHANGE_UI_MODE = 1 << 5;
+    public static final int CHANGE_OVERLAYS = 1 << 6;
 
     public static final int CHANGE_ALL = CHANGE_ACTIVE_SCREEN | CHANGE_ROTATION
-            | CHANGE_DENSITY | CHANGE_SUPPORTED_BOUNDS | CHANGE_NAVIGATION_MODE;
+            | CHANGE_DENSITY | CHANGE_SUPPORTED_BOUNDS | CHANGE_NAVIGATION_MODE
+            | CHANGE_UI_MODE | CHANGE_OVERLAYS;
 
     private static final String ACTION_OVERLAY_CHANGED = "android.intent.action.OVERLAY_CHANGED";
     private static final String TARGET_OVERLAY_PACKAGE = "android";
@@ -92,6 +95,7 @@ public class DisplayController implements ComponentCallbacks, SafeCloseable {
 
     private Info mInfo;
     private boolean mDestroyed = false;
+    private int mUiMode = -1;
 
     private DisplayController(Context context) {
         mContext = context;
@@ -152,19 +156,25 @@ public class DisplayController implements ComponentCallbacks, SafeCloseable {
             return;
         }
         boolean reconfigure = false;
+        boolean overlaysChanged = false;
+        boolean uiModeChanged = false;
         if (ACTION_OVERLAY_CHANGED.equals(intent.getAction())) {
             reconfigure = true;
+            overlaysChanged = true;
         } else if (ACTION_CONFIGURATION_CHANGED.equals(intent.getAction())) {
             Configuration config = mContext.getResources().getConfiguration();
             reconfigure = mInfo.fontScale != config.fontScale
-                    || mInfo.densityDpi != config.densityDpi;
+                    || mInfo.densityDpi != config.densityDpi
+                    || mUiMode != config.uiMode;
+            uiModeChanged = mUiMode != config.uiMode;
+            mUiMode = config.uiMode;
         }
 
         if (reconfigure) {
             Log.d(TAG, "Configuration changed, notifying listeners");
             Display display = mDM.getDisplay(DEFAULT_DISPLAY);
             if (display != null) {
-                handleInfoChange(display);
+                handleInfoChange(display, overlaysChanged, uiModeChanged);
             }
         }
     }
@@ -178,9 +188,11 @@ public class DisplayController implements ComponentCallbacks, SafeCloseable {
                 || config.fontScale != mInfo.fontScale
                 || display.getRotation() != mInfo.rotation
                 || !mInfo.mScreenSizeDp.equals(
-                        new PortraitSize(config.screenHeightDp, config.screenWidthDp))) {
-            handleInfoChange(display);
+                        new PortraitSize(config.screenHeightDp, config.screenWidthDp))
+                || mUiMode != config.uiMode) {
+            handleInfoChange(display, false, mUiMode != config.uiMode);
         }
+        mUiMode = config.uiMode;
     }
 
     @Override
@@ -207,7 +219,7 @@ public class DisplayController implements ComponentCallbacks, SafeCloseable {
     }
 
     @AnyThread
-    private void handleInfoChange(Display display) {
+    private void handleInfoChange(Display display, boolean overlaysChanged, boolean uiModeChanged) {
         WindowManagerProxy wmProxy = WindowManagerProxy.INSTANCE.get(mContext);
         Info oldInfo = mInfo;
 
@@ -237,6 +249,12 @@ public class DisplayController implements ComponentCallbacks, SafeCloseable {
         if (!newInfo.supportedBounds.equals(oldInfo.supportedBounds)
                 || !newInfo.mPerDisplayBounds.equals(oldInfo.mPerDisplayBounds)) {
             change |= CHANGE_SUPPORTED_BOUNDS;
+        }
+        if (overlaysChanged) {
+            change |= CHANGE_OVERLAYS;
+        }
+        if (uiModeChanged) {
+            change |= CHANGE_UI_MODE;
         }
         if (DEBUG) {
             Log.d(TAG, "handleInfoChange - change: 0b" + Integer.toBinaryString(change));
