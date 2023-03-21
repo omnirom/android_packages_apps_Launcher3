@@ -104,6 +104,6 @@
     </style>
 
     <style name="HomeSettings.ExpandedToolbarTitle" parent="HomeSettings.CollapsedToolbarTitle">
-        <item name="android:textSize">32sp</item>
+        <item name="android:textSize">36sp</item>
     </style>
 </resources>
