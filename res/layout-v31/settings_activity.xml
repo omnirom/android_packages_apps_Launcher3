@@ -26,14 +26,16 @@
         android:id="@+id/app_bar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:background="?android:attr/colorPrimary"
         android:fitsSystemWindows="true"
         android:outlineAmbientShadowColor="@android:color/transparent"
-        android:outlineSpotShadowColor="@android:color/transparent">
+        android:outlineSpotShadowColor="@android:color/transparent"
+        android:theme="@style/HomeSettings.CollapsingToolbar">
 
         <com.google.android.material.appbar.CollapsingToolbarLayout
             android:id="@+id/collapsing_toolbar"
             android:layout_width="match_parent"
-            android:layout_height="170dp"
+            android:layout_height="226dp"
             android:clipToPadding="false"
             app:collapsedTitleTextAppearance="@style/HomeSettings.CollapsedToolbarTitle"
             app:contentScrim="@color/home_settings_header_collapsed"
@@ -43,7 +45,7 @@
             app:layout_scrollFlags="scroll|exitUntilCollapsed|snap"
             app:maxLines="3"
             app:scrimAnimationDuration="50"
-            app:scrimVisibleHeightTrigger="140dp"
+            app:scrimVisibleHeightTrigger="174dp"
             app:statusBarScrim="@null"
             app:titleCollapseMode="fade"
             app:toolbarId="@id/action_bar">
@@ -52,6 +54,7 @@
                 android:id="@+id/action_bar"
                 android:layout_width="match_parent"
                 android:layout_height="?attr/actionBarSize"
+                android:theme="?android:attr/actionBarTheme"
                 android:transitionName="shared_element_view"
                 app:layout_collapseMode="pin" />
 

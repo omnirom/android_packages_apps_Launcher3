@@ -26,7 +26,6 @@ import com.android.launcher3.R;
 public class KtR {
     public static final class id {
         public static int menu_option_layout = R.id.menu_option_layout;
-        public static int task_name = R.id.task_name;
     }
 
     public static final class dimen {

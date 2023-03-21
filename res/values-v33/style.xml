@@ -18,21 +18,18 @@
 -->
 
 <resources>
-
-    <style name="HomeSettings.Theme" parent="Theme.Material3.DayNight.NoActionBar">
-        <item name="colorPrimary">@color/colorPrimary</item>
-        <item name="colorAccent">?attr/colorPrimary</item>
+    <style name="HomeSettings.Theme" parent="@android:style/Theme.DeviceDefault.Settings">
         <item name="android:listPreferredItemPaddingEnd">16dp</item>
         <item name="android:listPreferredItemPaddingStart">24dp</item>
         <item name="android:navigationBarColor">@android:color/transparent</item>
         <item name="android:statusBarColor">@android:color/transparent</item>
-        <item name="android:windowLightStatusBar">?attr/isLightTheme</item>
-        <item name="android:windowLightNavigationBar">?attr/isLightTheme</item>
-        <item name="preferenceTheme">@style/Omni.PreferenceTheme</item>
         <item name="android:switchStyle">@style/Omni.SwitchStyle</item>
         <item name="android:textAppearanceListItem">@style/Omni.PreferenceTitle</item>
-        <item name="dialogCornerRadius">@dimen/default_dialog_corner_radius</item>
+        <item name="android:windowActionBar">false</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="preferenceTheme">@style/Omni.PreferenceTheme</item>
         <item name="android:windowAnimationStyle">@style/Animation.SharedBackground</item>
+        <item name="alertDialogTheme">@style/AlertDialogTheme</item>
     </style>
 
     <style name="Animation.SharedBackground" parent="@android:style/Animation.Activity">
@@ -42,4 +39,14 @@
         <item name="android:activityCloseExitAnimation">@anim/shared_x_axis_activity_close_exit</item>
     </style>
 
+    <style name="AlertDialogTheme" parent="@style/Theme.AppCompat.DayNight.Dialog.Alert">
+        <item name="colorAccent">@color/home_settings_header_accent</item>
+        <item name="android:colorBackground">@color/home_settings_header_expanded</item>
+
+        <item name="android:windowSoftInputMode">adjustResize</item>
+        <item name="android:clipToPadding">true</item>
+        <item name="android:clipChildren">true</item>
+
+        <item name="dialogCornerRadius">8dp</item>
+    </style>
 </resources>
