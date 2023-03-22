@@ -17,6 +17,7 @@ package com.android.launcher3.taskbar;
 
 import static android.view.InsetsState.ITYPE_EXTRA_NAVIGATION_BAR;
 
+import static com.android.launcher3.QuickstepTransitionManager.TRANSIENT_TASKBAR_TRANSITION_DURATION;
 import static com.android.launcher3.taskbar.TaskbarLauncherStateController.FLAG_RESUMED;
 import static com.android.launcher3.settings.SettingsActivity.TASKBAR_TRANSPARENT_PREFERENCE_KEY;
 import static com.android.quickstep.TaskAnimationManager.ENABLE_SHELL_TRANSITIONS;
@@ -28,7 +29,6 @@ import android.content.SharedPreferences;
 import android.os.RemoteException;
 import android.util.Log;
 import android.util.SparseArray;
-import android.view.MotionEvent;
 import android.view.TaskTransitionSpec;
 import android.view.WindowManagerGlobal;
 
@@ -40,17 +40,18 @@ import com.android.launcher3.LauncherState;
 import com.android.launcher3.QuickstepTransitionManager;
 import com.android.launcher3.R;
 import com.android.launcher3.Utilities;
+import com.android.launcher3.anim.AnimatedFloat;
+import com.android.launcher3.config.FeatureFlags;
 import com.android.launcher3.logging.InstanceId;
 import com.android.launcher3.logging.InstanceIdSequence;
 import com.android.launcher3.model.data.ItemInfo;
-import com.android.launcher3.model.data.ItemInfoWithIcon;
 import com.android.launcher3.uioverrides.QuickstepLauncher;
+import com.android.launcher3.util.DisplayController;
 import com.android.launcher3.util.OnboardingPrefs;
-import com.android.quickstep.AnimatedFloat;
 import com.android.quickstep.RecentsAnimationCallbacks;
+import com.android.quickstep.views.RecentsView;
 
 import java.io.PrintWriter;
-import java.util.Arrays;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -126,7 +127,8 @@ public class LauncherTaskbarUIController extends TaskbarUIController implements 
 
     @Override
     protected boolean isTaskbarTouchable() {
-        return !mTaskbarLauncherStateController.isAnimatingToLauncher();
+        return !(mTaskbarLauncherStateController.isAnimatingToLauncher()
+                && mTaskbarLauncherStateController.goingToAlignedLauncherState());
     }
 
     public void setShouldDelayLauncherStateAnim(boolean shouldDelayLauncherStateAnim) {
@@ -164,9 +166,11 @@ public class LauncherTaskbarUIController extends TaskbarUIController implements 
                 isResumed,
                 fromInit,
                 /* startAnimation= */ true,
-                !isResumed
-                        ? QuickstepTransitionManager.TASKBAR_TO_APP_DURATION
-                        : QuickstepTransitionManager.TASKBAR_TO_HOME_DURATION);
+                DisplayController.isTransientTaskbar(mLauncher)
+                        ? TRANSIENT_TASKBAR_TRANSITION_DURATION
+                        : (!isResumed
+                                ? QuickstepTransitionManager.TASKBAR_TO_APP_DURATION
+                                : QuickstepTransitionManager.TASKBAR_TO_HOME_DURATION));
     }
 
     @Nullable
@@ -181,7 +185,7 @@ public class LauncherTaskbarUIController extends TaskbarUIController implements 
             }
         }
 
-        if (ENABLE_SHELL_TRANSITIONS
+        if (ENABLE_SHELL_TRANSITIONS && isResumed
                 && !mLauncher.getStateManager().getState().isTaskbarAlignedWithHotseat(mLauncher)) {
             // Launcher is resumed, but in a state where taskbar is still independent, so
             // ignore the state change.
@@ -200,16 +204,15 @@ public class LauncherTaskbarUIController extends TaskbarUIController implements 
      */
     public Animator createAnimToLauncher(@NonNull LauncherState toState,
             @NonNull RecentsAnimationCallbacks callbacks, long duration) {
-        return mTaskbarLauncherStateController.createAnimToLauncher(toState, callbacks, duration);
-    }
+        AnimatorSet set = new AnimatorSet();
+        Animator taskbarState = mTaskbarLauncherStateController
+                .createAnimToLauncher(toState, callbacks, duration);
+        long halfDuration = Math.round(duration * 0.5f);
+        Animator translation =
+                mControllers.taskbarTranslationController.createAnimToLauncher(halfDuration);
 
-    /**
-     * @param ev MotionEvent in screen coordinates.
-     * @return Whether any Taskbar item could handle the given MotionEvent if given the chance.
-     */
-    public boolean isEventOverAnyTaskbarItem(MotionEvent ev) {
-        return mControllers.taskbarViewController.isEventOverAnyItem(ev)
-                || mControllers.navbarButtonsViewController.isEventOverAnyItem(ev);
+        set.playTogether(taskbarState, translation);
+        return set;
     }
 
     public boolean isDraggingItem() {
@@ -235,7 +238,9 @@ public class LauncherTaskbarUIController extends TaskbarUIController implements 
             } else {
                 // Adjust task transition spec to account for taskbar being visible
                 @ColorInt int taskAnimationBackgroundColor =
-                        mLauncher.getColor(R.color.taskbar_background);
+                        DisplayController.isTransientTaskbar(mLauncher)
+                                ? mLauncher.getColor(R.color.transient_taskbar_background)
+                                : mLauncher.getColor(R.color.taskbar_background);
 
                 TaskTransitionSpec customTaskAnimationSpec = new TaskTransitionSpec(
                         taskAnimationBackgroundColor,
@@ -259,11 +264,6 @@ public class LauncherTaskbarUIController extends TaskbarUIController implements 
         mTaskbarOverrideBackgroundAlpha.updateValue(forceHide ? 0 : 1);
     }
 
-    @Override
-    public Stream<ItemInfoWithIcon> getAppIconsForEdu() {
-        return Arrays.stream(mLauncher.getAppsView().getAppsStore().getApps());
-    }
-
     /**
      * Starts the taskbar education flow, if the user hasn't seen it yet.
      */
@@ -285,13 +285,6 @@ public class LauncherTaskbarUIController extends TaskbarUIController implements 
         //        && !mLauncher.getOnboardingPrefs().getBoolean(OnboardingPrefs.TASKBAR_EDU_SEEN);
     }
 
-    /**
-     * Manually ends the taskbar education flow.
-     */
-    public void hideEdu() {
-        mControllers.taskbarEduController.hideEdu();
-    }
-
     @Override
     public void onTaskbarIconLaunched(ItemInfo item) {
         InstanceId instanceId = new InstanceIdSequence().newInstanceId();
@@ -302,9 +295,16 @@ public class LauncherTaskbarUIController extends TaskbarUIController implements 
     @Override
     public void setSystemGestureInProgress(boolean inProgress) {
         super.setSystemGestureInProgress(inProgress);
-        // Launcher's ScrimView will draw the background throughout the gesture. But once the
-        // gesture ends, start drawing taskbar's background again since launcher might stop drawing.
-        forceHideBackground(inProgress);
+        if (DisplayController.isTransientTaskbar(mLauncher)) {
+            forceHideBackground(false);
+            return;
+        }
+        if (!FeatureFlags.ENABLE_TASKBAR_IN_OVERVIEW.get()) {
+            // Launcher's ScrimView will draw the background throughout the gesture. But once the
+            // gesture ends, start drawing taskbar's background again since launcher might stop
+            // drawing.
+            forceHideBackground(inProgress);
+        }
     }
 
     /**
@@ -321,7 +321,7 @@ public class LauncherTaskbarUIController extends TaskbarUIController implements 
             return;
         }
         mTaskbarInAppDisplayProgress.put(progressIndex, progress);
-        if (!mControllers.taskbarStashController.isInApp()
+        if (mControllers.uiController.isIconAlignedWithHotseat()
                 && !mTaskbarLauncherStateController.isAnimatingToLauncher()) {
             // Only animate the nav buttons while home and not animating home, otherwise let
             // the TaskbarViewController handle it.
@@ -359,6 +359,17 @@ public class LauncherTaskbarUIController extends TaskbarUIController implements 
         super.onExpandPip();
         mTaskbarLauncherStateController.updateStateForFlag(FLAG_RESUMED, false);
         mTaskbarLauncherStateController.applyState();
+    }
+
+    @Override
+    public boolean isIconAlignedWithHotseat() {
+        return mTaskbarLauncherStateController.isIconAlignedWithHotseat();
+    }
+
+    @Override
+    public boolean isHotseatIconOnTopWhenAligned() {
+        return mTaskbarLauncherStateController.isInHotseatOnTopStates()
+                && getInAppDisplayProgress(MINUS_ONE_PAGE_PROGRESS_INDEX) == 0;
     }
 
     @Override
@@ -401,5 +412,10 @@ public class LauncherTaskbarUIController extends TaskbarUIController implements 
             mTransparentBackground = prefs.getBoolean(TASKBAR_TRANSPARENT_PREFERENCE_KEY, false);
             onStashedInAppChanged(mLauncher.getDeviceProfile());
         }
+    }
+
+    @Override
+    public RecentsView getRecentsView() {
+        return mLauncher.getOverviewPanel();
     }
 }
