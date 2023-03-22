@@ -59,6 +59,7 @@
             android:orientation="horizontal"
             android:paddingStart="@dimen/taskbar_contextual_button_padding"
             android:paddingEnd="@dimen/taskbar_contextual_button_padding"
+            android:paddingTop="@dimen/taskbar_contextual_padding_top"
             android:gravity="center_vertical"
             android:layout_gravity="start"/>
 
