@@ -73,6 +73,7 @@ import com.android.launcher3.dragndrop.FolderAdaptiveIcon;
 import com.android.launcher3.graphics.TintedDrawableSpan;
 import com.android.launcher3.icons.ShortcutCachingLogic;
 import com.android.launcher3.icons.ThemedIconDrawable;
+import com.android.launcher3.LauncherPrefs;
 import com.android.launcher3.model.data.ItemInfo;
 import com.android.launcher3.model.data.ItemInfoWithIcon;
 import com.android.launcher3.pm.ShortcutConfigActivityInfo;
@@ -168,12 +169,12 @@ public final class Utilities {
     }
 
     public static boolean showQsbWidget(Context context) {
-         return getPrefs(context).getBoolean(QSB_SHOW,
+         return LauncherPrefs.getPrefs(context).getBoolean(QSB_SHOW,
                 context.getResources().getBoolean(R.bool.qsb_show_default));
     }
 
     public static String qsbWidgtLocation(Context context) {
-         return getPrefs(context).getString(QSB_LOCATION_PREFERENCE_KEY,
+         return LauncherPrefs.getPrefs(context).getString(QSB_LOCATION_PREFERENCE_KEY,
                 context.getResources().getString(R.string.pref_qsb_location_workspace_value));
     }
 
