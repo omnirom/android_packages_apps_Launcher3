@@ -48,7 +48,8 @@ final class WidgetsListDrawableFactory {
         Resources res = context.getResources();
         mTopBottomCornerRadius = res.getDimension(R.dimen.widget_list_top_bottom_corner_radius);
         mMiddleCornerRadius = res.getDimension(R.dimen.widget_list_content_corner_radius);
-        mSurfaceColor = context.getColorStateList(R.color.surface);
+        mSurfaceColor = ColorStateList.valueOf(
+                Themes.getAttrColor(context, R.attr.popupColorPrimary));
         mRippleColor = ColorStateList.valueOf(
                 Themes.getAttrColor(context, android.R.attr.colorControlHighlight));
         mVerticalPadding =
