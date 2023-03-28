@@ -105,6 +105,8 @@ public class SettingsActivity extends FragmentActivity
     private static final String SHOW_LEFT_TAB_PREFERENCE_KEY = "pref_left_tab";
 
     public static final String TASKBAR_TRANSPARENT_PREFERENCE_KEY = "pref_taskbar_transparent";
+    public static final String TASKBAR_HW_BUTTONS_SHOW = "pref_taskbar_hw_buttons_show";
+    public static final String QSB_SHOW = "pref_qsb_show";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -253,7 +255,7 @@ public class SettingsActivity extends FragmentActivity
                 getActivity().setTitle(getPreferenceScreen().getTitle());
             }
 
-            Preference showQsbWidget = findPreference(Utilities.QSB_SHOW);
+            Preference showQsbWidget = findPreference(QSB_SHOW);
             showQsbWidget.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
                 public boolean onPreferenceChange(Preference preference, Object newValue) {
                     new Handler().postDelayed(() -> Utilities.restart(getActivity()), Utilities.WAIT_BEFORE_RESTART);
@@ -320,6 +322,16 @@ public class SettingsActivity extends FragmentActivity
                 getPreferenceScreen().removePreference(transparentTaskbar);
             }
 
+            Preference showTaskbarHWButtons = findPreference(TASKBAR_HW_BUTTONS_SHOW);
+            if (!getResources().getBoolean(R.bool.taskbar_add_hardware_buttons)) {
+                getPreferenceScreen().removePreference(showTaskbarHWButtons);
+            }
+            showTaskbarHWButtons.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+                public boolean onPreferenceChange(Preference preference, Object newValue) {
+                    new Handler().postDelayed(() -> Utilities.restart(getActivity()), Utilities.WAIT_BEFORE_RESTART);
+                    return true;
+                }
+            });
             final ListPreference qsbLocation = (ListPreference) findPreference(QSB_LOCATION_PREFERENCE_KEY);
             valueIndex = qsbLocation.findIndexOfValue(qsbLocation.getValue());
             qsbLocation.setSummary(qsbLocation.getEntries()[valueIndex]);
