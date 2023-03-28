@@ -16,6 +16,8 @@
 
 package com.android.launcher3.widget.picker.search;
 
+import static com.android.launcher3.Utilities.prefixTextWithIcon;
+
 import android.content.Context;
 import android.util.AttributeSet;
 import android.widget.ImageButton;
@@ -67,6 +69,7 @@ public class LauncherWidgetsSearchBar extends LinearLayout implements WidgetsSea
         super.onFinishInflate();
         mEditText = findViewById(R.id.widgets_search_bar_edit_text);
         mCancelButton = findViewById(R.id.widgets_search_cancel_button);
+        mEditText.setHint(prefixTextWithIcon(getContext(), R.drawable.ic_allapps_search, mEditText.getHint()));
     }
 
     @Override

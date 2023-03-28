@@ -13,19 +13,17 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:paddingVertical="12dp"
-        android:paddingStart="12dp"
-        android:paddingEnd="0dp"
-        android:drawablePadding="8dp"
-        android:drawableStart="@drawable/ic_allapps_search"
         android:background="@null"
         android:hint="@string/widgets_full_sheet_search_bar_hint"
         android:maxLines="1"
         android:layout_weight="1"
-        android:inputType="text"
+        android:inputType="text|textNoSuggestions|textCapWords"
         android:imeOptions="actionSearch"
         android:importantForAutofill="no"
-        android:textColor="?android:attr/textColorPrimary"
-        android:textColorHint="?android:attr/textColorSecondary"/>
+        android:textColor="?android:attr/textColorSecondary"
+        android:textColorHint="@drawable/all_apps_search_hint"
+        android:textSize="16sp"
+        android:gravity="center"/>
 
     <ImageButton
         android:id="@+id/widgets_search_cancel_button"
@@ -36,5 +34,6 @@
         android:background="@drawable/full_rounded_transparent_ripple"
         android:layout_gravity="center"
         android:contentDescription="@string/widgets_full_sheet_cancel_button_description"
-        android:visibility="gone"/>
+        android:visibility="gone"
+        android:tint="?android:attr/colorAccent"/>
 </com.android.launcher3.widget.picker.search.LauncherWidgetsSearchBar>
