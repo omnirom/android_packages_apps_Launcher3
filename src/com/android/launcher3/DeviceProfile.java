@@ -179,6 +179,8 @@ public class DeviceProfile {
     public int hotseatBarSizePx;
     public int hotseatBarBottomSpacePx;
     public int hotseatBarEndOffset;
+    public int hotseatBarStartOffset;
+    private boolean mHwButtons;
     public int hotseatQsbSpace;
     public int springLoadedHotseatBarTopMarginPx;
     // Start is the side next to the nav bar, end is the side next to the workspace
@@ -490,6 +492,10 @@ public class DeviceProfile {
             inlineNavButtonsEndSpacing = 0;
             hotseatBarEndOffset = 0;
         }
+        mHwButtons = res.getBoolean(R.bool.taskbar_add_hardware_buttons);
+        hotseatBarStartOffset = mHwButtons ? 3 * res.getDimensionPixelSize(R.dimen.taskbar_nav_buttons_size)
+                + 2 * res.getDimensionPixelSize(R.dimen.taskbar_contextual_button_padding)
+                + res.getDimensionPixelSize(R.dimen.taskbar_hotseat_nav_spacing) : 0;
 
         overviewTaskMarginPx = res.getDimensionPixelSize(R.dimen.overview_task_margin);
         overviewTaskIconSizePx = res.getDimensionPixelSize(R.dimen.task_thumbnail_icon_size);
@@ -1282,11 +1288,11 @@ public class DeviceProfile {
                     hotseatBarSizePx - hotseatBarBottomPadding - hotseatCellHeightPx;
 
             int hotseatWidth = getHotseatRequiredWidth();
-            int leftSpacing = (availableWidthPx - hotseatWidth) / 2;
+            int leftSpacing = (availableWidthPx - hotseatWidth - hotseatBarStartOffset) / 2;
             int rightSpacing = leftSpacing;
             // Hotseat aligns to the left with nav buttons
             if (hotseatBarEndOffset > 0) {
-                leftSpacing = inlineNavButtonsEndSpacing;
+                leftSpacing = Math.max(hotseatBarStartOffset, inlineNavButtonsEndSpacing);
                 rightSpacing = availableWidthPx - hotseatWidth - leftSpacing + hotseatBorderSpace;
             }
 
