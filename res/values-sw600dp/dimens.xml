@@ -25,7 +25,7 @@
     <dimen name="widget_list_horizontal_margin">32dp</dimen>
 
 <!-- AllApps -->
-    <dimen name="all_apps_search_bar_content_overlap">0dp</dimen>
+    <dimen name="all_apps_search_bar_content_overlap">16dp</dimen>
 
 <!-- Fast scroll -->
     <dimen name="fastscroll_popup_width">75dp</dimen>
