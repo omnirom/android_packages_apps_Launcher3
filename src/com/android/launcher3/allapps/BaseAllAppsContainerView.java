@@ -216,7 +216,7 @@ public abstract class BaseAllAppsContainerView<T extends Context & ActivityConte
         mAH.get(AdapterHolder.SEARCH).setup(mSearchRecyclerView,
                 /* Filter out A-Z apps */ itemInfo -> false);
         rebindAdapters(true /* force */);
-        float cornerRadius = Themes.getDialogCornerRadius(getContext());
+        float cornerRadius = getResources().getDimensionPixelSize(R.dimen.bottom_sheet_top_bottom_corner_radius);
         mBottomSheetCornerRadii = new float[]{
                 cornerRadius,
                 cornerRadius, // Top left radius in px
