@@ -18,6 +18,6 @@
     android:shape="rectangle" >
     <solid android:color="?android:attr/colorBackground" />
     <corners
-        android:topLeftRadius="@dimen/dialogCornerRadius"
-        android:topRightRadius="@dimen/dialogCornerRadius" />
+        android:topLeftRadius="@dimen/bottom_sheet_top_bottom_corner_radius"
+        android:topRightRadius="@dimen/bottom_sheet_top_bottom_corner_radius" />
 </shape>

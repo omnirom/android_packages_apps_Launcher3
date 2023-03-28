@@ -190,7 +190,7 @@
     <!-- Bottom margin for the search and recommended widgets container with work profile -->
     <dimen name="search_and_recommended_widgets_container_small_bottom_margin">10dp</dimen>
 
-    <dimen name="widget_list_top_bottom_corner_radius">28dp</dimen>
+    <dimen name="widget_list_top_bottom_corner_radius">24dp</dimen>
     <dimen name="widget_list_content_corner_radius">4dp</dimen>
 
     <dimen name="widget_list_header_view_vertical_padding">20dp</dimen>
