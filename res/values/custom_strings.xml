@@ -37,4 +37,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     <string name="pref_taskbar_transparent_title">Transparent taskbar</string>
     <string name="pref_taskbar_transparent_summary"></string>
+    <string name="pref_taskbar_hw_buttons_show_title">Taskbar HW buttons</string>
+    <string name="pref_taskbar_hw_buttons_show_summary">Software emulated HW buttons in taskbar</string>
 </resources>

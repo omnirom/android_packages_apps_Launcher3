@@ -22,6 +22,8 @@ import static com.android.launcher3.util.SplitConfigurationOptions.STAGE_POSITIO
 import static com.android.launcher3.util.SplitConfigurationOptions.STAGE_POSITION_TOP_OR_LEFT;
 import static com.android.launcher3.util.SplitConfigurationOptions.STAGE_TYPE_MAIN;
 import static com.android.launcher3.settings.SettingsActivity.QSB_LOCATION_PREFERENCE_KEY;
+import static com.android.launcher3.settings.SettingsActivity.QSB_SHOW;
+import static com.android.launcher3.settings.SettingsActivity.TASKBAR_HW_BUTTONS_SHOW;
 
 import android.annotation.TargetApi;
 import android.app.ActivityManager;
@@ -161,7 +163,6 @@ public final class Utilities {
         IS_RUNNING_IN_TEST_HARNESS = true;
     }
 
-    public static final String QSB_SHOW = "pref_qsb_show";
     public static final long WAIT_BEFORE_RESTART = 250;
 
     public static boolean isPropertyEnabled(String propertyName) {
@@ -184,6 +185,11 @@ public final class Utilities {
 
     public static boolean showWorkspaceQsbWidget(Context context) {
          return showQsbWidget(context) && qsbWidgtLocation(context).equals(context.getResources().getString(R.string.pref_qsb_location_workspace_value));
+    }
+
+    public static boolean showTaskbarHWButtons(Context context) {
+         return LauncherPrefs.getPrefs(context).getBoolean(TASKBAR_HW_BUTTONS_SHOW,
+                context.getResources().getBoolean(R.bool.taskbar_add_hardware_buttons));
     }
 
     /**

@@ -104,7 +104,7 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
         mActivityContext = ActivityContext.lookupContext(context);
         mIconLayoutBounds = mActivityContext.getTransientTaskbarBounds();
         Resources resources = getResources();
-        mHwButtons = resources.getBoolean(R.bool.taskbar_add_hardware_buttons);
+        mHwButtons = Utilities.showTaskbarHWButtons(context);
         mIsRtl = Utilities.isRtl(resources);
 
         int actualMargin = resources.getDimensionPixelSize(R.dimen.taskbar_icon_spacing);
