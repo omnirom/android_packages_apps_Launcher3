@@ -25,7 +25,6 @@ import android.view.MotionEvent;
 import android.view.ViewTreeObserver;
 
 import com.android.launcher3.DeviceProfile;
-import com.android.launcher3.LauncherPrefs;
 import com.android.launcher3.R;
 import com.android.launcher3.anim.AnimatedFloat;
 import com.android.launcher3.testing.shared.ResourceUtils;
@@ -75,7 +74,7 @@ public class TaskbarDragLayerController implements TaskbarControllers.LoggableTa
         final Resources resources = mTaskbarDragLayer.getResources();
         mFolderMargin = resources.getDimensionPixelSize(R.dimen.taskbar_folder_margin);
 
-        SharedPreferences prefs = LauncherPrefs.getPrefs(mActivity);
+        SharedPreferences prefs = Utilities.getPrefs(mActivity);
         prefs.registerOnSharedPreferenceChangeListener(this);
         mTransparentBackground = prefs.getBoolean(TASKBAR_TRANSPARENT_PREFERENCE_KEY, false);
 
@@ -98,7 +97,7 @@ public class TaskbarDragLayerController implements TaskbarControllers.LoggableTa
     }
 
     public void onDestroy() {
-        SharedPreferences prefs = LauncherPrefs.getPrefs(mActivity);
+        SharedPreferences prefs = Utilities.getPrefs(mActivity);
         prefs.unregisterOnSharedPreferenceChangeListener(this);
 
         mTaskbarDragLayer.onDestroy();

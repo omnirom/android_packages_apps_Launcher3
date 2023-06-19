@@ -39,7 +39,6 @@ import com.android.launcher3.DeviceProfile;
 import com.android.launcher3.LauncherState;
 import com.android.launcher3.QuickstepTransitionManager;
 import com.android.launcher3.R;
-import com.android.launcher3.LauncherPrefs;
 import com.android.launcher3.Utilities;
 import com.android.launcher3.anim.AnimatedFloat;
 import com.android.launcher3.config.FeatureFlags;
@@ -104,7 +103,7 @@ public class LauncherTaskbarUIController extends TaskbarUIController implements 
 
         onLauncherResumedOrPaused(mLauncher.hasBeenResumed(), true /* fromInit */);
 
-        SharedPreferences prefs = LauncherPrefs.getPrefs(mLauncher);
+        SharedPreferences prefs = Utilities.getPrefs(mLauncher);
         prefs.registerOnSharedPreferenceChangeListener(this);
         mTransparentBackground = prefs.getBoolean(TASKBAR_TRANSPARENT_PREFERENCE_KEY, false);
 
@@ -122,7 +121,7 @@ public class LauncherTaskbarUIController extends TaskbarUIController implements 
         mLauncher.removeOnDeviceProfileChangeListener(mOnDeviceProfileChangeListener);
         updateTaskTransitionSpec(true);
 
-        SharedPreferences prefs = LauncherPrefs.getPrefs(mLauncher);
+        SharedPreferences prefs = Utilities.getPrefs(mLauncher);
         prefs.unregisterOnSharedPreferenceChangeListener(this);
     }
 
