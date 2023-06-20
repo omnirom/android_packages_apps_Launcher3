@@ -218,7 +218,7 @@ public class NavbarButtonsViewController implements TaskbarControllers.LoggableT
         mControllers = controllers;
         mNavButtonsView.getLayoutParams().height = mContext.getDeviceProfile().taskbarSize;
 
-        if (Utilities.showTaskbarHWButtons(mContext)) {
+        if (mContext.getResources().getBoolean(R.bool.taskbar_add_hardware_buttons)) {
             initHardwareButtons(mControllers.navButtonController);
         }
 
