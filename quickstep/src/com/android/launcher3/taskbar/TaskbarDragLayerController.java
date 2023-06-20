@@ -19,15 +19,12 @@ import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.graphics.Point;
 import android.graphics.Rect;
-import android.view.MotionEvent;
 import android.view.ViewTreeObserver;
 
 import com.android.launcher3.DeviceProfile;
 import com.android.launcher3.R;
 import com.android.launcher3.anim.AnimatedFloat;
-import com.android.launcher3.testing.shared.ResourceUtils;
 import com.android.launcher3.util.DimensionUtils;
-import com.android.launcher3.util.DisplayController;
 import com.android.launcher3.util.TouchController;
 import com.android.launcher3.Utilities;
 
@@ -42,7 +39,6 @@ public class TaskbarDragLayerController implements TaskbarControllers.LoggableTa
     private final TaskbarActivityContext mActivity;
     private final TaskbarDragLayer mTaskbarDragLayer;
     private final int mFolderMargin;
-    private float mGestureHeightYThreshold;
 
     // Alpha properties for taskbar background.
     private final AnimatedFloat mBgTaskbar = new AnimatedFloat(this::updateBackgroundAlpha);
@@ -51,15 +47,22 @@ public class TaskbarDragLayerController implements TaskbarControllers.LoggableTa
     private final AnimatedFloat mNotificationShadeBgTaskbar = new AnimatedFloat(
             this::updateBackgroundAlpha);
     private final AnimatedFloat mImeBgTaskbar = new AnimatedFloat(this::updateBackgroundAlpha);
+    private final AnimatedFloat mAssistantBgTaskbar = new AnimatedFloat(
+            this::updateBackgroundAlpha);
     // Used to hide our background color when someone else (e.g. ScrimView) is handling it.
     private final AnimatedFloat mBgOverride = new AnimatedFloat(this::updateBackgroundAlpha);
 
     // Translation property for taskbar background.
     private final AnimatedFloat mBgOffset = new AnimatedFloat(this::updateBackgroundOffset);
 
+    // Used to fade in/out the entirety of the taskbar, for a smooth transition before/after sysui
+    // changes the inset visibility.
+    private final AnimatedFloat mTaskbarAlpha = new AnimatedFloat(this::updateTaskbarAlpha);
+
     // Initialized in init.
     private TaskbarControllers mControllers;
-    private AnimatedFloat mNavButtonDarkIntensityMultiplier;
+    private TaskbarStashViaTouchController mTaskbarStashViaTouchController;
+    private AnimatedFloat mOnBackgroundNavButtonColorIntensity;
 
     private float mLastSetBackgroundAlpha;
 
@@ -69,23 +72,26 @@ public class TaskbarDragLayerController implements TaskbarControllers.LoggableTa
         mTaskbarDragLayer = taskbarDragLayer;
         final Resources resources = mTaskbarDragLayer.getResources();
         mFolderMargin = resources.getDimensionPixelSize(R.dimen.taskbar_folder_margin);
-
-        updateGestureHeight();
     }
 
     public void init(TaskbarControllers controllers) {
         mControllers = controllers;
+        mTaskbarStashViaTouchController = new TaskbarStashViaTouchController(mControllers);
         mTaskbarDragLayer.init(new TaskbarDragLayerCallbacks());
 
-        mNavButtonDarkIntensityMultiplier = mControllers.navbarButtonsViewController
-                .getNavButtonDarkIntensityMultiplier();
+        mOnBackgroundNavButtonColorIntensity = mControllers.navbarButtonsViewController
+                .getOnTaskbarBackgroundNavButtonColorOverride();
 
         mBgTaskbar.value = 1;
         mKeyguardBgTaskbar.value = 1;
         mNotificationShadeBgTaskbar.value = 1;
         mImeBgTaskbar.value = 1;
+        mAssistantBgTaskbar.value = 1;
         mBgOverride.value = 1;
         updateBackgroundAlpha();
+
+        mTaskbarAlpha.value = 1;
+        updateTaskbarAlpha();
     }
 
     public void onDestroy() {
@@ -97,7 +103,7 @@ public class TaskbarDragLayerController implements TaskbarControllers.LoggableTa
      */
     public Rect getFolderBoundingBox() {
         Rect boundingBox = new Rect(0, 0, mTaskbarDragLayer.getWidth(),
-                mTaskbarDragLayer.getHeight() - mActivity.getDeviceProfile().taskbarSize);
+                mTaskbarDragLayer.getHeight() - mActivity.getDeviceProfile().taskbarHeight);
         boundingBox.inset(mFolderMargin, mFolderMargin);
         return boundingBox;
     }
@@ -122,35 +128,34 @@ public class TaskbarDragLayerController implements TaskbarControllers.LoggableTa
         return mImeBgTaskbar;
     }
 
-    public AnimatedFloat getOverrideBackgroundAlpha() {
-        return mBgOverride;
+    public AnimatedFloat getAssistantBgTaskbar() {
+        return mAssistantBgTaskbar;
     }
 
     public AnimatedFloat getTaskbarBackgroundOffset() {
         return mBgOffset;
     }
 
-    private void updateGestureHeight() {
-        int gestureHeight = ResourceUtils.getNavbarSize(ResourceUtils.NAVBAR_BOTTOM_GESTURE_SIZE,
-                mActivity.getResources());
-        mGestureHeightYThreshold = mActivity.getDeviceProfile().heightPx - gestureHeight;
+    public AnimatedFloat getTaskbarAlpha() {
+        return mTaskbarAlpha;
     }
 
     /**
      * Make updates when configuration changes.
      */
     public void onConfigurationChanged() {
-        updateGestureHeight();
+        mTaskbarStashViaTouchController.updateGestureHeight();
     }
 
     private void updateBackgroundAlpha() {
         final float bgNavbar = mBgNavbar.value;
         final float bgTaskbar = mBgTaskbar.value * mKeyguardBgTaskbar.value
-                * mNotificationShadeBgTaskbar.value * mImeBgTaskbar.value;
+                * mNotificationShadeBgTaskbar.value * mImeBgTaskbar.value
+                * mAssistantBgTaskbar.value;
         mLastSetBackgroundAlpha = mBgOverride.value * Math.max(bgNavbar, bgTaskbar);
         mTaskbarDragLayer.setTaskbarBackgroundAlpha(mLastSetBackgroundAlpha);
 
-        updateNavBarDarkIntensityMultiplier();
+        updateOnBackgroundNavButtonColorIntensity();
     }
 
     /**
@@ -160,10 +165,21 @@ public class TaskbarDragLayerController implements TaskbarControllers.LoggableTa
         mTaskbarDragLayer.setBackgroundTranslationYForSwipe(transY);
     }
 
+    /**
+     * Sets the translation of the background during the spring on stash animation.
+     */
+    public void setTranslationYForStash(float transY) {
+        mTaskbarDragLayer.setBackgroundTranslationYForStash(transY);
+    }
+
     private void updateBackgroundOffset() {
         mTaskbarDragLayer.setTaskbarBackgroundOffset(mBgOffset.value);
 
-        updateNavBarDarkIntensityMultiplier();
+        updateOnBackgroundNavButtonColorIntensity();
+    }
+
+    private void updateTaskbarAlpha() {
+        mTaskbarDragLayer.setAlpha(mTaskbarAlpha.value);
     }
 
     @Override
@@ -171,10 +187,17 @@ public class TaskbarDragLayerController implements TaskbarControllers.LoggableTa
         mTaskbarDragLayer.setCornerRoundness(cornerRoundness);
     }
 
-    private void updateNavBarDarkIntensityMultiplier() {
-        // Zero out the app-requested dark intensity when we're drawing our own background.
-        float effectiveBgAlpha = mLastSetBackgroundAlpha * (1 - mBgOffset.value);
-        mNavButtonDarkIntensityMultiplier.updateValue(1 - effectiveBgAlpha);
+    /**
+     * Set if another controller is temporarily handling background drawing. In this case we
+     * override our background alpha to be {@code 0}.
+     */
+    public void setIsBackgroundDrawnElsewhere(boolean isBackgroundDrawnElsewhere) {
+        mBgOverride.updateValue(isBackgroundDrawnElsewhere ? 0 : 1);
+    }
+
+    private void updateOnBackgroundNavButtonColorIntensity() {
+        mOnBackgroundNavButtonColorIntensity.updateValue(
+                mLastSetBackgroundAlpha * (1 - mBgOffset.value));
     }
 
     @Override
@@ -182,8 +205,16 @@ public class TaskbarDragLayerController implements TaskbarControllers.LoggableTa
         pw.println(prefix + "TaskbarDragLayerController:");
 
         pw.println(prefix + "\tmBgOffset=" + mBgOffset.value);
+        pw.println(prefix + "\tmTaskbarAlpha=" + mTaskbarAlpha.value);
         pw.println(prefix + "\tmFolderMargin=" + mFolderMargin);
         pw.println(prefix + "\tmLastSetBackgroundAlpha=" + mLastSetBackgroundAlpha);
+        pw.println(prefix + "\t\tmBgOverride=" + mBgOverride.value);
+        pw.println(prefix + "\t\tmBgNavbar=" + mBgNavbar.value);
+        pw.println(prefix + "\t\tmBgTaskbar=" + mBgTaskbar.value);
+        pw.println(prefix + "\t\tmKeyguardBgTaskbar=" + mKeyguardBgTaskbar.value);
+        pw.println(prefix + "\t\tmNotificationShadeBgTaskbar=" + mNotificationShadeBgTaskbar.value);
+        pw.println(prefix + "\t\tmImeBgTaskbar=" + mImeBgTaskbar.value);
+        pw.println(prefix + "\t\tmAssistantBgTaskbar=" + mAssistantBgTaskbar.value);
     }
 
     /**
@@ -191,45 +222,12 @@ public class TaskbarDragLayerController implements TaskbarControllers.LoggableTa
      */
     public class TaskbarDragLayerCallbacks {
 
-        private final int[] mTempOutLocation = new int[2];
-
         /**
          * Called to update the touchable insets.
          * @see ViewTreeObserver.InternalInsetsInfo#setTouchableInsets(int)
          */
         public void updateInsetsTouchability(ViewTreeObserver.InternalInsetsInfo insetsInfo) {
             mControllers.taskbarInsetsController.updateInsetsTouchability(insetsInfo);
-        }
-
-        /**
-         * Listens to TaskbarDragLayer touch events and responds accordingly.
-         */
-        public void tryStashBasedOnMotionEvent(MotionEvent ev) {
-            if (!DisplayController.isTransientTaskbar(mActivity)) {
-                return;
-            }
-            if (mControllers.taskbarStashController.isStashed()) {
-                return;
-            }
-
-            boolean stashTaskbar = false;
-
-            MotionEvent screenCoordinates = MotionEvent.obtain(ev);
-            if (ev.getAction() == MotionEvent.ACTION_OUTSIDE) {
-                stashTaskbar = true;
-            } else if (ev.getAction() == MotionEvent.ACTION_DOWN) {
-                mTaskbarDragLayer.getLocationOnScreen(mTempOutLocation);
-                screenCoordinates.offsetLocation(mTempOutLocation[0], mTempOutLocation[1]);
-
-                if (!mControllers.taskbarViewController.isEventOverAnyItem(screenCoordinates)
-                        && screenCoordinates.getY() < mGestureHeightYThreshold) {
-                    stashTaskbar = true;
-                }
-            }
-
-            if (stashTaskbar) {
-                mControllers.taskbarStashController.updateAndAnimateTransientTaskbar(true);
-            }
         }
 
         /**
@@ -253,7 +251,7 @@ public class TaskbarDragLayerController implements TaskbarControllers.LoggableTa
                         deviceProfile.getDisplayInfo().currentSize.y :
                         taskbarDimensions.y;
             } else {
-                return deviceProfile.taskbarSize;
+                return deviceProfile.taskbarHeight;
             }
         }
 
@@ -261,9 +259,12 @@ public class TaskbarDragLayerController implements TaskbarControllers.LoggableTa
          * Returns touch controllers.
          */
         public TouchController[] getTouchControllers() {
-            return new TouchController[]{mActivity.getDragController(),
+            return new TouchController[] {
+                    mActivity.getDragController(),
                     mControllers.taskbarForceVisibleImmersiveController,
-                    mControllers.navbarButtonsViewController.getTouchController()};
+                    mControllers.navbarButtonsViewController.getTouchController(),
+                    mTaskbarStashViaTouchController,
+            };
         }
     }
 }
