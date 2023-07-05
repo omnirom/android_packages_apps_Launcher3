@@ -195,6 +195,12 @@ public class TaskOverlayFactory implements ResourceBasedOverride {
             }
         }
 
+        private void clearAllTasks() {
+            RecentsView recentsView =
+                    mTaskContainer.getThumbnailViewDeprecated().getTaskView().getRecentsView();
+            recentsView.dismissAllTasks(null);
+        }
+
         protected void enterSplitSelect() {
             RecentsView overviewPanel =
                     mTaskContainer.getThumbnailViewDeprecated().getTaskView().getRecentsView();
@@ -333,6 +339,10 @@ public class TaskOverlayFactory implements ResourceBasedOverride {
             public void onSaveAppPair() {
                 endLiveTileMode(TaskOverlay.this::saveAppPair);
             }
+
+            public void onClearAllTasks() {
+                endLiveTileMode(TaskOverlay.this::clearAllTasks);
+            }
         }
     }
 
@@ -349,5 +359,7 @@ public class TaskOverlayFactory implements ResourceBasedOverride {
 
         /** User wants to save an app pair with current group of apps. */
         void onSaveAppPair();
+
+        void onClearAllTasks();
     }
 }
