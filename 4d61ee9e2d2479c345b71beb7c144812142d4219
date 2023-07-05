@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "b08c582d_be4da3ae",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1002322
+      },
+      "writtenOn": "2023-07-05T16:25:59Z",
+      "side": 1,
+      "message": "Comment removed by: mickael saibi; Reason: NVM",
+      "revId": "4d61ee9e2d2479c345b71beb7c144812142d4219",
+      "serverId": "56841c99-7c94-43d4-bf0b-cb4707e66d55"
+    }
+  ]
+}
