@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "9b942f5c_41abd0a3",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1002322
+      },
+      "writtenOn": "2023-07-05T15:51:57Z",
+      "side": 1,
+      "message": "i\u0027ve reverted this beafore QPR3 merge because Google have added more features flag for tablet, so need to this ",
+      "revId": "9ed8f8262abe1dfd7c264ea7327d804126cfeb3a",
+      "serverId": "56841c99-7c94-43d4-bf0b-cb4707e66d55"
+    }
+  ]
+}
