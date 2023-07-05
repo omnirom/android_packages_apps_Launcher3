@@ -502,4 +502,59 @@ public interface TaskShortcutFactory {
             return createSingletonShortcutList(modalStateSystemShortcut);
         }
     };
+
+    TaskShortcutFactory CLEAR_TASK = new TaskShortcutFactory() {
+        @Override
+        public List<SystemShortcut> getShortcuts(RecentsViewContainer container,
+                TaskContainer taskContainer) {
+            return Collections.singletonList(new ClearTaskSystemShortcut(container, taskContainer));
+        }
+    };
+
+    class ClearTaskSystemShortcut extends SystemShortcut<ActivityContext> {
+
+        private static final String TAG = "ClearTaskSystemShortcut";
+
+        private final TaskView mTaskView;
+
+        public ClearTaskSystemShortcut(ActivityContext target, TaskContainer taskContainer) {
+            super(R.drawable.ic_close, R.string.recents_clear, target, taskContainer.getItemInfo(),
+                    taskContainer.getTaskView());
+            mTaskView = taskContainer.getTaskView();
+        }
+
+        @Override
+        public void onClick(View view) {
+            dismissTaskMenuView();
+            mTaskView.getRecentsView().dismissTask(mTaskView, true /*animateTaskView*/,
+                    true /*removeTask*/);
+        }
+    }
+
+    TaskShortcutFactory CLEAR_ALL_TASK = new TaskShortcutFactory() {
+        @Override
+        public List<SystemShortcut> getShortcuts(RecentsViewContainer container,
+                TaskContainer taskContainer) {
+            return Collections.singletonList(new ClearAllTaskSystemShortcut(container, taskContainer));
+        }
+    };
+
+    class ClearAllTaskSystemShortcut extends SystemShortcut<ActivityContext> {
+
+        private static final String TAG = "ClearAllTaskSystemShortcut";
+
+        private final TaskView mTaskView;
+
+        public ClearAllTaskSystemShortcut(ActivityContext target, TaskContainer taskContainer) {
+            super(R.drawable.ic_close_all, R.string.recents_clear_all, target, taskContainer.getItemInfo(),
+                    taskContainer.getTaskView());
+            mTaskView = taskContainer.getTaskView();
+        }
+
+        @Override
+        public void onClick(View view) {
+            dismissTaskMenuView();
+            mTaskView.getRecentsView().dismissAllTasks(null);
+        }
+    }
 }
