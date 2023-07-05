@@ -16,6 +16,23 @@
       "message": "Comment removed by: mickael saibi; Reason: NVM",
       "revId": "4d61ee9e2d2479c345b71beb7c144812142d4219",
       "serverId": "56841c99-7c94-43d4-bf0b-cb4707e66d55"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "ed5b86cb_1650e1e8",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1002322
+      },
+      "writtenOn": "2023-07-05T21:32:08Z",
+      "side": 1,
+      "message": "https://gerrit.omnirom.org/c/android_packages_apps_Launcher3/+/43715",
+      "revId": "4d61ee9e2d2479c345b71beb7c144812142d4219",
+      "serverId": "56841c99-7c94-43d4-bf0b-cb4707e66d55"
     }
   ]
 }
