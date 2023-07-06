@@ -116,7 +116,7 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
         mActivityContext = ActivityContext.lookupContext(context);
         mIconLayoutBounds = mActivityContext.getTransientTaskbarBounds();
         Resources resources = getResources();
-        mHwButtons = resources.getBoolean(R.bool.taskbar_add_hardware_buttons);
+        mHwButtons = Utilities.showTaskbarHWButtons(context);
         boolean isTransientTaskbar = DisplayController.isTransientTaskbar(mActivityContext);
         mIsRtl = Utilities.isRtl(resources);
         mTransientTaskbarMinWidth = mContext.getResources().getDimension(

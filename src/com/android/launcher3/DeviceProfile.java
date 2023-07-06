@@ -517,7 +517,7 @@ public class DeviceProfile {
             inlineNavButtonsEndSpacingPx = 0;
             hotseatBarEndOffset = 0;
         }
-        mHwButtons = res.getBoolean(R.bool.taskbar_add_hardware_buttons);
+        mHwButtons = Utilities.showTaskbarHWButtons(context);
         hotseatBarStartOffset = mHwButtons ? 3 * res.getDimensionPixelSize(R.dimen.taskbar_nav_buttons_size)
                 + 2 * res.getDimensionPixelSize(R.dimen.taskbar_contextual_button_padding)
                 + res.getDimensionPixelSize(R.dimen.taskbar_hotseat_nav_spacing) : 0;
@@ -715,13 +715,14 @@ public class DeviceProfile {
 
         maxHotseatIconsWidthPx = maxHotseatWidthPx - (isQsbInline ? hotseatQsbWidth : 0);
 
-        // If it still doesn't fit, start removing icons
-        do {
-            numShownHotseatIcons--;
-            hotseatBorderSpace = calculateHotseatBorderSpace(maxHotseatIconsWidthPx,
-                    (isQsbInline ? 1 : 0) + /* border between nav buttons and first icon */ 1);
-        } while (hotseatBorderSpace < mMinHotseatIconSpacePx && numShownHotseatIcons > 1);
-
+        if (hotseatBorderSpace < mMinHotseatIconSpacePx) {
+            // If it still doesn't fit, start removing icons
+            do {
+                numShownHotseatIcons--;
+                hotseatBorderSpace = calculateHotseatBorderSpace(maxHotseatIconsWidthPx,
+                        (isQsbInline ? 1 : 0) + /* border between nav buttons and first icon */ 1);
+            } while (hotseatBorderSpace < mMinHotseatIconSpacePx && numShownHotseatIcons > 1);
+        }
     }
 
     private Point getCellLayoutBorderSpace(InvariantDeviceProfile idp) {
