@@ -1356,9 +1356,10 @@ public class DeviceProfile {
             int startSpacing;
             int endSpacing;
             // Hotseat aligns to the left with nav buttons
+            // omni: no thats looks aweful - just center it
             if (hotseatBarEndOffset > 0) {
-                startSpacing = Math.max(hotseatBarStartOffset, inlineNavButtonsEndSpacing);
-                endSpacing = availableWidthPx - hotseatWidth - startSpacing + hotseatBorderSpace;
+                startSpacing = (availableWidthPx - hotseatWidth - Math.max(hotseatBarStartOffset, hotseatBarEndOffset)) / 2;
+                endSpacing = startSpacing;
             } else {
                 startSpacing = (availableWidthPx - hotseatWidth) / 2;
                 endSpacing = startSpacing;
