@@ -517,7 +517,7 @@ public class DeviceProfile {
             inlineNavButtonsEndSpacingPx = 0;
             hotseatBarEndOffset = 0;
         }
-        mHwButtons = res.getBoolean(R.bool.taskbar_add_hardware_buttons);
+        mHwButtons = Utilities.showTaskbarHWButtons(context);
         hotseatBarStartOffset = mHwButtons ? 3 * res.getDimensionPixelSize(R.dimen.taskbar_nav_buttons_size)
                 + 2 * res.getDimensionPixelSize(R.dimen.taskbar_contextual_button_padding)
                 + res.getDimensionPixelSize(R.dimen.taskbar_hotseat_nav_spacing) : 0;
