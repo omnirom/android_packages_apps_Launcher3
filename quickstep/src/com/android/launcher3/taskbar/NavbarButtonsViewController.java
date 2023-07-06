@@ -226,7 +226,7 @@ public class NavbarButtonsViewController implements TaskbarControllers.LoggableT
     public void init(TaskbarControllers controllers) {
         mControllers = controllers;
 
-        if (Utilities.showTaskbarHWButtons(mContext)) {
+        if (Utilities.showTaskbarHWButtons(mContext) && mHardwareButtonContainer != null) {
             initHardwareButtons(mControllers.navButtonController);
         }
 
