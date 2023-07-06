@@ -56,6 +56,17 @@
             android:layout_gravity="start"/>
 
         <LinearLayout
+            android:id="@+id/start_hardware_buttons"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:orientation="horizontal"
+            android:paddingStart="@dimen/taskbar_contextual_button_padding"
+            android:paddingEnd="@dimen/taskbar_contextual_button_padding"
+            android:paddingTop="@dimen/taskbar_contextual_padding_top"
+            android:gravity="center_vertical"
+            android:layout_gravity="start"/>
+
+        <LinearLayout
             android:id="@+id/end_nav_buttons"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
