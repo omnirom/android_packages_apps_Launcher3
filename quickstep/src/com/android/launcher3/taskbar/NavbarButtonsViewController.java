@@ -132,6 +132,7 @@ public class NavbarButtonsViewController implements TaskbarControllers.LoggableT
     private static final int FLAG_VOICE_INTERACTION_WINDOW_SHOWING = 1 << 13;
     private static final int FLAG_SMALL_SCREEN = 1 << 14;
     private static final int FLAG_SLIDE_IN_VIEW_VISIBLE = 1 << 15;
+    private static final int FLAG_IS_IN_APP = 1 << 16;
 
     /**
      * Flags where a UI could be over Taskbar surfaces, so the color override should be disabled.
@@ -504,6 +505,11 @@ public class NavbarButtonsViewController implements TaskbarControllers.LoggableT
     /** {@code true} if a slide in view is currently visible over taskbar. */
     public void setSlideInViewVisible(boolean isSlideInViewVisible) {
         updateStateForFlag(FLAG_SLIDE_IN_VIEW_VISIBLE, isSlideInViewVisible);
+        applyState();
+    }
+
+    public void setIsInApp(boolean isInApp) {
+        updateStateForFlag(FLAG_IS_IN_APP, isInApp);
         applyState();
     }
 
@@ -1001,8 +1007,13 @@ public class NavbarButtonsViewController implements TaskbarControllers.LoggableT
                 mHardwareButtonContainer, navButtonController, R.id.volume_plus,
                 R.layout.taskbar_contextual_button);
 
-        mPropertyHolders.add(new StatePropertyHolder(mHardwareButtonContainer,
+        if (!mContext.isThreeButtonNav()) {
+            mPropertyHolders.add(new StatePropertyHolder(mHardwareButtonContainer,
+                    flags -> (flags & FLAG_IME_VISIBLE) == 0 && (flags & FLAG_AOD_VISIBLE) == 0 && (flags & FLAG_IS_IN_APP) == 0));
+        } else {
+            mPropertyHolders.add(new StatePropertyHolder(mHardwareButtonContainer,
                     flags -> (flags & FLAG_IME_VISIBLE) == 0 && (flags & FLAG_AOD_VISIBLE) == 0));
+        }
     }
 
     private void initDPadButtons(TaskbarNavButtonController navButtonController) {
