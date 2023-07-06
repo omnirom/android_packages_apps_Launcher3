@@ -44,13 +44,14 @@
         android:layout_height="wrap_content"
         android:layout_gravity="bottom" >
 
-        <FrameLayout
+        <LinearLayout
             android:id="@+id/start_contextual_buttons"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
-            android:paddingStart="@dimen/taskbar_contextual_button_padding"
+            android:orientation="horizontal"
+            android:paddingStart="@dimen/transient_taskbar_contextual_button_padding"
             android:paddingEnd="@dimen/taskbar_contextual_button_padding"
-            android:paddingTop="@dimen/taskbar_contextual_padding_top"
+            android:paddingTop="@dimen/transient_taskbar_contextual_padding_top"
             android:gravity="center_vertical"
             android:layout_gravity="start"/>
 
