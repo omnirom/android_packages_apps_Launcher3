@@ -16,6 +16,24 @@
       "message": "drawable was picked from here \nhttps://gerrit.omnirom.org/c/android_packages_apps_Launcher3/+/38616",
       "revId": "28af4aa47ef29b31e604cc6c8042d475216944c5",
       "serverId": "56841c99-7c94-43d4-bf0b-cb4707e66d55"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "ef22c624_3ec4cba2",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1002322
+      },
+      "writtenOn": "2023-07-06T12:17:56Z",
+      "side": 1,
+      "message": "Hmm, i can just use this same ic_close_all.xml drawable instead of use an new one.\nNeed to amend",
+      "parentUuid": "c20870da_e9f65ef2",
+      "revId": "28af4aa47ef29b31e604cc6c8042d475216944c5",
+      "serverId": "56841c99-7c94-43d4-bf0b-cb4707e66d55"
     }
   ]
 }
