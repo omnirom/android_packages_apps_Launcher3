@@ -268,7 +268,7 @@ public class TaskbarLauncherStateController {
             Log.d(TAG, "createAnimToLauncher - FLAG_IN_APP: " + false);
         }
         stashController.updateStateForFlag(FLAG_IN_APP, false);
-        mControllers.navbarButtonsViewController.setIsInApp(false);
+        mControllers.navbarButtonsViewController.setHideExtraButtons(false);
 
         updateStateForFlag(FLAG_TRANSITION_TO_RESUMED, true);
         animatorSet.play(stashController.createApplyStateAnimator(duration));
@@ -434,7 +434,6 @@ public class TaskbarLauncherStateController {
                     }
                     stashController.updateStateForFlag(FLAG_IN_APP, !isInLauncher);
                     stashController.applyState(duration);
-                    mControllers.navbarButtonsViewController.setIsInApp(!isInLauncher);
                 }
 
                 @Override
@@ -446,6 +445,8 @@ public class TaskbarLauncherStateController {
             // Handle closing open popups when going home/overview
             handleOpenFloatingViews = true;
         }
+        mControllers.navbarButtonsViewController.setHideExtraButtons(!isInLauncher || isInAllApps() || isInOverview());
+
 
         if (handleOpenFloatingViews && isInLauncher) {
             AbstractFloatingView.closeAllOpenViews(mControllers.taskbarActivityContext);
@@ -610,6 +611,10 @@ public class TaskbarLauncherStateController {
         return mLauncherState == LauncherState.OVERVIEW;
     }
 
+    boolean isInAllApps() {
+        return mLauncherState == LauncherState.ALL_APPS;
+    }
+
     private void playStateTransitionAnim(AnimatorSet animatorSet, long duration,
             boolean committed) {
         boolean isInStashedState = mLauncherState.isTaskbarStashed(mLauncher);
@@ -748,7 +753,7 @@ public class TaskbarLauncherStateController {
             }
             controller.updateStateForFlag(FLAG_IN_APP, finishedToApp);
             controller.applyState();
-            mControllers.navbarButtonsViewController.setIsInApp(finishedToApp);
+            mControllers.navbarButtonsViewController.setHideExtraButtons(finishedToApp);
         }
     }
 
