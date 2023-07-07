@@ -268,7 +268,6 @@ public class TaskbarLauncherStateController {
             Log.d(TAG, "createAnimToLauncher - FLAG_IN_APP: " + false);
         }
         stashController.updateStateForFlag(FLAG_IN_APP, false);
-        mControllers.navbarButtonsViewController.setIsInApp(false);
 
         updateStateForFlag(FLAG_TRANSITION_TO_RESUMED, true);
         animatorSet.play(stashController.createApplyStateAnimator(duration));
@@ -434,7 +433,6 @@ public class TaskbarLauncherStateController {
                     }
                     stashController.updateStateForFlag(FLAG_IN_APP, !isInLauncher);
                     stashController.applyState(duration);
-                    mControllers.navbarButtonsViewController.setIsInApp(!isInLauncher);
                 }
 
                 @Override
@@ -446,6 +444,8 @@ public class TaskbarLauncherStateController {
             // Handle closing open popups when going home/overview
             handleOpenFloatingViews = true;
         }
+
+        mControllers.navbarButtonsViewController.updateForLauncherState(isInLauncher, mLauncherState);
 
         if (handleOpenFloatingViews && isInLauncher) {
             AbstractFloatingView.closeAllOpenViews(mControllers.taskbarActivityContext);
@@ -748,7 +748,6 @@ public class TaskbarLauncherStateController {
             }
             controller.updateStateForFlag(FLAG_IN_APP, finishedToApp);
             controller.applyState();
-            mControllers.navbarButtonsViewController.setIsInApp(finishedToApp);
         }
     }
 
