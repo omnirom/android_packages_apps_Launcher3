@@ -399,7 +399,7 @@ android_app {
 android_app {
     name: "Launcher3QuickStep",
 
-    static_libs: ["Launcher3QuickStepLib"],
+    defaults: ["omni_launcher3_defaults"],
     optimize: {
         enabled: false,
     },
