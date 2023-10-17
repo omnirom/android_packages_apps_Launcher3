@@ -420,9 +420,8 @@ public class SettingsActivity extends FragmentActivity
                         parser.getDepth() > depth) && type != XmlPullParser.END_DOCUMENT) {
                     if ((type == XmlPullParser.START_TAG)
                             && GridOption.TAG_NAME.equals(parser.getName())) {
-                        GridOption gridOption = new GridOption(getContext(), Xml.asAttributeSet(parser),
-                            deviceType);
-                        if (gridOption.isEnabled) {
+                        GridOption gridOption = new GridOption(getContext(), Xml.asAttributeSet(parser));
+                        if (gridOption.isEnabled(deviceType)) {
                             result.add(gridOption);
                         }
                     }
