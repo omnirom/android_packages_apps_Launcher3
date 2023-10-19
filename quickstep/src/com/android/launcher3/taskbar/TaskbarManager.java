@@ -41,6 +41,7 @@ import android.hardware.display.DisplayManager;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.SystemProperties;
+import android.provider.OmniSettings;
 import android.provider.Settings;
 import android.util.Log;
 import android.view.Display;
@@ -87,7 +88,7 @@ public class TaskbarManager {
             Settings.Secure.NAV_BAR_KIDS_MODE);
 
     private static final Uri ENABLE_TASKBAR_URI = Settings.System.getUriFor(
-            Settings.System.OMNI_ENABLE_TASKBAR);
+            OmniSettings.OMNI_ENABLE_TASKBAR);
 
     private final Context mContext;
     private final DisplayController mDisplayController;
@@ -162,7 +163,7 @@ public class TaskbarManager {
             // Create the illusion of this taking effect immediately
             // Also needed because TaskbarManager inits before SystemUiProxy on start
             boolean enabled = Settings.System.getInt(mContext.getContentResolver(),
-                    Settings.System.OMNI_ENABLE_TASKBAR, 0) == 1;
+                    OmniSettings.OMNI_ENABLE_TASKBAR, 0) == 1;
             SystemUiProxy.INSTANCE.get(mContext).setTaskbarEnabled(enabled);
 
             // Restart launcher
