@@ -154,6 +154,7 @@ android_library {
         "com.google.android.material_material",
         "iconloader_base",
         "view_capture",
+        "OmniLib",
         "OmniPreferenceTheme",
     ],
     manifest: "AndroidManifest-common.xml",
