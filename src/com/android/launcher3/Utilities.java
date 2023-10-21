@@ -25,6 +25,7 @@ import static com.android.launcher3.util.SplitConfigurationOptions.STAGE_TYPE_MA
 import android.annotation.TargetApi;
 import android.app.ActivityManager;
 import android.app.Person;
+import android.app.ProgressDialog;
 import android.app.WallpaperManager;
 import android.content.Context;
 import android.content.pm.LauncherActivityInfo;
@@ -80,6 +81,7 @@ import com.android.launcher3.shortcuts.ShortcutKey;
 import com.android.launcher3.shortcuts.ShortcutRequest;
 import com.android.launcher3.testing.shared.ResourceUtils;
 import com.android.launcher3.util.IntArray;
+import com.android.launcher3.util.Executors;
 import com.android.launcher3.util.SplitConfigurationOptions.SplitPositionOption;
 import com.android.launcher3.util.Themes;
 import com.android.launcher3.views.ActivityContext;
@@ -172,8 +174,16 @@ public final class Utilities {
         sIsRunningInTestHarness = true;
     }
 
+    public static final String QSB_SHOW = "pref_qsb_show";
+    public static final long WAIT_BEFORE_RESTART = 250;
+
     public static boolean isPropertyEnabled(String propertyName) {
         return Log.isLoggable(propertyName, Log.VERBOSE);
+    }
+
+    public static boolean showQsbWidget(Context context) {
+         return LauncherPrefs.getPrefs(context).getBoolean(QSB_SHOW,
+                context.getResources().getBoolean(R.bool.qsb_show_default));
     }
 
     /**
@@ -801,5 +811,16 @@ public final class Utilities {
             default:
                 // No-Op
         }
+    }
+
+    public static void restart(final Context context) {
+        ProgressDialog.show(context, null, context.getString(R.string.state_loading), true, false);
+        Executors.MODEL_EXECUTOR.execute(() -> {
+            try {
+                Thread.sleep(WAIT_BEFORE_RESTART);
+            } catch (Exception ignored) {
+            }
+            android.os.Process.killProcess(android.os.Process.myPid());
+        });
     }
 }
