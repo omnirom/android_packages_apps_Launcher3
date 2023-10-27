@@ -315,7 +315,7 @@ public class DeviceProfile {
         isTablet = info.isTablet(windowBounds);
         isPhone = !isTablet;
         isTwoPanels = isTablet && isMultiDisplay;
-        boolean isTaskBarEnabled = Settings.System.getInt(context.getContentResolver(),
+        boolean isTaskBarEnabled = isTablet && Settings.System.getInt(context.getContentResolver(),
                 OmniSettings.OMNI_ENABLE_TASKBAR, isTablet ? 1 : 0) == 1;
         isTaskbarPresent = isTaskBarEnabled && ApiWrapper.TASKBAR_DRAWN_IN_PROCESS;
 
