@@ -41,6 +41,7 @@ import android.hardware.display.DisplayManager;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.SystemProperties;
+import android.provider.OmniSettings;
 import android.provider.Settings;
 import android.util.Log;
 import android.view.Display;

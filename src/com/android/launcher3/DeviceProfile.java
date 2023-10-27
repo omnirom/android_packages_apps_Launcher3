@@ -39,6 +39,7 @@ import android.content.res.TypedArray;
 import android.graphics.Point;
 import android.graphics.PointF;
 import android.graphics.Rect;
+import android.provider.OmniSettings;
 import android.provider.Settings;
 import android.util.DisplayMetrics;
 import android.util.SparseArray;
