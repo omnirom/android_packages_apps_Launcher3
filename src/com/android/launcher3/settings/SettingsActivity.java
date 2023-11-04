@@ -315,6 +315,11 @@ public class SettingsActivity extends FragmentActivity
             });
 
             final ListPreference qsbLocation = (ListPreference) findPreference(QSB_LOCATION_PREFERENCE_KEY);
+            DeviceProfile mDeviceProfile = InvariantDeviceProfile.INSTANCE.get(
+                            getContext()).getDeviceProfile(getContext());
+            if (mDeviceProfile.isTablet) {
+                getPreferenceScreen().removePreference(qsbLocation);
+            }
             valueIndex = qsbLocation.findIndexOfValue(qsbLocation.getValue());
             qsbLocation.setSummary(qsbLocation.getEntries()[valueIndex]);
             qsbLocation.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
