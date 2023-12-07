@@ -156,6 +156,7 @@ android_library {
         "view_capture",
         "OmniLib",
         "OmniPreferenceTheme",
+        "animationlib"
     ],
     manifest: "AndroidManifest-common.xml",
     sdk_version: "current",
@@ -174,6 +175,7 @@ android_library {
     static_libs: [
         "Launcher3ResLib",
         "launcher-testing-shared",
+        "animationlib"
     ],
     sdk_version: "current",
     min_sdk_version: min_launcher3_sdk_version,

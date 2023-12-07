@@ -21,6 +21,7 @@ import static com.android.launcher3.model.ModelUtils.filterCurrentWorkspaceItems
 import static com.android.launcher3.util.Executors.MODEL_EXECUTOR;
 
 import android.os.Process;
+import android.os.Trace;
 import android.util.Log;
 
 import com.android.launcher3.InvariantDeviceProfile;
@@ -83,13 +84,18 @@ public abstract class BaseLauncherBinder {
      * Binds all loaded data to actual views on the main thread.
      */
     public void bindWorkspace(boolean incrementBindId, boolean isBindSync) {
-        if (FeatureFlags.ENABLE_WORKSPACE_LOADING_OPTIMIZATION.get()) {
-            DisjointWorkspaceBinder workspaceBinder =
+        Trace.beginSection("BaseLauncherBinder#bindWorkspace");
+        try {
+            if (FeatureFlags.ENABLE_WORKSPACE_LOADING_OPTIMIZATION.get()) {
+                DisjointWorkspaceBinder workspaceBinder =
                     initWorkspaceBinder(incrementBindId, mBgDataModel.collectWorkspaceScreens());
-            workspaceBinder.bindCurrentWorkspacePages(isBindSync);
-            workspaceBinder.bindOtherWorkspacePages();
-        } else {
-            bindWorkspaceAllAtOnce(incrementBindId, isBindSync);
+                workspaceBinder.bindCurrentWorkspacePages(isBindSync);
+                workspaceBinder.bindOtherWorkspacePages();
+            } else {
+                bindWorkspaceAllAtOnce(incrementBindId, isBindSync);
+            }
+        } finally {
+            Trace.endSection();
         }
     }
 
@@ -106,6 +112,7 @@ public abstract class BaseLauncherBinder {
         synchronized (mBgDataModel) {
             if (incrementBindId) {
                 mBgDataModel.lastBindId++;
+                mBgDataModel.lastLoadId = mApp.getModel().getLastLoadId();
             }
             mMyBindingId = mBgDataModel.lastBindId;
             return new DisjointWorkspaceBinder(workspacePages);
@@ -126,6 +133,7 @@ public abstract class BaseLauncherBinder {
             mBgDataModel.extraItems.forEach(extraItems::add);
             if (incrementBindId) {
                 mBgDataModel.lastBindId++;
+                mBgDataModel.lastLoadId = mApp.getModel().getLastLoadId();
             }
             mMyBindingId = mBgDataModel.lastBindId;
             workspaceItemCount = mBgDataModel.itemsIdMap.size();
