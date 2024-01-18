@@ -21,7 +21,6 @@ import android.graphics.Point
 import android.view.View
 import androidx.test.core.app.ApplicationProvider
 import com.android.launcher3.CellLayout
-import com.android.launcher3.CellLayoutContainer
 import com.android.launcher3.DeviceProfile
 import com.android.launcher3.InvariantDeviceProfile
 import com.android.launcher3.MultipageCellLayout
@@ -40,17 +39,6 @@ class UnitTestCellLayoutBuilderRule : TestWatcher() {
 
     private val applicationContext =
         ActivityContextWrapper(ApplicationProvider.getApplicationContext())
-
-    private val container =
-        object : CellLayoutContainer {
-            override fun getCellLayoutId(cellLayout: CellLayout): Int = 0
-
-            override fun getCellLayoutIndex(cellLayout: CellLayout): Int = 0
-
-            override fun getPanelCount(): Int = 1
-
-            override fun getPageDescription(pageIndex: Int): String = ""
-        }
 
     override fun starting(description: Description?) {
         val dp = getDeviceProfile()
@@ -72,7 +60,7 @@ class UnitTestCellLayoutBuilderRule : TestWatcher() {
         dp.cellLayoutBorderSpacePx = Point(0, 0)
         val cl =
             if (isMulti) MultipageCellLayout(getWrappedContext(applicationContext, dp))
-            else CellLayout(getWrappedContext(applicationContext, dp), container)
+            else CellLayout(getWrappedContext(applicationContext, dp))
         // I put a very large number for width and height so that all the items can fit, it doesn't
         // need to be exact, just bigger than the sum of cell border
         cl.measure(
