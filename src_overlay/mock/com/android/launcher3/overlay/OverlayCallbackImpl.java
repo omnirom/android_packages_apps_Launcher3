@@ -72,13 +72,11 @@ public class OverlayCallbackImpl
     }
 
     @Override
-    public boolean startSearch(byte[] config, Bundle extras) {
-        return false;
+    public void onActivityStarted() {
     }
 
     @Override
-    public void onActivityCreated(Activity activity, Bundle bundle) {
-        // Not called
+    public void onActivityResumed() {
     }
 
     @Override
@@ -90,18 +88,7 @@ public class OverlayCallbackImpl
     }
 
     @Override
-    public void onActivityPaused(Activity activity) {
-    }
-
-    @Override
-    public void onActivityStopped(Activity activity) {
-    }
-
-    @Override
-    public void onActivitySaveInstanceState(Activity activity, Bundle bundle) { }
-
-    @Override
-    public void onActivityDestroyed(Activity activity) {
+    public void onActivityDestroyed() {
     }
 
     @Override
