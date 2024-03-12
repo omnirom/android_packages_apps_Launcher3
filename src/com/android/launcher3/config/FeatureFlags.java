@@ -69,8 +69,7 @@ public final class FeatureFlags {
      * @deprecated Use {@link BuildConfig#QSB_ON_FIRST_SCREEN} directly
      */
     @Deprecated
-    // NOTE: replaced by resource qsb_show_default
-    public static final boolean QSB_ON_FIRST_SCREEN = true;
+    public static final boolean QSB_ON_FIRST_SCREEN = BuildConfig.QSB_ON_FIRST_SCREEN;
 
     /**
      * Feature flag to handle define config changes dynamically instead of killing the process.
