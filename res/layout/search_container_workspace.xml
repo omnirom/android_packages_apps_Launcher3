@@ -25,6 +25,6 @@
     <fragment
         android:name="com.android.launcher3.qsb.QsbContainerView$QsbFragment"
         android:layout_width="match_parent"
-        android:tag="qsb_view_workspace"
+        android:tag="qsb_view"
         android:layout_height="match_parent"/>
 </com.android.launcher3.qsb.QsbContainerView>

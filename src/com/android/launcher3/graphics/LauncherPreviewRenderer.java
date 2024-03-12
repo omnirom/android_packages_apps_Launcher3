@@ -526,7 +526,7 @@ public class LauncherPreviewRenderer extends ContextWrapper
         }
 
         // Add first page QSB
-        if (Utilities.showWorkspaceQsbWidget(mContext)) {
+        if (Utilities.showQsbWidget(mContext)) {
             CellLayout firstScreen = mWorkspaceScreens.get(FIRST_SCREEN_ID);
             View qsb = mHomeElementInflater.inflate(R.layout.qsb_preview, firstScreen, false);
             CellLayoutLayoutParams lp = new CellLayoutLayoutParams(

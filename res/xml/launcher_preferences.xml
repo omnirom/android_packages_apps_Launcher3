@@ -57,15 +57,6 @@
         android:summary="@string/pref_qsb_show_summary"
         android:title="@string/pref_qsb_show_title"/>
 
-    <ListPreference
-        android:key="pref_qsb_location"
-        android:title="@string/pref_qsb_location_title"
-        android:persistent="true"
-        android:dependency="pref_qsb_show"
-        android:entries="@array/prefs_qsb_location_entries"
-        android:entryValues="@array/prefs_qsb_location_values"
-        android:defaultValue="@string/pref_qsb_location_workspace_value"/>
-
     <SwitchPreference
         android:key="pref_left_tab"
         android:title="@string/left_tab_label"
