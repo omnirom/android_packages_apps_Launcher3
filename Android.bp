@@ -173,9 +173,12 @@ android_library {
     name: "Launcher3CommonDepsLib",
     srcs: ["src_build_config/**/*.java"],
     static_libs: [
+        "SystemUI-statsd",
         "Launcher3ResLib",
         "launcher-testing-shared",
-        "animationlib"
+        "animationlib",
+        "com_android_launcher3_flags_lib",
+        "com_android_wm_shell_flags_lib",
     ],
     sdk_version: "current",
     min_sdk_version: min_launcher3_sdk_version,
@@ -246,6 +249,7 @@ android_library {
         "Launcher3ResLib",
         "lottie",
         "SystemUISharedLib",
+        "SettingsLibSettingsTheme",
         "SystemUI-statsd",
         "animationlib",
     ],
@@ -277,7 +281,7 @@ android_library {
         "androidx.room_room-runtime",
     ],
     plugins: ["androidx.room_room-compiler-plugin"],
-    manifest: "quickstep/AndroidManifest-launcher.xml",
+    manifest: "quickstep/AndroidManifest.xml",
     additional_manifests: [
         "go/AndroidManifest.xml",
         "AndroidManifest-common.xml",
