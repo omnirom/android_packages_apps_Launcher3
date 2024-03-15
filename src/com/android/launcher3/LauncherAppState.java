@@ -193,7 +193,7 @@ public class LauncherAppState implements SafeCloseable {
             public void onDisplayInfoChanged(Context context, Info info, int flags) {
                 if ((flags & CHANGE_UI_MODE) != 0 || (flags & CHANGE_OVERLAYS) != 0) {
                     Log.d(Launcher.TAG, "onDisplayInfoChanged " + flags);
-                    MODEL_EXECUTOR.execute(() -> mIconCache.clear());
+                    MODEL_EXECUTOR.execute(() -> mIconCache.clearMemoryCache());
                     mModel.forceReload();
                 }
             }
