@@ -560,6 +560,11 @@ public class IconCache extends BaseIconCache {
                 info.getAppLabel());
     }
 
+    // replacement for old removed clear() in BaseIconCache
+    public synchronized void clearDb() {
+        mIconDb.clear();
+    }
+
     @Override
     @NonNull
     protected String getIconSystemState(String packageName) {
