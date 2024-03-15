@@ -6,6 +6,7 @@ import android.os.Trace
 import android.view.ViewTreeObserver.OnDrawListener
 import androidx.annotation.UiThread
 import com.android.launcher3.LauncherConstants.TraceEvents
+import com.android.launcher3.Utilities
 import com.android.launcher3.WorkspaceLayoutManager.FIRST_SCREEN_ID
 import com.android.launcher3.allapps.AllAppsStore
 import com.android.launcher3.config.FeatureFlags
@@ -36,7 +37,7 @@ class ModelCallbacks(private var launcher: Launcher) : BgDataModel.Callbacks {
     var pagesToBindSynchronously = LIntSet()
 
     private var isFirstPagePinnedItemEnabled =
-        (BuildConfig.QSB_ON_FIRST_SCREEN && !FeatureFlags.ENABLE_SMARTSPACE_REMOVAL.get())
+        (Utilities.showQsbWidget(this) && !FeatureFlags.ENABLE_SMARTSPACE_REMOVAL.get())
 
     var stringCache: StringCache? = null
 
@@ -309,7 +310,7 @@ class ModelCallbacks(private var launcher: Launcher) : BgDataModel.Callbacks {
         )
         val firstScreenPosition = 0
         if (
-            (FeatureFlags.QSB_ON_FIRST_SCREEN &&
+            (Utilities.showQsbWidget(this)&&
                 isFirstPagePinnedItemEnabled &&
                 !shouldShowFirstPageWidget()) &&
                 orderedScreenIds.indexOf(FIRST_SCREEN_ID) != firstScreenPosition
@@ -317,7 +318,7 @@ class ModelCallbacks(private var launcher: Launcher) : BgDataModel.Callbacks {
             orderedScreenIds.removeValue(FIRST_SCREEN_ID)
             orderedScreenIds.add(firstScreenPosition, FIRST_SCREEN_ID)
         } else if (
-            (!FeatureFlags.QSB_ON_FIRST_SCREEN && !isFirstPagePinnedItemEnabled ||
+            (!Utilities.showQsbWidget(this) && !isFirstPagePinnedItemEnabled ||
                 shouldShowFirstPageWidget()) && orderedScreenIds.isEmpty
         ) {
             // If there are no screens, we need to have an empty screen
@@ -374,7 +375,7 @@ class ModelCallbacks(private var launcher: Launcher) : BgDataModel.Callbacks {
         }
         orderedScreenIds
             .filterNot { screenId ->
-                FeatureFlags.QSB_ON_FIRST_SCREEN &&
+                Utilities.showQsbWidget(this) &&
                     isFirstPagePinnedItemEnabled &&
                     !FeatureFlags.shouldShowFirstPageWidget() &&
                     screenId == WorkspaceLayoutManager.FIRST_SCREEN_ID
