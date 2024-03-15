@@ -142,13 +142,15 @@ public class DisplayController implements ComponentCallbacks, SafeCloseable {
     }
 
     private void attachTaskbarPinningSharedPreferenceChangeListener(Context context) {
+        Configuration config = mContext.getResources().getConfiguration();
         mTaskbarPinningPreferenceChangeListener =
                 (sharedPreferences, key) -> {
                     if (TASKBAR_PINNING_KEY.equals(key)
                             && mInfo.mIsTaskbarPinned != LauncherPrefs.get(mContext).get(
                             TASKBAR_PINNING)
                     ) {
-                        handleInfoChange(mWindowContext.getDisplay());
+                        handleInfoChange(mWindowContext.getDisplay(),
+                            false, mUiMode != config.uiMode);
                     }
                 };
 
