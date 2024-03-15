@@ -30,6 +30,7 @@ import android.content.SharedPreferences;
 import android.content.res.XmlResourceParser;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
 import android.provider.Settings;
 import android.text.TextUtils;
 import android.util.Log;
@@ -233,6 +234,14 @@ public class SettingsActivity extends FragmentActivity
                 getPreferenceScreen().removePreference(leftTabPage);
             }
             leftTabPage.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+                public boolean onPreferenceChange(Preference preference, Object newValue) {
+                    new Handler().postDelayed(() -> Utilities.restart(getActivity()), Utilities.WAIT_BEFORE_RESTART);
+                    return true;
+                }
+            });
+
+            Preference showQsbWidget = findPreference(Utilities.QSB_SHOW);
+            showQsbWidget.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
                 public boolean onPreferenceChange(Preference preference, Object newValue) {
                     new Handler().postDelayed(() -> Utilities.restart(getActivity()), Utilities.WAIT_BEFORE_RESTART);
                     return true;
