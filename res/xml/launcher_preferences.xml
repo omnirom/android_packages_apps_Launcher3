@@ -50,6 +50,13 @@
         launcher:logIdOn="615"
         launcher:logIdOff="616" />
 
+    <SwitchPreference
+        android:defaultValue="@bool/qsb_show_default"
+        android:key="pref_qsb_show"
+        android:persistent="true"
+        android:summary="@string/pref_qsb_show_summary"
+        android:title="@string/pref_qsb_show_title"/>
+
     <ListPreference
         android:key="pref_grid"
         android:title="@string/pref_grid_title"
