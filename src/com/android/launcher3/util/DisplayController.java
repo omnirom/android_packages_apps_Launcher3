@@ -148,7 +148,8 @@ public class DisplayController implements ComponentCallbacks, SafeCloseable {
                             && mInfo.mIsTaskbarPinned != LauncherPrefs.get(mContext).get(
                             TASKBAR_PINNING)
                     ) {
-                        handleInfoChange(mWindowContext.getDisplay());
+                        handleInfoChange(mWindowContext.getDisplay(),
+                            false, mUiMode != config.uiMode);
                     }
                 };
 
