@@ -600,7 +600,7 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
      * Initializes and binds the first page
      */
     public void bindAndInitFirstWorkspaceScreen() {
-        if ((!Utilities.showQsbWidget(mContext)
+        if ((!Utilities.showWorkspaceQsbWidget(mContext)
                 || !mLauncher.getIsFirstPagePinnedItemEnabled())
                 || shouldShowFirstPageWidget()) {
             mFirstPagePinnedItem = null;
@@ -1029,7 +1029,7 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
             int id = mWorkspaceScreens.keyAt(i);
             CellLayout cl = mWorkspaceScreens.valueAt(i);
             // FIRST_SCREEN_ID can never be removed.
-            if (((!Utilities.showQsbWidget(mContext)
+            if (((!Utilities.showWorkspaceQsbWidget(getContext())
                     || shouldShowFirstPageWidget())
                     || id > FIRST_SCREEN_ID)
                     && cl.getShortcutsAndWidgets().getChildCount() == 0) {
