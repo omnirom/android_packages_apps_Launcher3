@@ -22,6 +22,7 @@ import static com.android.launcher3.icons.BitmapInfo.FLAG_THEMED;
 import static com.android.launcher3.util.SplitConfigurationOptions.STAGE_POSITION_BOTTOM_OR_RIGHT;
 import static com.android.launcher3.util.SplitConfigurationOptions.STAGE_POSITION_TOP_OR_LEFT;
 import static com.android.launcher3.util.SplitConfigurationOptions.STAGE_TYPE_MAIN;
+import static com.android.launcher3.settings.SettingsActivity.QSB_LOCATION_PREFERENCE_KEY;
 
 import android.annotation.SuppressLint;
 import android.app.ActivityManager;
@@ -191,6 +192,19 @@ public final class Utilities {
     public static boolean showQsbWidget(Context context) {
          return LauncherPrefs.getPrefs(context).getBoolean(QSB_SHOW,
                 context.getResources().getBoolean(R.bool.qsb_show_default));
+    }
+
+    public static String qsbWidgtLocation(Context context) {
+         return LauncherPrefs.getPrefs(context).getString(QSB_LOCATION_PREFERENCE_KEY,
+                context.getResources().getString(R.string.pref_qsb_location_workspace_value));
+    }
+
+    public static boolean showHotseatQsbWidget(Context context) {
+         return showQsbWidget(context) && qsbWidgtLocation(context).equals(context.getResources().getString(R.string.pref_qsb_location_hotseat_value));
+    }
+
+    public static boolean showWorkspaceQsbWidget(Context context) {
+         return showQsbWidget(context) && qsbWidgtLocation(context).equals(context.getResources().getString(R.string.pref_qsb_location_workspace_value));
     }
 
     /**
