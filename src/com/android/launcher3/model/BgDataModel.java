@@ -41,6 +41,7 @@ import androidx.annotation.Nullable;
 
 import com.android.launcher3.LauncherSettings;
 import com.android.launcher3.LauncherSettings.Favorites;
+import com.android.launcher3.Utilities;
 import com.android.launcher3.Workspace;
 import com.android.launcher3.config.FeatureFlags;
 import com.android.launcher3.model.data.AppInfo;
@@ -162,9 +163,7 @@ public class BgDataModel {
                 screenSet.add(item.screenId);
             }
         }
-        if ((FeatureFlags.QSB_ON_FIRST_SCREEN
-                && !SHOULD_SHOW_FIRST_PAGE_WIDGET)
-                || screenSet.isEmpty()) {
+        if (screenSet.isEmpty()) {
             screenSet.add(Workspace.FIRST_SCREEN_ID);
         }
         return screenSet.getArray();

@@ -29,6 +29,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.content.res.XmlResourceParser;
 import android.os.Bundle;
+import android.os.Handler;
 import android.provider.Settings;
 import android.text.TextUtils;
 import android.util.Log;
@@ -217,6 +218,14 @@ public class SettingsActivity extends FragmentActivity
             if (getActivity() != null && !TextUtils.isEmpty(getPreferenceScreen().getTitle())) {
                 getActivity().setTitle(getPreferenceScreen().getTitle());
             }
+
+            Preference showQsbWidget = findPreference(Utilities.QSB_SHOW);
+            showQsbWidget.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+                public boolean onPreferenceChange(Preference preference, Object newValue) {
+                    new Handler().postDelayed(() -> Utilities.restart(getActivity()), Utilities.WAIT_BEFORE_RESTART);
+                    return true;
+                }
+            });
 
             final ListPreference grid = (ListPreference) findPreference(GRID_SIZE_PREFERENCE_KEY);
             InvariantDeviceProfile idp = InvariantDeviceProfile.INSTANCE.get(getContext());
