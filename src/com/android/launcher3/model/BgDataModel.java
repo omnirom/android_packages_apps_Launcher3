@@ -132,7 +132,7 @@ public class BgDataModel {
      * Load id for which the callbacks were successfully bound
      */
     public int lastLoadId = -1;
-    public boolean isFirstPagePinnedItemEnabled = Utilities.showQsbWidget(this)
+    public boolean isFirstPagePinnedItemEnabled = Utilities.showWorkspaceQsbWidget(this)
             && !ENABLE_SMARTSPACE_REMOVAL.get();
 
     /**
