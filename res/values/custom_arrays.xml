@@ -16,17 +16,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 -->
 
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-
-    <string name="state_loading">Applying\u2026</string>
-    <string name="pref_qsb_show_summary"></string>
-    <string name="pref_qsb_show_title">Show search widget</string>
-    <string name="pref_qsb_location_title">Search widget location</string>
-    <string name="pref_qsb_location_hotseat">Hotseat</string>
-    <string name="pref_qsb_location_hotseat_value" translatable="false">0</string>
-    <string name="pref_qsb_location_workspace">Workspace</string>
-    <string name="pref_qsb_location_workspace_value" translatable="false">1</string>
-    <string name="pref_grid_title">Grid size</string>
-    <string name="left_tab_label">Google feed tab</string>
-    <string name="left_tab_description">Toggle Google feed intergration</string>
-
+    <string-array name="prefs_qsb_location_entries">
+        <item>@string/pref_qsb_location_hotseat</item>
+        <item>@string/pref_qsb_location_workspace</item>
+    </string-array>
+    <string-array name="prefs_qsb_location_values">
+        <item>"0"</item>
+        <item>"1"</item>
+    </string-array>
 </resources>
