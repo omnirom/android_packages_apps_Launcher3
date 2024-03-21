@@ -227,6 +227,7 @@ public class DeviceProfile {
     public final int hotseatQsbHeight;
     public final int hotseatQsbVisualHeight;
     private final int hotseatQsbShadowHeight;
+    private final int hotseatQsbMarginTop;
     public int hotseatBorderSpace;
     private final int mMinHotseatIconSpacePx;
     private final int mMinHotseatQsbWidthPx;
@@ -519,6 +520,7 @@ public class DeviceProfile {
         hotseatQsbHeight = Utilities.showHotseatQsbWidget(context) ? res.getDimensionPixelSize(R.dimen.qsb_widget_height) : 0;
         hotseatQsbShadowHeight = res.getDimensionPixelSize(R.dimen.qsb_shadow_height);
         hotseatQsbVisualHeight = hotseatQsbHeight - 2 * hotseatQsbShadowHeight;
+        hotseatQsbMarginTop = res.getDimensionPixelSize(R.dimen.hotseat_qsb_margin_top);
 
         // Whether QSB might be inline in appropriate orientation (e.g. landscape).
         boolean canQsbInline = (isTwoPanels ? inv.inlineQsb[INDEX_TWO_PANEL_PORTRAIT]
@@ -1870,7 +1872,7 @@ public class DeviceProfile {
         } else if (isTaskbarPresent) { // QSB on top
             return hotseatBarSizePx - hotseatQsbHeight + hotseatQsbShadowHeight;
         } else {
-            return hotseatBarBottomSpacePx - hotseatQsbShadowHeight;
+            return hotseatBarBottomSpacePx - hotseatQsbShadowHeight - hotseatQsbMarginTop;
         }
     }
 
