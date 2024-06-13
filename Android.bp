@@ -347,9 +347,8 @@ android_library {
     manifest: "quickstep/AndroidManifest.xml",
     platform_apis: true,
     min_sdk_version: "current",
-    lint: {
-        baseline_filename: "lint-baseline-launcher3.xml",
-    },
+    // TODO(b/319712088): re-enable use_resource_processor
+    use_resource_processor: false,
 }
 
 android_library {
