@@ -153,7 +153,7 @@ public class QuickstepAtomicAnimationFactory extends
             if (isWorkspaceVisible) {
                 CellLayout currentChild = (CellLayout) workspace.getChildAt(
                         workspace.getCurrentPage());
-                isWorkspaceVisible = currentChild.getVisibility() == VISIBLE
+                isWorkspaceVisible = currentChild != null &&  currentChild.getVisibility() == VISIBLE
                         && currentChild.getShortcutsAndWidgets().getAlpha() > 0;
             }
             if (!isWorkspaceVisible) {
