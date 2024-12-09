@@ -19,17 +19,17 @@ import static android.view.accessibility.AccessibilityEvent.TYPE_WINDOW_CONTENT_
 
 import static com.android.launcher3.BubbleTextView.DISPLAY_TASKBAR;
 import static com.android.launcher3.Flags.enableCursorHoverStates;
+import static com.android.launcher3.Flags.enableRecentsInTaskbar;
 import static com.android.launcher3.LauncherSettings.Favorites.ITEM_TYPE_APP_PAIR;
 import static com.android.launcher3.LauncherSettings.Favorites.ITEM_TYPE_FOLDER;
-import static com.android.launcher3.config.FeatureFlags.ENABLE_ALL_APPS_SEARCH_IN_TASKBAR;
 import static com.android.launcher3.config.FeatureFlags.enableTaskbarPinning;
 import static com.android.launcher3.icons.IconNormalizer.ICON_VISIBLE_AREA_FACTOR;
-import static com.android.launcher3.util.Executors.MAIN_EXECUTOR;
 
 import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Canvas;
 import android.graphics.Rect;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.util.AttributeSet;
 import android.view.DisplayCutout;
@@ -37,18 +37,16 @@ import android.view.InputDevice;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.ViewConfiguration;
 import android.view.accessibility.AccessibilityNodeInfo;
 import android.widget.FrameLayout;
 
-import androidx.annotation.DimenRes;
-import androidx.annotation.DrawableRes;
 import androidx.annotation.LayoutRes;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.android.launcher3.BubbleTextView;
 import com.android.launcher3.DeviceProfile;
+import com.android.launcher3.Flags;
 import com.android.launcher3.Insettable;
 import com.android.launcher3.R;
 import com.android.launcher3.Utilities;
@@ -60,14 +58,19 @@ import com.android.launcher3.model.data.CollectionInfo;
 import com.android.launcher3.model.data.FolderInfo;
 import com.android.launcher3.model.data.ItemInfo;
 import com.android.launcher3.model.data.WorkspaceItemInfo;
+import com.android.launcher3.taskbar.customization.TaskbarAllAppsButtonContainer;
+import com.android.launcher3.taskbar.customization.TaskbarDividerContainer;
 import com.android.launcher3.util.DisplayController;
 import com.android.launcher3.util.LauncherBindableItemsContainer;
 import com.android.launcher3.util.Themes;
 import com.android.launcher3.views.ActivityContext;
 import com.android.launcher3.views.IconButtonView;
-import com.android.quickstep.DeviceConfigWrapper;
-import com.android.quickstep.util.AssistStateManager;
+import com.android.quickstep.util.DesktopTask;
+import com.android.quickstep.util.GroupTask;
+import com.android.systemui.shared.recents.model.Task;
+import com.android.wm.shell.shared.bubbles.BubbleBarLocation;
 
+import java.util.List;
 import java.util.function.Predicate;
 
 /**
@@ -86,6 +89,7 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
     private final boolean mIsRtl;
 
     private final TaskbarActivityContext mActivityContext;
+    @Nullable private BubbleBarLocation mBubbleBarLocation = null;
 
     // Initialized in init.
     private TaskbarViewCallbacks mControllerCallbacks;
@@ -93,16 +97,22 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
     private View.OnLongClickListener mIconLongClickListener;
 
     // Only non-null when the corresponding Folder is open.
-    private @Nullable FolderIcon mLeaveBehindFolderIcon;
+    @Nullable private FolderIcon mLeaveBehindFolderIcon;
 
     // Only non-null when device supports having an All Apps button.
-    private @Nullable IconButtonView mAllAppsButton;
-    private Runnable mAllAppsTouchRunnable;
-    private long mAllAppsButtonTouchDelayMs;
-    private boolean mAllAppsTouchTriggered;
+    @Nullable private final TaskbarAllAppsButtonContainer mAllAppsButtonContainer;
 
-    // Only non-null when device supports having an All Apps button.
-    private @Nullable IconButtonView mTaskbarDivider;
+    // Only non-null when device supports having a Divider button.
+    @Nullable private TaskbarDividerContainer mTaskbarDividerContainer;
+
+    // Only non-null when device supports having a Taskbar Overflow button.
+    @Nullable private IconButtonView mTaskbarOverflowView;
+
+    /**
+     * Whether the divider is between Hotseat icons and Recents,
+     * instead of between All Apps button and Hotseat.
+     */
+    private boolean mAddedDividerForRecents;
 
     private final View mQsb;
 
@@ -160,55 +170,21 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
         // Needed to draw folder leave-behind when opening one.
         setWillNotDraw(false);
 
-        mAllAppsButton = (IconButtonView) LayoutInflater.from(context)
-                .inflate(R.layout.taskbar_all_apps_button, this, false);
-        mAllAppsButton.setIconDrawable(resources.getDrawable(
-                getAllAppsButton(isTransientTaskbar)));
-        mAllAppsButton.setPadding(mItemPadding, mItemPadding, mItemPadding, mItemPadding);
-        mAllAppsButton.setForegroundTint(
-                mActivityContext.getColor(R.color.all_apps_button_color));
+        mAllAppsButtonContainer = new TaskbarAllAppsButtonContainer(context);
 
-        if (enableTaskbarPinning()) {
-            mTaskbarDivider = (IconButtonView) LayoutInflater.from(context).inflate(
-                    R.layout.taskbar_divider,
-                    this, false);
-            mTaskbarDivider.setIconDrawable(
-                    resources.getDrawable(R.drawable.taskbar_divider_button));
-            mTaskbarDivider.setPadding(mItemPadding, mItemPadding, mItemPadding, mItemPadding);
+        if (enableTaskbarPinning() || enableRecentsInTaskbar()) {
+            mTaskbarDividerContainer = new TaskbarDividerContainer(context);
         }
 
+        if (Flags.taskbarOverflow()) {
+            mTaskbarOverflowView = (IconButtonView) LayoutInflater.from(context)
+                    .inflate(R.layout.taskbar_overflow_button, this, false);
+            mTaskbarOverflowView.setIconDrawable(
+                    resources.getDrawable(R.drawable.taskbar_overflow_icon));
+            mTaskbarOverflowView.setPadding(mItemPadding, mItemPadding, mItemPadding, mItemPadding);
+        }
         // TODO: Disable touch events on QSB otherwise it can crash.
         mQsb = LayoutInflater.from(context).inflate(R.layout.search_container_hotseat_taskbar, this, false);
-
-        // Default long press (touch) delay = 400ms
-        mAllAppsButtonTouchDelayMs = ViewConfiguration.getLongPressTimeout();
-    }
-
-    @DrawableRes
-    private int getAllAppsButton(boolean isTransientTaskbar) {
-        boolean shouldSelectTransientIcon =
-                (isTransientTaskbar || enableTaskbarPinning())
-                && !mActivityContext.isThreeButtonNav();
-        if (ENABLE_ALL_APPS_SEARCH_IN_TASKBAR.get()) {
-            return shouldSelectTransientIcon
-                    ? R.drawable.ic_transient_taskbar_all_apps_search_button
-                    : R.drawable.ic_taskbar_all_apps_search_button;
-        } else {
-            return shouldSelectTransientIcon
-                    ? R.drawable.ic_transient_taskbar_all_apps_button
-                    : R.drawable.ic_taskbar_all_apps_button;
-        }
-    }
-
-    @DimenRes
-    public int getAllAppsButtonTranslationXOffset(boolean isTransientTaskbar) {
-        if (isTransientTaskbar) {
-            return R.dimen.transient_taskbar_all_apps_button_translation_x_offset;
-        } else {
-            return ENABLE_ALL_APPS_SEARCH_IN_TASKBAR.get()
-                    ? R.dimen.taskbar_all_apps_search_button_translation_x_offset
-                    : R.dimen.taskbar_all_apps_button_translation_x_offset;
-        }
     }
 
     @Override
@@ -234,18 +210,40 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
 
     @Override
     public void onDeviceProfileChanged(DeviceProfile dp) {
-        mShouldTryStartAlign = mActivityContext.isThreeButtonNav() && dp.startAlignTaskbar;
+        mShouldTryStartAlign = mActivityContext.shouldStartAlignTaskbar();
     }
 
     @Override
     public boolean performAccessibilityActionInternal(int action, Bundle arguments) {
         if (action == AccessibilityNodeInfo.ACTION_ACCESSIBILITY_FOCUS) {
-            announceForAccessibility(mContext.getString(R.string.taskbar_a11y_shown_title));
+            announceTaskbarShown();
         } else if (action == AccessibilityNodeInfo.ACTION_CLEAR_ACCESSIBILITY_FOCUS) {
-            announceForAccessibility(mContext.getString(R.string.taskbar_a11y_hidden_title));
+            announceTaskbarHidden();
         }
         return super.performAccessibilityActionInternal(action, arguments);
+    }
 
+    private void announceTaskbarShown() {
+        BubbleBarLocation bubbleBarLocation = mControllerCallbacks.getBubbleBarLocationIfVisible();
+        if (bubbleBarLocation == null) {
+            announceForAccessibility(mContext.getString(R.string.taskbar_a11y_shown_title));
+        } else if (bubbleBarLocation.isOnLeft(isLayoutRtl())) {
+            announceForAccessibility(
+                    mContext.getString(R.string.taskbar_a11y_shown_with_bubbles_left_title));
+        } else {
+            announceForAccessibility(
+                    mContext.getString(R.string.taskbar_a11y_shown_with_bubbles_right_title));
+        }
+    }
+
+    private void announceTaskbarHidden() {
+        BubbleBarLocation bubbleBarLocation = mControllerCallbacks.getBubbleBarLocationIfVisible();
+        if (bubbleBarLocation == null) {
+            announceForAccessibility(mContext.getString(R.string.taskbar_a11y_hidden_title));
+        } else {
+            announceForAccessibility(
+                    mContext.getString(R.string.taskbar_a11y_hidden_with_bubbles_title));
+        }
     }
 
     protected void announceAccessibilityChanges() {
@@ -271,27 +269,17 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
         mIconClickListener = mControllerCallbacks.getIconOnClickListener();
         mIconLongClickListener = mControllerCallbacks.getIconOnLongClickListener();
 
-        if (mAllAppsButton != null) {
-            mAllAppsButton.setOnClickListener(this::onAllAppsButtonClick);
-            mAllAppsButton.setOnLongClickListener(this::onAllAppsButtonLongClick);
-            mAllAppsButton.setOnTouchListener(this::onAllAppsButtonTouch);
-            mAllAppsButton.setHapticFeedbackEnabled(
-                    mControllerCallbacks.isAllAppsButtonHapticFeedbackEnabled());
-            mAllAppsTouchRunnable = () -> {
-                mControllerCallbacks.triggerAllAppsButtonLongClick();
-                mAllAppsTouchTriggered = true;
-            };
-            AssistStateManager assistStateManager = AssistStateManager.INSTANCE.get(mContext);
-            if (DeviceConfigWrapper.get().getCustomLpaaThresholds()
-                    && assistStateManager.getLPNHDurationMillis().isPresent()) {
-                mAllAppsButtonTouchDelayMs = assistStateManager.getLPNHDurationMillis().get();
-            }
+        if (mAllAppsButtonContainer != null) {
+            mAllAppsButtonContainer.setUpCallbacks(callbacks);
         }
-        if (mTaskbarDivider != null && !mActivityContext.isThreeButtonNav()) {
-            mTaskbarDivider.setOnLongClickListener(
-                    mControllerCallbacks.getTaskbarDividerLongClickListener());
-            mTaskbarDivider.setOnTouchListener(
-                    mControllerCallbacks.getTaskbarDividerRightClickListener());
+        if (mTaskbarDividerContainer != null && callbacks.supportsDividerLongPress()) {
+            mTaskbarDividerContainer.setUpCallbacks(callbacks);
+        }
+        if (mTaskbarOverflowView != null) {
+            mTaskbarOverflowView.setOnClickListener(
+                    mControllerCallbacks.getOverflowOnClickListener());
+            mTaskbarOverflowView.setOnLongClickListener(
+                    mControllerCallbacks.getOverflowOnLongClickListener());
         }
     }
 
@@ -308,21 +296,25 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
     /**
      * Inflates/binds the Hotseat views to show in the Taskbar given their ItemInfos.
      */
-    protected void updateHotseatItems(ItemInfo[] hotseatItemInfos) {
+    protected void updateHotseatItems(ItemInfo[] hotseatItemInfos, List<GroupTask> recentTasks) {
         int nextViewIndex = 0;
         int numViewsAnimated = 0;
+        mAddedDividerForRecents = false;
 
-        if (mAllAppsButton != null) {
-            removeView(mAllAppsButton);
+        if (mAllAppsButtonContainer != null) {
+            removeView(mAllAppsButtonContainer);
 
-            if (mTaskbarDivider != null) {
-                removeView(mTaskbarDivider);
+            if (mTaskbarDividerContainer != null) {
+                removeView(mTaskbarDividerContainer);
             }
+        }
+        if (mTaskbarOverflowView != null) {
+            removeView(mTaskbarOverflowView);
         }
         removeView(mQsb);
 
-        for (int i = 0; i < hotseatItemInfos.length; i++) {
-            ItemInfo hotseatItemInfo = hotseatItemInfos[i];
+        // Add Hotseat icons.
+        for (ItemInfo hotseatItemInfo : hotseatItemInfos) {
             if (hotseatItemInfo == null) {
                 continue;
             }
@@ -388,11 +380,8 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
             }
 
             // Apply the Hotseat ItemInfos, or hide the view if there is none for a given index.
-            if (hotseatView instanceof BubbleTextView
-                    && hotseatItemInfo instanceof WorkspaceItemInfo) {
-                BubbleTextView btv = (BubbleTextView) hotseatView;
-                WorkspaceItemInfo workspaceInfo = (WorkspaceItemInfo) hotseatItemInfo;
-
+            if (hotseatView instanceof BubbleTextView btv
+                    && hotseatItemInfo instanceof WorkspaceItemInfo workspaceInfo) {
                 boolean animate = btv.shouldAnimateIconChange((WorkspaceItemInfo) hotseatItemInfo);
                 btv.applyFromWorkspaceItem(workspaceInfo, animate, numViewsAnimated);
                 if (animate) {
@@ -405,17 +394,83 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
             }
             nextViewIndex++;
         }
+
+        if (mTaskbarDividerContainer != null && !recentTasks.isEmpty()) {
+            addView(mTaskbarDividerContainer, nextViewIndex++);
+            mAddedDividerForRecents = true;
+            if (mTaskbarOverflowView != null) {
+                addView(mTaskbarOverflowView, nextViewIndex++);
+            }
+        }
+
+        // Add Recent/Running icons.
+        for (GroupTask task : recentTasks) {
+            // Replace any Recent views with the appropriate type if it's not already that type.
+            final int expectedLayoutResId;
+            boolean isCollection = false;
+            if (task.hasMultipleTasks()) {
+                if (task instanceof DesktopTask) {
+                    // TODO(b/316004172): use Desktop tile layout.
+                    expectedLayoutResId = -1;
+                } else {
+                    // TODO(b/343289567): use R.layout.app_pair_icon
+                    expectedLayoutResId = -1;
+                }
+                isCollection = true;
+            } else {
+                expectedLayoutResId = R.layout.taskbar_app_icon;
+            }
+
+            View recentIcon = null;
+            while (nextViewIndex < getChildCount()) {
+                recentIcon = getChildAt(nextViewIndex);
+
+                // see if the view can be reused
+                if ((recentIcon.getSourceLayoutResId() != expectedLayoutResId)
+                        || (isCollection && (recentIcon.getTag() != task))) {
+                    removeAndRecycle(recentIcon);
+                    recentIcon = null;
+                } else {
+                    // View found
+                    break;
+                }
+            }
+
+            if (recentIcon == null) {
+                if (isCollection) {
+                    // TODO(b/343289567 and b/316004172): support app pairs and desktop mode.
+                    continue;
+                }
+
+                recentIcon = inflate(expectedLayoutResId);
+                LayoutParams lp = new LayoutParams(mIconTouchSize, mIconTouchSize);
+                recentIcon.setPadding(mItemPadding, mItemPadding, mItemPadding, mItemPadding);
+                addView(recentIcon, nextViewIndex, lp);
+            }
+
+            if (recentIcon instanceof BubbleTextView btv) {
+                applyGroupTaskToBubbleTextView(btv, task);
+            }
+            setClickAndLongClickListenersForIcon(recentIcon);
+            if (enableCursorHoverStates()) {
+                setHoverListenerForIcon(recentIcon);
+            }
+            nextViewIndex++;
+        }
+
         // Remove remaining views
         while (nextViewIndex < getChildCount()) {
             removeAndRecycle(getChildAt(nextViewIndex));
         }
 
-        if (mAllAppsButton != null) {
-            addView(mAllAppsButton, mIsRtl ? getChildCount() : 0);
+        if (mAllAppsButtonContainer != null) {
+            addView(mAllAppsButtonContainer, mIsRtl ? hotseatItemInfos.length : 0);
 
-            // if only all apps button present, don't include divider view.
-            if (mTaskbarDivider != null && getChildCount() > 1) {
-                addView(mTaskbarDivider, mIsRtl ? (getChildCount() - 1) : 1);
+            // If there are no recent tasks, add divider after All Apps (unless it's the only view).
+            if (!mAddedDividerForRecents
+                    && mTaskbarDividerContainer != null
+                    && getChildCount() > 1) {
+                addView(mTaskbarDividerContainer, mIsRtl ? (getChildCount() - 1) : 1);
             }
         }
         if (mActivityContext.getDeviceProfile().isQsbInline) {
@@ -423,6 +478,20 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
             // Always set QSB to invisible after re-adding.
             mQsb.setVisibility(View.INVISIBLE);
         }
+    }
+
+    /** Binds the GroupTask to the BubbleTextView to be ready to present to the user. */
+    public void applyGroupTaskToBubbleTextView(BubbleTextView btv, GroupTask groupTask) {
+        // TODO(b/343289567): support app pairs.
+        Task task1 = groupTask.task1;
+        // TODO(b/344038728): use FastBitmapDrawable instead of Drawable, to get disabled state
+        //  while dragging.
+        Drawable taskIcon = groupTask.task1.icon;
+        if (taskIcon != null) {
+            taskIcon = taskIcon.getConstantState().newDrawable().mutate();
+        }
+        btv.applyIconAndLabel(taskIcon, task1.titleDescription);
+        btv.setTag(groupTask);
     }
 
     /**
@@ -450,39 +519,60 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
         icon.setOnHoverListener(mControllerCallbacks.getIconOnHoverListener(icon));
     }
 
+    /** Updates taskbar icons accordingly to the new bubble bar location. */
+    public void onBubbleBarLocationUpdated(BubbleBarLocation location) {
+        if (mBubbleBarLocation == location) return;
+        mBubbleBarLocation = location;
+        requestLayout();
+    }
+
+    /**
+     * Returns translation X for the taskbar icons for provided {@link BubbleBarLocation}. If the
+     * bubble bar is not enabled, or location of the bubble bar is the same, or taskbar is not start
+     * aligned - returns 0.
+     */
+    public float getTranslationXForBubbleBarPosition(BubbleBarLocation location) {
+        if (!mControllerCallbacks.isBubbleBarEnabledInPersistentTaskbar()
+                || location == mBubbleBarLocation
+                || !mActivityContext.shouldStartAlignTaskbar()
+        ) {
+            return 0;
+        }
+        Rect iconsBounds = getIconLayoutBounds();
+        return getTaskBarIconsEndForBubbleBarLocation(location) - iconsBounds.right;
+    }
+
     @Override
     protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
-        int count = getChildCount();
-        DeviceProfile deviceProfile = mActivityContext.getDeviceProfile();
         int spaceNeeded = getIconLayoutWidth();
-        int navSpaceNeeded = deviceProfile.hotseatBarEndOffset;
         boolean layoutRtl = isLayoutRtl();
-        int centerAlignIconEnd = right - (right - left - spaceNeeded) / 2;
-        int iconEnd;
-
+        DeviceProfile deviceProfile = mActivityContext.getDeviceProfile();
+        int navSpaceNeeded = deviceProfile.hotseatBarEndOffset;
+        int centerAlignIconEnd = (right + left + spaceNeeded) / 2;
+        int iconEnd = centerAlignIconEnd;
         if (mShouldTryStartAlign) {
-            // Taskbar is aligned to the start
             int startSpacingPx = deviceProfile.inlineNavButtonsEndSpacingPx;
-
-            if (layoutRtl) {
-                iconEnd = right - startSpacingPx;
+            if (mControllerCallbacks.isBubbleBarEnabledInPersistentTaskbar()
+                    && mBubbleBarLocation != null
+                    && mActivityContext.shouldStartAlignTaskbar()) {
+                iconEnd = (int) getTaskBarIconsEndForBubbleBarLocation(mBubbleBarLocation);
             } else {
-                iconEnd = startSpacingPx + spaceNeeded;
+                if (layoutRtl) {
+                    iconEnd = right - startSpacingPx;
+                } else {
+                    iconEnd = startSpacingPx + spaceNeeded;
+                }
+                boolean needMoreSpaceForNav = layoutRtl
+                        ? navSpaceNeeded > (iconEnd - spaceNeeded)
+                        : iconEnd > (right - navSpaceNeeded);
+                if (needMoreSpaceForNav) {
+                    // Add offset to account for nav bar when taskbar is centered
+                    int offset = layoutRtl
+                            ? navSpaceNeeded - (centerAlignIconEnd - spaceNeeded)
+                            : (right - navSpaceNeeded) - centerAlignIconEnd;
+                    iconEnd = centerAlignIconEnd + offset;
+                }
             }
-        } else {
-            iconEnd = centerAlignIconEnd;
-        }
-
-        boolean needMoreSpaceForNav = layoutRtl
-                ? navSpaceNeeded > (iconEnd - spaceNeeded)
-                : iconEnd > (right - navSpaceNeeded);
-        if (needMoreSpaceForNav) {
-            // Add offset to account for nav bar when taskbar is centered
-            int offset = layoutRtl
-                    ? navSpaceNeeded - (centerAlignIconEnd - spaceNeeded)
-                    : (right - navSpaceNeeded) - centerAlignIconEnd;
-
-            iconEnd = centerAlignIconEnd + offset;
         }
 
         // Currently, we support only one device with display cutout and we only are concern about
@@ -514,6 +604,7 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
         mIconLayoutBounds.right = iconEnd;
         mIconLayoutBounds.top = (bottom - top - mIconTouchSize) / 2;
         mIconLayoutBounds.bottom = mIconLayoutBounds.top + mIconTouchSize;
+        int count = getChildCount();
         for (int i = count; i > 0; i--) {
             View child = getChildAt(i - 1);
             if (child == mQsb) {
@@ -529,7 +620,7 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
                 int qsbTop = (bottom - top - deviceProfile.hotseatQsbHeight) / 2;
                 int qsbBottom = qsbTop + deviceProfile.hotseatQsbHeight;
                 child.layout(qsbStart, qsbTop, qsbEnd, qsbBottom);
-            } else if (child == mTaskbarDivider) {
+            } else if (child == mTaskbarDividerContainer) {
                 iconEnd += mItemMarginLeftRight;
                 int iconStart = iconEnd - mIconTouchSize;
                 child.layout(iconStart, mIconLayoutBounds.top, iconEnd, mIconLayoutBounds.bottom);
@@ -567,8 +658,20 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
         return isShown() && mIconLayoutBounds.contains(xInOurCoordinates, yInOurCoorindates);
     }
 
+    /**
+     * Gets visual bounds of the taskbar view. The visual bounds correspond to the taskbar touch
+     * area, rather than layout placement in the parent view.
+     */
+    public Rect getIconLayoutVisualBounds() {
+        return new Rect(mIconLayoutBounds);
+    }
+
+    /** Gets taskbar layout bounds in parent view. */
     public Rect getIconLayoutBounds() {
-        return mIconLayoutBounds;
+        Rect actualBounds = new Rect(mIconLayoutBounds);
+        actualBounds.top = getTop();
+        actualBounds.bottom = getBottom();
+        return actualBounds;
     }
 
     /**
@@ -607,16 +710,32 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
      * Returns the all apps button in the taskbar.
      */
     @Nullable
-    public View getAllAppsButtonView() {
-        return mAllAppsButton;
+    public TaskbarAllAppsButtonContainer getAllAppsButtonContainer() {
+        return mAllAppsButtonContainer;
     }
 
     /**
      * Returns the taskbar divider in the taskbar.
      */
     @Nullable
-    public View getTaskbarDividerView() {
-        return mTaskbarDivider;
+    public TaskbarDividerContainer getTaskbarDividerViewContainer() {
+        return mTaskbarDividerContainer;
+    }
+
+    /**
+     * Returns the taskbar overflow view in the taskbar.
+     */
+    @Nullable
+    public IconButtonView getTaskbarOverflowView() {
+        return mTaskbarOverflowView;
+    }
+
+    /**
+     * Returns whether the divider is between Hotseat icons and Recents,
+     * instead of between All Apps button and Hotseat.
+     */
+    public boolean isDividerForRecents() {
+        return mAddedDividerForRecents;
     }
 
     /**
@@ -677,7 +796,8 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
         // map over all the shortcuts on the taskbar
         for (int i = 0; i < getChildCount(); i++) {
             View item = getChildAt(i);
-            if (op.evaluate((ItemInfo) item.getTag(), item)) {
+            // TODO(b/344657629): Support GroupTask as well for notification dots/popup
+            if (item.getTag() instanceof ItemInfo itemInfo && op.evaluate(itemInfo, item)) {
                 return;
             }
         }
@@ -694,6 +814,7 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
                 View item = getChildAt(i);
                 if (!(item.getTag() instanceof ItemInfo)) {
                     // Should only happen for All Apps button.
+                    // Will also happen for Recent/Running app icons. (Which have GroupTask as tags)
                     continue;
                 }
                 ItemInfo info = (ItemInfo) item.getTag();
@@ -702,48 +823,21 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
                 }
             }
         }
-        return mAllAppsButton;
+        return mAllAppsButtonContainer;
     }
 
-    private boolean onAllAppsButtonTouch(View view, MotionEvent ev) {
-        switch (ev.getAction()) {
-            case MotionEvent.ACTION_DOWN:
-                mAllAppsTouchTriggered = false;
-                MAIN_EXECUTOR.getHandler().postDelayed(
-                        mAllAppsTouchRunnable, mAllAppsButtonTouchDelayMs);
-                break;
-            case MotionEvent.ACTION_UP:
-            case MotionEvent.ACTION_CANCEL:
-                cancelAllAppsButtonTouch();
+    /**
+     * This method only works for bubble bar enabled in persistent task bar and the taskbar is start
+     * aligned.
+     */
+    private float getTaskBarIconsEndForBubbleBarLocation(BubbleBarLocation location) {
+        DeviceProfile deviceProfile = mActivityContext.getDeviceProfile();
+        boolean navbarOnRight = location.isOnLeft(isLayoutRtl());
+        int navSpaceNeeded = deviceProfile.hotseatBarEndOffset;
+        if (navbarOnRight) {
+            return getWidth() - navSpaceNeeded;
+        } else {
+            return navSpaceNeeded + getIconLayoutWidth();
         }
-        return false;
-    }
-
-    private void cancelAllAppsButtonTouch() {
-        MAIN_EXECUTOR.getHandler().removeCallbacks(mAllAppsTouchRunnable);
-        // ACTION_UP is first triggered, then click listener / long-click listener is triggered on
-        // the next frame, so we need to post twice and delay the reset.
-        if (mAllAppsButton != null) {
-            mAllAppsButton.post(() -> {
-                mAllAppsButton.post(() -> {
-                    mAllAppsTouchTriggered = false;
-                });
-            });
-        }
-    }
-
-    private void onAllAppsButtonClick(View view) {
-        if (!mAllAppsTouchTriggered) {
-            mControllerCallbacks.triggerAllAppsButtonClick(view);
-        }
-    }
-
-    // Handle long click from Switch Access and Voice Access
-    private boolean onAllAppsButtonLongClick(View view) {
-        if (!MAIN_EXECUTOR.getHandler().hasCallbacks(mAllAppsTouchRunnable)
-                && !mAllAppsTouchTriggered) {
-            mControllerCallbacks.triggerAllAppsButtonLongClick();
-        }
-        return true;
     }
 }

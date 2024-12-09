@@ -18,10 +18,11 @@ package com.android.quickstep.util;
 
 import androidx.annotation.NonNull;
 
-import com.android.quickstep.views.TaskView;
+import com.android.quickstep.views.TaskViewType;
 import com.android.systemui.shared.recents.model.Task;
 
 import java.util.List;
+import java.util.Objects;
 
 /**
  * A {@link Task} container that can contain N number of tasks that are part of the desktop in
@@ -33,7 +34,7 @@ public class DesktopTask extends GroupTask {
     public final List<Task> tasks;
 
     public DesktopTask(@NonNull List<Task> tasks) {
-        super(tasks.get(0), null, null, TaskView.Type.DESKTOP);
+        super(tasks.get(0), null, null, TaskViewType.DESKTOP);
         this.tasks = tasks;
     }
 
@@ -68,4 +69,16 @@ public class DesktopTask extends GroupTask {
         return "type=" + taskViewType + " tasks=" + tasks;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof DesktopTask that)) return false;
+        if (!super.equals(o)) return false;
+        return Objects.equals(tasks, that.tasks);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), tasks);
+    }
 }

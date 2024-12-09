@@ -21,6 +21,7 @@ import static com.android.launcher3.LauncherState.NORMAL;
 
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assume.assumeFalse;
 
 import android.util.Log;
 
@@ -117,7 +118,6 @@ public class TaplPrivateSpaceTest extends AbstractQuickStepTest {
     }
 
     @Test
-    @ScreenRecordRule.ScreenRecord // b/334946529
     public void testUserInstalledAppIsShownAboveDivider() throws IOException {
         // Ensure that the App is not installed in main user otherwise, it may not be found in
         // PS container.
@@ -142,7 +142,6 @@ public class TaplPrivateSpaceTest extends AbstractQuickStepTest {
     }
 
     @Test
-    @ScreenRecordRule.ScreenRecord // b/334946529
     public void testPrivateSpaceAppLongPressUninstallMenu() throws IOException {
         // Ensure that the App is not installed in main user otherwise, it may not be found in
         // PS container.
@@ -166,8 +165,9 @@ public class TaplPrivateSpaceTest extends AbstractQuickStepTest {
     }
 
     @Test
-    @ScreenRecordRule.ScreenRecord // b/334946529
+    @ScreenRecordRule.ScreenRecord // b/355466672
     public void testPrivateSpaceLockingBehaviour() throws IOException {
+        assumeFalse(mLauncher.isTablet()); // b/367258373
         // Scroll to the bottom of All Apps
         executeOnLauncher(launcher -> launcher.getAppsView().resetAndScrollToPrivateSpaceHeader());
         HomeAllApps homeAllApps = mLauncher.getAllApps();

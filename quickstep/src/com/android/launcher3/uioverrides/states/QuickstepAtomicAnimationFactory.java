@@ -110,6 +110,7 @@ public class QuickstepAtomicAnimationFactory extends
             // taskbar icons disappearing before hotseat icons show up.
             float scrimUpperBoundFromSplit =
                     QuickstepTransitionManager.getTaskbarToHomeDuration() / (float) config.duration;
+            scrimUpperBoundFromSplit = Math.min(scrimUpperBoundFromSplit, 1f);
             config.setInterpolator(ANIM_OVERVIEW_ACTIONS_FADE, clampToProgress(LINEAR, 0, 0.25f));
             config.setInterpolator(ANIM_SCRIM_FADE,
                     fromState == OVERVIEW_SPLIT_SELECT

@@ -52,7 +52,7 @@ public final class Taskbar {
 
         if (!mLauncher.isTransientTaskbar()) {
             Assert.assertEquals("Persistent taskbar should fill screen width",
-                    getVisibleBounds().width(), mLauncher.getRealDisplaySize().x);
+                    mLauncher.getRealDisplaySize().x, getVisibleBounds().width());
         }
     }
 

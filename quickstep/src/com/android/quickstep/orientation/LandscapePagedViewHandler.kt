@@ -37,6 +37,7 @@ import android.widget.LinearLayout
 import androidx.annotation.VisibleForTesting
 import androidx.core.util.component1
 import androidx.core.util.component2
+import androidx.core.view.updateLayoutParams
 import com.android.launcher3.DeviceProfile
 import com.android.launcher3.Flags
 import com.android.launcher3.LauncherAnimUtils
@@ -242,7 +243,30 @@ open class LandscapePagedViewHandler : RecentsPagedOrientationHandler {
         lp.height = ViewGroup.LayoutParams.WRAP_CONTENT
     }
 
-    override fun getDwbLayoutTranslations(
+    override fun updateDwbBannerLayout(
+        taskViewWidth: Int,
+        taskViewHeight: Int,
+        isGroupedTaskView: Boolean,
+        deviceProfile: DeviceProfile,
+        snapshotViewWidth: Int,
+        snapshotViewHeight: Int,
+        banner: View
+    ) {
+        banner.pivotX = 0f
+        banner.pivotY = 0f
+        banner.rotation = degreesRotated
+        banner.updateLayoutParams<FrameLayout.LayoutParams> {
+            gravity = Gravity.TOP or if (banner.isLayoutRtl) Gravity.END else Gravity.START
+            width =
+                if (isGroupedTaskView) {
+                    snapshotViewHeight
+                } else {
+                    taskViewHeight - deviceProfile.overviewTaskThumbnailTopMarginPx
+                }
+        }
+    }
+
+    override fun getDwbBannerTranslations(
         taskViewWidth: Int,
         taskViewHeight: Int,
         splitBounds: SplitBounds?,
@@ -252,39 +276,25 @@ open class LandscapePagedViewHandler : RecentsPagedOrientationHandler {
         banner: View
     ): Pair<Float, Float> {
         val snapshotParams = thumbnailViews[0].layoutParams as FrameLayout.LayoutParams
-        val isRtl = banner.layoutDirection == View.LAYOUT_DIRECTION_RTL
         val translationX = banner.height.toFloat()
-
-        val bannerParams = banner.layoutParams as FrameLayout.LayoutParams
-        bannerParams.gravity = Gravity.TOP or if (isRtl) Gravity.END else Gravity.START
-        banner.pivotX = 0f
-        banner.pivotY = 0f
-        banner.rotation = degreesRotated
-
-        if (splitBounds == null) {
-            // Single, fullscreen case
-            bannerParams.width = taskViewHeight - snapshotParams.topMargin
-            return Pair(translationX, snapshotParams.topMargin.toFloat())
-        }
-
-        // Set correct width and translations
         val translationY: Float
-        if (desiredTaskId == splitBounds.leftTopTaskId) {
-            bannerParams.width = thumbnailViews[0].measuredHeight
+        if (splitBounds == null) {
             translationY = snapshotParams.topMargin.toFloat()
         } else {
-            bannerParams.width = thumbnailViews[1].measuredHeight
-            val topLeftTaskPlusDividerPercent =
-                if (splitBounds.appsStackedVertically) {
-                    splitBounds.topTaskPercent + splitBounds.dividerHeightPercent
-                } else {
-                    splitBounds.leftTaskPercent + splitBounds.dividerWidthPercent
-                }
-            translationY =
-                snapshotParams.topMargin +
-                    (taskViewHeight - snapshotParams.topMargin) * topLeftTaskPlusDividerPercent
+            if (desiredTaskId == splitBounds.leftTopTaskId) {
+                translationY = snapshotParams.topMargin.toFloat()
+            } else {
+                val topLeftTaskPlusDividerPercent =
+                    if (splitBounds.appsStackedVertically) {
+                        splitBounds.topTaskPercent + splitBounds.dividerHeightPercent
+                    } else {
+                        splitBounds.leftTaskPercent + splitBounds.dividerWidthPercent
+                    }
+                translationY =
+                    snapshotParams.topMargin +
+                        (taskViewHeight - snapshotParams.topMargin) * topLeftTaskPlusDividerPercent
+            }
         }
-
         return Pair(translationX, translationY)
     }
 
@@ -300,6 +310,7 @@ open class LandscapePagedViewHandler : RecentsPagedOrientationHandler {
         if (isRtl) displacement < 0 else displacement > 0
 
     override fun getTaskDragDisplacementFactor(isRtl: Boolean): Int = if (isRtl) 1 else -1
+
     /* -------------------- */
 
     override fun getChildBounds(
@@ -442,6 +453,10 @@ open class LandscapePagedViewHandler : RecentsPagedOrientationHandler {
         }
     }
 
+    /**
+     * @param inSplitSelection Whether user currently has a task from this task group staged for
+     * split screen. Currently this state is not reachable in fake landscape.
+     */
     override fun measureGroupedTaskViewThumbnailBounds(
         primarySnapshot: View,
         secondarySnapshot: View,
@@ -449,7 +464,8 @@ open class LandscapePagedViewHandler : RecentsPagedOrientationHandler {
         parentHeight: Int,
         splitBoundsConfig: SplitBounds,
         dp: DeviceProfile,
-        isRtl: Boolean
+        isRtl: Boolean,
+        inSplitSelection: Boolean
     ) {
         val primaryParams = primarySnapshot.layoutParams as FrameLayout.LayoutParams
         val secondaryParams = secondarySnapshot.layoutParams as FrameLayout.LayoutParams
@@ -558,6 +574,10 @@ open class LandscapePagedViewHandler : RecentsPagedOrientationHandler {
         iconAppChipView.setRotation(degreesRotated)
     }
 
+    /**
+     * @param inSplitSelection Whether user currently has a task from this task group staged for
+     * split screen. Currently this state is not reachable in fake landscape.
+     */
     override fun setSplitIconParams(
         primaryIconView: View,
         secondaryIconView: View,
@@ -568,7 +588,8 @@ open class LandscapePagedViewHandler : RecentsPagedOrientationHandler {
         groupedTaskViewWidth: Int,
         isRtl: Boolean,
         deviceProfile: DeviceProfile,
-        splitConfig: SplitBounds
+        splitConfig: SplitBounds,
+        inSplitSelection: Boolean
     ) {
         val spaceAboveSnapshot = deviceProfile.overviewTaskThumbnailTopMarginPx
         val totalThumbnailHeight = groupedTaskViewHeight - spaceAboveSnapshot

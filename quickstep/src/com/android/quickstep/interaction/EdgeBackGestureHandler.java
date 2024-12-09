@@ -15,8 +15,6 @@
  */
 package com.android.quickstep.interaction;
 
-import static com.android.launcher3.config.FeatureFlags.ENABLE_NEW_GESTURE_NAV_TUTORIAL;
-
 import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Point;
@@ -211,10 +209,8 @@ public class EdgeBackGestureHandler implements OnTouchListener {
                 }
             }
 
-            if (ENABLE_NEW_GESTURE_NAV_TUTORIAL.get()) {
-                mGestureCallback.onBackGestureProgress(ev.getX() - mDownPoint.x,
-                        ev.getY() - mDownPoint.y, mEdgeBackPanel.getIsLeftPanel());
-            }
+            mGestureCallback.onBackGestureProgress(ev.getX() - mDownPoint.x,
+                    ev.getY() - mDownPoint.y, mEdgeBackPanel.getIsLeftPanel());
 
             // forward touch
             mEdgeBackPanel.onMotionEvent(ev);

@@ -17,12 +17,13 @@
 package com.android.launcher3.recyclerview
 
 import android.content.Context
+import android.util.Log
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.RecycledViewPool
 import androidx.recyclerview.widget.RecyclerView.ViewHolder
 import com.android.launcher3.BubbleTextView
+import com.android.launcher3.BuildConfig
 import com.android.launcher3.allapps.BaseAllAppsAdapter
-import com.android.launcher3.config.FeatureFlags
 import com.android.launcher3.util.CancellableTask
 import com.android.launcher3.util.Executors.MAIN_EXECUTOR
 import com.android.launcher3.util.Executors.VIEW_PREINFLATION_EXECUTOR
@@ -43,6 +44,12 @@ class AllAppsRecyclerViewPool<T> : RecycledViewPool() {
     var hasWorkProfile = false
     private var mCancellableTask: CancellableTask<List<ViewHolder>>? = null
 
+    companion object {
+        private const val TAG = "AllAppsRecyclerViewPool"
+        private const val NULL_LAYOUT_MANAGER_ERROR_STRING =
+            "activeRv's layoutManager should not be null"
+    }
+
     /**
      * Preinflate app icons. If all apps RV cannot be scrolled down, we don't need to preinflate.
      */
@@ -54,6 +61,15 @@ class AllAppsRecyclerViewPool<T> : RecycledViewPool() {
             return
         }
 
+        if (activeRv.layoutManager == null) {
+            if (BuildConfig.IS_STUDIO_BUILD) {
+                throw IllegalStateException(NULL_LAYOUT_MANAGER_ERROR_STRING)
+            } else {
+                Log.e(TAG, NULL_LAYOUT_MANAGER_ERROR_STRING)
+            }
+            return
+        }
+
         // Create a separate context dedicated for all apps preinflation thread. The goal is to
         // create a separate AssetManager obj internally to avoid lock contention with
         // AssetManager obj that is associated with the launcher context on the main thread.
@@ -61,7 +77,7 @@ class AllAppsRecyclerViewPool<T> : RecycledViewPool() {
             ActivityContextDelegate(
                 context.createConfigurationContext(context.resources.configuration),
                 Themes.getActivityThemeRes(context),
-                context
+                context,
             )
 
         // Because we perform onCreateViewHolder() on worker thread, we need a separate
@@ -74,9 +90,10 @@ class AllAppsRecyclerViewPool<T> : RecycledViewPool() {
                     context,
                     context.appsView.layoutInflater.cloneInContext(allAppsPreInflationContext),
                     null,
-                    null
+                    null,
                 ) {
                 override fun setAppsPerRow(appsPerRow: Int) = Unit
+
                 override fun getLayoutManager(): RecyclerView.LayoutManager? = null
             }
 
@@ -90,6 +107,11 @@ class AllAppsRecyclerViewPool<T> : RecycledViewPool() {
                         if (task?.canceled == true) {
                             break
                         }
+                        // If activeRv's layout manager has been reset to null on main thread, skip
+                        // the preinflation as we cannot generate correct LayoutParams
+                        if (activeRv.layoutManager == null) {
+                            break
+                        }
                         list.add(
                             adapter.createViewHolder(activeRv, BaseAllAppsAdapter.VIEW_TYPE_ICON)
                         )
@@ -101,7 +123,7 @@ class AllAppsRecyclerViewPool<T> : RecycledViewPool() {
                     for (i in 0 until minOf(viewHolders.size, getPreinflateCount(context))) {
                         putRecycledView(viewHolders[i])
                     }
-                }
+                },
             )
         mCancellableTask = task
         VIEW_PREINFLATION_EXECUTOR.submit(mCancellableTask)
@@ -121,18 +143,15 @@ class AllAppsRecyclerViewPool<T> : RecycledViewPool() {
      * app icons plus [EXTRA_ICONS_COUNT] is the magic minimal count of app icons to preinflate to
      * suffice fast scrolling.
      *
-     * Note that if [FeatureFlags.ALL_APPS_GONE_VISIBILITY] is enabled, we need to preinfate extra
-     * app icons in size of one all apps pages, so that opening all apps don't need to inflate app
-     * icons.
+     * Note that we need to preinfate extra app icons in size of one all apps pages, so that opening
+     * all apps don't need to inflate app icons.
      */
     fun <T> getPreinflateCount(context: T): Int where T : Context, T : ActivityContext {
         var targetPreinflateCount =
             PREINFLATE_ICONS_ROW_COUNT * context.deviceProfile.numShownAllAppsColumns +
                 EXTRA_ICONS_COUNT
-        if (FeatureFlags.ALL_APPS_GONE_VISIBILITY.get()) {
-            val grid = ActivityContext.lookupContext<T>(context).deviceProfile
-            targetPreinflateCount += grid.maxAllAppsRowCount * grid.numShownAllAppsColumns
-        }
+        val grid = ActivityContext.lookupContext<T>(context).deviceProfile
+        targetPreinflateCount += grid.maxAllAppsRowCount * grid.numShownAllAppsColumns
         if (hasWorkProfile) {
             targetPreinflateCount *= 2
         }

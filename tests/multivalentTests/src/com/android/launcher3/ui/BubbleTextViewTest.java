@@ -16,28 +16,42 @@
 
 package com.android.launcher3.ui;
 
+import static android.graphics.fonts.FontStyle.FONT_WEIGHT_BOLD;
+import static android.graphics.fonts.FontStyle.FONT_WEIGHT_NORMAL;
+import static android.text.style.DynamicDrawableSpan.ALIGN_CENTER;
+
 import static androidx.test.core.app.ApplicationProvider.getApplicationContext;
 
 import static com.android.launcher3.BubbleTextView.DISPLAY_ALL_APPS;
 import static com.android.launcher3.BubbleTextView.DISPLAY_PREDICTION_ROW;
 import static com.android.launcher3.BubbleTextView.DISPLAY_SEARCH_RESULT;
 import static com.android.launcher3.BubbleTextView.DISPLAY_SEARCH_RESULT_SMALL;
+import static com.android.launcher3.Flags.FLAG_ENABLE_SUPPORT_FOR_ARCHIVING;
+import static com.android.launcher3.Flags.FLAG_USE_NEW_ICON_FOR_ARCHIVED_APPS;
 import static com.android.launcher3.LauncherPrefs.ENABLE_TWOLINE_ALLAPPS_TOGGLE;
+import static com.android.launcher3.model.data.ItemInfoWithIcon.FLAG_ARCHIVED;
 
 import static com.google.common.truth.Truth.assertThat;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Typeface;
+import android.os.Build;
 import android.os.UserHandle;
+import android.platform.test.annotations.EnableFlags;
 import android.platform.test.flag.junit.SetFlagsRule;
+import android.text.SpannedString;
+import android.text.style.ImageSpan;
 import android.view.ViewGroup;
 
 import androidx.test.ext.junit.runners.AndroidJUnit4;
+import androidx.test.filters.SdkSuppress;
 import androidx.test.filters.SmallTest;
 
 import com.android.launcher3.BubbleTextView;
@@ -401,6 +415,62 @@ public class BubbleTextViewTest {
         mBubbleTextView.applyIconAndLabel(mGmailAppInfo);
 
         assertThat(mBubbleTextView.getIcon().hasBadge()).isEqualTo(false);
+    }
+
+    @EnableFlags({FLAG_ENABLE_SUPPORT_FOR_ARCHIVING, FLAG_USE_NEW_ICON_FOR_ARCHIVED_APPS})
+    @Test
+    public void applyIconAndLabel_setsImageSpan_whenInactiveArchivedApp() {
+        // Given
+        BubbleTextView spyTextView = spy(mBubbleTextView);
+        mGmailAppInfo.runtimeStatusFlags |= FLAG_ARCHIVED;
+        BubbleTextView expectedTextView = new BubbleTextView(mContext);
+        mContext.getResources().getConfiguration().fontWeightAdjustment = 0;
+        int expectedDrawableId = mContext.getResources().getIdentifier(
+                "cloud_download_24px", /* name */
+                "drawable", /* defType */
+                mContext.getPackageName()
+        );
+        expectedTextView.setTextWithStartIcon(mGmailAppInfo.title, expectedDrawableId);
+        // When
+        spyTextView.applyIconAndLabel(mGmailAppInfo);
+        // Then
+        SpannedString expectedText = (SpannedString) expectedTextView.getText();
+        SpannedString actualText = (SpannedString) spyTextView.getText();
+        ImageSpan actualSpan = actualText.getSpans(
+                0, /* queryStart */
+                1, /* queryEnd */
+                ImageSpan.class
+        )[0];
+        ImageSpan expectedSpan = expectedText.getSpans(
+                0, /* queryStart */
+                1, /* queryEnd */
+                ImageSpan.class
+        )[0];
+        verify(spyTextView).setTextWithStartIcon(mGmailAppInfo.title, expectedDrawableId);
+        assertThat(actualText.toString()).isEqualTo(expectedText.toString());
+        assertThat(actualSpan.getDrawable().getBounds())
+                .isEqualTo(expectedSpan.getDrawable().getBounds());
+        assertThat(actualSpan.getVerticalAlignment()).isEqualTo(ALIGN_CENTER);
+    }
+
+    @EnableFlags({FLAG_ENABLE_SUPPORT_FOR_ARCHIVING, FLAG_USE_NEW_ICON_FOR_ARCHIVED_APPS})
+    @SdkSuppress(minSdkVersion = Build.VERSION_CODES.S)
+    @Test
+    public void applyIconAndLabel_setsBoldDrawable_whenBoldedTextForArchivedApp() {
+        // Given
+        int expectedDrawableId = mContext.getResources().getIdentifier(
+                "cloud_download_semibold_24px", /* name */
+                "drawable", /* defType */
+                mContext.getPackageName()
+        );
+        mContext.getResources().getConfiguration().fontWeightAdjustment =
+                FONT_WEIGHT_BOLD - FONT_WEIGHT_NORMAL;
+        BubbleTextView spyTextView = spy(mBubbleTextView);
+        mGmailAppInfo.runtimeStatusFlags |= FLAG_ARCHIVED;
+        // When
+        spyTextView.applyIconAndLabel(mGmailAppInfo);
+        // Then
+        verify(spyTextView).setTextWithStartIcon(mGmailAppInfo.title, expectedDrawableId);
     }
 
     @Test

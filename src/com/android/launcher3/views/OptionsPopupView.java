@@ -15,8 +15,6 @@
  */
 package com.android.launcher3.views;
 
-import static androidx.core.content.ContextCompat.getColorStateList;
-
 import static com.android.launcher3.BuildConfig.WIDGETS_ENABLED;
 import static com.android.launcher3.LauncherState.EDIT_MODE;
 import static com.android.launcher3.config.FeatureFlags.MULTI_SELECT_EDIT_MODE;
@@ -147,8 +145,7 @@ public class OptionsPopupView<T extends Context & ActivityContext> extends Arrow
 
     @Override
     public void assignMarginsAndBackgrounds(ViewGroup viewGroup) {
-        assignMarginsAndBackgrounds(viewGroup,
-                getColorStateList(getContext(), mColorIds[0]).getDefaultColor());
+        assignMarginsAndBackgrounds(viewGroup, mColors[0]);
         // last shortcut doesn't need bottom margin
         final int count = viewGroup.getChildCount() - 1;
         for (int i = 0; i < count; i++) {

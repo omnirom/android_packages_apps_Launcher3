@@ -16,19 +16,24 @@
 package com.android.launcher3.taskbar;
 
 import android.content.Context;
+import android.content.Intent;
+import android.content.pm.ShortcutInfo;
 import android.view.ContextThemeWrapper;
 import android.view.LayoutInflater;
 
 import com.android.launcher3.DeviceProfile.OnDeviceProfileChangeListener;
+import com.android.launcher3.popup.SystemShortcut;
 import com.android.launcher3.util.Themes;
 import com.android.launcher3.views.ActivityContext;
+import com.android.quickstep.SystemUiProxy;
 
 import java.util.ArrayList;
 import java.util.List;
 
 // TODO(b/218912746): Share more behavior to avoid all apps context depending directly on taskbar.
 /** Base for common behavior between taskbar window contexts. */
-public abstract class BaseTaskbarContext extends ContextThemeWrapper implements ActivityContext {
+public abstract class BaseTaskbarContext extends ContextThemeWrapper implements ActivityContext,
+        SystemShortcut.BubbleActivityStarter {
 
     protected final LayoutInflater mLayoutInflater;
     private final List<OnDeviceProfileChangeListener> mDPChangeListeners = new ArrayList<>();
@@ -46,6 +51,18 @@ public abstract class BaseTaskbarContext extends ContextThemeWrapper implements 
     @Override
     public final List<OnDeviceProfileChangeListener> getOnDeviceProfileChangeListeners() {
         return mDPChangeListeners;
+    }
+
+    @Override
+    public void showShortcutBubble(ShortcutInfo info) {
+        if (info == null) return;
+        SystemUiProxy.INSTANCE.get(this).showShortcutBubble(info);
+    }
+
+    @Override
+    public void showAppBubble(Intent intent) {
+        if (intent == null || intent.getPackage() == null) return;
+        SystemUiProxy.INSTANCE.get(this).showAppBubble(intent);
     }
 
     /** Callback invoked when a drag is initiated within this context. */

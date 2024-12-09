@@ -70,11 +70,11 @@ import com.android.launcher3.folder.FolderGridOrganizer;
 import com.android.launcher3.folder.FolderNameInfos;
 import com.android.launcher3.folder.FolderNameProvider;
 import com.android.launcher3.icons.ComponentWithLabelAndIcon;
-import com.android.launcher3.icons.ComponentWithLabelAndIcon.ComponentWithIconCachingLogic;
 import com.android.launcher3.icons.IconCache;
-import com.android.launcher3.icons.LauncherActivityCachingLogic;
 import com.android.launcher3.icons.ShortcutCachingLogic;
+import com.android.launcher3.icons.cache.CachedObjectCachingLogic;
 import com.android.launcher3.icons.cache.IconCacheUpdateHandler;
+import com.android.launcher3.icons.cache.LauncherActivityCachingLogic;
 import com.android.launcher3.logging.FileLog;
 import com.android.launcher3.model.data.AppInfo;
 import com.android.launcher3.model.data.AppPairInfo;
@@ -209,7 +209,10 @@ public class LoaderTask implements Runnable {
                 mApp.getContext().getContentResolver(),
                 "launcher_broadcast_installed_apps",
                 /* def= */ 0);
-        if (launcherBroadcastInstalledApps == 1 && mIsRestoreFromBackup) {
+        boolean shouldAttachArchivingExtras = mIsRestoreFromBackup
+                && (launcherBroadcastInstalledApps == 1
+                        || Flags.enableFirstScreenBroadcastArchivingExtras());
+        if (shouldAttachArchivingExtras) {
             List<FirstScreenBroadcastModel> broadcastModels =
                     FirstScreenBroadcastHelper.createModelsForFirstScreenBroadcast(
                             mPmHelper,
@@ -295,7 +298,7 @@ public class LoaderTask implements Runnable {
             IconCacheUpdateHandler updateHandler = mIconCache.getUpdateHandler();
             setIgnorePackages(updateHandler);
             updateHandler.updateIcons(allActivityList,
-                    LauncherActivityCachingLogic.newInstance(mApp.getContext()),
+                    LauncherActivityCachingLogic.INSTANCE,
                     mApp.getModel()::onPackageIconsUpdated);
             logASplit("update icon cache");
 
@@ -357,7 +360,7 @@ public class LoaderTask implements Runnable {
             }
 
             updateHandler.updateIcons(allWidgetsList,
-                    new ComponentWithIconCachingLogic(mApp.getContext(), true),
+                    new CachedObjectCachingLogic(mApp.getContext()),
                     mApp.getModel()::onWidgetLabelsUpdated);
             logASplit("save widgets in icon cache");
 
@@ -568,7 +571,7 @@ public class LoaderTask implements Runnable {
     private void processFolderItems() {
         // Sort the folder items, update ranks, and make sure all preview items are high res.
         List<FolderGridOrganizer> verifiers = mApp.getInvariantDeviceProfile().supportedProfiles
-                .stream().map(FolderGridOrganizer::new).toList();
+                .stream().map(FolderGridOrganizer::createFolderGridOrganizer).toList();
         for (CollectionInfo collection : mBgDataModel.collections) {
             if (!(collection instanceof FolderInfo folder)) {
                 continue;

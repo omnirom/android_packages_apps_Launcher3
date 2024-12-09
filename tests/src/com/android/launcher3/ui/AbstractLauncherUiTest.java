@@ -43,6 +43,7 @@ import android.os.RemoteException;
 import android.os.UserHandle;
 import android.os.UserManager;
 import android.platform.test.flag.junit.SetFlagsRule;
+import android.platform.test.rule.LimitDevicesRule;
 import android.system.OsConstants;
 import android.util.Log;
 
@@ -63,7 +64,6 @@ import com.android.launcher3.tapl.LauncherInstrumentation;
 import com.android.launcher3.tapl.TestHelpers;
 import com.android.launcher3.testcomponent.TestCommandReceiver;
 import com.android.launcher3.util.LooperExecutor;
-import com.android.launcher3.util.SimpleBroadcastReceiver;
 import com.android.launcher3.util.TestUtil;
 import com.android.launcher3.util.Wait;
 import com.android.launcher3.util.rule.ExtendedLongPressTimeoutRule;
@@ -223,6 +223,9 @@ public abstract class AbstractLauncherUiTest<LAUNCHER_TYPE extends Launcher> {
     @Rule
     public ExtendedLongPressTimeoutRule mLongPressTimeoutRule = new ExtendedLongPressTimeoutRule();
 
+    @Rule
+    public LimitDevicesRule mlimitDevicesRule = new LimitDevicesRule();
+
     public static void initialize(AbstractLauncherUiTest test) throws Exception {
         test.reinitializeLauncherData();
         test.mDevice.pressHome();
@@ -236,15 +239,12 @@ public abstract class AbstractLauncherUiTest<LAUNCHER_TYPE extends Launcher> {
     }
 
     protected void clearPackageData(String pkg) throws IOException, InterruptedException {
-        final CountDownLatch count = new CountDownLatch(2);
-        final SimpleBroadcastReceiver broadcastReceiver =
-                new SimpleBroadcastReceiver(i -> count.countDown());
-        broadcastReceiver.registerPkgActions(mTargetContext, pkg,
-                Intent.ACTION_PACKAGE_RESTARTED, Intent.ACTION_PACKAGE_DATA_CLEARED);
-
-        mDevice.executeShellCommand("pm clear " + pkg);
-        assertTrue(pkg + " didn't restart", count.await(10, TimeUnit.SECONDS));
-        mTargetContext.unregisterReceiver(broadcastReceiver);
+        assertTrue("pm clear command failed",
+                mDevice.executeShellCommand("pm clear " + pkg)
+                .contains("Success"));
+        assertTrue("pm wait-for-handler command failed",
+                mDevice.executeShellCommand("pm wait-for-handler")
+                .contains("Success"));
     }
 
     protected TestRule getRulesInsideActivityMonitor() {
@@ -351,8 +351,6 @@ public abstract class AbstractLauncherUiTest<LAUNCHER_TYPE extends Launcher> {
 
     /** Waits for setup wizard to go away. */
     private static void waitForSetupWizardDismissal() {
-        if (!TestStabilityRule.isPresubmit()) return;
-
         if (sFirstTimeWaitingForWizard) {
             try {
                 getUiDevice().executeShellCommand(

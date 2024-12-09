@@ -22,13 +22,9 @@ import static com.android.app.animation.Interpolators.EMPHASIZED_DECELERATE;
 import static com.android.app.animation.Interpolators.FINAL_FRAME;
 import static com.android.app.animation.Interpolators.INSTANT;
 import static com.android.app.animation.Interpolators.LINEAR;
-import static com.android.app.animation.Interpolators.clampToProgress;
-import static com.android.app.animation.Interpolators.mapToProgress;
 import static com.android.launcher3.LauncherState.ALL_APPS;
 import static com.android.launcher3.LauncherState.NORMAL;
-import static com.android.launcher3.states.StateAnimationConfig.ANIM_ALL_APPS_BOTTOM_SHEET_FADE;
 import static com.android.launcher3.states.StateAnimationConfig.ANIM_ALL_APPS_FADE;
-import static com.android.launcher3.states.StateAnimationConfig.ANIM_ALL_APPS_KEYBOARD_FADE;
 import static com.android.launcher3.states.StateAnimationConfig.ANIM_DEPTH;
 import static com.android.launcher3.states.StateAnimationConfig.ANIM_HOTSEAT_FADE;
 import static com.android.launcher3.states.StateAnimationConfig.ANIM_HOTSEAT_SCALE;
@@ -37,15 +33,12 @@ import static com.android.launcher3.states.StateAnimationConfig.ANIM_SCRIM_FADE;
 import static com.android.launcher3.states.StateAnimationConfig.ANIM_VERTICAL_PROGRESS;
 import static com.android.launcher3.states.StateAnimationConfig.ANIM_WORKSPACE_FADE;
 import static com.android.launcher3.states.StateAnimationConfig.ANIM_WORKSPACE_SCALE;
-import static com.android.launcher3.states.StateAnimationConfig.ANIM_WORKSPACE_TRANSLATE;
-import static com.android.launcher3.states.StateAnimationConfig.SKIP_OVERVIEW;
 
 import android.view.MotionEvent;
 import android.view.animation.Interpolator;
 
 import com.android.app.animation.Interpolators;
 import com.android.launcher3.AbstractFloatingView;
-import com.android.launcher3.DeviceProfile;
 import com.android.launcher3.Launcher;
 import com.android.launcher3.LauncherState;
 import com.android.launcher3.states.StateAnimationConfig;
@@ -278,36 +271,6 @@ public class AllAppsSwipeController extends AbstractStateChangeTouchController {
                     config.isUserControlled()
                             ? ALL_APPS_VERTICAL_PROGRESS_MANUAL
                             : ALL_APPS_VERTICAL_PROGRESS_ATOMIC);
-        }
-    }
-
-    /**
-     * Applies Animation config values for transition from overview to all apps.
-     *
-     * @param threshold progress at which all apps will open upon release
-     */
-    public static void applyOverviewToAllAppsAnimConfig(
-            DeviceProfile deviceProfile, StateAnimationConfig config, float threshold) {
-        config.animProps |= StateAnimationConfig.USER_CONTROLLED;
-        config.animFlags = SKIP_OVERVIEW;
-        if (deviceProfile.isTablet) {
-            config.setInterpolator(ANIM_ALL_APPS_FADE, INSTANT);
-            config.setInterpolator(ANIM_SCRIM_FADE, ALL_APPS_SCRIM_RESPONDER);
-            // The fact that we end on Workspace is not very ideal, but since we do, fade it in at
-            // the end of the transition. Don't scale/translate it.
-            config.setInterpolator(ANIM_WORKSPACE_FADE, clampToProgress(LINEAR, 0.8f, 1));
-            config.setInterpolator(ANIM_WORKSPACE_SCALE, INSTANT);
-            config.setInterpolator(ANIM_WORKSPACE_TRANSLATE, INSTANT);
-        } else {
-            // Pop the background panel, keyboard, and content in at full opacity at the threshold.
-            config.setInterpolator(ANIM_ALL_APPS_BOTTOM_SHEET_FADE,
-                    thresholdInterpolator(threshold, INSTANT));
-            config.setInterpolator(ANIM_ALL_APPS_KEYBOARD_FADE,
-                    thresholdInterpolator(threshold, INSTANT));
-            config.setInterpolator(ANIM_ALL_APPS_FADE, thresholdInterpolator(threshold, INSTANT));
-
-            config.setInterpolator(ANIM_VERTICAL_PROGRESS,
-                    thresholdInterpolator(threshold, mapToProgress(LINEAR, threshold, 1f)));
         }
     }
 

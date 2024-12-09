@@ -52,7 +52,7 @@ public class AsyncClockEventDelegate extends ClockEventDelegate
 
     private final Context mContext;
     private final SimpleBroadcastReceiver mReceiver =
-            new SimpleBroadcastReceiver(this::onClockEventReceived);
+            new SimpleBroadcastReceiver(UI_HELPER_EXECUTOR, this::onClockEventReceived);
 
     private final ArrayMap<BroadcastReceiver, Handler> mTimeEventReceivers = new ArrayMap<>();
     private final List<ContentObserver> mFormatObservers = new ArrayList<>();
@@ -64,9 +64,7 @@ public class AsyncClockEventDelegate extends ClockEventDelegate
     private AsyncClockEventDelegate(Context context) {
         super(context);
         mContext = context;
-
-        UI_HELPER_EXECUTOR.execute(() ->
-                mReceiver.register(mContext, ACTION_TIME_CHANGED, ACTION_TIMEZONE_CHANGED));
+        mReceiver.register(mContext, ACTION_TIME_CHANGED, ACTION_TIMEZONE_CHANGED);
     }
 
     @Override
@@ -127,6 +125,6 @@ public class AsyncClockEventDelegate extends ClockEventDelegate
     public void close() {
         mDestroyed = true;
         SettingsCache.INSTANCE.get(mContext).unregister(mFormatUri, this);
-        UI_HELPER_EXECUTOR.execute(() -> mReceiver.unregisterReceiverSafely(mContext));
+        mReceiver.unregisterReceiverSafely(mContext);
     }
 }

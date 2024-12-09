@@ -27,12 +27,13 @@ import org.mockito.kotlin.whenever
 
 class FakeTaskThumbnailDataSource : TaskThumbnailDataSource {
 
-    val taskIdToBitmap: Map<Int, Bitmap> = (0..10).associateWith { mock() }
+    val taskIdToBitmap: MutableMap<Int, Bitmap> =
+        (0..10).associateWith { mock<Bitmap>() }.toMutableMap()
     val taskIdToUpdatingTask: MutableMap<Int, () -> Unit> = mutableMapOf()
     var shouldLoadSynchronously: Boolean = true
 
     /** Retrieves and sets a thumbnail on [task] from [taskIdToBitmap]. */
-    override fun updateThumbnailInBackground(
+    override fun getThumbnailInBackground(
         task: Task,
         callback: Consumer<ThumbnailData>
     ): CancellableTask<ThumbnailData>? {

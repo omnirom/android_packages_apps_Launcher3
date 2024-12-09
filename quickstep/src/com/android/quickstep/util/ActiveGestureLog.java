@@ -23,6 +23,7 @@ import com.android.launcher3.util.Preconditions;
 import java.io.PrintWriter;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -237,7 +238,8 @@ public class ActiveGestureLog {
     /** An entire log of entries associated with a single log ID */
     protected static class EventLog {
 
-        protected final List<EventEntry> eventEntries = new ArrayList<>();
+        protected final List<EventEntry> eventEntries =
+                Collections.synchronizedList(new ArrayList<>());
         protected final int logId;
         protected final boolean mIsFullyGesturalNavMode;
 

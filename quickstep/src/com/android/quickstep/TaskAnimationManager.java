@@ -18,6 +18,7 @@ package com.android.quickstep;
 import static android.app.WindowConfiguration.ACTIVITY_TYPE_HOME;
 
 import static com.android.launcher3.Flags.enableHandleDelayedGestureCallbacks;
+import static com.android.launcher3.Flags.enableScalingRevealHomeAnimation;
 import static com.android.launcher3.util.Executors.MAIN_EXECUTOR;
 import static com.android.launcher3.util.Executors.UI_HELPER_EXECUTOR;
 import static com.android.launcher3.util.NavigationMode.NO_BUTTON;
@@ -44,6 +45,7 @@ import androidx.annotation.UiThread;
 import com.android.internal.util.ArrayUtils;
 import com.android.launcher3.Utilities;
 import com.android.launcher3.config.FeatureFlags;
+import com.android.launcher3.taskbar.TaskbarUIController;
 import com.android.launcher3.util.DisplayController;
 import com.android.quickstep.util.ActiveGestureLog;
 import com.android.quickstep.util.SystemUiFlagUtils;
@@ -58,9 +60,8 @@ import java.io.PrintWriter;
 import java.util.HashMap;
 
 public class TaskAnimationManager implements RecentsAnimationCallbacks.RecentsAnimationListener {
-    public static final boolean ENABLE_SHELL_TRANSITIONS = true;
-    public static final boolean SHELL_TRANSITIONS_ROTATION = ENABLE_SHELL_TRANSITIONS
-            && SystemProperties.getBoolean("persist.wm.debug.shell_transit_rotate", false);
+    public static final boolean SHELL_TRANSITIONS_ROTATION =
+            SystemProperties.getBoolean("persist.wm.debug.shell_transit_rotate", false);
 
     private final Context mCtx;
     private RecentsAnimationController mController;
@@ -110,8 +111,9 @@ public class TaskAnimationManager implements RecentsAnimationCallbacks.RecentsAn
      */
     public void preloadRecentsAnimation(Intent intent) {
         // Pass null animation handler to indicate this start is for preloading
-        UI_HELPER_EXECUTOR.execute(() -> ActivityManagerWrapper.getInstance()
-                .startRecentsActivity(intent, 0, null, null, null));
+        UI_HELPER_EXECUTOR.execute(() -> {
+            ActivityManagerWrapper.getInstance().preloadRecentsActivity(intent);
+        });
     }
 
     boolean shouldIgnoreMotionEvents() {
@@ -157,8 +159,7 @@ public class TaskAnimationManager implements RecentsAnimationCallbacks.RecentsAn
 
         final BaseContainerInterface containerInterface = gestureState.getContainerInterface();
         mLastGestureState = gestureState;
-        RecentsAnimationCallbacks newCallbacks = new RecentsAnimationCallbacks(
-                getSystemUiProxy(), containerInterface.allowMinimizeSplitScreen());
+        RecentsAnimationCallbacks newCallbacks = new RecentsAnimationCallbacks(getSystemUiProxy());
         mCallbacks = newCallbacks;
         mCallbacks.addListener(new RecentsAnimationCallbacks.RecentsAnimationListener() {
             @Override
@@ -188,7 +189,7 @@ public class TaskAnimationManager implements RecentsAnimationCallbacks.RecentsAn
                 }
                 mLastGestureState.updateLastAppearedTaskTargets(mLastAppearedTaskTargets);
 
-                if (ENABLE_SHELL_TRANSITIONS && mTargets.hasRecents
+                if (mTargets.hasRecents
                         // The filtered (MODE_CLOSING) targets only contain 1 home activity.
                         && mTargets.apps.length == 1
                         && mTargets.apps[0].windowConfiguration.getActivityType()
@@ -264,12 +265,7 @@ public class TaskAnimationManager implements RecentsAnimationCallbacks.RecentsAn
                     }
                 }
 
-                RemoteAnimationTarget[] nonAppTargets = ENABLE_SHELL_TRANSITIONS
-                        ? null : getSystemUiProxy().onStartingSplitLegacy(
-                                appearedTaskTargets);
-                if (nonAppTargets == null) {
-                    nonAppTargets = new RemoteAnimationTarget[0];
-                }
+                RemoteAnimationTarget[] nonAppTargets = new RemoteAnimationTarget[0];
                 if ((containerInterface.isInLiveTileMode()
                             || mLastGestureState.getEndTarget() == RECENTS
                             || isNonRecentsStartedTasksAppeared(appearedTaskTargets))
@@ -293,77 +289,49 @@ public class TaskAnimationManager implements RecentsAnimationCallbacks.RecentsAn
                             true /*shown*/, null /* animatorHandler */);
                 }
                 if (mController != null) {
-                    if (mLastAppearedTaskTargets != null) {
-                        for (RemoteAnimationTarget lastTarget : mLastAppearedTaskTargets) {
-                            for (RemoteAnimationTarget appearedTarget : appearedTaskTargets) {
-                                if (lastTarget != null &&
-                                        appearedTarget.taskId != lastTarget.taskId) {
-                                    mController.removeTaskTarget(lastTarget.taskId);
-                                }
-                            }
-                        }
-                    }
                     mLastAppearedTaskTargets = appearedTaskTargets;
                     mLastGestureState.updateLastAppearedTaskTargets(mLastAppearedTaskTargets);
                 }
-            }
-
-            @Override
-            public boolean onSwitchToScreenshot(Runnable onFinished) {
-                if (!containerInterface.isInLiveTileMode()
-                        || containerInterface.getCreatedContainer() == null) {
-                    // No need to switch since tile is already a screenshot.
-                    onFinished.run();
-                } else {
-                    final RecentsView recentsView =
-                            containerInterface.getCreatedContainer().getOverviewPanel();
-                    if (recentsView != null) {
-                        recentsView.switchToScreenshot(onFinished);
-                    } else {
-                        onFinished.run();
-                    }
-                }
-                return true;
             }
         });
         final long eventTime = gestureState.getSwipeUpStartTimeMs();
         mCallbacks.addListener(gestureState);
         mCallbacks.addListener(listener);
 
-        if (ENABLE_SHELL_TRANSITIONS) {
-            final ActivityOptions options = ActivityOptions.makeBasic();
-            options.setPendingIntentBackgroundActivityLaunchAllowedByPermission(true);
-            // Use regular (non-transient) launch for all apps page to control IME.
-            if (!containerInterface.allowAllAppsFromOverview()) {
-                options.setTransientLaunch();
-            }
-            options.setSourceInfo(ActivityOptions.SourceInfo.TYPE_RECENTS_ANIMATION, eventTime);
-            mRecentsAnimationStartPending = getSystemUiProxy()
-                    .startRecentsActivity(intent, options, mCallbacks);
-            if (enableHandleDelayedGestureCallbacks()) {
-                ActiveGestureLog.INSTANCE.addLog(new ActiveGestureLog.CompoundString(
-                        "TaskAnimationManager.startRecentsAnimation(shell transition path): ")
-                        .append("Setting mRecentsAnimationStartPending = ")
-                        .append(mRecentsAnimationStartPending));
-            }
-        } else {
-            UI_HELPER_EXECUTOR.execute(
-                    () -> ActivityManagerWrapper.getInstance().startRecentsActivity(
-                            intent,
-                            eventTime,
-                            mCallbacks,
-                            result -> {
-                                if (enableHandleDelayedGestureCallbacks()) {
-                                    ActiveGestureLog.INSTANCE.addLog(
-                                            new ActiveGestureLog.CompoundString(
-                                                    "TaskAnimationManager.startRecentsAnimation")
-                                                    .append("(legacy path): Setting ")
-                                                    .append("mRecentsAnimationStartPending = ")
-                                                    .append(result));
-                                }
-                                mRecentsAnimationStartPending = result;
-                            },
-                            MAIN_EXECUTOR.getHandler()));
+        final ActivityOptions options = ActivityOptions.makeBasic();
+        options.setPendingIntentBackgroundActivityStartMode(
+                ActivityOptions.MODE_BACKGROUND_ACTIVITY_START_ALLOW_ALWAYS);
+        options.setTransientLaunch();
+        options.setSourceInfo(ActivityOptions.SourceInfo.TYPE_RECENTS_ANIMATION, eventTime);
+
+        // Notify taskbar that we should skip reacting to launcher visibility change to
+        // avoid a jumping taskbar.
+        TaskbarUIController taskbarUIController = containerInterface.getTaskbarController();
+        if (enableScalingRevealHomeAnimation() && taskbarUIController != null) {
+            taskbarUIController.setSkipLauncherVisibilityChange(true);
+
+            mCallbacks.addListener(new RecentsAnimationCallbacks.RecentsAnimationListener() {
+                @Override
+                public void onRecentsAnimationCanceled(
+                        @NonNull HashMap<Integer, ThumbnailData> thumbnailDatas) {
+                    taskbarUIController.setSkipLauncherVisibilityChange(false);
+                }
+
+                @Override
+                public void onRecentsAnimationFinished(
+                        @NonNull RecentsAnimationController controller) {
+                    taskbarUIController.setSkipLauncherVisibilityChange(false);
+                }
+            });
+        }
+
+        mRecentsAnimationStartPending = getSystemUiProxy()
+                .startRecentsActivity(intent, options, mCallbacks);
+        if (enableHandleDelayedGestureCallbacks()) {
+            ActiveGestureLog.INSTANCE.addLog(new ActiveGestureLog.CompoundString(
+                    "TaskAnimationManager.startRecentsAnimation: ")
+                    .append("Setting mRecentsAnimationStartPending = ")
+                    .append(mRecentsAnimationStartPending));
         }
         gestureState.setState(STATE_RECENTS_ANIMATION_INITIALIZED);
         return mCallbacks;

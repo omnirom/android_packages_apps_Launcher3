@@ -15,9 +15,6 @@
  */
 package com.android.launcher3.ui.widget;
 
-import static com.android.launcher3.util.rule.TestStabilityRule.LOCAL;
-import static com.android.launcher3.util.rule.TestStabilityRule.PLATFORM_POSTSUBMIT;
-
 import static org.junit.Assert.assertNotNull;
 
 import android.platform.test.annotations.PlatinumTest;
@@ -33,7 +30,6 @@ import com.android.launcher3.ui.AbstractLauncherUiTest;
 import com.android.launcher3.ui.PortraitLandscapeRunner.PortraitLandscape;
 import com.android.launcher3.ui.TestViewHelpers;
 import com.android.launcher3.util.rule.ShellCommandRule;
-import com.android.launcher3.util.rule.TestStabilityRule.Stability;
 import com.android.launcher3.widget.LauncherAppWidgetProviderInfo;
 
 import org.junit.Assume;
@@ -102,7 +98,6 @@ public class TaplAddWidgetTest extends AbstractLauncherUiTest<Launcher> {
     /**
      * Test dragging a widget to the workspace and resize it.
      */
-    @Stability(flavors = LOCAL | PLATFORM_POSTSUBMIT) // b/316910614
     @PlatinumTest(focusArea = "launcher")
     @Test
     public void testResizeWidget() throws Throwable {

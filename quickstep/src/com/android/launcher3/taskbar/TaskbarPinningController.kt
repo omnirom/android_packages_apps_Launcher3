@@ -32,10 +32,8 @@ import com.android.launcher3.taskbar.TaskbarDividerPopupView.Companion.createAnd
 import java.io.PrintWriter
 
 /** Controls taskbar pinning through a popup view. */
-class TaskbarPinningController(
-    private val context: TaskbarActivityContext,
-    private val isInDesktopModeProvider: () -> Boolean,
-) : TaskbarControllers.LoggableTaskbarController {
+class TaskbarPinningController(private val context: TaskbarActivityContext) :
+    TaskbarControllers.LoggableTaskbarController {
 
     private lateinit var controllers: TaskbarControllers
     private lateinit var taskbarSharedState: TaskbarSharedState
@@ -58,7 +56,7 @@ class TaskbarPinningController(
                     return
                 }
                 val shouldPinTaskbar =
-                    if (isInDesktopModeProvider()) {
+                    if (controllers.taskbarDesktopModeController.areDesktopTasksVisible) {
                         !launcherPrefs.get(TASKBAR_PINNING_IN_DESKTOP_MODE)
                     } else {
                         !launcherPrefs.get(TASKBAR_PINNING)
@@ -119,7 +117,7 @@ class TaskbarPinningController(
             dragLayerController.taskbarBackgroundProgress.animateToValue(animateToValue),
             taskbarViewController.taskbarIconTranslationYForPinning.animateToValue(animateToValue),
             taskbarViewController.taskbarIconScaleForPinning.animateToValue(animateToValue),
-            taskbarViewController.taskbarIconTranslationXForPinning.animateToValue(animateToValue)
+            taskbarViewController.taskbarIconTranslationXForPinning.animateToValue(animateToValue),
         )
 
         animatorSet.interpolator = Interpolators.EMPHASIZED
@@ -134,10 +132,10 @@ class TaskbarPinningController(
     @VisibleForTesting
     fun recreateTaskbarAndUpdatePinningValue() {
         updateIsAnimatingTaskbarPinningAndNotifyTaskbarDragLayer(false)
-        if (isInDesktopModeProvider()) {
+        if (controllers.taskbarDesktopModeController.areDesktopTasksVisible) {
             launcherPrefs.put(
                 TASKBAR_PINNING_IN_DESKTOP_MODE,
-                !launcherPrefs.get(TASKBAR_PINNING_IN_DESKTOP_MODE)
+                !launcherPrefs.get(TASKBAR_PINNING_IN_DESKTOP_MODE),
             )
         } else {
             launcherPrefs.put(TASKBAR_PINNING, !launcherPrefs.get(TASKBAR_PINNING))

@@ -21,7 +21,8 @@
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="recent_task_option_pin" msgid="7929860679018978258">"Fijar"</string>
     <string name="recent_task_option_freeform" msgid="48863056265284071">"Formato libre"</string>
-    <string name="recent_task_option_desktop" msgid="8280879717125435668">"Ordenador"</string>
+    <string name="recent_task_option_desktop" msgid="8280879717125435668">"Escritorio"</string>
+    <string name="recent_task_desktop" msgid="8081113562549637334">"Ordenador"</string>
     <string name="recents_empty_message" msgid="7040467240571714191">"No hay nada reciente"</string>
     <string name="accessibility_app_usage_settings" msgid="6312864233673544149">"Ajustes de uso de la aplicación"</string>
     <string name="recents_clear_all" msgid="5328176793634888831">"Borrar todo"</string>
@@ -99,7 +100,7 @@
     <string name="action_save_app_pair" msgid="5974823919237645229">"Guardar apps emparejadas"</string>
     <string name="toast_split_select_app" msgid="8464310533320556058">"Toca otra aplicación para usar la pantalla dividida"</string>
     <string name="toast_contextual_split_select_app" msgid="433510957123687090">"Elige otra app para usar la pantalla dividida."</string>
-    <string name="toast_split_select_app_cancel" msgid="1532690483356445639"><b>"Cancelar"</b></string>
+    <string name="toast_split_select_app_cancel" msgid="1939025102486630426">"Cancelar"</string>
     <string name="toast_split_select_cont_desc" msgid="2119685056059607602">"Salir de la selección de pantalla dividida"</string>
     <string name="toast_split_app_unsupported" msgid="2360229567007828914">"Elige otra app para usar la pantalla dividida."</string>
     <string name="blocked_by_policy" msgid="2071401072261365546">"No puedes hacerlo porque la aplicación o tu organización no lo permiten"</string>
@@ -130,18 +131,27 @@
     <string name="taskbar_button_quick_settings" msgid="227662894293189391">"Ajustes rápidos"</string>
     <string name="taskbar_a11y_title" msgid="6432169809852243110">"Barra de tareas"</string>
     <string name="taskbar_a11y_shown_title" msgid="6842833581088937713">"Barra de tareas visible"</string>
+    <string name="taskbar_a11y_shown_with_bubbles_left_title" msgid="4242431789851790046">"Tareas y burbujas a izquierda"</string>
+    <string name="taskbar_a11y_shown_with_bubbles_right_title" msgid="8219065376188180113">"Tareas y burbujas a derecha"</string>
     <string name="taskbar_a11y_hidden_title" msgid="9154903639589659284">"Barra de tareas oculta"</string>
+    <string name="taskbar_a11y_hidden_with_bubbles_title" msgid="7397395993149508087">"Tareas y burbujas ocultas"</string>
     <string name="taskbar_phone_a11y_title" msgid="4933360237131229395">"Barra de navegación"</string>
     <string name="always_show_taskbar" msgid="3608801276107751229">"Barra de tareas visible"</string>
     <string name="change_navigation_mode" msgid="9088393078736808968">"Cambiar el modo de navegación"</string>
     <string name="taskbar_divider_a11y_title" msgid="6608690309720242080">"Divisor de Barra de Tareas"</string>
+    <string name="taskbar_overflow_a11y_title" msgid="7960342079198820179">"Barra de tareas ampliada"</string>
     <string name="move_drop_target_top_or_left" msgid="2988702185049595807">"Mover arriba/a la izquierda"</string>
     <string name="move_drop_target_bottom_or_right" msgid="5431393418797620162">"Mover abajo/a la derecha"</string>
-    <string name="quick_switch_overflow" msgid="6935266023013283353">"{count,plural, =1{Mostrar # aplicación más.}other{Mostrar # aplicaciones más.}}"</string>
-    <string name="quick_switch_desktop" msgid="4834587349322698616">"{count,plural, =1{Mostrar # aplicación para ordenadores.}other{Mostrar # aplicaciones para ordenadores.}}"</string>
+    <string name="quick_switch_overflow" msgid="3679780650881041632">"{count,plural, =1{aplicación más}other{aplicaciones más}}"</string>
+    <string name="quick_switch_desktop" msgid="8393802056024499749">"Ordenador"</string>
     <string name="quick_switch_split_task" msgid="5598194724255333896">"<xliff:g id="APP_NAME_1">%1$s</xliff:g> y <xliff:g id="APP_NAME_2">%2$s</xliff:g>"</string>
     <string name="bubble_bar_bubble_fallback_description" msgid="7811684548953452009">"Burbuja"</string>
     <string name="bubble_bar_overflow_description" msgid="8617628132733151708">"Menú adicional"</string>
     <string name="bubble_bar_bubble_description" msgid="1882466152448446446">"<xliff:g id="NOTIFICATION_TITLE">%1$s</xliff:g> de <xliff:g id="APP_NAME">%2$s</xliff:g>"</string>
     <string name="bubble_bar_description_multiple_bubbles" msgid="3922207715357143648">"<xliff:g id="BUBBLE_BAR_BUBBLE_DESCRIPTION">%1$s</xliff:g> y <xliff:g id="BUBBLE_COUNT">%2$d</xliff:g> más"</string>
+    <string name="bubble_bar_action_move_left" msgid="3306922475737714758">"Mover hacia la izquierda"</string>
+    <string name="bubble_bar_action_move_right" msgid="3455099638571411251">"Mover hacia la derecha"</string>
+    <string name="bubble_bar_action_dismiss_all" msgid="3290722022983403060">"Cerrar todo"</string>
+    <string name="bubble_bar_accessibility_announce_expand" msgid="1503192695527477102">"desplegar <xliff:g id="BUBBLE_DESCRIPTION">%1$s</xliff:g>"</string>
+    <string name="bubble_bar_accessibility_announce_collapse" msgid="928284600086798791">"contraer <xliff:g id="BUBBLE_DESCRIPTION">%1$s</xliff:g>"</string>
 </resources>

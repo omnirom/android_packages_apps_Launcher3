@@ -24,6 +24,7 @@ import com.android.launcher3.model.BgDataModel.FixedContainerItems
 import com.android.launcher3.model.data.ItemInfo
 import com.android.launcher3.model.data.WorkspaceItemInfo
 import com.android.launcher3.util.PackageUserKey
+import com.android.launcher3.widget.model.WidgetsListBaseEntriesBuilder
 import java.util.Objects
 import java.util.concurrent.Executor
 import java.util.function.Predicate
@@ -78,7 +79,9 @@ class ModelTaskController(
     }
 
     fun bindUpdatedWidgets(dataModel: BgDataModel) {
-        val widgets = dataModel.widgetsModel.getWidgetsListForPicker(app.context)
+        val widgets =
+            WidgetsListBaseEntriesBuilder(app.context)
+                .build(dataModel.widgetsModel.widgetsByPackageItem)
         scheduleCallbackTask { it.bindAllWidgets(widgets) }
     }
 

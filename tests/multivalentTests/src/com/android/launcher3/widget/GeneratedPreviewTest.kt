@@ -8,7 +8,6 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.pm.ActivityInfo
 import android.content.pm.ApplicationInfo
-import android.platform.test.annotations.RequiresFlagsDisabled
 import android.platform.test.annotations.RequiresFlagsEnabled
 import android.platform.test.flag.junit.CheckFlagsRule
 import android.platform.test.flag.junit.DeviceFlagsValueProvider
@@ -34,6 +33,7 @@ import org.junit.runner.RunWith
 
 @SmallTest
 @RunWith(AndroidJUnit4::class)
+@RequiresFlagsEnabled(FLAG_ENABLE_GENERATED_PREVIEWS)
 class GeneratedPreviewTest {
     @get:Rule val checkFlagsRule: CheckFlagsRule = DeviceFlagsValueProvider.createCheckFlagsRule()
     private val providerName =
@@ -104,7 +104,6 @@ class GeneratedPreviewTest {
     }
 
     @Test
-    @RequiresFlagsEnabled(FLAG_ENABLE_GENERATED_PREVIEWS)
     fun widgetItem_hasGeneratedPreview() {
         assertThat(widgetItem.hasGeneratedPreview(WIDGET_CATEGORY_HOME_SCREEN)).isTrue()
         assertThat(widgetItem.hasGeneratedPreview(WIDGET_CATEGORY_KEYGUARD)).isFalse()
@@ -112,7 +111,6 @@ class GeneratedPreviewTest {
     }
 
     @Test
-    @RequiresFlagsEnabled(FLAG_ENABLE_GENERATED_PREVIEWS)
     fun widgetItem_hasGeneratedPreview_noPreview() {
         appWidgetProviderInfo.generatedPreviewCategories = 0
         createWidgetItem()
@@ -122,7 +120,6 @@ class GeneratedPreviewTest {
     }
 
     @Test
-    @RequiresFlagsEnabled(FLAG_ENABLE_GENERATED_PREVIEWS)
     fun widgetItem_hasGeneratedPreview_nullPreview() {
         appWidgetProviderInfo.generatedPreviewCategories =
             WIDGET_CATEGORY_HOME_SCREEN or WIDGET_CATEGORY_KEYGUARD
@@ -134,35 +131,17 @@ class GeneratedPreviewTest {
     }
 
     @Test
-    @RequiresFlagsDisabled(FLAG_ENABLE_GENERATED_PREVIEWS)
-    fun widgetItem_hasGeneratedPreview_flagDisabled() {
-        assertThat(widgetItem.hasGeneratedPreview(WIDGET_CATEGORY_HOME_SCREEN)).isFalse()
-        assertThat(widgetItem.hasGeneratedPreview(WIDGET_CATEGORY_KEYGUARD)).isFalse()
-        assertThat(widgetItem.hasGeneratedPreview(WIDGET_CATEGORY_SEARCHBOX)).isFalse()
-    }
-
-    @Test
-    @RequiresFlagsEnabled(FLAG_ENABLE_GENERATED_PREVIEWS)
     fun widgetItem_getGeneratedPreview() {
         val preview = widgetItem.generatedPreviews.get(WIDGET_CATEGORY_HOME_SCREEN)
         assertThat(preview).isEqualTo(generatedPreview)
     }
 
     @Test
-    @RequiresFlagsEnabled(FLAG_ENABLE_GENERATED_PREVIEWS)
     fun widgetCell_showGeneratedPreview() {
         widgetCell.applyFromCellItem(widgetItem)
         DatabaseWidgetPreviewLoader.getLoaderExecutor().submit {}.get()
         assertThat(widgetCell.appWidgetHostViewPreview).isNotNull()
         assertThat(widgetCell.appWidgetHostViewPreview?.appWidgetInfo)
             .isEqualTo(appWidgetProviderInfo)
-    }
-
-    @Test
-    @RequiresFlagsDisabled(FLAG_ENABLE_GENERATED_PREVIEWS)
-    fun widgetCell_showGeneratedPreview_flagDisabled() {
-        widgetCell.applyFromCellItem(widgetItem)
-        DatabaseWidgetPreviewLoader.getLoaderExecutor().submit {}.get()
-        assertThat(widgetCell.appWidgetHostViewPreview).isNull()
     }
 }

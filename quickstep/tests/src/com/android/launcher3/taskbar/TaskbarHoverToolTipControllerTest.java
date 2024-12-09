@@ -39,6 +39,7 @@ import android.view.MotionEvent;
 import androidx.test.filters.SmallTest;
 
 import com.android.launcher3.BubbleTextView;
+import com.android.launcher3.apppairs.AppPairIcon;
 import com.android.launcher3.folder.Folder;
 import com.android.launcher3.folder.FolderIcon;
 import com.android.launcher3.model.data.FolderInfo;
@@ -66,6 +67,7 @@ public class TaskbarHoverToolTipControllerTest extends TaskbarBaseTestCase {
     @Mock private MotionEvent mMotionEvent;
     @Mock private BubbleTextView mHoverBubbleTextView;
     @Mock private FolderIcon mHoverFolderIcon;
+    @Mock private AppPairIcon mAppPairIcon;
     @Mock private Display mDisplay;
     @Mock private TaskbarDragLayer mTaskbarDragLayer;
     private Folder mSpyFolderView;
@@ -85,6 +87,7 @@ public class TaskbarHoverToolTipControllerTest extends TaskbarBaseTestCase {
         when(taskbarActivityContext.getDragLayer()).thenReturn(mTaskbarDragLayer);
         when(taskbarActivityContext.getMainLooper()).thenReturn(context.getMainLooper());
         when(taskbarActivityContext.getDisplay()).thenReturn(mDisplay);
+        when(taskbarActivityContext.isIconAlignedWithHotseat()).thenReturn(false);
 
         when(mTaskbarDragLayer.getChildCount()).thenReturn(1);
         mSpyFolderView = spy(new Folder(new ActivityContextWrapper(context), null));
@@ -199,7 +202,7 @@ public class TaskbarHoverToolTipControllerTest extends TaskbarBaseTestCase {
         boolean hoverHandled =
                 mTaskbarHoverToolTipController.onHover(mHoverFolderIcon, mMotionEvent);
 
-        assertThat(hoverHandled).isFalse();
+        assertThat(hoverHandled).isTrue();
     }
 
     @Test
@@ -210,7 +213,50 @@ public class TaskbarHoverToolTipControllerTest extends TaskbarBaseTestCase {
         boolean hoverHandled =
                 mTaskbarHoverToolTipController.onHover(mHoverFolderIcon, mMotionEvent);
 
-        assertThat(hoverHandled).isFalse();
+        assertThat(hoverHandled).isTrue();
+    }
+
+    @Test
+    public void onHover_hoverEnterAppPair_revealToolTip() {
+        when(mMotionEvent.getAction()).thenReturn(MotionEvent.ACTION_HOVER_ENTER);
+        when(mMotionEvent.getActionMasked()).thenReturn(MotionEvent.ACTION_HOVER_ENTER);
+
+        boolean hoverHandled =
+                mTaskbarHoverToolTipController.onHover(mAppPairIcon, mMotionEvent);
+        waitForIdleSync();
+
+        assertThat(hoverHandled).isTrue();
+        verify(taskbarActivityContext).setAutohideSuspendFlag(FLAG_AUTOHIDE_SUSPEND_HOVERING_ICONS,
+                true);
+    }
+
+    @Test
+    public void onHover_hoverExitAppPair_closeToolTip() {
+        when(mMotionEvent.getAction()).thenReturn(MotionEvent.ACTION_HOVER_EXIT);
+        when(mMotionEvent.getActionMasked()).thenReturn(MotionEvent.ACTION_HOVER_EXIT);
+
+        boolean hoverHandled =
+                mTaskbarHoverToolTipController.onHover(mAppPairIcon, mMotionEvent);
+        waitForIdleSync();
+
+        assertThat(hoverHandled).isTrue();
+        verify(taskbarActivityContext).setAutohideSuspendFlag(FLAG_AUTOHIDE_SUSPEND_HOVERING_ICONS,
+                false);
+    }
+
+    @Test
+    public void onHover_hoverEnterIconAlignedWithHotseat_noReveal() {
+        when(mMotionEvent.getAction()).thenReturn(MotionEvent.ACTION_HOVER_ENTER);
+        when(mMotionEvent.getActionMasked()).thenReturn(MotionEvent.ACTION_HOVER_ENTER);
+        when(taskbarActivityContext.isIconAlignedWithHotseat()).thenReturn(true);
+
+        boolean hoverHandled =
+                mTaskbarHoverToolTipController.onHover(mHoverBubbleTextView, mMotionEvent);
+        waitForIdleSync();
+
+        assertThat(hoverHandled).isTrue();
+        verify(taskbarActivityContext).setAutohideSuspendFlag(FLAG_AUTOHIDE_SUSPEND_HOVERING_ICONS,
+                true);
     }
 
     private void waitForIdleSync() {

@@ -40,7 +40,6 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewPropertyAnimator;
-import android.view.accessibility.AccessibilityNodeInfo;
 import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
@@ -497,12 +496,6 @@ public class WidgetCell extends LinearLayout {
     @Override
     public CharSequence getAccessibilityClassName() {
         return WidgetCell.class.getName();
-    }
-
-    @Override
-    public void onInitializeAccessibilityNodeInfo(AccessibilityNodeInfo info) {
-        super.onInitializeAccessibilityNodeInfo(info);
-        info.removeAction(AccessibilityNodeInfo.AccessibilityAction.ACTION_CLICK);
     }
 
     @Override

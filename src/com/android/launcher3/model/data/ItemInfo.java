@@ -51,6 +51,7 @@ import com.android.launcher3.LauncherSettings.Favorites;
 import com.android.launcher3.Workspace;
 import com.android.launcher3.logger.LauncherAtom;
 import com.android.launcher3.logger.LauncherAtom.AllAppsContainer;
+import com.android.launcher3.logger.LauncherAtom.Attribute;
 import com.android.launcher3.logger.LauncherAtom.ContainerInfo;
 import com.android.launcher3.logger.LauncherAtom.PredictionContainer;
 import com.android.launcher3.logger.LauncherAtom.SettingsContainer;
@@ -67,6 +68,9 @@ import com.android.launcher3.util.SettingsCache;
 import com.android.launcher3.util.UserIconInfo;
 import com.android.systemui.shared.system.SysUiStatsLog;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -77,8 +81,6 @@ public class ItemInfo {
 
     public static final boolean DEBUG = false;
     public static final int NO_ID = -1;
-    // An id that doesn't match any item, including predicted apps with have an id=NO_ID
-    public static final int NO_MATCHING_ID = Integer.MIN_VALUE;
 
     /** Hidden field Settings.Secure.NAV_BAR_KIDS_MODE */
     private static final Uri NAV_BAR_KIDS_MODE = Settings.Secure.getUriFor("nav_bar_kids_mode");
@@ -186,6 +188,12 @@ public class ItemInfo {
 
     @NonNull
     public UserHandle user;
+
+    @NonNull
+    private ExtendedContainers mExtendedContainers = ExtendedContainers.getDefaultInstance();
+
+    @NonNull
+    private List<Attribute> mAttributeList = Collections.EMPTY_LIST;
 
     public ItemInfo() {
         user = Process.myUserHandle();
@@ -433,6 +441,7 @@ public class ItemInfo {
         UserCache.INSTANCE.executeIfCreated(cache ->
                 itemBuilder.setUserType(getUserType(cache.getUserInfo(user))));
         itemBuilder.setRank(rank);
+        itemBuilder.addAllItemAttributes(mAttributeList);
         return itemBuilder;
     }
 
@@ -491,7 +500,7 @@ public class ItemInfo {
             default:
                 if (container <= EXTENDED_CONTAINERS) {
                     return ContainerInfo.newBuilder()
-                            .setExtendedContainers(getExtendedContainer())
+                            .setExtendedContainers(mExtendedContainers)
                             .build();
                 }
         }
@@ -499,12 +508,21 @@ public class ItemInfo {
     }
 
     /**
-     * Returns non-AOSP container wrapped by {@link ExtendedContainers} object. Should be overridden
-     * by build variants.
+     * Sets extra container info wrapped by {@link ExtendedContainers} object.
      */
-    @NonNull
-    protected ExtendedContainers getExtendedContainer() {
-        return ExtendedContainers.getDefaultInstance();
+    public void setExtendedContainers(@NonNull ExtendedContainers extendedContainers) {
+        mExtendedContainers = extendedContainers;
+    }
+
+    /**
+     * Adds extra attributes to be added during logs
+     */
+    public void addLogAttributes(List<LauncherAtom.Attribute> attributeList) {
+        if (mAttributeList.isEmpty()) {
+            mAttributeList = new ArrayList<>(attributeList);
+        } else {
+            mAttributeList.addAll(attributeList);
+        }
     }
 
     /**
@@ -523,6 +541,14 @@ public class ItemInfo {
     public void setTitle(@Nullable final CharSequence title,
             @Nullable final ModelWriter modelWriter) {
         this.title = title;
+    }
+
+    /**
+     * Returns a string ID that is stable for a user session, but may not be persisted
+     */
+    @Nullable
+    public Object getStableId() {
+        return getComponentKey();
     }
 
     private int getUserType(UserIconInfo info) {

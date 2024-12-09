@@ -86,7 +86,7 @@ import java.util.Stack;
 
 public class CellLayout extends ViewGroup {
     private static final String TAG = "CellLayout";
-    private static final boolean LOGD = false;
+    private static final boolean LOGD = true;
 
     /** The color of the "leave-behind" shape when a folder is opened from Hotseat. */
     private static final int FOLDER_LEAVE_BEHIND_COLOR = Color.argb(160, 245, 245, 245);
@@ -166,6 +166,7 @@ public class CellLayout extends ViewGroup {
     private final int[] mDragCellSpan = new int[2];
 
     private boolean mDragging = false;
+    public boolean mHasOnLayoutBeenCalled = false;
 
     private final TimeInterpolator mEaseOutInterpolator;
     protected final ShortcutAndWidgetContainer mShortcutsAndWidgets;
@@ -1009,6 +1010,7 @@ public class CellLayout extends ViewGroup {
 
     @Override
     protected void onLayout(boolean changed, int l, int t, int r, int b) {
+        mHasOnLayoutBeenCalled = true; // b/349929393 - is the required call to onLayout not done?
         int left = getPaddingLeft();
         left += (int) Math.ceil(getUnusedHorizontalSpace() / 2f);
         int right = r - l - getPaddingRight();

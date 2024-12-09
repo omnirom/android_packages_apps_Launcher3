@@ -22,13 +22,13 @@ import androidx.annotation.IntDef;
 import com.android.launcher3.util.IntArray;
 
 import java.lang.annotation.Retention;
+import java.util.List;
 
 /**
  * Helper class for navigating RecentsView grid tasks via arrow keys and tab.
  */
 public class TaskGridNavHelper {
     public static final int CLEAR_ALL_PLACEHOLDER_ID = -1;
-    public static final int INVALID_FOCUSED_TASK_ID = -1;
 
     public static final int DIRECTION_UP = 0;
     public static final int DIRECTION_DOWN = 1;
@@ -43,25 +43,25 @@ public class TaskGridNavHelper {
     private final IntArray mOriginalTopRowIds;
     private IntArray mTopRowIds;
     private IntArray mBottomRowIds;
-    private final int mFocusedTaskId;
 
-    public TaskGridNavHelper(IntArray topIds, IntArray bottomIds, int focusedTaskId) {
-        mFocusedTaskId = focusedTaskId;
+    public TaskGridNavHelper(IntArray topIds, IntArray bottomIds,
+            List<Integer> largeTileIds) {
         mOriginalTopRowIds = topIds.clone();
-        generateTaskViewIdGrid(topIds, bottomIds);
+        generateTaskViewIdGrid(topIds, bottomIds, largeTileIds);
     }
 
-    private void generateTaskViewIdGrid(IntArray topRowIdArray, IntArray bottomRowIdArray) {
-        boolean hasFocusedTask = mFocusedTaskId != INVALID_FOCUSED_TASK_ID;
-        int maxSize =
-                Math.max(topRowIdArray.size(), bottomRowIdArray.size()) + (hasFocusedTask ? 1 : 0);
-        int minSize =
-                Math.min(topRowIdArray.size(), bottomRowIdArray.size()) + (hasFocusedTask ? 1 : 0);
+    private void generateTaskViewIdGrid(IntArray topRowIdArray, IntArray bottomRowIdArray,
+            List<Integer> largeTileIds) {
 
-        // Add the focused task to the beginning of both arrays if it exists.
-        if (hasFocusedTask) {
-            topRowIdArray.add(0, mFocusedTaskId);
-            bottomRowIdArray.add(0, mFocusedTaskId);
+        int maxSize = Math.max(topRowIdArray.size(), bottomRowIdArray.size())
+                + largeTileIds.size();
+        int minSize = Math.min(topRowIdArray.size(), bottomRowIdArray.size())
+                + largeTileIds.size();
+
+        // Add Large tile task views first at the beginning
+        for (int i = 0; i < largeTileIds.size(); i++) {
+            topRowIdArray.add(i, largeTileIds.get(i));
+            bottomRowIdArray.add(i, largeTileIds.get(i));
         }
 
         // Fill in the shorter array with the ids from the longer one.

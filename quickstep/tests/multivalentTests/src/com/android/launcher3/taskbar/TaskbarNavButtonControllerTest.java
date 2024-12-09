@@ -4,6 +4,8 @@ import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCH
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_TASKBAR_BACK_BUTTON_TAP;
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_TASKBAR_HOME_BUTTON_LONGPRESS;
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_TASKBAR_HOME_BUTTON_TAP;
+import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_TASKBAR_IME_SWITCHER_BUTTON_LONGPRESS;
+import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_TASKBAR_IME_SWITCHER_BUTTON_TAP;
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_TASKBAR_OVERVIEW_BUTTON_LONGPRESS;
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_TASKBAR_OVERVIEW_BUTTON_TAP;
 import static com.android.launcher3.taskbar.TaskbarNavButtonController.BUTTON_A11Y;
@@ -18,6 +20,7 @@ import static com.google.common.truth.Truth.assertThat;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -26,15 +29,18 @@ import static org.mockito.Mockito.when;
 
 import android.os.Handler;
 import android.view.View;
+import android.view.inputmethod.Flags;
 
 import androidx.test.platform.app.InstrumentationRegistry;
 import androidx.test.runner.AndroidJUnit4;
 
+import com.android.launcher3.contextualeducation.ContextualEduStatsManager;
 import com.android.launcher3.logging.StatsLogManager;
 import com.android.launcher3.taskbar.TaskbarNavButtonController.TaskbarNavButtonCallbacks;
 import com.android.quickstep.SystemUiProxy;
 import com.android.quickstep.TouchInteractionService;
 import com.android.quickstep.util.AssistUtils;
+import com.android.systemui.contextualeducation.GestureType;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -49,6 +55,10 @@ public class TaskbarNavButtonControllerTest {
 
     @Mock
     SystemUiProxy mockSystemUiProxy;
+
+    @Mock
+    ContextualEduStatsManager mockContextualEduStatsManager;
+
     @Mock
     TouchInteractionService mockService;
     @Mock
@@ -97,6 +107,7 @@ public class TaskbarNavButtonControllerTest {
                 mockService,
                 mCallbacks,
                 mockSystemUiProxy,
+                mockContextualEduStatsManager,
                 mockHandler,
                 mockAssistUtils);
     }
@@ -108,9 +119,35 @@ public class TaskbarNavButtonControllerTest {
     }
 
     @Test
+    public void testPressBack_updateContextualEduData() {
+        mNavButtonController.onButtonClick(BUTTON_BACK, mockView);
+        verify(mockContextualEduStatsManager, times(1))
+                .updateEduStats(/* isTrackpad= */ eq(false), eq(GestureType.BACK));
+    }
+
+    @Test
     public void testPressImeSwitcher() {
+        mNavButtonController.init(mockTaskbarControllers);
         mNavButtonController.onButtonClick(BUTTON_IME_SWITCH, mockView);
+        verify(mockStatsLogger, times(1)).log(LAUNCHER_TASKBAR_IME_SWITCHER_BUTTON_TAP);
+        verify(mockStatsLogger, never()).log(LAUNCHER_TASKBAR_IME_SWITCHER_BUTTON_LONGPRESS);
         verify(mockSystemUiProxy, times(1)).onImeSwitcherPressed();
+        verify(mockSystemUiProxy, never()).onImeSwitcherLongPress();
+    }
+
+    @Test
+    public void testLongPressImeSwitcher() {
+        mNavButtonController.init(mockTaskbarControllers);
+        mNavButtonController.onButtonLongClick(BUTTON_IME_SWITCH, mockView);
+        verify(mockStatsLogger, never()).log(LAUNCHER_TASKBAR_IME_SWITCHER_BUTTON_TAP);
+        verify(mockSystemUiProxy, never()).onImeSwitcherPressed();
+        if (Flags.imeSwitcherRevamp()) {
+            verify(mockStatsLogger, times(1)).log(LAUNCHER_TASKBAR_IME_SWITCHER_BUTTON_LONGPRESS);
+            verify(mockSystemUiProxy, times(1)).onImeSwitcherLongPress();
+        } else {
+            verify(mockStatsLogger, never()).log(LAUNCHER_TASKBAR_IME_SWITCHER_BUTTON_LONGPRESS);
+            verify(mockSystemUiProxy, never()).onImeSwitcherLongPress();
+        }
     }
 
     @Test
@@ -173,9 +210,23 @@ public class TaskbarNavButtonControllerTest {
     }
 
     @Test
+    public void testPressHome_updateContextualEduData() {
+        mNavButtonController.onButtonClick(BUTTON_HOME, mockView);
+        verify(mockContextualEduStatsManager, times(1))
+                .updateEduStats(/* isTrackpad= */ eq(false), eq(GestureType.HOME));
+    }
+
+    @Test
     public void testPressRecents() {
         mNavButtonController.onButtonClick(BUTTON_RECENTS, mockView);
         assertThat(mOverviewToggleCount).isEqualTo(1);
+    }
+
+    @Test
+    public void testPressRecents_updateContextualEduData() {
+        mNavButtonController.onButtonClick(BUTTON_RECENTS, mockView);
+        verify(mockContextualEduStatsManager, times(1))
+                .updateEduStats(/* isTrackpad= */ eq(false), eq(GestureType.OVERVIEW));
     }
 
     @Test

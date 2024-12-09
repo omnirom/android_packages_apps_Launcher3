@@ -56,11 +56,16 @@ public class TaskbarSharedState {
     // TaskbarManager#onNavButtonsDarkIntensityChanged()
     public float navButtonsDarkIntensity;
 
+    // TaskbarManager#onTransitionModeUpdated()
+    public int barMode;
+
     // TaskbarManager#onNavigationBarLumaSamplingEnabled()
     public int mLumaSamplingDisplayId = DEFAULT_DISPLAY;
     public boolean mIsLumaSamplingEnabled = true;
 
     public boolean setupUIVisible = false;
+
+    public boolean wallpaperVisible = false;
 
     public boolean allAppsVisible = false;
 
@@ -97,5 +102,8 @@ public class TaskbarSharedState {
 
     // To track if taskbar was stashed / unstashed between configuration changes (which recreates
     // the task bar).
-    public Boolean taskbarWasStashedAuto = true;
+    public boolean taskbarWasStashedAuto = true;
+
+    // should show corner radius on persistent taskbar when in desktop mode.
+    public boolean showCornerRadiusInDesktopMode = false;
 }

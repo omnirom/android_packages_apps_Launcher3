@@ -42,6 +42,7 @@ import com.android.launcher3.statehandlers.DesktopVisibilityController;
 import com.android.launcher3.statemanager.BaseState;
 import com.android.launcher3.taskbar.TaskbarUIController;
 import com.android.launcher3.util.DisplayController;
+import com.android.launcher3.util.WindowBounds;
 import com.android.launcher3.views.ScrimView;
 import com.android.quickstep.orientation.RecentsPagedOrientationHandler;
 import com.android.quickstep.util.ActivityInitListener;
@@ -51,6 +52,7 @@ import com.android.quickstep.views.RecentsViewContainer;
 import com.android.systemui.shared.recents.model.ThumbnailData;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
@@ -66,16 +68,11 @@ public abstract class BaseContainerInterface<STATE_TYPE extends BaseState<STATE_
 
     public abstract void onAssistantVisibilityChanged(float assistantVisibility);
 
-    public abstract boolean allowMinimizeSplitScreen();
-
     public abstract boolean isResumed();
 
     public abstract boolean isStarted();
     public abstract boolean deferStartingActivity(RecentsAnimationDeviceState deviceState,
             MotionEvent ev);
-
-    /** @return whether to allow going to All Apps from Overview. */
-    public abstract boolean allowAllAppsFromOverview();
 
     /**
      * Returns the color of the scrim behind overview when at rest in this state.
@@ -131,7 +128,9 @@ public abstract class BaseContainerInterface<STATE_TYPE extends BaseState<STATE_
 
     @Nullable
     public DesktopVisibilityController getDesktopVisibilityController() {
-        return null;
+        CONTAINER_TYPE container = getCreatedContainer();
+
+        return container == null ? null : container.getDesktopVisibilityController();
     }
 
     /**
@@ -269,8 +268,11 @@ public abstract class BaseContainerInterface<STATE_TYPE extends BaseState<STATE_
         } else {
             Rect portraitInsets = dp.getInsets();
             DisplayController displayController = DisplayController.INSTANCE.get(context);
-            Rect deviceRotationInsets = displayController.getInfo().getCurrentBounds().get(
-                    orientationHandler.getRotation()).insets;
+            @Nullable List<WindowBounds> windowBounds =
+                    displayController.getInfo().getCurrentBounds();
+            Rect deviceRotationInsets = windowBounds != null
+                    ? windowBounds.get(orientationHandler.getRotation()).insets
+                    : new Rect();
             // Obtain the landscape/seascape insets, and rotate it to portrait perspective.
             orientationHandler.rotateInsets(deviceRotationInsets, outRect);
             // Then combine with portrait's insets to leave space for status bar/nav bar in

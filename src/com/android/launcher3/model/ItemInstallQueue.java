@@ -192,22 +192,18 @@ public class ItemInstallQueue implements SafeCloseable {
     }
 
     private void queuePendingShortcutInfo(PendingInstallShortcutInfo info) {
-        final Exception stackTrace = new Exception();
 
         // Queue the item up for adding if launcher has not loaded properly yet
         MODEL_EXECUTOR.post(() -> {
             Pair<ItemInfo, Object> itemInfo = info.getItemInfo(mContext);
             if (itemInfo == null) {
                 FileLog.d(LOG,
-                        "Adding PendingInstallShortcutInfo with no attached info to queue.",
-                        stackTrace);
+                        "Adding PendingInstallShortcutInfo with no attached info to queue.");
             } else {
                 FileLog.d(LOG,
-                        "Adding PendingInstallShortcutInfo to queue. Attached info: "
-                                + itemInfo.first,
-                        stackTrace);
+                        "Adding PendingInstallShortcutInfo to queue."
+                                + " Attached info: " + itemInfo.first);
             }
-
             addToQueue(info);
         });
         flushInstallQueue();

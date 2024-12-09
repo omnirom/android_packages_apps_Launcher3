@@ -32,6 +32,7 @@ import com.android.launcher3.model.BgDataModel;
 import com.android.launcher3.model.data.AppInfo;
 import com.android.launcher3.pm.UserCache;
 import com.android.launcher3.popup.PopupDataProvider;
+import com.android.launcher3.widget.picker.model.WidgetPickerDataProvider;
 
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
@@ -57,6 +58,8 @@ public class TestSandboxModelContextWrapper extends ActivityContextWrapper imple
     protected ActivityAllAppsContainerView<ActivityContextWrapper> mAppsView;
 
     private final PopupDataProvider mPopupDataProvider = new PopupDataProvider(i -> {});
+    private final WidgetPickerDataProvider mWidgetPickerDataProvider =
+            new WidgetPickerDataProvider();
     protected final UserCache mUserCache;
 
     public TestSandboxModelContextWrapper(SandboxContext base) {
@@ -76,10 +79,17 @@ public class TestSandboxModelContextWrapper extends ActivityContextWrapper imple
         mAppsList = mAppsView.getPersonalAppList();
         mAllAppsStore = mAppsView.getAppsStore();
     }
+
     @Nullable
     @Override
     public PopupDataProvider getPopupDataProvider() {
         return mPopupDataProvider;
+    }
+
+    @Nullable
+    @Override
+    public WidgetPickerDataProvider getWidgetPickerDataProvider() {
+        return mWidgetPickerDataProvider;
     }
 
     @Override

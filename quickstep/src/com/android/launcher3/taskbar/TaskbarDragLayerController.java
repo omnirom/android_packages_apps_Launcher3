@@ -171,6 +171,10 @@ public class TaskbarDragLayerController implements TaskbarControllers.LoggableTa
     }
 
     private void updateBackgroundAlpha() {
+        if (mActivity.isPhoneMode()) {
+            return;
+        }
+
         final float bgNavbar = mBgNavbar.value;
         final float bgTaskbar = mBgTaskbar.value * mKeyguardBgTaskbar.value
                 * mNotificationShadeBgTaskbar.value * mImeBgTaskbar.value
@@ -291,7 +295,7 @@ public class TaskbarDragLayerController implements TaskbarControllers.LoggableTa
             if (mActivity.isPhoneMode()) {
                 Resources resources = mActivity.getResources();
                 Point taskbarDimensions = DimensionUtils.getTaskbarPhoneDimensions(deviceProfile,
-                        resources, true /* isPhoneMode */);
+                        resources, true /* isPhoneMode */, mActivity.isGestureNav());
                 return taskbarDimensions.y == -1 ?
                         deviceProfile.getDisplayInfo().currentSize.y :
                         taskbarDimensions.y;

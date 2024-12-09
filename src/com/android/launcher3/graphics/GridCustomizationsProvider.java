@@ -16,11 +16,13 @@
 package com.android.launcher3.graphics;
 
 import static com.android.launcher3.LauncherPrefs.THEMED_ICONS;
+import static com.android.launcher3.util.Executors.MAIN_EXECUTOR;
 import static com.android.launcher3.util.Executors.UI_HELPER_EXECUTOR;
 import static com.android.launcher3.util.Themes.isThemedIconEnabled;
 
 import android.content.ContentProvider;
 import android.content.ContentValues;
+import android.content.Context;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.database.MatrixCursor;
@@ -28,18 +30,27 @@ import android.net.Uri;
 import android.os.Binder;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.IBinder;
 import android.os.IBinder.DeathRecipient;
 import android.os.Message;
 import android.os.Messenger;
-import android.util.ArrayMap;
+import android.text.TextUtils;
 import android.util.Log;
-import android.util.Pair;
 
 import com.android.launcher3.InvariantDeviceProfile;
 import com.android.launcher3.InvariantDeviceProfile.GridOption;
+import com.android.launcher3.LauncherAppState;
+import com.android.launcher3.LauncherModel;
 import com.android.launcher3.LauncherPrefs;
+import com.android.launcher3.model.BgDataModel;
 import com.android.launcher3.util.Executors;
+import com.android.launcher3.util.Preconditions;
+import com.android.launcher3.util.RunnableList;
+import com.android.systemui.shared.Flags;
+
+import java.util.Collections;
+import java.util.Set;
+import java.util.WeakHashMap;
+import java.util.concurrent.ExecutionException;
 
 /**
  * Exposes various launcher grid options and allows the caller to change them.
@@ -80,14 +91,14 @@ public class GridCustomizationsProvider extends ContentProvider {
     private static final String KEY_SURFACE_PACKAGE = "surface_package";
     private static final String KEY_CALLBACK = "callback";
     public static final String KEY_HIDE_BOTTOM_ROW = "hide_bottom_row";
+    public static final String KEY_GRID_NAME = "grid_name";
 
     private static final int MESSAGE_ID_UPDATE_PREVIEW = 1337;
+    private static final int MESSAGE_ID_UPDATE_GRID = 7414;
 
-    /**
-     * Here we use the IBinder and the screen ID as the key of the active previews.
-     */
-    private final ArrayMap<Pair<IBinder, Integer>, PreviewLifecycleObserver> mActivePreviews =
-            new ArrayMap<>();
+    // Set of all active previews used to track duplicate memory allocations
+    private final Set<PreviewLifecycleObserver> mActivePreviews =
+            Collections.newSetFromMap(new WeakHashMap<>());
 
     @Override
     public boolean onCreate() {
@@ -141,14 +152,20 @@ public class GridCustomizationsProvider extends ContentProvider {
 
     @Override
     public int update(Uri uri, ContentValues values, String selection, String[] selectionArgs) {
-        switch (uri.getPath()) {
+        String path = uri.getPath();
+        Context context = getContext();
+        if (path == null || context == null) {
+            return 0;
+        }
+        switch (path) {
             case KEY_DEFAULT_GRID: {
                 String gridName = values.getAsString(KEY_NAME);
-                InvariantDeviceProfile idp = InvariantDeviceProfile.INSTANCE.get(getContext());
+                InvariantDeviceProfile idp = InvariantDeviceProfile.INSTANCE.get(context);
                 // Verify that this is a valid grid option
                 GridOption match = null;
-                for (GridOption option : idp.parseAllGridOptions(getContext())) {
-                    if (option.name.equals(gridName)) {
+                for (GridOption option : idp.parseAllGridOptions(context)) {
+                    String name = option.name;
+                    if (name != null && name.equals(gridName)) {
                         match = option;
                         break;
                     }
@@ -157,20 +174,45 @@ public class GridCustomizationsProvider extends ContentProvider {
                     return 0;
                 }
 
-                idp.setCurrentGrid(getContext(), gridName);
-                getContext().getContentResolver().notifyChange(uri, null);
+                idp.setCurrentGrid(context, gridName);
+                if (Flags.newCustomizationPickerUi()) {
+                    try {
+                        // Wait for device profile to be fully reloaded and applied to the launcher
+                        loadModelSync(context);
+                    } catch (ExecutionException | InterruptedException e) {
+                        Log.e(TAG, "Fail to load model", e);
+                    }
+                }
+                context.getContentResolver().notifyChange(uri, null);
                 return 1;
             }
             case ICON_THEMED:
             case SET_ICON_THEMED: {
-                LauncherPrefs.get(getContext())
+                LauncherPrefs.get(context)
                         .put(THEMED_ICONS, values.getAsBoolean(BOOLEAN_VALUE));
-                getContext().getContentResolver().notifyChange(uri, null);
+                context.getContentResolver().notifyChange(uri, null);
                 return 1;
             }
             default:
                 return 0;
         }
+    }
+
+    /**
+     * Loads the model in memory synchronously
+     */
+    private void loadModelSync(Context context) throws ExecutionException, InterruptedException {
+        Preconditions.assertNonUiThread();
+        BgDataModel.Callbacks emptyCallbacks = new BgDataModel.Callbacks() { };
+        LauncherModel launcherModel = LauncherAppState.getInstance(context).getModel();
+        MAIN_EXECUTOR.submit(
+                () -> launcherModel.addCallbacksAndLoad(emptyCallbacks)
+        ).get();
+
+        Executors.MODEL_EXECUTOR.submit(() -> { }).get();
+        MAIN_EXECUTOR.submit(
+                () -> launcherModel.removeCallbacks(emptyCallbacks)
+        ).get();
     }
 
     @Override
@@ -188,16 +230,19 @@ public class GridCustomizationsProvider extends ContentProvider {
     }
 
     private synchronized Bundle getPreview(Bundle request) {
-        PreviewLifecycleObserver observer = null;
+        RunnableList lifeCycleTracker = new RunnableList();
         try {
-            PreviewSurfaceRenderer renderer = new PreviewSurfaceRenderer(getContext(), request);
+            PreviewSurfaceRenderer renderer = new PreviewSurfaceRenderer(
+                    getContext(), lifeCycleTracker, request);
+            PreviewLifecycleObserver observer =
+                    new PreviewLifecycleObserver(lifeCycleTracker, renderer);
 
-            observer = new PreviewLifecycleObserver(renderer);
-            // Destroy previous
-            destroyObserver(mActivePreviews.get(observer.getIdentifier()));
-            mActivePreviews.put(observer.getIdentifier(), observer);
+            // Destroy previous renderers to avoid any duplicate memory
+            mActivePreviews.stream().filter(observer::isSameRenderer).forEach(o ->
+                    MAIN_EXECUTOR.execute(o.lifeCycleTracker::executeAllAndDestroy));
 
             renderer.loadAsync();
+            lifeCycleTracker.add(() -> renderer.getHostToken().unlinkToDeath(observer, 0));
             renderer.getHostToken().linkToDeath(observer, 0);
 
             Bundle result = new Bundle();
@@ -211,33 +256,21 @@ public class GridCustomizationsProvider extends ContentProvider {
             return result;
         } catch (Exception e) {
             Log.e(TAG, "Unable to generate preview", e);
-            if (observer != null) {
-                destroyObserver(observer);
-            }
+            MAIN_EXECUTOR.execute(lifeCycleTracker::executeAllAndDestroy);
             return null;
         }
     }
 
-    private synchronized void destroyObserver(PreviewLifecycleObserver observer) {
-        if (observer == null || observer.destroyed) {
-            return;
-        }
-        observer.destroyed = true;
-        observer.renderer.getHostToken().unlinkToDeath(observer, 0);
-        Executors.MAIN_EXECUTOR.execute(observer.renderer::destroy);
-        PreviewLifecycleObserver cached = mActivePreviews.get(observer.getIdentifier());
-        if (cached == observer) {
-            mActivePreviews.remove(observer.getIdentifier());
-        }
-    }
+    private static class PreviewLifecycleObserver implements Handler.Callback, DeathRecipient {
 
-    private class PreviewLifecycleObserver implements Handler.Callback, DeathRecipient {
-
+        public final RunnableList lifeCycleTracker;
         public final PreviewSurfaceRenderer renderer;
         public boolean destroyed = false;
 
-        PreviewLifecycleObserver(PreviewSurfaceRenderer renderer) {
+        PreviewLifecycleObserver(RunnableList lifeCycleTracker, PreviewSurfaceRenderer renderer) {
+            this.lifeCycleTracker = lifeCycleTracker;
             this.renderer = renderer;
+            lifeCycleTracker.add(() -> destroyed = true);
         }
 
         @Override
@@ -245,26 +278,39 @@ public class GridCustomizationsProvider extends ContentProvider {
             if (destroyed) {
                 return true;
             }
-            if (message.what == MESSAGE_ID_UPDATE_PREVIEW) {
-                renderer.hideBottomRow(message.getData().getBoolean(KEY_HIDE_BOTTOM_ROW));
-            } else {
-                destroyObserver(this);
+
+            switch (message.what) {
+                case MESSAGE_ID_UPDATE_PREVIEW:
+                    renderer.hideBottomRow(message.getData().getBoolean(KEY_HIDE_BOTTOM_ROW));
+                    break;
+                case MESSAGE_ID_UPDATE_GRID:
+                    String gridName = message.getData().getString(KEY_GRID_NAME);
+                    if (!TextUtils.isEmpty(gridName)) {
+                        renderer.updateGrid(gridName);
+                    }
+                    break;
+                default:
+                    // Unknown command, destroy lifecycle
+                    Log.d(TAG, "Unknown preview command: " + message.what + ", destroying preview");
+                    MAIN_EXECUTOR.execute(lifeCycleTracker::executeAllAndDestroy);
+                    break;
             }
+
             return true;
         }
 
         @Override
         public void binderDied() {
-            destroyObserver(this);
+            MAIN_EXECUTOR.execute(lifeCycleTracker::executeAllAndDestroy);
         }
 
         /**
-         * Returns a key that should make the PreviewSurfaceRenderer unique and if two of them have
-         * the same key they will be treated as the same PreviewSurfaceRenderer. Primary this is
-         * used to prevent memory leaks by removing the old PreviewSurfaceRenderer.
+         * Two renderers are considered same if they have the same host token and display Id
          */
-        public Pair<IBinder, Integer> getIdentifier() {
-            return new Pair<>(renderer.getHostToken(), renderer.getDisplayId());
+        public boolean isSameRenderer(PreviewLifecycleObserver plo) {
+            return plo != null
+                    && plo.renderer.getHostToken().equals(renderer.getHostToken())
+                    && plo.renderer.getDisplayId() == renderer.getDisplayId();
         }
     }
 }

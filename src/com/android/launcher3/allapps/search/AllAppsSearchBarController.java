@@ -22,8 +22,6 @@ import android.text.TextWatcher;
 import android.text.style.SuggestionSpan;
 import android.util.Log;
 import android.view.KeyEvent;
-import android.view.View;
-import android.view.View.OnFocusChangeListener;
 import android.view.inputmethod.EditorInfo;
 import android.widget.TextView;
 import android.widget.TextView.OnEditorActionListener;
@@ -31,7 +29,6 @@ import android.widget.TextView.OnEditorActionListener;
 import com.android.launcher3.ExtendedEditText;
 import com.android.launcher3.Utilities;
 import com.android.launcher3.allapps.BaseAllAppsAdapter.AdapterItem;
-import com.android.launcher3.config.FeatureFlags;
 import com.android.launcher3.search.SearchAlgorithm;
 import com.android.launcher3.search.SearchCallback;
 import com.android.launcher3.views.ActivityContext;
@@ -40,8 +37,7 @@ import com.android.launcher3.views.ActivityContext;
  * An interface to a search box that AllApps can command.
  */
 public class AllAppsSearchBarController
-        implements TextWatcher, OnEditorActionListener, ExtendedEditText.OnBackKeyListener,
-        OnFocusChangeListener {
+        implements TextWatcher, OnEditorActionListener, ExtendedEditText.OnBackKeyListener {
 
     private static final String TAG = "AllAppsSearchBarController";
     protected ActivityContext mLauncher;
@@ -69,7 +65,6 @@ public class AllAppsSearchBarController
         mInput.addTextChangedListener(this);
         mInput.setOnEditorActionListener(this);
         mInput.setOnBackKeyListener(this);
-        mInput.addOnFocusChangeListener(this);
         mSearchAlgorithm = searchAlgorithm;
     }
 
@@ -142,13 +137,6 @@ public class AllAppsSearchBarController
         return false;
     }
 
-    @Override
-    public void onFocusChange(View view, boolean hasFocus) {
-        if (!hasFocus && !FeatureFlags.ENABLE_DEVICE_SEARCH.get()) {
-            mInput.hideKeyboard();
-        }
-    }
-
     /**
      * Resets the search bar state.
      */
@@ -157,7 +145,6 @@ public class AllAppsSearchBarController
         mInput.reset();
         mInput.clearFocus();
         mQuery = null;
-        mInput.removeOnFocusChangeListener(this);
     }
 
     /**

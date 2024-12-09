@@ -139,4 +139,19 @@ constructor(context: Context, attrs: AttributeSet? = null) :
         super.dispatchDraw(canvas)
         drawable.draw(canvas)
     }
+
+    /**
+     * Sets the scale of the icon background while hovered.
+     */
+    fun setHoverScale(scale: Float) {
+        drawParams.hoverScale = scale
+        redraw()
+    }
+
+    /**
+     * Gets the scale of the icon background while hovered.
+     */
+    fun getHoverScale(): Float {
+        return drawParams.hoverScale
+    }
 }

@@ -16,7 +16,7 @@
 
 package com.android.launcher3.widget.picker;
 
-import static com.android.launcher3.widget.util.WidgetsTableUtils.groupWidgetItemsUsingRowPxWithoutReordering;
+import static com.android.launcher3.widget.util.WidgetsTableUtils.groupWidgetItemsUsingRowPxWithReordering;
 
 import android.content.ComponentName;
 import android.content.Context;
@@ -38,6 +38,7 @@ import com.android.launcher3.model.WidgetItem;
 import com.android.launcher3.pageindicators.PageIndicatorDots;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -57,6 +58,12 @@ public final class WidgetRecommendationsView extends PagedView<PageIndicatorDots
     private static final String INITIALLY_DISPLAYED_WIDGETS_STATE_KEY =
             "widgetRecommendationsView:mDisplayedWidgets";
     private static final int MAX_CATEGORIES = 3;
+
+    // Whether to show all widgets in a full page without any limitation on height
+    private boolean mShowFullPageViewIfLowDensity = false;
+    // Number of items below which a category is considered low density.
+    private static final int IDEAL_ITEMS_PER_CATEGORY = 2;
+
     private TextView mRecommendationPageTitle;
     private final List<String> mCategoryTitles = new ArrayList<>();
 
@@ -85,6 +92,14 @@ public final class WidgetRecommendationsView extends PagedView<PageIndicatorDots
     public void initParentViews(View parent) {
         super.initParentViews(parent);
         mRecommendationPageTitle = parent.findViewById(R.id.recommendations_page_title);
+    }
+
+    /**
+     * When there are less than 3 categories or when at least one category has less than 2 widgets,
+     * all widgets will be shown in a single page without being limited by the available height.
+     */
+    public void enableFullPageViewIfLowDensity() {
+        mShowFullPageViewIfLowDensity = true;
     }
 
     /**
@@ -170,6 +185,22 @@ public final class WidgetRecommendationsView extends PagedView<PageIndicatorDots
         return displayedWidgets.size();
     }
 
+    private boolean shouldShowFullPageView(
+            Map<WidgetRecommendationCategory, List<WidgetItem>> recommendations) {
+        if (mShowFullPageViewIfLowDensity) {
+            boolean hasLessCategories = recommendations.size() < MAX_CATEGORIES;
+            long lowDensityCategoriesCount = recommendations.values()
+                    .stream()
+                    .limit(MAX_CATEGORIES)
+                    .filter(items -> items.size() < IDEAL_ITEMS_PER_CATEGORY).count();
+
+            // If there less number of categories or if there are at least 2 categorizes with less
+            // widgets, prefer showing single page view.
+            return hasLessCategories || lowDensityCategoriesCount > 1;
+        }
+        return false;
+    }
+
     /**
      * Displays the recommendations grouped by categories as pages.
      * <p>In case of a single category, no title is displayed for it.</p>
@@ -188,6 +219,14 @@ public final class WidgetRecommendationsView extends PagedView<PageIndicatorDots
             Map<WidgetRecommendationCategory, List<WidgetItem>> recommendations,
             DeviceProfile deviceProfile, final @Px float availableHeight,
             final @Px int availableWidth, final @Px int cellPadding, final int requestedPage) {
+        if (shouldShowFullPageView(recommendations)) {
+            // Show all widgets in single page with unlimited available height.
+            return setRecommendations(
+                    recommendations.values().stream().flatMap(Collection::stream).toList(),
+                    deviceProfile, /*availableHeight=*/ Float.MAX_VALUE, availableWidth,
+                    cellPadding);
+
+        }
         this.mAvailableHeight = availableHeight;
         this.mAvailableWidth = availableWidth;
         Context context = getContext();
@@ -325,7 +364,7 @@ public final class WidgetRecommendationsView extends PagedView<PageIndicatorDots
 
         // Since we are limited by space, we don't sort recommendations - to show most relevant
         // (if possible).
-        List<ArrayList<WidgetItem>> rows = groupWidgetItemsUsingRowPxWithoutReordering(
+        List<ArrayList<WidgetItem>> rows = groupWidgetItemsUsingRowPxWithReordering(
                 filteredRecommendedWidgets,
                 context,
                 deviceProfile,

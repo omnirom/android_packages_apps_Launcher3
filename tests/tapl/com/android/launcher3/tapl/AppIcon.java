@@ -18,6 +18,7 @@ package com.android.launcher3.tapl;
 
 import static com.android.launcher3.testing.shared.TestProtocol.TEST_DRAG_APP_ICON_TO_MULTIPLE_WORKSPACES_FAILURE;
 
+import android.graphics.Point;
 import android.util.Log;
 import android.widget.TextView;
 
@@ -126,6 +127,14 @@ public abstract class AppIcon extends Launchable {
     @NonNull
     String getAppName() {
         return getObject().getContentDescription();
+    }
+
+    /**
+     * @return the center coordinates of the icon
+     */
+    @NonNull
+    public Point getVisibleCenter() {
+        return getObject().getVisibleCenter();
     }
 
     /**

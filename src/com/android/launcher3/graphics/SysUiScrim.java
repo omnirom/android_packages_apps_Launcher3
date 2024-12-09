@@ -18,8 +18,6 @@ package com.android.launcher3.graphics;
 import static android.graphics.Paint.DITHER_FLAG;
 import static android.graphics.Paint.FILTER_BITMAP_FLAG;
 
-import static com.android.launcher3.config.FeatureFlags.KEYGUARD_ANIMATION;
-
 import android.animation.ObjectAnimator;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
@@ -111,7 +109,7 @@ public class SysUiScrim implements View.OnAttachStateChangeListener {
                 new int[]{0x00FFFFFF, 0x2FFFFFFF},
                 new float[]{0f, 1f});
 
-        if (!KEYGUARD_ANIMATION.get() && !mHideSysUiScrim) {
+        if (!mHideSysUiScrim) {
             view.addOnAttachStateChangeListener(this);
         }
     }

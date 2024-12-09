@@ -32,14 +32,15 @@ import com.android.launcher3.util.SplitConfigurationOptions
 import com.android.launcher3.util.TransformingTouchDelegate
 import com.android.quickstep.TaskOverlayFactory.TaskOverlay
 import com.android.quickstep.views.LauncherRecentsView
+import com.android.quickstep.views.TaskContainer
 import com.android.quickstep.views.TaskThumbnailViewDeprecated
 import com.android.quickstep.views.TaskView
 import com.android.quickstep.views.TaskViewIcon
 import com.android.systemui.shared.recents.model.Task
 import com.android.systemui.shared.recents.model.Task.TaskKey
 import com.android.window.flags.Flags
-import com.android.wm.shell.common.desktopmode.DesktopModeTransitionSource
-import com.android.wm.shell.shared.DesktopModeStatus
+import com.android.wm.shell.shared.desktopmode.DesktopModeStatus
+import com.android.wm.shell.shared.desktopmode.DesktopModeTransitionSource
 import com.google.common.truth.Truth.assertThat
 import org.junit.After
 import org.junit.Before
@@ -186,10 +187,10 @@ class DesktopSystemShortcutTest {
         }
     }
 
-    private fun createTaskContainer(task: Task): TaskView.TaskContainer {
-        return taskView.TaskContainer(
+    private fun createTaskContainer(task: Task): TaskContainer {
+        return TaskContainer(
+            taskView,
             task,
-            thumbnailView = null,
             thumbnailViewDeprecated,
             iconView,
             transformingTouchDelegate,

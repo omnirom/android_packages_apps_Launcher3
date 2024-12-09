@@ -19,10 +19,15 @@ import static android.content.Intent.ACTION_SCREEN_OFF;
 import static android.content.Intent.ACTION_SCREEN_ON;
 import static android.content.Intent.ACTION_USER_PRESENT;
 
+import static com.android.launcher3.util.Executors.UI_HELPER_EXECUTOR;
+
 import android.content.Context;
 import android.content.Intent;
 
+import androidx.annotation.VisibleForTesting;
+
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.function.Consumer;
 
 /**
  * Utility class for tracking if the screen is currently on or off
@@ -32,7 +37,7 @@ public class ScreenOnTracker implements SafeCloseable {
     public static final MainThreadInitializedObject<ScreenOnTracker> INSTANCE =
             new MainThreadInitializedObject<>(ScreenOnTracker::new);
 
-    private final SimpleBroadcastReceiver mReceiver = new SimpleBroadcastReceiver(this::onReceive);
+    private final SimpleBroadcastReceiver mReceiver;
     private final CopyOnWriteArrayList<ScreenOnListener> mListeners = new CopyOnWriteArrayList<>();
 
     private final Context mContext;
@@ -41,8 +46,20 @@ public class ScreenOnTracker implements SafeCloseable {
     private ScreenOnTracker(Context context) {
         // Assume that the screen is on to begin with
         mContext = context;
+        mReceiver = new SimpleBroadcastReceiver(UI_HELPER_EXECUTOR, this::onReceive);
+        init();
+    }
+
+    @VisibleForTesting
+    ScreenOnTracker(Context context, SimpleBroadcastReceiver receiver) {
+        mContext = context;
+        mReceiver = receiver;
+        init();
+    }
+
+    private void init() {
         mIsScreenOn = true;
-        mReceiver.register(context, ACTION_SCREEN_ON, ACTION_SCREEN_OFF, ACTION_USER_PRESENT);
+        mReceiver.register(mContext, ACTION_SCREEN_ON, ACTION_SCREEN_OFF, ACTION_USER_PRESENT);
     }
 
     @Override
@@ -50,7 +67,8 @@ public class ScreenOnTracker implements SafeCloseable {
         mReceiver.unregisterReceiverSafely(mContext);
     }
 
-    private void onReceive(Intent intent) {
+    @VisibleForTesting
+    void onReceive(Intent intent) {
         String action = intent.getAction();
         if (ACTION_SCREEN_ON.equals(action)) {
             mIsScreenOn = true;

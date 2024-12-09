@@ -60,7 +60,8 @@ class ScalingWorkspaceRevealAnim(
          * Custom interpolator for both the home and wallpaper scaling. Necessary because EMPHASIZED
          * is too aggressive, but EMPHASIZED_DECELERATE is too soft.
          */
-        private val SCALE_INTERPOLATOR =
+        @JvmField
+        val SCALE_INTERPOLATOR =
             PathInterpolator(
                 Path().apply {
                     moveTo(0f, 0f)

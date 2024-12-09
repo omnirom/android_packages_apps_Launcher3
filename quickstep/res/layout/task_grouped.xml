@@ -24,18 +24,18 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:androidprv="http://schemas.android.com/apk/prv/res/android"
     xmlns:launcher="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/task"
+    android:id="@+id/task_view_grouped"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:clipChildren="false"
     android:defaultFocusHighlightEnabled="false"
     android:focusable="true"
-    launcher:focusBorderColor="?androidprv:attr/materialColorOutline"
-    launcher:hoverBorderColor="?androidprv:attr/materialColorPrimary">
+    launcher:focusBorderColor="?attr/materialColorOutline"
+    launcher:hoverBorderColor="?attr/materialColorPrimary">
 
-    <include layout="@layout/task_thumbnail"/>
+    <include layout="@layout/task_thumbnail_deprecated"/>
 
-    <include layout="@layout/task_thumbnail"
+    <include layout="@layout/task_thumbnail_deprecated"
         android:id="@+id/bottomright_snapshot" />
 
     <!-- Filtering affects only alpha instead of the visibility since visibility can be altered
@@ -73,4 +73,10 @@
         android:inflatedId="@id/bottomRight_icon"
         android:layout_height="wrap_content"
         android:layout_width="wrap_content" />
+
+    <include layout="@layout/digital_wellbeing_toast"
+        android:id="@+id/digital_wellbeing_toast"/>
+
+    <include layout="@layout/digital_wellbeing_toast"
+        android:id="@+id/bottomRight_digital_wellbeing_toast"/>
 </com.android.quickstep.views.GroupedTaskView>

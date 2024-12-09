@@ -184,7 +184,8 @@ interface RecentsPagedOrientationHandler : PagedOrientationHandler {
         parentHeight: Int,
         splitBoundsConfig: SplitConfigurationOptions.SplitBounds,
         dp: DeviceProfile,
-        isRtl: Boolean
+        isRtl: Boolean,
+        inSplitSelection: Boolean
     )
 
     /**
@@ -199,6 +200,7 @@ interface RecentsPagedOrientationHandler : PagedOrientationHandler {
         parentWidth: Int,
         parentHeight: Int
     ): Pair<Point, Point>
+
     // Overview TaskMenuView methods
     /** Sets layout params on a task's app icon. Only use this when app chip is disabled. */
     fun setTaskIconParams(
@@ -234,7 +236,8 @@ interface RecentsPagedOrientationHandler : PagedOrientationHandler {
         groupedTaskViewWidth: Int,
         isRtl: Boolean,
         deviceProfile: DeviceProfile,
-        splitConfig: SplitConfigurationOptions.SplitBounds
+        splitConfig: SplitConfigurationOptions.SplitBounds,
+        inSplitSelection: Boolean
     )
 
     /*
@@ -294,13 +297,24 @@ interface RecentsPagedOrientationHandler : PagedOrientationHandler {
         deviceProfile: DeviceProfile
     )
 
+    /** Layout a Digital Wellbeing Banner on its parent. TaskView. */
+    fun updateDwbBannerLayout(
+        taskViewWidth: Int,
+        taskViewHeight: Int,
+        isGroupedTaskView: Boolean,
+        deviceProfile: DeviceProfile,
+        snapshotViewWidth: Int,
+        snapshotViewHeight: Int,
+        banner: View
+    )
+
     /**
-     * Calculates the position where a Digital Wellbeing Banner should be placed on its parent
+     * Calculates the translations where a Digital Wellbeing Banner should be apply on its parent
      * TaskView.
      *
      * @return A Pair of Floats representing the proper x and y translations.
      */
-    fun getDwbLayoutTranslations(
+    fun getDwbBannerTranslations(
         taskViewWidth: Int,
         taskViewHeight: Int,
         splitBounds: SplitConfigurationOptions.SplitBounds?,
@@ -309,6 +323,7 @@ interface RecentsPagedOrientationHandler : PagedOrientationHandler {
         desiredTaskId: Int,
         banner: View
     ): Pair<Float, Float>
+
     // The following are only used by TaskViewTouchHandler.
 
     /** @return Either VERTICAL or HORIZONTAL. */

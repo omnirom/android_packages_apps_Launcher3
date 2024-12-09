@@ -64,6 +64,7 @@ public class TaskbarControllers {
     public final KeyboardQuickSwitchController keyboardQuickSwitchController;
     public final TaskbarPinningController taskbarPinningController;
     public final Optional<BubbleControllers> bubbleControllers;
+    public final TaskbarDesktopModeController taskbarDesktopModeController;
 
     @Nullable private LoggableTaskbarController[] mControllersToLog = null;
     @Nullable private BackgroundRendererController[] mBackgroundRendererControllers = null;
@@ -111,7 +112,8 @@ public class TaskbarControllers {
             TaskbarEduTooltipController taskbarEduTooltipController,
             KeyboardQuickSwitchController keyboardQuickSwitchController,
             TaskbarPinningController taskbarPinningController,
-            Optional<BubbleControllers> bubbleControllers) {
+            Optional<BubbleControllers> bubbleControllers,
+            TaskbarDesktopModeController taskbarDesktopModeController) {
         this.taskbarActivityContext = taskbarActivityContext;
         this.taskbarDragController = taskbarDragController;
         this.navButtonController = navButtonController;
@@ -138,6 +140,7 @@ public class TaskbarControllers {
         this.keyboardQuickSwitchController = keyboardQuickSwitchController;
         this.taskbarPinningController = taskbarPinningController;
         this.bubbleControllers = bubbleControllers;
+        this.taskbarDesktopModeController = taskbarDesktopModeController;
     }
 
     /**
@@ -165,6 +168,7 @@ public class TaskbarControllers {
         taskbarOverlayController.init(this);
         taskbarAllAppsController.init(this, sharedState.allAppsVisible);
         navButtonController.init(this);
+        bubbleControllers.ifPresent(controllers -> controllers.init(this));
         taskbarInsetsController.init(this);
         voiceInteractionWindowController.init(this);
         taskbarRecentAppsController.init(this);
@@ -172,7 +176,7 @@ public class TaskbarControllers {
         taskbarEduTooltipController.init(this);
         keyboardQuickSwitchController.init(this);
         taskbarPinningController.init(this, mSharedState);
-        bubbleControllers.ifPresent(controllers -> controllers.init(this));
+        taskbarDesktopModeController.init(this, mSharedState);
 
         mControllersToLog = new LoggableTaskbarController[] {
                 taskbarDragController, navButtonController, navbarButtonsViewController,
@@ -188,8 +192,18 @@ public class TaskbarControllers {
                 taskbarDragLayerController, taskbarScrimViewController,
                 voiceInteractionWindowController
         };
-        mCornerRoundness.updateValue(TaskbarBackgroundRenderer.DEFAULT_ROUNDNESS);
 
+        if (taskbarDesktopModeController.getAreDesktopTasksVisible()) {
+            mCornerRoundness.updateValue(taskbarDesktopModeController.getTaskbarCornerRoundness(
+                    mSharedState.showCornerRadiusInDesktopMode));
+        } else {
+            mCornerRoundness.updateValue(TaskbarBackgroundRenderer.MAX_ROUNDNESS);
+        }
+        onPostInit();
+    }
+
+    @VisibleForTesting
+    public void onPostInit() {
         mAreAllControllersInitialized = true;
         for (Runnable postInitCallback : mPostInitCallbacks) {
             postInitCallback.run();
@@ -248,6 +262,7 @@ public class TaskbarControllers {
         keyboardQuickSwitchController.onDestroy();
         taskbarStashController.onDestroy();
         bubbleControllers.ifPresent(controllers -> controllers.onDestroy());
+        taskbarDesktopModeController.onDestroy();
 
         mControllersToLog = null;
         mBackgroundRendererControllers = null;
@@ -282,6 +297,11 @@ public class TaskbarControllers {
         }
         uiController.dumpLogs(prefix + "\t", pw);
         rotationButtonController.dumpLogs(prefix + "\t", pw);
+        if (bubbleControllers.isPresent()) {
+            bubbleControllers.get().dump(pw);
+        } else {
+            pw.println(String.format("%s\t%s", prefix, "Bubble controllers are empty."));
+        }
     }
 
     /**

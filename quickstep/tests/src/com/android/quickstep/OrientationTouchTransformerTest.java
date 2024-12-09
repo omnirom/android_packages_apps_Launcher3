@@ -21,6 +21,7 @@ import static androidx.test.core.app.ApplicationProvider.getApplicationContext;
 
 import static com.android.launcher3.util.NavigationMode.NO_BUTTON;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -286,6 +287,34 @@ public class OrientationTouchTransformerTest {
         // bottom of screen, from landscape perspective right side of screen
         MotionEvent inRegion2 = generateAndTransformMotionEvent(MotionEvent.ACTION_DOWN, x1, 370);
         assertTrue(mTouchTransformer.touchInValidSwipeRegions(inRegion2.getX(), inRegion2.getY()));
+    }
+
+    @Test
+    public void testSimpleOrientationTouchTransformer() {
+        final DisplayController displayController = mock(DisplayController.class);
+        doReturn(mInfo).when(displayController).getInfo();
+        final SimpleOrientationTouchTransformer transformer =
+                new SimpleOrientationTouchTransformer(getApplicationContext(), displayController);
+        final MotionEvent move1 = generateMotionEvent(MotionEvent.ACTION_MOVE, 100, 10);
+        transformer.transform(move1, Surface.ROTATION_90);
+        // The position is transformed to 90 degree.
+        assertEquals(10, move1.getX(), 0f /* delta */);
+        assertEquals(NORMAL_SCREEN_SIZE.getWidth() - 100, move1.getY(), 0f /* delta */);
+
+        // If the touching state is specified, the position is still transformed to 90 degree even
+        // if the given rotation is changed.
+        final MotionEvent move2 = generateMotionEvent(MotionEvent.ACTION_MOVE, 100, 10);
+        transformer.updateTouchingOrientation(Surface.ROTATION_90);
+        transformer.transform(move2, Surface.ROTATION_0);
+        assertEquals(move1.getX(), move2.getX(), 0f /* delta */);
+        assertEquals(move1.getY(), move2.getY(), 0f /* delta */);
+
+        // If the touching state is cleared, it restores to use the given rotation.
+        final MotionEvent move3 = generateMotionEvent(MotionEvent.ACTION_MOVE, 100, 10);
+        transformer.clearTouchingOrientation();
+        transformer.transform(move3, Surface.ROTATION_0);
+        assertEquals(100, move3.getX(), 0f /* delta */);
+        assertEquals(10, move3.getY(), 0f /* delta */);
     }
 
     private DisplayController.Info createDisplayInfo(Size screenSize, int rotation) {

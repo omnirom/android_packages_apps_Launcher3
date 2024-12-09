@@ -59,6 +59,7 @@ import com.android.launcher3.util.PackageUserKey;
 import com.android.launcher3.util.Preconditions;
 import com.android.launcher3.util.Themes;
 import com.android.launcher3.views.BaseDragLayer;
+import com.android.launcher3.widget.picker.model.WidgetPickerDataProvider;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -76,6 +77,7 @@ public class SecondaryDisplayLauncher extends BaseDraggingActivity
     private View mAppsButton;
 
     private PopupDataProvider mPopupDataProvider;
+    private WidgetPickerDataProvider mWidgetPickerDataProvider;
 
     private boolean mAppDrawerShown = false;
 
@@ -312,6 +314,11 @@ public class SecondaryDisplayLauncher extends BaseDraggingActivity
 
     public PopupDataProvider getPopupDataProvider() {
         return mPopupDataProvider;
+    }
+
+    @Override
+    public WidgetPickerDataProvider getWidgetPickerDataProvider() {
+        return mWidgetPickerDataProvider;
     }
 
     @Override

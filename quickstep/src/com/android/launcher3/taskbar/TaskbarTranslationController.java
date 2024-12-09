@@ -95,7 +95,8 @@ public class TaskbarTranslationController implements TaskbarControllers.Loggable
         mControllers.taskbarDragLayerController.setTranslationYForSwipe(transY);
         mControllers.bubbleControllers.ifPresent(controllers -> {
             controllers.bubbleBarViewController.setTranslationYForSwipe(transY);
-            controllers.bubbleStashedHandleViewController.setTranslationYForSwipe(transY);
+            controllers.bubbleStashedHandleViewController.ifPresent(
+                    controller -> controller.setTranslationYForSwipe(transY));
         });
     }
 

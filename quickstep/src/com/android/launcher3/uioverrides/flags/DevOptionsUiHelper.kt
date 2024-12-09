@@ -79,6 +79,7 @@ import com.android.launcher3.util.OnboardingPrefs.HOME_BOUNCE_SEEN
 import com.android.launcher3.util.OnboardingPrefs.HOTSEAT_DISCOVERY_TIP_COUNT
 import com.android.launcher3.util.OnboardingPrefs.HOTSEAT_LONGPRESS_TIP_SEEN
 import com.android.launcher3.util.OnboardingPrefs.TASKBAR_EDU_TOOLTIP_STEP
+import com.android.launcher3.util.OnboardingPrefs.TASKBAR_SEARCH_EDU_SEEN
 import com.android.launcher3.util.PluginManagerWrapper
 import com.android.launcher3.util.StartActivityParams
 import com.android.launcher3.util.UserIconInfo
@@ -394,6 +395,7 @@ class DevOptionsUiHelper(c: Context, attr: AttributeSet?) : PreferenceGroup(c, a
                 HOTSEAT_LONGPRESS_TIP_SEEN.sharedPrefKey
             )
             addOnboardPref("Taskbar Education", TASKBAR_EDU_TOOLTIP_STEP.sharedPrefKey)
+            addOnboardPref("Taskbar Search Education", TASKBAR_SEARCH_EDU_SEEN.sharedPrefKey)
             addOnboardPref("All Apps Visited Count", ALL_APPS_VISITED_COUNT.sharedPrefKey)
         }
     }

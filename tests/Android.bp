@@ -71,6 +71,9 @@ filegroup {
 // Library with all the dependencies for building quickstep
 android_library {
     name: "Launcher3TestLib",
+    defaults: [
+        "launcher_compose_tests_defaults",
+    ],
     srcs: [],
     asset_dirs: ["assets"],
     resource_dirs: ["res"],
@@ -112,6 +115,9 @@ android_library {
 
 android_test {
     name: "Launcher3Tests",
+    defaults: [
+        "launcher_compose_tests_defaults",
+    ],
     srcs: [
         ":launcher-tests-src",
         ":launcher-non-quickstep-tests-src",
@@ -121,9 +127,9 @@ android_test {
         "com_android_launcher3_flags_lib",
     ],
     libs: [
-        "android.test.base",
-        "android.test.runner",
-        "android.test.mock",
+        "android.test.base.stubs.system",
+        "android.test.runner.stubs.system",
+        "android.test.mock.stubs.system",
     ],
     // Libraries used by mockito inline extended
     jni_libs: [
@@ -154,7 +160,7 @@ android_library {
 }
 
 filegroup {
-    name: "launcher-testing-helpers",
+    name: "launcher-testing-helpers-robo",
     srcs: [
         "src/**/*.java",
         "src/**/*.kt",
@@ -168,8 +174,17 @@ filegroup {
         // Test classes
         "src/**/*Test.java",
         "src/**/*Test.kt",
+        "src/**/RoboApiWrapper.kt",
         "multivalentTests/src/**/*Test.java",
         "multivalentTests/src/**/*Test.kt",
+    ],
+}
+
+filegroup {
+    name: "launcher-testing-helpers",
+    srcs: [
+        ":launcher-testing-helpers-robo",
+        "src/**/RoboApiWrapper.kt",
     ],
 }
 
@@ -180,7 +195,7 @@ android_robolectric_test {
         ":launcher3-robo-src",
 
         // Test util classes
-        ":launcher-testing-helpers",
+        ":launcher-testing-helpers-robo",
         ":launcher-testing-shared",
     ],
     exclude_srcs: [
@@ -214,9 +229,9 @@ android_robolectric_test {
         "android.appwidget.flags-aconfig-java",
     ],
     libs: [
-        "android.test.runner",
-        "android.test.base",
-        "android.test.mock",
+        "android.test.runner.stubs.system",
+        "android.test.base.stubs.system",
+        "android.test.mock.stubs.system",
         "truth",
     ],
     instrumentation_for: "Launcher3",

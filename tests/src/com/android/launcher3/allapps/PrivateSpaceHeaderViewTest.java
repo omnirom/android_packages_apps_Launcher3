@@ -86,6 +86,8 @@ public class PrivateSpaceHeaderViewTest {
     private static final String CAMERA_PACKAGE_NAME = "com.android.launcher3.tests.camera";
     private static final int CONTAINER_HEADER_ELEMENT_COUNT = 1;
     private static final int LOCK_UNLOCK_BUTTON_COUNT = 1;
+    private static final int MAIN_USER_APP_COUNT = 1;
+    private static final int VIEW_AT_END_OF_APP_LIST = 1;
     private static final int PS_SETTINGS_BUTTON_COUNT_VISIBLE = 1;
     private static final int PS_SETTINGS_BUTTON_COUNT_INVISIBLE = 0;
     private static final int PS_TRANSITION_IMAGE_COUNT = 1;
@@ -116,7 +118,8 @@ public class PrivateSpaceHeaderViewTest {
     @Before
     public void setUp() {
         MockitoAnnotations.initMocks(this);
-        mContext = new ActivityContextWrapper(getApplicationContext());
+        mContext = new ActivityContextWrapper(getApplicationContext(),
+                R.style.DynamicColorsBaseLauncherTheme);
         when(mAllApps.getContext()).thenReturn(mContext);
         when(mUserCache.getUserInfo(PRIVATE_HANDLE)).thenReturn(PRIVATE_ICON_INFO);
         when(mUserCache.getUserProfiles())
@@ -299,8 +302,8 @@ public class PrivateSpaceHeaderViewTest {
         int rows = (int) (ALL_APPS_HEIGHT - PS_HEADER_HEIGHT - HEADER_PROTECTION_HEIGHT);
         int position = rows * NUM_APP_COLS - (NUM_APP_COLS-1) + 1;
 
-        // The number of adapterItems should be the private space apps + one main app + header.
-        assertEquals(NUM_PRIVATE_SPACE_APPS + 1 + 1,
+        assertEquals(NUM_PRIVATE_SPACE_APPS + MAIN_USER_APP_COUNT
+                        + CONTAINER_HEADER_ELEMENT_COUNT + VIEW_AT_END_OF_APP_LIST,
                 mAlphabeticalAppsList.getAdapterItems().size());
         assertEquals(position,
                 privateProfileManager.scrollForHeaderToBeVisibleInContainer(
@@ -334,8 +337,8 @@ public class PrivateSpaceHeaderViewTest {
         int rows = (int) (ALL_APPS_HEIGHT - PS_HEADER_HEIGHT - HEADER_PROTECTION_HEIGHT) - 1;
         int position = rows * NUM_APP_COLS - (NUM_APP_COLS-1) + 1;
 
-        // The number of adapterItems should be the private space apps + one main app + header.
-        assertEquals(NUM_PRIVATE_SPACE_APPS + 1 + 1,
+        assertEquals(NUM_PRIVATE_SPACE_APPS + MAIN_USER_APP_COUNT
+                        + CONTAINER_HEADER_ELEMENT_COUNT + VIEW_AT_END_OF_APP_LIST,
                 mAlphabeticalAppsList.getAdapterItems().size());
         assertEquals(position,
                 privateProfileManager.scrollForHeaderToBeVisibleInContainer(
@@ -369,8 +372,8 @@ public class PrivateSpaceHeaderViewTest {
         int rows = (int) (ALL_APPS_HEIGHT - BIGGER_PS_HEADER_HEIGHT - HEADER_PROTECTION_HEIGHT);
         int position = rows * NUM_APP_COLS - (NUM_APP_COLS-1) + 1;
 
-        // The number of adapterItems should be the private space apps + one main app + header.
-        assertEquals(NUM_PRIVATE_SPACE_APPS + 1 + 1,
+        assertEquals(NUM_PRIVATE_SPACE_APPS + MAIN_USER_APP_COUNT
+                        + CONTAINER_HEADER_ELEMENT_COUNT + VIEW_AT_END_OF_APP_LIST,
                 mAlphabeticalAppsList.getAdapterItems().size());
         assertEquals(position,
                 privateProfileManager.scrollForHeaderToBeVisibleInContainer(
@@ -398,8 +401,7 @@ public class PrivateSpaceHeaderViewTest {
         mAlphabeticalAppsList.updateItemFilter(info -> info != null
                 && info.user.equals(MAIN_HANDLE));
 
-        // The number of adapterItems should be the private space apps + one main app.
-        assertEquals(NUM_PRIVATE_SPACE_APPS + 1,
+        assertEquals(NUM_PRIVATE_SPACE_APPS + MAIN_USER_APP_COUNT + VIEW_AT_END_OF_APP_LIST,
                 mAlphabeticalAppsList.getAdapterItems().size());
         assertEquals(SCROLL_NO_WHERE, privateProfileManager.scrollForHeaderToBeVisibleInContainer(
                 new AllAppsRecyclerView(mContext),

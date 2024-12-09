@@ -290,6 +290,9 @@ public class PredictionRowView<T extends Context & ActivityContext>
         writer.println(prefix + "\tmPredictionsEnabled: " + mPredictionsEnabled);
         writer.println(prefix + "\tmPredictionUiUpdatePaused: " + mPredictionUiUpdatePaused);
         writer.println(prefix + "\tmNumPredictedAppsPerRow: " + mNumPredictedAppsPerRow);
-        writer.println(prefix + "\tmPredictedApps: " + mPredictedApps);
+        writer.println(prefix + "\tmPredictedApps: " + mPredictedApps.size());
+        for (WorkspaceItemInfo info : mPredictedApps) {
+            writer.println(prefix + "\t\t" + info);
+        }
     }
 }

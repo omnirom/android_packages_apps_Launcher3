@@ -20,6 +20,7 @@ import static com.android.launcher3.icons.BitmapInfo.FLAG_THEMED;
 import static com.android.launcher3.icons.FastBitmapDrawable.getDisabledColorFilter;
 
 import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
 import android.animation.AnimatorSet;
 import android.animation.ArgbEvaluator;
 import android.animation.Keyframe;
@@ -39,6 +40,7 @@ import android.graphics.drawable.Drawable;
 import android.os.Process;
 import android.util.AttributeSet;
 import android.util.FloatProperty;
+import android.util.Property;
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
 
@@ -71,11 +73,26 @@ import java.util.List;
  */
 public class PredictedAppIcon extends DoubleShadowBubbleTextView {
 
+    private static final float RING_SCALE_START_VALUE = 0.75f;
     private static final int RING_SHADOW_COLOR = 0x99000000;
     private static final float RING_EFFECT_RATIO = 0.095f;
 
     private static final long ICON_CHANGE_ANIM_DURATION = 360;
     private static final long ICON_CHANGE_ANIM_STAGGER = 50;
+
+    private static final Property<PredictedAppIcon, Float> RING_SCALE_PROPERTY =
+            new Property<>(Float.TYPE, "ringScale") {
+                @Override
+                public Float get(PredictedAppIcon icon) {
+                    return icon.mRingScale;
+                }
+
+                @Override
+                public void set(PredictedAppIcon icon, Float value) {
+                    icon.mRingScale = value;
+                    icon.invalidate();
+                }
+            };
 
     boolean mIsDrawingDot = false;
     private final DeviceProfile mDeviceProfile;
@@ -95,6 +112,11 @@ public class PredictedAppIcon extends DoubleShadowBubbleTextView {
     private List<Drawable> mSlotMachineIcons;
     private Animator mSlotMachineAnim;
     private float mSlotMachineIconTranslationY;
+
+    // Used to animate the "ring" around predicted icons
+    private float mRingScale = 1f;
+    private boolean mForceHideRing = false;
+    private Animator mRingScaleAnim;
 
     private static final FloatProperty<PredictedAppIcon> SLOT_MACHINE_TRANSLATION_Y =
             new FloatProperty<PredictedAppIcon>("slotMachineTranslationY") {
@@ -356,17 +378,52 @@ public class PredictedAppIcon extends DoubleShadowBubbleTextView {
         }
     }
 
+    @Override
+    public void setForceHideRing(boolean forceHideRing) {
+        if (mForceHideRing == forceHideRing) {
+            return;
+        }
+        mForceHideRing = forceHideRing;
+
+        if (forceHideRing) {
+            invalidate();
+        } else {
+            animateRingScale(RING_SCALE_START_VALUE, 1);
+        }
+    }
+
+    private void cancelRingScaleAnim() {
+        if (mRingScaleAnim != null) {
+            mRingScaleAnim.cancel();
+        }
+    }
+
+    private void animateRingScale(float... ringScale) {
+        cancelRingScaleAnim();
+        mRingScaleAnim = ObjectAnimator.ofFloat(this, RING_SCALE_PROPERTY, ringScale);
+        mRingScaleAnim.addListener(new AnimatorListenerAdapter() {
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                mRingScaleAnim = null;
+            }
+        });
+        mRingScaleAnim.start();
+    }
+
     private void drawEffect(Canvas canvas) {
-        // Don't draw ring effect if item is about to be dragged.
-        if (mDrawForDrag) {
+        // Don't draw ring effect if item is about to be dragged or if the icon is not visible.
+        if (mDrawForDrag || !mIsIconVisible || mForceHideRing) {
             return;
         }
         mIconRingPaint.setColor(RING_SHADOW_COLOR);
         mIconRingPaint.setMaskFilter(mShadowFilter);
+        int count = canvas.save();
+        canvas.scale(mRingScale, mRingScale, canvas.getWidth() / 2f, canvas.getHeight() / 2f);
         canvas.drawPath(mRingPath, mIconRingPaint);
         mIconRingPaint.setColor(mPlateColor);
         mIconRingPaint.setMaskFilter(null);
         canvas.drawPath(mRingPath, mIconRingPaint);
+        canvas.restoreToCount(count);
     }
 
     @Override

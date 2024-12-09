@@ -66,7 +66,8 @@ public class QuickstepProcessInitializer extends MainProcessInitializer {
 
         if (BuildConfig.IS_STUDIO_BUILD) {
             BinderTracker.startTracking(call ->  Log.e("BinderCall",
-                    call.descriptor + " called on mainthread under " + call.activeTrace));
+                    call.descriptor + " called on main thread under " + call.activeTrace
+                            + " stackTrace: " + call.stackTrace));
         }
     }
 }

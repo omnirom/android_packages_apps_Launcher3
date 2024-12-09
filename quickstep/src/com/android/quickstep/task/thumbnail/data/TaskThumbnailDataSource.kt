@@ -22,7 +22,7 @@ import com.android.systemui.shared.recents.model.ThumbnailData
 import java.util.function.Consumer
 
 interface TaskThumbnailDataSource {
-    fun updateThumbnailInBackground(
+    fun getThumbnailInBackground(
         task: Task,
         callback: Consumer<ThumbnailData>
     ): CancellableTask<ThumbnailData>?

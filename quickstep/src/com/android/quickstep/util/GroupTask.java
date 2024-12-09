@@ -20,12 +20,13 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.android.launcher3.util.SplitConfigurationOptions.SplitBounds;
-import com.android.quickstep.views.TaskView;
+import com.android.quickstep.views.TaskViewType;
 import com.android.systemui.shared.recents.model.Task;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * A {@link Task} container that can contain one or two tasks, depending on if the two tasks
@@ -38,19 +39,18 @@ public class GroupTask {
     public final Task task2;
     @Nullable
     public final SplitBounds mSplitBounds;
-    @TaskView.Type
-    public final int taskViewType;
+    public final TaskViewType taskViewType;
 
     public GroupTask(@NonNull Task task) {
         this(task, null, null);
     }
 
     public GroupTask(@NonNull Task t1, @Nullable Task t2, @Nullable SplitBounds splitBounds) {
-        this(t1, t2, splitBounds, t2 != null ? TaskView.Type.GROUPED : TaskView.Type.SINGLE);
+        this(t1, t2, splitBounds, t2 != null ? TaskViewType.GROUPED : TaskViewType.SINGLE);
     }
 
     protected GroupTask(@NonNull Task t1, @Nullable Task t2, @Nullable SplitBounds splitBounds,
-            @TaskView.Type int taskViewType) {
+            TaskViewType taskViewType) {
         task1 = t1;
         task2 = t2;
         mSplitBounds = splitBounds;
@@ -91,4 +91,17 @@ public class GroupTask {
         return "type=" + taskViewType + " task1=" + task1 + " task2=" + task2;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof GroupTask that)) return false;
+        return taskViewType == that.taskViewType && Objects.equals(task1,
+                that.task1) && Objects.equals(task2, that.task2)
+                && Objects.equals(mSplitBounds, that.mSplitBounds);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(task1, task2, mSplitBounds, taskViewType);
+    }
 }

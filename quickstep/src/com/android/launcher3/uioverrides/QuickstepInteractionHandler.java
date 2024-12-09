@@ -22,7 +22,6 @@ import android.app.ActivityOptions;
 import android.app.ActivityTaskManager;
 import android.app.PendingIntent;
 import android.content.Intent;
-import android.os.IBinder;
 import android.os.RemoteException;
 import android.util.Log;
 import android.util.Pair;
@@ -30,7 +29,6 @@ import android.view.View;
 import android.widget.RemoteViews;
 import android.window.SplashScreen;
 
-import com.android.launcher3.Utilities;
 import com.android.launcher3.logging.StatsLogManager;
 import com.android.launcher3.model.data.ItemInfo;
 import com.android.launcher3.util.ActivityOptionsWrapper;
@@ -66,14 +64,8 @@ class QuickstepInteractionHandler implements RemoteViews.InteractionHandler {
         }
         Pair<Intent, ActivityOptions> options = remoteResponse.getLaunchOptions(view);
         ActivityOptionsWrapper activityOptions = mLauncher.getAppTransitionManager()
-                .getActivityLaunchOptions(hostView);
-        Object itemInfo = hostView.getTag();
-        IBinder launchCookie = null;
-        if (itemInfo instanceof ItemInfo) {
-            launchCookie = mLauncher.getLaunchCookie((ItemInfo) itemInfo);
-            activityOptions.options.setLaunchCookie(launchCookie);
-        }
-        if (Utilities.ATLEAST_S && !pendingIntent.isActivity()) {
+                .getActivityLaunchOptions(hostView, (ItemInfo) hostView.getTag());
+        if (!pendingIntent.isActivity()) {
             // In the event this pending intent eventually launches an activity, i.e. a trampoline,
             // use the Quickstep transition animation.
             try {
@@ -81,7 +73,7 @@ class QuickstepInteractionHandler implements RemoteViews.InteractionHandler {
                         .registerRemoteAnimationForNextActivityStart(
                                 pendingIntent.getCreatorPackage(),
                                 activityOptions.options.getRemoteAnimationAdapter(),
-                                launchCookie);
+                                activityOptions.options.getLaunchCookie());
             } catch (RemoteException e) {
                 // Do nothing.
             }
@@ -92,7 +84,7 @@ class QuickstepInteractionHandler implements RemoteViews.InteractionHandler {
                 ActivityOptions.MODE_BACKGROUND_ACTIVITY_START_ALLOWED);
         options = Pair.create(options.first, activityOptions.options);
         if (pendingIntent.isActivity()) {
-            logAppLaunch(itemInfo);
+            logAppLaunch(hostView.getTag());
         }
         return RemoteViews.startPendingIntent(hostView, pendingIntent, options);
     }

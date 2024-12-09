@@ -52,6 +52,7 @@ import com.android.launcher3.util.LooperExecutor;
 import com.android.launcher3.util.LooperIdleLock;
 import com.android.launcher3.util.PackageUserKey;
 import com.android.launcher3.util.RunnableList;
+import com.android.launcher3.widget.model.WidgetsListBaseEntriesBuilder;
 import com.android.launcher3.widget.model.WidgetsListBaseEntry;
 
 import java.util.ArrayList;
@@ -195,8 +196,8 @@ public class BaseLauncherBinder {
         if (!WIDGETS_ENABLED) {
             return;
         }
-        final List<WidgetsListBaseEntry> widgets =
-                mBgDataModel.widgetsModel.getWidgetsListForPicker(mApp.getContext());
+        List<WidgetsListBaseEntry> widgets = new WidgetsListBaseEntriesBuilder(mApp.getContext())
+                .build(mBgDataModel.widgetsModel.getWidgetsByPackageItem());
         executeCallbacksTask(c -> c.bindAllWidgets(widgets), mUiExecutor);
     }
 

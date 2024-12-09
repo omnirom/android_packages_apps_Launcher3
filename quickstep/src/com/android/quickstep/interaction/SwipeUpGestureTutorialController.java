@@ -48,7 +48,6 @@ import com.android.launcher3.anim.AnimatedFloat;
 import com.android.launcher3.anim.AnimatorListeners;
 import com.android.launcher3.anim.AnimatorPlaybackController;
 import com.android.launcher3.anim.PendingAnimation;
-import com.android.launcher3.config.FeatureFlags;
 import com.android.quickstep.GestureState;
 import com.android.quickstep.OverviewComponentObserver;
 import com.android.quickstep.RecentsAnimationDeviceState;
@@ -127,9 +126,7 @@ abstract class SwipeUpGestureTutorialController extends TutorialController {
     void resetTaskViews() {
         mFakeHotseatView.setVisibility(View.INVISIBLE);
         mFakeIconView.setVisibility(View.INVISIBLE);
-        if (FeatureFlags.ENABLE_NEW_GESTURE_NAV_TUTORIAL.get()) {
-            mFakeIconView.getBackground().setTint(getFakeTaskViewColor());
-        }
+        mFakeIconView.getBackground().setTint(getFakeTaskViewColor());
         if (mTutorialFragment.getActivity() != null) {
             int height = mTutorialFragment.getRootView().getFullscreenHeight();
             int width = mTutorialFragment.getRootView().getWidth();
@@ -138,9 +135,7 @@ abstract class SwipeUpGestureTutorialController extends TutorialController {
         mFakeTaskViewRadius = 0;
         mFakeTaskView.invalidateOutline();
         mFakeTaskView.setVisibility(View.VISIBLE);
-        if (FeatureFlags.ENABLE_NEW_GESTURE_NAV_TUTORIAL.get()) {
-            mFakeTaskView.setBackgroundColor(getFakeTaskViewColor());
-        }
+        mFakeTaskView.setBackgroundColor(getFakeTaskViewColor());
         mFakeTaskView.setAlpha(1);
         mFakePreviousTaskView.setVisibility(View.INVISIBLE);
         mFakePreviousTaskView.setAlpha(1);
@@ -390,12 +385,10 @@ abstract class SwipeUpGestureTutorialController extends TutorialController {
                             false, /* isOpening */
                             mFakeIconView, mDp);
                     mFakeIconView.setAlpha(1);
-                    if (FeatureFlags.ENABLE_NEW_GESTURE_NAV_TUTORIAL.get()) {
-                        int iconColor = ColorUtils.blendARGB(
-                                getFakeTaskViewColor(), getHotseatIconColor(), progress);
-                        mFakeIconView.getBackground().setTint(iconColor);
-                        mFakeTaskView.setBackgroundColor(iconColor);
-                    }
+                    int iconColor = ColorUtils.blendARGB(
+                            getFakeTaskViewColor(), getHotseatIconColor(), progress);
+                    mFakeIconView.getBackground().setTint(iconColor);
+                    mFakeTaskView.setBackgroundColor(iconColor);
                     mFakeTaskView.setAlpha(getWindowAlpha(progress));
                     mFakePreviousTaskView.setAlpha(getWindowAlpha(progress));
                 }

@@ -18,7 +18,7 @@ package com.android.launcher3.widget.picker;
 import static com.android.launcher3.Flags.enableCategorizedWidgetSuggestions;
 import static com.android.launcher3.LauncherSettings.Favorites.CONTAINER_WIDGETS_PREDICTION;
 import static com.android.launcher3.widget.util.WidgetSizes.getWidgetSizePx;
-import static com.android.launcher3.widget.util.WidgetsTableUtils.WIDGETS_TABLE_ROW_SIZE_COMPARATOR;
+import static com.android.launcher3.widget.util.WidgetsTableUtils.WIDGETS_TABLE_ROW_COUNT_COMPARATOR;
 
 import static java.lang.Math.max;
 
@@ -163,6 +163,6 @@ public final class WidgetsRecommendationTableLayout extends TableLayout {
         }
 
         // Perform re-ordering once we have filtered out recommendations that fit.
-        return filteredRows.stream().sorted(WIDGETS_TABLE_ROW_SIZE_COMPARATOR).toList();
+        return filteredRows.stream().sorted(WIDGETS_TABLE_ROW_COUNT_COMPARATOR).toList();
     }
 }

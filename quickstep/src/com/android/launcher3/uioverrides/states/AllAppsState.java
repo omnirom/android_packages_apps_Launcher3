@@ -26,7 +26,6 @@ import com.android.launcher3.DeviceProfile;
 import com.android.launcher3.Launcher;
 import com.android.launcher3.LauncherState;
 import com.android.launcher3.R;
-import com.android.launcher3.config.FeatureFlags;
 import com.android.launcher3.util.Themes;
 import com.android.launcher3.views.ActivityContext;
 import com.android.quickstep.util.BaseDepthController;
@@ -199,17 +198,6 @@ public class AllAppsState extends LauncherState {
     public LauncherState getHistoryForState(LauncherState previousState) {
         return previousState == BACKGROUND_APP ? QUICK_SWITCH_FROM_HOME
                 : previousState == OVERVIEW ? OVERVIEW : NORMAL;
-    }
-
-    @Override
-    public float[] getOverviewScaleAndOffset(Launcher launcher) {
-        if (!FeatureFlags.ENABLE_ALL_APPS_FROM_OVERVIEW.get()) {
-            return super.getOverviewScaleAndOffset(launcher);
-        }
-        // This handles the case of returning to the previous app from Overview -> All Apps gesture.
-        // This is the start scale/offset of overview that will be used for that transition.
-        // TODO (b/283336332): Translate in Y direction (ideally with overview resistance).
-        return new float[] {0.5f /* scale */, NO_OFFSET};
     }
 
     @Override

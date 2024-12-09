@@ -22,8 +22,6 @@ import static com.android.launcher3.allapps.UserProfileManager.STATE_DISABLED;
 import static com.android.launcher3.allapps.UserProfileManager.STATE_ENABLED;
 import static com.android.launcher3.model.BgDataModel.Callbacks.FLAG_PRIVATE_PROFILE_QUIET_MODE_ENABLED;
 import static com.android.launcher3.util.Executors.UI_HELPER_EXECUTOR;
-import static com.android.launcher3.util.rule.TestStabilityRule.LOCAL;
-import static com.android.launcher3.util.rule.TestStabilityRule.PLATFORM_POSTSUBMIT;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
@@ -202,7 +200,6 @@ public class PrivateProfileManagerTest {
     }
 
     @Test
-    @TestStabilityRule.Stability(flavors = LOCAL | PLATFORM_POSTSUBMIT) // b/339109319
     public void openPrivateSpaceSettings_triggersCorrectIntent() {
         Intent expectedIntent = ApiWrapper.INSTANCE.get(mContext).getPrivateSpaceSettingsIntent();
         ArgumentCaptor<Intent> acIntent = ArgumentCaptor.forClass(Intent.class);

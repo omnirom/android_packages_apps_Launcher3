@@ -83,6 +83,7 @@ import com.android.launcher3.widget.LauncherWidgetHolder;
 
 import org.xmlpull.v1.XmlPullParser;
 
+import java.io.File;
 import java.io.InputStream;
 import java.io.StringReader;
 
@@ -104,10 +105,30 @@ public class ModelDbController {
         mContext = context;
     }
 
+    private void printDBs(String prefix) {
+        try {
+            File directory = new File(
+                    mContext.getDatabasePath(InvariantDeviceProfile.INSTANCE.get(mContext).dbFile)
+                            .getParent()
+            );
+            if (directory.exists()) {
+                for (File file : directory.listFiles()) {
+                    Log.d("b/353505773", prefix + "Database file: " + file.getName());
+                }
+            } else {
+                Log.d("b/353505773", prefix + "No files found in the database directory");
+            }
+        } catch (Exception e) {
+            Log.e("b/353505773", prefix + e.getMessage());
+        }
+    }
+
     private synchronized void createDbIfNotExists() {
         if (mOpenHelper == null) {
             mOpenHelper = createDatabaseHelper(false /* forMigration */);
+            printDBs("before: ");
             RestoreDbTask.restoreIfNeeded(mContext, this);
+            printDBs("after: ");
         }
     }
 

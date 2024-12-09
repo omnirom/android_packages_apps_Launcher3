@@ -43,6 +43,7 @@ import android.view.animation.Interpolator;
 import android.view.animation.OvershootInterpolator;
 
 import androidx.annotation.Nullable;
+import androidx.annotation.VisibleForTesting;
 
 import com.android.launcher3.Insettable;
 import com.android.launcher3.R;
@@ -131,7 +132,8 @@ public class PageIndicatorDots extends View implements Insettable, PageIndicator
     private float mCurrentPosition;
     private float mFinalPosition;
     private boolean mIsScrollPaused;
-    private boolean mIsTwoPanels;
+    @VisibleForTesting
+    boolean mIsTwoPanels;
     private ObjectAnimator mAnimator;
     private @Nullable ObjectAnimator mAlphaAnimator;
 
@@ -475,6 +477,21 @@ public class PageIndicatorDots extends View implements Insettable, PageIndicator
         }
 
         return sTempRect;
+    }
+
+    @VisibleForTesting
+    int getActivePage() {
+        return mActivePage;
+    }
+
+    @VisibleForTesting
+    int getNumPages() {
+        return mNumPages;
+    }
+
+    @VisibleForTesting
+    float getCurrentPosition() {
+        return mCurrentPosition;
     }
 
     private class MyOutlineProver extends ViewOutlineProvider {

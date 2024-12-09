@@ -35,8 +35,7 @@ class DropTargetHandler(launcher: Launcher) {
                     target?.let {
                         deferred.mPackageName = it.packageName
                         mLauncher.addEventCallback(EVENT_RESUMED) { deferred.onLauncherResume() }
-                    }
-                        ?: deferred.sendFailure()
+                    } ?: deferred.sendFailure()
                 }
             }
         }
@@ -47,17 +46,8 @@ class DropTargetHandler(launcher: Launcher) {
         mLauncher.appWidgetHolder.startConfigActivity(
             mLauncher,
             widgetId,
-            ActivityCodes.REQUEST_RECONFIGURE_APPWIDGET
+            ActivityCodes.REQUEST_RECONFIGURE_APPWIDGET,
         )
-    }
-
-    fun dismissPrediction(
-        announcement: CharSequence,
-        onActionClicked: Runnable,
-        onDismiss: Runnable?
-    ) {
-        mLauncher.dragLayer.announceForAccessibility(announcement)
-        Snackbar.show(mLauncher, R.string.item_removed, R.string.undo, onDismiss, onActionClicked)
     }
 
     fun getViewUnderDrag(info: ItemInfo): View? {
@@ -95,7 +85,7 @@ class DropTargetHandler(launcher: Launcher) {
             R.string.item_removed,
             R.string.undo,
             mLauncher.modelWriter::commitDelete,
-            onUndoClicked
+            onUndoClicked,
         )
     }
 

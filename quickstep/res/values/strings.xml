@@ -26,8 +26,11 @@
     <string name="recent_task_option_pin">Pin</string>
     <!-- Title for an option to enter freeform mode for a given app -->
     <string name="recent_task_option_freeform">Freeform</string>
-    <!-- Title for an option to enter desktop windowing mode for a given app -->
+    <!-- Title and content description for an option to enter desktop windowing mode for a given app -->
     <string name="recent_task_option_desktop">Desktop</string>
+
+    <!-- Title and content description for Desktop tile in Recents screen that contains apps opened inside desktop windowing mode [CHAR LIMIT=NONE] -->
+    <string name="recent_task_desktop">Desktop</string>
 
     <!-- Recents: The empty recents string. [CHAR LIMIT=NONE] -->
     <string name="recents_empty_message">No recent items</string>
@@ -237,7 +240,7 @@
     <!-- Label for toast with instructions for split screen selection mode. [CHAR_LIMIT=50] -->
     <string name="toast_split_select_app">Tap another app to use split screen</string>
     <string name="toast_contextual_split_select_app">Choose another app to use split screen</string>
-    <string name="toast_split_select_app_cancel"><b>Cancel</b></string>
+    <string name="toast_split_select_app_cancel">Cancel</string>
     <string name="toast_split_select_cont_desc">Exit split screen selection</string>
     <!-- Label for toast when app selected for split isn't supported. [CHAR_LIMIT=50] -->
     <string name="toast_split_app_unsupported">Choose another app to use split screen</string>
@@ -299,10 +302,16 @@
     <string name="taskbar_button_quick_settings">Quick Settings</string>
     <!-- Accessibility title for the Taskbar window. [CHAR_LIMIT=NONE] -->
     <string name="taskbar_a11y_title">Taskbar</string>
-    <!-- Accessibility title for the Taskbar window appeared. [CHAR_LIMIT=NONE] -->
+    <!-- Accessibility title for the Taskbar window appeared. [CHAR_LIMIT=30] -->
     <string name="taskbar_a11y_shown_title">Taskbar shown</string>
-    <!-- Accessibility title for the Taskbar window being close. [CHAR_LIMIT=NONE] -->
+    <!-- Accessibility title for the Taskbar window appearing together with bubble bar on left. [CHAR_LIMIT=30] -->
+    <string name="taskbar_a11y_shown_with_bubbles_left_title">Taskbar &#38; bubbles left shown</string>
+    <!-- Accessibility title for the Taskbar window appearing together with bubble bar on right. [CHAR_LIMIT=30] -->
+    <string name="taskbar_a11y_shown_with_bubbles_right_title">Taskbar &#38; bubbles right shown</string>
+    <!-- Accessibility title for the Taskbar window being closed. [CHAR_LIMIT=30] -->
     <string name="taskbar_a11y_hidden_title">Taskbar hidden</string>
+    <!-- Accessibility title for the Taskbar window being closed together with bubble bar. [CHAR_LIMIT=30] -->
+    <string name="taskbar_a11y_hidden_with_bubbles_title">Taskbar &#38; bubbles hidden</string>
     <!-- Accessibility title for the Taskbar window on phones. [CHAR_LIMIT=NONE] -->
     <string name="taskbar_phone_a11y_title">Navigation bar</string>
     <!-- Text in popup dialog for user to switch between always showing Taskbar or not. [CHAR LIMIT=30] -->
@@ -311,6 +320,8 @@
     <string name="change_navigation_mode">Change navigation mode</string>
     <!-- Accessibility title for the Taskbar vertical divider icon. [CHAR_LIMIT=NONE] -->
     <string name="taskbar_divider_a11y_title">Taskbar Divider</string>
+    <!-- Accessibility title for the Taskbar Overflow icon. [CHAR_LIMIT=NONE] -->
+    <string name="taskbar_overflow_a11y_title">Taskbar Overflow</string>
 
 
     <!-- Label for moving drop target to the top or left side of the screen, depending on orientation (from the Taskbar only). -->
@@ -318,17 +329,14 @@
     <!-- Label for moving drop target to the bottom or right side of the screen, depending on orientation (from the Taskbar only). -->
     <string name="move_drop_target_bottom_or_right">Move to bottom&#47;right</string>
 
-    <!-- Label for quick switch tile showing how many more apps are available [CHAR LIMIT=NONE] -->
+    <!-- Label for quick switch tile showing how many more apps are available. The number will be displayed above this text. [CHAR LIMIT=NONE] -->
     <string name="quick_switch_overflow">{count, plural,
-            =1{Show # more app.}
-            other{Show # more apps.}
+            =1{more app}
+            other{more apps}
         }</string>
 
-    <!-- Label for quick switch tile showing how many apps are available in desktop mode [CHAR LIMIT=NONE] -->
-    <string name="quick_switch_desktop">{count, plural,
-            =1{Show # desktop app.}
-            other{Show # desktop apps.}
-        }</string>
+    <!-- Label for quick switch tile to launch desktop mode [CHAR LIMIT=NONE] -->
+    <string name="quick_switch_desktop">Desktop</string>
 
     <!-- Accessibility label for quick switch tiles showing split tasks [CHAR LIMIT=NONE] -->
     <string name="quick_switch_split_task"><xliff:g id="app_name_1" example="Chrome">%1$s</xliff:g> and <xliff:g id="app_name_2" example="Gmail">%2$s</xliff:g></string>
@@ -342,4 +350,14 @@
     <string name="bubble_bar_bubble_description"><xliff:g id="notification_title" example="some title">%1$s</xliff:g> from <xliff:g id="app_name" example="YouTube">%2$s</xliff:g></string>
     <!-- Content description for bubble bar when it has multiple bubbles. [CHAR_LIMIT=NONE] -->
     <string name="bubble_bar_description_multiple_bubbles"><xliff:g id="bubble_bar_bubble_description" example="some title from YouTube">%1$s</xliff:g> and <xliff:g id="bubble_count" example="4">%2$d</xliff:g> more</string>
+    <!-- Action in accessibility menu to move the bubble bar to the left side of the screen. [CHAR_LIMIT=30] -->
+    <string name="bubble_bar_action_move_left">Move left</string>
+    <!-- Action in accessibility menu to move the bubble bar to the right side of the screen. [CHAR_LIMIT=30] -->
+    <string name="bubble_bar_action_move_right">Move right</string>
+    <!-- Action in accessibility menu to dismiss all bubbles. [CHAR_LIMIT=30] -->
+    <string name="bubble_bar_action_dismiss_all">Dismiss all</string>
+    <!-- Accessibility announcement when the bubble bar expands. [CHAR LIMIT=NONE]-->
+    <string name="bubble_bar_accessibility_announce_expand">expand <xliff:g id="bubble_description" example="some title from Messages">%1$s</xliff:g></string>
+    <!-- Accessibility announcement when the bubble bar collapses. [CHAR LIMIT=NONE]-->
+    <string name="bubble_bar_accessibility_announce_collapse">collapse <xliff:g id="bubble_description" example="some title from Messages">%1$s</xliff:g></string>
 </resources>

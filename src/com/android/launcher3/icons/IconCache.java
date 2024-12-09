@@ -54,9 +54,10 @@ import androidx.core.util.Pair;
 import com.android.launcher3.Flags;
 import com.android.launcher3.InvariantDeviceProfile;
 import com.android.launcher3.Utilities;
-import com.android.launcher3.icons.ComponentWithLabel.ComponentCachingLogic;
 import com.android.launcher3.icons.cache.BaseIconCache;
+import com.android.launcher3.icons.cache.CachedObjectCachingLogic;
 import com.android.launcher3.icons.cache.CachingLogic;
+import com.android.launcher3.icons.cache.LauncherActivityCachingLogic;
 import com.android.launcher3.logging.FileLog;
 import com.android.launcher3.model.data.AppInfo;
 import com.android.launcher3.model.data.IconRequestInfo;
@@ -102,7 +103,6 @@ public class IconCache extends BaseIconCache {
     private final LauncherApps mLauncherApps;
     private final UserCache mUserManager;
     private final InstantAppResolver mInstantAppResolver;
-    private final IconProvider mIconProvider;
     private final CancellableTask mCancelledTask;
 
     private final SparseArray<BitmapInfo> mWidgetCategoryBitmapInfos;
@@ -112,14 +112,14 @@ public class IconCache extends BaseIconCache {
     public IconCache(Context context, InvariantDeviceProfile idp, String dbFileName,
             IconProvider iconProvider) {
         super(context, dbFileName, MODEL_EXECUTOR.getLooper(),
-                idp.fillResIconDpi, idp.iconBitmapSize, true /* inMemoryCache */);
-        mComponentWithLabelCachingLogic = new ComponentCachingLogic(context, false);
-        mLauncherActivityInfoCachingLogic = LauncherActivityCachingLogic.newInstance(context);
+                idp.fillResIconDpi, idp.iconBitmapSize, true /* inMemoryCache */, iconProvider);
+        mComponentWithLabelCachingLogic = new CachedObjectCachingLogic(
+                context, false /* loadIcons */, false /* addToMemCache */);
+        mLauncherActivityInfoCachingLogic = LauncherActivityCachingLogic.INSTANCE;
         mShortcutCachingLogic = new ShortcutCachingLogic();
         mLauncherApps = mContext.getSystemService(LauncherApps.class);
         mUserManager = UserCache.INSTANCE.get(mContext);
         mInstantAppResolver = InstantAppResolver.newInstance(mContext);
-        mIconProvider = iconProvider;
         mWidgetCategoryBitmapInfos = new SparseArray<>();
 
         mCancelledTask = new CancellableTask(() -> null, MAIN_EXECUTOR, c -> { });
@@ -337,6 +337,9 @@ public class IconCache extends BaseIconCache {
         }
     }
 
+    /**
+     * Loads and returns the icon for the provided object without adding it to memCache
+     */
     public synchronized String getTitleNoCache(ComponentWithLabel info) {
         CacheEntry entry = cacheLocked(info.getComponent(), info.getUser(), () -> info,
                 mComponentWithLabelCachingLogic, false /* usePackageIcon */,
@@ -629,10 +632,10 @@ public class IconCache extends BaseIconCache {
                 info.getAppLabel());
     }
 
-    @Override
-    @NonNull
-    protected String getIconSystemState(String packageName) {
-        return mIconProvider.getSystemStateForPackage(mSystemState, packageName);
+    // replacement for old removed clear() in BaseIconCache
+    public synchronized void clearDb() {
+        clearMemoryCache();
+        mIconDb.clear();
     }
 
     /**

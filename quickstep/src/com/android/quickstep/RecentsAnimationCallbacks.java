@@ -54,17 +54,14 @@ public class RecentsAnimationCallbacks implements
 
     private final Set<RecentsAnimationListener> mListeners = new ArraySet<>();
     private final SystemUiProxy mSystemUiProxy;
-    private final boolean mAllowMinimizeSplitScreen;
 
     // TODO(141886704): Remove these references when they are no longer needed
     private RecentsAnimationController mController;
 
     private boolean mCancelled;
 
-    public RecentsAnimationCallbacks(SystemUiProxy systemUiProxy,
-            boolean allowMinimizeSplitScreen) {
+    public RecentsAnimationCallbacks(SystemUiProxy systemUiProxy) {
         mSystemUiProxy = systemUiProxy;
-        mAllowMinimizeSplitScreen = allowMinimizeSplitScreen;
     }
 
     @UiThread
@@ -122,21 +119,17 @@ public class RecentsAnimationCallbacks implements
         }
 
         mController = new RecentsAnimationController(animationController,
-                mAllowMinimizeSplitScreen, this::onAnimationFinished);
+                this::onAnimationFinished);
         if (mCancelled) {
             Utilities.postAsyncCallback(MAIN_EXECUTOR.getHandler(),
                     mController::finishAnimationToApp);
         } else {
             RemoteAnimationTarget[] nonAppTargets;
-            if (!TaskAnimationManager.ENABLE_SHELL_TRANSITIONS) {
-                nonAppTargets = mSystemUiProxy.onGoingToRecentsLegacy(appTargets);
-            } else {
-                final ArrayList<RemoteAnimationTarget> apps = new ArrayList<>();
-                final ArrayList<RemoteAnimationTarget> nonApps = new ArrayList<>();
-                classifyTargets(appTargets, apps, nonApps);
-                appTargets = apps.toArray(new RemoteAnimationTarget[apps.size()]);
-                nonAppTargets = nonApps.toArray(new RemoteAnimationTarget[nonApps.size()]);
-            }
+            final ArrayList<RemoteAnimationTarget> apps = new ArrayList<>();
+            final ArrayList<RemoteAnimationTarget> nonApps = new ArrayList<>();
+            classifyTargets(appTargets, apps, nonApps);
+            appTargets = apps.toArray(new RemoteAnimationTarget[apps.size()]);
+            nonAppTargets = nonApps.toArray(new RemoteAnimationTarget[nonApps.size()]);
             if (nonAppTargets == null) {
                 nonAppTargets = new RemoteAnimationTarget[0];
             }
@@ -181,19 +174,7 @@ public class RecentsAnimationCallbacks implements
         });
     }
 
-    @BinderThread
-    @Override
-    public boolean onSwitchToScreenshot(Runnable onFinished) {
-        Utilities.postAsyncCallback(MAIN_EXECUTOR.getHandler(), () -> {
-            for (RecentsAnimationListener listener : getListeners()) {
-                if (listener.onSwitchToScreenshot(onFinished)) return;
-            }
-            onFinished.run();
-        });
-        return true;
-    }
-
-    private final void onAnimationFinished(RecentsAnimationController controller) {
+    private void onAnimationFinished(RecentsAnimationController controller) {
         Utilities.postAsyncCallback(MAIN_EXECUTOR.getHandler(), () -> {
             ActiveGestureLog.INSTANCE.addLog(
                     /* event= */ "RecentsAnimationCallbacks.onAnimationFinished",
@@ -223,7 +204,6 @@ public class RecentsAnimationCallbacks implements
     public void dump(String prefix, PrintWriter pw) {
         pw.println(prefix + "RecentsAnimationCallbacks:");
 
-        pw.println(prefix + "\tmAllowMinimizeSplitScreen=" + mAllowMinimizeSplitScreen);
         pw.println(prefix + "\tmCancelled=" + mCancelled);
     }
 
@@ -250,12 +230,5 @@ public class RecentsAnimationCallbacks implements
          * Callback made when a task started from the recents is ready for an app transition.
          */
         default void onTasksAppeared(@NonNull RemoteAnimationTarget[] appearedTaskTarget) {}
-
-        /**
-         * @return whether this will call onFinished or not (onFinished should only be called once).
-         */
-        default boolean onSwitchToScreenshot(Runnable onFinished) {
-            return false;
-        }
     }
 }

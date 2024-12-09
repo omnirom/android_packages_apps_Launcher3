@@ -66,6 +66,7 @@ public class MotionPauseDetector {
     private Float mPreviousVelocity = null;
 
     private OnMotionPauseListener mOnMotionPauseListener;
+    private boolean mIsTrackpadGesture;
     private boolean mIsPaused;
     // Bias more for the first pause to make it feel extra responsive.
     private boolean mHasEverBeenPaused;
@@ -113,6 +114,10 @@ public class MotionPauseDetector {
      */
     public void setOnMotionPauseListener(OnMotionPauseListener listener) {
         mOnMotionPauseListener = listener;
+    }
+
+    public void setIsTrackpadGesture(boolean isTrackpadGesture) {
+        mIsTrackpadGesture = isTrackpadGesture;
     }
 
     /**
@@ -179,7 +184,8 @@ public class MotionPauseDetector {
                     // We want to be more aggressive about detecting the first pause to ensure it
                     // feels as responsive as possible; getting two very slow speeds back to back
                     // takes too long, so also check for a rapid deceleration.
-                    boolean isRapidDeceleration = speed < previousSpeed * RAPID_DECELERATION_FACTOR;
+                    boolean isRapidDeceleration =
+                            speed < previousSpeed * getRapidDecelerationFactor();
                     isPaused = isRapidDeceleration && speed < mSpeedSomewhatFast;
                     isPausedReason = new ActiveGestureLog.CompoundString(
                             "Didn't have back to back slow speeds, checking for rapid ")
@@ -253,6 +259,7 @@ public class MotionPauseDetector {
         mVelocityProvider.clear();
         mPreviousVelocity = null;
         setOnMotionPauseListener(null);
+        mIsTrackpadGesture = false;
         mIsPaused = mHasEverBeenPaused = false;
         mSlowStartTime = 0;
         mForcePauseTimeout.cancelAlarm();
@@ -260,6 +267,12 @@ public class MotionPauseDetector {
 
     public boolean isPaused() {
         return mIsPaused;
+    }
+
+    private float getRapidDecelerationFactor() {
+        return mIsTrackpadGesture ? Float.parseFloat(
+                Utilities.getSystemProperty("trackpad_in_app_swipe_up_deceleration_factor",
+                        String.valueOf(RAPID_DECELERATION_FACTOR))) : RAPID_DECELERATION_FACTOR;
     }
 
     public interface OnMotionPauseListener {

@@ -169,8 +169,11 @@ constructor(
 
     override fun addArrow() {
         super.addArrow()
+        val location = IntArray(2)
+        popupContainer.getLocationInDragLayer(dividerView, location)
+        val dividerViewX = location[0].toFloat()
         // Change arrow location to the middle of popup.
-        mArrow.x = (dividerView.x + dividerView.width / 2) - (mArrowWidth / 2)
+        mArrow.x = (dividerViewX + dividerView.width / 2) - (mArrowWidth / 2)
     }
 
     override fun updateArrowColor() {

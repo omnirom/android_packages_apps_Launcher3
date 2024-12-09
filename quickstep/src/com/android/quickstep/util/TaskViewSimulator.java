@@ -24,10 +24,8 @@ import static com.android.launcher3.util.SplitConfigurationOptions.STAGE_POSITIO
 import static com.android.launcher3.util.SplitConfigurationOptions.STAGE_POSITION_TOP_OR_LEFT;
 import static com.android.launcher3.util.SplitConfigurationOptions.STAGE_POSITION_UNDEFINED;
 import static com.android.launcher3.util.SplitConfigurationOptions.StagePosition;
-import static com.android.quickstep.TaskAnimationManager.ENABLE_SHELL_TRANSITIONS;
 import static com.android.quickstep.util.RecentsOrientedState.postDisplayRotation;
 import static com.android.quickstep.util.RecentsOrientedState.preDisplayRotation;
-import static com.android.quickstep.util.SplitScreenUtils.convertLauncherSplitBoundsToShell;
 
 import android.animation.TimeInterpolator;
 import android.content.Context;
@@ -172,7 +170,6 @@ public class TaskViewSimulator implements TransformParams.BuilderProxy {
             mTaskRect.set(mFullTaskSize);
             mOrientationState.getOrientationHandler()
                     .setSplitTaskSwipeRect(mDp, mTaskRect, mSplitBounds, mStagePosition);
-            mTaskRect.offset(mTaskRectTranslationX, mTaskRectTranslationY);
         } else if (mIsDesktopTask) {
             // For desktop, tasks can take up only part of the screen size.
             // Full task size represents the whole screen size, but scaled down to fit in recents.
@@ -186,10 +183,19 @@ public class TaskViewSimulator implements TransformParams.BuilderProxy {
             mTaskRect.scale(scale);
             // Ensure the task rect is inside the full task rect
             mTaskRect.offset(mFullTaskSize.left, mFullTaskSize.top);
+
+            Rect taskDimension = new Rect(0, 0, (int) fullscreenTaskDimension.x,
+                    (int) fullscreenTaskDimension.y);
+            mTmpCropRect.set(mThumbnailPosition);
+            if (mTmpCropRect.setIntersect(taskDimension, mThumbnailPosition)) {
+                mTmpCropRect.offset(-mThumbnailPosition.left, -mThumbnailPosition.top);
+            } else {
+                mTmpCropRect.setEmpty();
+            }
         } else {
             mTaskRect.set(mFullTaskSize);
-            mTaskRect.offset(mTaskRectTranslationX, mTaskRectTranslationY);
         }
+        mTaskRect.offset(mTaskRectTranslationX, mTaskRectTranslationY);
     }
 
     /**
@@ -247,8 +253,6 @@ public class TaskViewSimulator implements TransformParams.BuilderProxy {
         } else {
             mStagePosition = runningTarget.taskId == splitInfo.leftTopTaskId
                     ? STAGE_POSITION_TOP_OR_LEFT : STAGE_POSITION_BOTTOM_OR_RIGHT;
-            mPositionHelper.setSplitBounds(convertLauncherSplitBoundsToShell(mSplitBounds),
-                    mStagePosition);
         }
         calculateTaskSize();
     }
@@ -489,10 +493,12 @@ public class TaskViewSimulator implements TransformParams.BuilderProxy {
                 recentsViewPrimaryTranslation.value);
         applyWindowToHomeRotation(mMatrix);
 
-        // Crop rect is the inverse of thumbnail matrix
-        mTempRectF.set(0, 0, taskWidth, taskHeight);
-        mInversePositionMatrix.mapRect(mTempRectF);
-        mTempRectF.roundOut(mTmpCropRect);
+        if (!mIsDesktopTask) {
+            // Crop rect is the inverse of thumbnail matrix
+            mTempRectF.set(0, 0, taskWidth, taskHeight);
+            mInversePositionMatrix.mapRect(mTempRectF);
+            mTempRectF.roundOut(mTmpCropRect);
+        }
 
         params.setProgress(1f - fullScreenProgress);
         params.applySurfaceParams(surfaceTransaction == null
@@ -528,21 +534,12 @@ public class TaskViewSimulator implements TransformParams.BuilderProxy {
 
         // If mDrawsBelowRecents is unset, no reordering will be enforced.
         if (mDrawsBelowRecents != null) {
-            // In legacy transitions, the animation leashes remain in same hierarchy in the
-            // TaskDisplayArea, so we don't want to bump the layer too high otherwise it will
-            // conflict with layers that WM core positions (ie. the input consumers).  For shell
-            // transitions, the animation leashes are reparented to an animation container so we
-            // can bump layers as needed.
-            if (ENABLE_SHELL_TRANSITIONS) {
-                builder.setLayer(mDrawsBelowRecents
-                        ? Integer.MIN_VALUE + app.prefixOrderIndex
-                        // 1000 is an arbitrary number to give room for multiple layers.
-                        : Integer.MAX_VALUE - 1000 + app.prefixOrderIndex);
-            } else {
-                builder.setLayer(mDrawsBelowRecents
-                        ? Integer.MIN_VALUE + app.prefixOrderIndex
-                        : 0);
-            }
+            // In shell transitions, the animation leashes are reparented to an animation container
+            // so we can bump layers as needed.
+            builder.setLayer(mDrawsBelowRecents
+                    ? Integer.MIN_VALUE + app.prefixOrderIndex
+                    // 1000 is an arbitrary number to give room for multiple layers.
+                    : Integer.MAX_VALUE - 1000 + app.prefixOrderIndex);
         }
     }
 

@@ -55,7 +55,6 @@ class TaskbarPinningControllerTest : TaskbarBaseTestCase() {
     private val taskbarDragLayer = mock<TaskbarDragLayer>()
     private val taskbarSharedState = mock<TaskbarSharedState>()
     private var isInDesktopMode = false
-    private val isInDesktopModeProvider = { isInDesktopMode }
     private val launcherPrefs =
         mock<LauncherPrefs> {
             on { get(TASKBAR_PINNING) } doReturn false
@@ -71,8 +70,9 @@ class TaskbarPinningControllerTest : TaskbarBaseTestCase() {
         whenever(taskbarActivityContext.launcherPrefs).thenReturn(launcherPrefs)
         whenever(taskbarActivityContext.dragLayer).thenReturn(taskbarDragLayer)
         whenever(taskbarActivityContext.statsLogManager).thenReturn(statsLogManager)
-        pinningController =
-            spy(TaskbarPinningController(taskbarActivityContext, isInDesktopModeProvider))
+        whenever(taskbarControllers.taskbarDesktopModeController.areDesktopTasksVisible)
+            .thenAnswer { _ -> isInDesktopMode }
+        pinningController = spy(TaskbarPinningController(taskbarActivityContext))
         pinningController.init(taskbarControllers, taskbarSharedState)
     }
 

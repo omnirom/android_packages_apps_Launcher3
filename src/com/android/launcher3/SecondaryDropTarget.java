@@ -7,7 +7,6 @@ import static com.android.launcher3.accessibility.LauncherAccessibilityDelegate.
 import static com.android.launcher3.accessibility.LauncherAccessibilityDelegate.INVALID;
 import static com.android.launcher3.accessibility.LauncherAccessibilityDelegate.RECONFIGURE;
 import static com.android.launcher3.accessibility.LauncherAccessibilityDelegate.UNINSTALL;
-import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_DISMISS_PREDICTION_UNDO;
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_ITEM_DROPPED_ON_DONT_SUGGEST;
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_ITEM_DROPPED_ON_UNINSTALL;
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_ITEM_UNINSTALL_CANCELLED;
@@ -36,7 +35,6 @@ import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 
-import com.android.launcher3.config.FeatureFlags;
 import com.android.launcher3.dragndrop.DragOptions;
 import com.android.launcher3.logging.FileLog;
 import com.android.launcher3.logging.InstanceId;
@@ -242,8 +240,7 @@ public class SecondaryDropTarget extends ButtonDropTarget implements OnAlarmList
 
     @Override
     public void completeDrop(final DragObject d) {
-        ComponentName target = performDropAction(getViewUnderDrag(d.dragInfo), d.dragInfo,
-                d.logInstanceId);
+        ComponentName target = performDropAction(getViewUnderDrag(d.dragInfo), d.dragInfo);
         mDropTargetHandler.onSecondaryTargetCompleteDrop(target, d);
     }
 
@@ -275,7 +272,7 @@ public class SecondaryDropTarget extends ButtonDropTarget implements OnAlarmList
      * Performs the drop action and returns the target component for the dragObject or null if
      * the action was not performed.
      */
-    protected ComponentName performDropAction(View view, ItemInfo info, InstanceId instanceId) {
+    protected ComponentName performDropAction(View view, ItemInfo info) {
         if (mCurrentAccessibilityAction == RECONFIGURE) {
             int widgetId = getReconfigurableWidgetId(view);
             if (widgetId != INVALID_APPWIDGET_ID) {
@@ -283,21 +280,6 @@ public class SecondaryDropTarget extends ButtonDropTarget implements OnAlarmList
             }
             return null;
         }
-        if (mCurrentAccessibilityAction == DISMISS_PREDICTION) {
-            if (FeatureFlags.ENABLE_DISMISS_PREDICTION_UNDO.get()) {
-                CharSequence announcement = getContext().getString(R.string.item_removed);
-                mDropTargetHandler
-                        .dismissPrediction(announcement, () -> {
-                        }, () -> {
-                            mStatsLogManager.logger()
-                                    .withInstanceId(instanceId)
-                                    .withItemInfo(info)
-                                    .log(LAUNCHER_DISMISS_PREDICTION_UNDO);
-                        });
-            }
-            return null;
-        }
-
         return performUninstall(getContext(), getUninstallTarget(getContext(), info), info);
     }
 
@@ -332,9 +314,8 @@ public class SecondaryDropTarget extends ButtonDropTarget implements OnAlarmList
 
     @Override
     public void onAccessibilityDrop(View view, ItemInfo item) {
-        InstanceId instanceId = new InstanceIdSequence().newInstanceId();
-        doLog(instanceId, item);
-        performDropAction(view, item, instanceId);
+        doLog(new InstanceIdSequence().newInstanceId(), item);
+        performDropAction(view, item);
     }
 
     /**

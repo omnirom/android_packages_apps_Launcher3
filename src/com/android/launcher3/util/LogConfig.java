@@ -76,4 +76,5 @@ public class LogConfig {
      * When turned on, we enable zero state web data loader related logging.
      */
     public static final String ZERO_WEB_DATA_LOADER = "ZeroStateWebDataLoaderLog";
+    public static final String SEARCH_TARGET_UTIL_LOG = "SearchTargetUtilLog";
 }

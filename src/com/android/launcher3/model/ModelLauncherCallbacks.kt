@@ -38,6 +38,7 @@ class ModelLauncherCallbacks(private var taskExecutor: Consumer<ModelUpdateTask>
     LauncherApps.Callback() {
 
     override fun onPackageAdded(packageName: String, user: UserHandle) {
+        FileLog.d(TAG, "onPackageAdded triggered for packageName=$packageName, user=$user")
         taskExecutor.accept(PackageUpdatedTask(OP_ADD, user, packageName))
     }
 
@@ -54,7 +55,7 @@ class ModelLauncherCallbacks(private var taskExecutor: Consumer<ModelUpdateTask>
     }
 
     override fun onPackageRemoved(packageName: String, user: UserHandle) {
-        FileLog.d(TAG, "package removed received $packageName")
+        FileLog.d(TAG, "onPackageRemoved triggered for packageName=$packageName, user=$user")
         taskExecutor.accept(PackageUpdatedTask(OP_REMOVE, user, packageName))
     }
 

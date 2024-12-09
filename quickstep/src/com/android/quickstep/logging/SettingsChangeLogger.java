@@ -39,19 +39,25 @@ import android.util.ArrayMap;
 import android.util.Log;
 import android.util.Xml;
 
-import com.android.launcher3.AutoInstallsLayout;
+import androidx.annotation.VisibleForTesting;
+
 import com.android.launcher3.LauncherPrefs;
 import com.android.launcher3.R;
+import com.android.launcher3.dagger.ApplicationContext;
+import com.android.launcher3.dagger.LauncherAppSingleton;
 import com.android.launcher3.logging.InstanceId;
 import com.android.launcher3.logging.StatsLogManager;
 import com.android.launcher3.logging.StatsLogManager.StatsLogger;
 import com.android.launcher3.model.DeviceGridState;
+import com.android.launcher3.util.DaggerSingletonObject;
+import com.android.launcher3.util.DaggerSingletonTracker;
 import com.android.launcher3.util.DisplayController;
 import com.android.launcher3.util.DisplayController.Info;
-import com.android.launcher3.util.MainThreadInitializedObject;
+import com.android.launcher3.util.ExecutorUtil;
 import com.android.launcher3.util.NavigationMode;
 import com.android.launcher3.util.SafeCloseable;
 import com.android.launcher3.util.SettingsCache;
+import com.android.quickstep.dagger.QuickstepBaseAppComponent;
 
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
@@ -59,9 +65,12 @@ import org.xmlpull.v1.XmlPullParserException;
 import java.io.IOException;
 import java.util.Optional;
 
+import javax.inject.Inject;
+
 /**
  * Utility class to log launcher settings changes
  */
+@LauncherAppSingleton
 public class SettingsChangeLogger implements
         DisplayController.DisplayInfoChangeListener, OnSharedPreferenceChangeListener,
         SafeCloseable {
@@ -69,11 +78,10 @@ public class SettingsChangeLogger implements
     /**
      * Singleton instance
      */
-    public static MainThreadInitializedObject<SettingsChangeLogger> INSTANCE =
-            new MainThreadInitializedObject<>(SettingsChangeLogger::new);
+    public static DaggerSingletonObject<SettingsChangeLogger> INSTANCE =
+            new DaggerSingletonObject<>(QuickstepBaseAppComponent::getSettingsChangeLogger);
 
     private static final String TAG = "SettingsChangeLogger";
-    private static final String ROOT_TAG = "androidx.preference.PreferenceScreen";
     private static final String BOOLEAN_PREF = "SwitchPreference";
 
     private final Context mContext;
@@ -84,20 +92,31 @@ public class SettingsChangeLogger implements
     private StatsLogManager.LauncherEvent mNotificationDotsEvent;
     private StatsLogManager.LauncherEvent mHomeScreenSuggestionEvent;
 
-    private SettingsChangeLogger(Context context) {
+    @Inject
+    SettingsChangeLogger(@ApplicationContext Context context, DaggerSingletonTracker tracker) {
+        this(context, StatsLogManager.newInstance(context), tracker);
+    }
+
+    @VisibleForTesting
+    SettingsChangeLogger(Context context, StatsLogManager statsLogManager,
+            DaggerSingletonTracker tracker) {
         mContext = context;
-        mStatsLogManager = StatsLogManager.newInstance(mContext);
+        mStatsLogManager = statsLogManager;
         mLoggablePrefs = loadPrefKeys(context);
-        DisplayController.INSTANCE.get(context).addChangeListener(this);
-        mNavMode = DisplayController.getNavigationMode(context);
 
-        getPrefs(context).registerOnSharedPreferenceChangeListener(this);
-        getDevicePrefs(context).registerOnSharedPreferenceChangeListener(this);
+        ExecutorUtil.executeSyncOnMainOrFail(() -> {
+            DisplayController.INSTANCE.get(context).addChangeListener(this);
+            mNavMode = DisplayController.getNavigationMode(context);
 
-        SettingsCache mSettingsCache = SettingsCache.INSTANCE.get(context);
-        mSettingsCache.register(NOTIFICATION_BADGING_URI,
-                this::onNotificationDotsChanged);
-        onNotificationDotsChanged(mSettingsCache.getValue(NOTIFICATION_BADGING_URI));
+            getPrefs(context).registerOnSharedPreferenceChangeListener(this);
+            getDevicePrefs(context).registerOnSharedPreferenceChangeListener(this);
+
+            SettingsCache settingsCache = SettingsCache.INSTANCE.get(context);
+            settingsCache.register(NOTIFICATION_BADGING_URI,
+                    this::onNotificationDotsChanged);
+            onNotificationDotsChanged(settingsCache.getValue(NOTIFICATION_BADGING_URI));
+            tracker.addCloseable(this);
+        });
     }
 
     private static ArrayMap<String, LoggablePref> loadPrefKeys(Context context) {
@@ -105,7 +124,13 @@ public class SettingsChangeLogger implements
         ArrayMap<String, LoggablePref> result = new ArrayMap<>();
 
         try {
-            AutoInstallsLayout.beginDocument(parser, ROOT_TAG);
+            // Move cursor to first tag because it could be
+            // androidx.preference.PreferenceScreen or PreferenceScreen
+            int eventType = parser.getEventType();
+            while (eventType != XmlPullParser.START_TAG
+                    && eventType != XmlPullParser.END_DOCUMENT) {
+                eventType = parser.next();
+            }
             final int depth = parser.getDepth();
             int type;
             while (((type = parser.next()) != XmlPullParser.END_TAG
@@ -189,13 +214,21 @@ public class SettingsChangeLogger implements
                 prefs.getBoolean(key, lp.defaultValue) ? lp.eventIdOn : lp.eventIdOff));
     }
 
+    @VisibleForTesting
+    ArrayMap<String, LoggablePref> getLoggingPrefs() {
+        return mLoggablePrefs;
+    }
+
     @Override
     public void close() {
         getPrefs(mContext).unregisterOnSharedPreferenceChangeListener(this);
         getDevicePrefs(mContext).unregisterOnSharedPreferenceChangeListener(this);
+        SettingsCache settingsCache = SettingsCache.INSTANCE.get(mContext);
+        settingsCache.unregister(NOTIFICATION_BADGING_URI, this::onNotificationDotsChanged);
     }
 
-    private static class LoggablePref {
+    @VisibleForTesting
+    static class LoggablePref {
         public boolean defaultValue;
         public int eventIdOn;
         public int eventIdOff;

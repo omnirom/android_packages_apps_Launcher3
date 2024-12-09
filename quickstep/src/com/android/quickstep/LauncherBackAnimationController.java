@@ -27,7 +27,6 @@ import static com.android.launcher3.BaseActivity.PENDING_INVISIBLE_BY_WALLPAPER_
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
-import android.animation.AnimatorSet;
 import android.animation.ValueAnimator;
 import android.content.ComponentCallbacks;
 import android.content.res.Configuration;
@@ -38,7 +37,6 @@ import android.graphics.RectF;
 import android.os.Handler;
 import android.os.RemoteException;
 import android.util.Log;
-import android.util.Pair;
 import android.view.Choreographer;
 import android.view.IRemoteAnimationFinishedCallback;
 import android.view.IRemoteAnimationRunner;
@@ -63,7 +61,7 @@ import com.android.launcher3.Utilities;
 import com.android.launcher3.taskbar.LauncherTaskbarUIController;
 import com.android.launcher3.uioverrides.QuickstepLauncher;
 import com.android.launcher3.widget.LauncherAppWidgetHostView;
-import com.android.quickstep.util.RectFSpringAnim;
+import com.android.quickstep.util.BackAnimState;
 import com.android.systemui.shared.system.QuickStepContract;
 
 import java.lang.ref.WeakReference;
@@ -109,8 +107,6 @@ public class LauncherBackAnimationController {
     private RemoteAnimationTarget mLauncherTarget;
     private View mLauncherTargetView;
     private final SurfaceControl.Transaction mTransaction = new SurfaceControl.Transaction();
-    private boolean mSpringAnimationInProgress = false;
-    private boolean mAnimatorSetInProgress = false;
     private float mBackProgress = 0;
     private boolean mBackInProgress = false;
     private OnBackInvokedCallbackStub mBackCallback;
@@ -341,7 +337,9 @@ public class LauncherBackAnimationController {
         mTransaction
                 .setColor(mScrimLayer, colorComponents)
                 .setAlpha(mScrimLayer, mScrimAlpha)
-                .show(mScrimLayer);
+                .show(mScrimLayer)
+                // Ensure the scrim layer occludes opening task & wallpaper
+                .setLayer(mScrimLayer, 1000);
     }
 
     void removeScrimLayer() {
@@ -446,15 +444,15 @@ public class LauncherBackAnimationController {
         mQuickstepTransitionManager.transferRectToTargetCoordinate(
                 mBackTarget, mCurrentRect, true, resolveRectF);
 
-        Pair<RectFSpringAnim, AnimatorSet> pair =
+        BackAnimState backAnim =
                 mQuickstepTransitionManager.createWallpaperOpenAnimations(
                     new RemoteAnimationTarget[]{mBackTarget},
                     new RemoteAnimationTarget[0],
-                    false /* fromUnlock */,
+                    new RemoteAnimationTarget[0],
                     resolveRectF,
                     cornerRadius,
                     mBackInProgress /* fromPredictiveBack */);
-        startTransitionAnimations(pair.first, pair.second);
+        startTransitionAnimations(backAnim);
         mLauncher.clearForceInvisibleFlag(INVISIBLE_ALL);
         customizeStatusBarAppearance(true);
     }
@@ -469,8 +467,6 @@ public class LauncherBackAnimationController {
         mCurrentRect.setEmpty();
         mStartRect.setEmpty();
         mInitialTouchPos.set(0, 0);
-        mAnimatorSetInProgress = false;
-        mSpringAnimationInProgress = false;
         setLauncherTargetViewVisible(true);
         mLauncherTargetView = null;
         // We don't call customizeStatusBarAppearance here to prevent the status bar update with
@@ -493,27 +489,8 @@ public class LauncherBackAnimationController {
         }
     }
 
-    private void startTransitionAnimations(RectFSpringAnim springAnim, AnimatorSet anim) {
-        mAnimatorSetInProgress = anim != null;
-        mSpringAnimationInProgress = springAnim != null;
-        if (springAnim != null) {
-            springAnim.addAnimatorListener(
-                    new AnimatorListenerAdapter() {
-                        @Override
-                        public void onAnimationEnd(Animator animation) {
-                            mSpringAnimationInProgress = false;
-                            tryFinishBackAnimation();
-                        }
-                    }
-            );
-        }
-        anim.addListener(new AnimatorListenerAdapter() {
-            @Override
-            public void onAnimationEnd(Animator animation) {
-                mAnimatorSetInProgress = false;
-                tryFinishBackAnimation();
-            }
-        });
+    private void startTransitionAnimations(BackAnimState backAnim) {
+        backAnim.addOnAnimCompleteCallback(this::finishAnimation);
         if (mScrimLayer == null) {
             // Scrim hasn't been attached yet. Let's attach it.
             addScrimLayer();
@@ -533,7 +510,7 @@ public class LauncherBackAnimationController {
             }
         });
         mScrimAlphaAnimator.setDuration(SCRIM_FADE_DURATION).start();
-        anim.start();
+        backAnim.start();
     }
 
     private void loadResources() {
@@ -564,12 +541,6 @@ public class LauncherBackAnimationController {
     private void resetScrim() {
         removeScrimLayer();
         mScrimAlpha = 0;
-    }
-
-    private void tryFinishBackAnimation() {
-        if (!mSpringAnimationInProgress && !mAnimatorSetInProgress) {
-            finishAnimation();
-        }
     }
 
     private void customizeStatusBarAppearance(boolean overridingStatusBarFlags) {

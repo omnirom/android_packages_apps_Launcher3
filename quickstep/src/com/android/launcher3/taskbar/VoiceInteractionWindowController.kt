@@ -41,7 +41,8 @@ private const val TEMP_BACKGROUND_WINDOW_TITLE = "VoiceInteractionTaskbarBackgro
 class VoiceInteractionWindowController(val context: TaskbarActivityContext) :
     TaskbarControllers.LoggableTaskbarController, TaskbarControllers.BackgroundRendererController {
 
-    private val isSeparateBackgroundEnabled = !DisplayController.isTransientTaskbar(context)
+    private val isSeparateBackgroundEnabled =
+        !DisplayController.isTransientTaskbar(context) && !context.isPhoneMode
     private val taskbarBackgroundRenderer = TaskbarBackgroundRenderer(context)
     private val nonTouchableInsetsComputer =
         ViewTreeObserver.OnComputeInternalInsetsListener {
@@ -109,7 +110,7 @@ class VoiceInteractionWindowController(val context: TaskbarActivityContext) :
     }
 
     fun setIsVoiceInteractionWindowVisible(visible: Boolean, skipAnim: Boolean) {
-        if (isVoiceInteractionWindowVisible == visible) {
+        if (isVoiceInteractionWindowVisible == visible || context.isPhoneMode) {
             return
         }
         isVoiceInteractionWindowVisible = visible

@@ -81,6 +81,7 @@ import com.android.launcher3.util.Preconditions;
 import com.android.launcher3.util.RunnableList;
 import com.android.launcher3.util.SplitConfigurationOptions;
 import com.android.launcher3.util.ViewCache;
+import com.android.launcher3.widget.picker.model.WidgetPickerDataProvider;
 
 import java.util.List;
 
@@ -263,6 +264,14 @@ public interface ActivityContext {
 
     @Nullable
     default PopupDataProvider getPopupDataProvider() {
+        return null;
+    }
+
+    /**
+     * Returns the {@link WidgetPickerDataProvider} that can be used to read widgets for display.
+     */
+    @Nullable
+    default WidgetPickerDataProvider getWidgetPickerDataProvider() {
         return null;
     }
 

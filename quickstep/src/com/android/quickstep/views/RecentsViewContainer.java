@@ -26,8 +26,11 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
 
+import androidx.annotation.Nullable;
+
 import com.android.launcher3.BaseActivity;
 import com.android.launcher3.logger.LauncherAtom;
+import com.android.launcher3.statehandlers.DesktopVisibilityController;
 import com.android.launcher3.util.SystemUiController;
 import com.android.launcher3.views.ActivityContext;
 import com.android.launcher3.views.ScrimView;
@@ -198,4 +201,7 @@ public interface RecentsViewContainer extends ActivityContext {
                                         .setOrientationHandler(orientationForLogging))
                         .build());
     }
+
+    @Nullable
+    DesktopVisibilityController getDesktopVisibilityController();
 }

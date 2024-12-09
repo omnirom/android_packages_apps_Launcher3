@@ -21,17 +21,18 @@ import static com.android.app.animation.Interpolators.LINEAR;
 import static com.android.launcher3.MotionEventsUtils.isTrackpadMultiFingerSwipe;
 import static com.android.quickstep.AbsSwipeUpHandler.RECENTS_ATTACH_DURATION;
 import static com.android.quickstep.GestureState.GestureEndTarget.LAST_TASK;
+import static com.android.quickstep.util.RecentsAtomicAnimationFactory.INDEX_RECENTS_ATTACHED_ALPHA_ANIM;
 import static com.android.quickstep.util.RecentsAtomicAnimationFactory.INDEX_RECENTS_FADE_ANIM;
 import static com.android.quickstep.util.RecentsAtomicAnimationFactory.INDEX_RECENTS_TRANSLATE_X_ANIM;
 import static com.android.quickstep.views.RecentsView.ADJACENT_PAGE_HORIZONTAL_OFFSET;
 import static com.android.quickstep.views.RecentsView.FULLSCREEN_PROGRESS;
 import static com.android.quickstep.views.RecentsView.RECENTS_SCALE_PROPERTY;
+import static com.android.quickstep.views.RecentsView.RUNNING_TASK_ATTACH_ALPHA;
 import static com.android.quickstep.views.RecentsView.TASK_SECONDARY_TRANSLATION;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.animation.AnimatorSet;
-import android.graphics.Color;
 import android.view.MotionEvent;
 
 import androidx.annotation.Nullable;
@@ -133,7 +134,7 @@ public abstract class BaseActivityInterface<STATE_TYPE extends BaseState<STATE_T
     public boolean deferStartingActivity(RecentsAnimationDeviceState deviceState, MotionEvent ev) {
         TaskbarUIController controller = getTaskbarController();
         boolean isEventOverBubbleBarStashHandle =
-                controller != null && controller.isEventOverBubbleBarStashHandle(ev);
+                controller != null && controller.isEventOverBubbleBarViews(ev);
         return deviceState.isInDeferredGestureRegion(ev) || deviceState.isImeRenderingNavButtons()
                 || isTrackpadMultiFingerSwipe(ev) || isEventOverBubbleBarStashHandle;
     }
@@ -188,8 +189,10 @@ public abstract class BaseActivityInterface<STATE_TYPE extends BaseState<STATE_T
          * @param attached Whether to show RecentsView alongside the app window. If false, recents
          *                 will be hidden by some property we can animate, e.g. alpha.
          * @param animate Whether to animate recents to/from its new attached state.
+         * @param updateRunningTaskAlpha Whether to update the running task's attached alpha
          */
-        default void setRecentsAttachedToAppWindow(boolean attached, boolean animate) { }
+        default void setRecentsAttachedToAppWindow(
+                boolean attached, boolean animate, boolean updateRunningTaskAlpha) { }
 
         default boolean isRecentsAttachedToAppWindow() {
             return false;
@@ -254,12 +257,14 @@ public abstract class BaseActivityInterface<STATE_TYPE extends BaseState<STATE_T
             // (because we set the animation as the current state animation), so we reapply the
             // attached state here as well to ensure recents is shown/hidden appropriately.
             if (DisplayController.getNavigationMode(mActivity) == NavigationMode.NO_BUTTON) {
-                setRecentsAttachedToAppWindow(mIsAttachedToWindow, false);
+                setRecentsAttachedToAppWindow(
+                        mIsAttachedToWindow, false, recentsView.shouldUpdateRunningTaskAlpha());
             }
         }
 
         @Override
-        public void setRecentsAttachedToAppWindow(boolean attached, boolean animate) {
+        public void setRecentsAttachedToAppWindow(
+                boolean attached, boolean animate, boolean updateRunningTaskAlpha) {
             if (mIsAttachedToWindow == attached && animate) {
                 return;
             }
@@ -267,6 +272,10 @@ public abstract class BaseActivityInterface<STATE_TYPE extends BaseState<STATE_T
                     .cancelStateElementAnimation(INDEX_RECENTS_FADE_ANIM);
             mActivity.getStateManager()
                     .cancelStateElementAnimation(INDEX_RECENTS_TRANSLATE_X_ANIM);
+            if (updateRunningTaskAlpha) {
+                mActivity.getStateManager()
+                        .cancelStateElementAnimation(INDEX_RECENTS_ATTACHED_ALPHA_ANIM);
+            }
 
             AnimatorSet animatorSet = new AnimatorSet();
             animatorSet.addListener(new AnimatorListenerAdapter() {
@@ -281,19 +290,28 @@ public abstract class BaseActivityInterface<STATE_TYPE extends BaseState<STATE_T
 
             long animationDuration = animate ? RECENTS_ATTACH_DURATION : 0;
             Animator fadeAnim = mActivity.getStateManager()
-                    .createStateElementAnimation(INDEX_RECENTS_FADE_ANIM, attached ? 1 : 0);
+                    .createStateElementAnimation(INDEX_RECENTS_FADE_ANIM, attached ? 1f : 0f);
             fadeAnim.setInterpolator(attached ? INSTANT : ACCELERATE_2);
             fadeAnim.setDuration(animationDuration);
             animatorSet.play(fadeAnim);
 
             float fromTranslation = ADJACENT_PAGE_HORIZONTAL_OFFSET.get(
                     mActivity.getOverviewPanel());
-            float toTranslation = attached ? 0 : 1;
-
+            float toTranslation = attached ? 0f : 1f;
             Animator translationAnimator = mActivity.getStateManager().createStateElementAnimation(
                     INDEX_RECENTS_TRANSLATE_X_ANIM, fromTranslation, toTranslation);
             translationAnimator.setDuration(animationDuration);
             animatorSet.play(translationAnimator);
+
+            if (updateRunningTaskAlpha) {
+                float fromAlpha = RUNNING_TASK_ATTACH_ALPHA.get(mActivity.getOverviewPanel());
+                float toAlpha = attached ? 1f : 0f;
+                Animator runningTaskAttachAlphaAnimator = mActivity.getStateManager()
+                        .createStateElementAnimation(
+                                INDEX_RECENTS_ATTACHED_ALPHA_ANIM, fromAlpha, toAlpha);
+                runningTaskAttachAlphaAnimator.setDuration(animationDuration);
+                animatorSet.play(runningTaskAttachAlphaAnimator);
+            }
             animatorSet.start();
         }
 

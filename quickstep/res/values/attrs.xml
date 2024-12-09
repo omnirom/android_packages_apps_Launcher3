@@ -28,6 +28,7 @@
         <!-- Border color for a keyboard quick switch task views -->
         <attr name="focusBorderColor" format="color" />
         <attr name="hoverBorderColor" format="color" />
+        <attr name="focusBorderRadius" format="dimension" />
     </declare-styleable>
 
     <declare-styleable name="ClearAllButton">

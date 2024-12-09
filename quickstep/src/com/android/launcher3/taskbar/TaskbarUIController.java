@@ -20,7 +20,6 @@ import static android.app.ActivityTaskManager.INVALID_TASK_ID;
 import static com.android.launcher3.LauncherSettings.Favorites.CONTAINER_HOTSEAT;
 import static com.android.launcher3.LauncherSettings.Favorites.CONTAINER_HOTSEAT_PREDICTION;
 import static com.android.launcher3.taskbar.TaskbarStashController.FLAG_IN_APP;
-import static com.android.quickstep.OverviewCommandHelper.TYPE_HIDE;
 
 import android.content.Intent;
 import android.graphics.drawable.BitmapDrawable;
@@ -40,11 +39,12 @@ import com.android.launcher3.popup.SystemShortcut;
 import com.android.launcher3.util.DisplayController;
 import com.android.launcher3.util.SplitConfigurationOptions;
 import com.android.quickstep.OverviewCommandHelper;
+import com.android.quickstep.OverviewCommandHelper.CommandType;
 import com.android.quickstep.util.GroupTask;
 import com.android.quickstep.util.TISBindHelper;
 import com.android.quickstep.views.RecentsView;
+import com.android.quickstep.views.TaskContainer;
 import com.android.quickstep.views.TaskView;
-import com.android.quickstep.views.TaskView.TaskContainer;
 import com.android.systemui.shared.recents.model.Task;
 import com.android.systemui.shared.system.QuickStepContract.SystemUiStateFlags;
 
@@ -60,6 +60,8 @@ public class TaskbarUIController {
 
     // Initialized in init.
     protected TaskbarControllers mControllers;
+
+    protected boolean mSkipLauncherVisibilityChange;
 
     @CallSuper
     protected void init(TaskbarControllers taskbarControllers) {
@@ -96,14 +98,7 @@ public class TaskbarUIController {
     }
 
     /** Called when an icon is launched. */
-    @CallSuper
-    public void onTaskbarIconLaunched(ItemInfo item) {
-        // When launching from Taskbar, e.g. from Overview, set FLAG_IN_APP immediately instead of
-        // waiting for onPause, to reduce potential visual noise during the app open transition.
-        if (mControllers.taskbarStashController == null) return;
-        mControllers.taskbarStashController.updateStateForFlag(FLAG_IN_APP, true);
-        mControllers.taskbarStashController.applyState();
-    }
+    public void onTaskbarIconLaunched(ItemInfo item) { }
 
     public View getRootView() {
         return mControllers.taskbarActivityContext.getDragLayer();
@@ -174,11 +169,11 @@ public class TaskbarUIController {
                 || mControllers.navbarButtonsViewController.isEventOverAnyItem(ev);
     }
 
-    /** Checks if the given {@link MotionEvent} is over the bubble bar stash handle. */
-    public boolean isEventOverBubbleBarStashHandle(MotionEvent ev) {
+    /** Checks if the given {@link MotionEvent} is over the bubble bar views. */
+    public boolean isEventOverBubbleBarViews(MotionEvent ev) {
         return mControllers.bubbleControllers.map(
                 bubbleControllers ->
-                        bubbleControllers.bubbleStashController.isEventOverStashHandle(ev))
+                        bubbleControllers.bubbleStashController.isEventOverBubbleBarViews(ev))
                 .orElse(false);
     }
 
@@ -230,7 +225,7 @@ public class TaskbarUIController {
         }
 
         recentsView.getSplitSelectController().findLastActiveTasksAndRunCallback(
-                Collections.singletonList(splitSelectSource.itemInfo.getComponentKey()),
+                Collections.singletonList(splitSelectSource.getItemInfo().getComponentKey()),
                 false /* findExactPairMatch */,
                 foundTasks -> {
                     @Nullable Task foundTask = foundTasks[0];
@@ -247,6 +242,13 @@ public class TaskbarUIController {
      * Uses the clicked Taskbar icon to launch a second app for splitscreen.
      */
     public void triggerSecondAppForSplit(ItemInfoWithIcon info, Intent intent, View startingView) {
+        // When launching from Taskbar, e.g. from Overview, set FLAG_IN_APP immediately
+        // to reduce potential visual noise during the app open transition.
+        if (mControllers.taskbarStashController != null) {
+            mControllers.taskbarStashController.updateStateForFlag(FLAG_IN_APP, true);
+            mControllers.taskbarStashController.applyState();
+        }
+
         RecentsView recents = getRecentsView();
         recents.getSplitSelectController().findLastActiveTasksAndRunCallback(
                 Collections.singletonList(info.getComponentKey()),
@@ -269,8 +271,8 @@ public class TaskbarUIController {
                                     foundTaskView,
                                     foundTask,
                                     taskContainer.getIconView().getDrawable(),
-                                    taskContainer.getThumbnailViewDeprecated(),
-                                    taskContainer.getThumbnailViewDeprecated().getThumbnail(),
+                                    taskContainer.getSnapshotView(),
+                                    taskContainer.getSplitAnimationThumbnail(),
                                     null /* intent */,
                                     null /* user */,
                                     info);
@@ -392,7 +394,7 @@ public class TaskbarUIController {
         if (overviewCommandHelper == null) {
             return;
         }
-        overviewCommandHelper.addCommand(TYPE_HIDE);
+        overviewCommandHelper.addCommand(CommandType.HIDE);
     }
 
     /**
@@ -415,7 +417,29 @@ public class TaskbarUIController {
     /**
      * Sets whether the user is going home based on the current gesture.
      */
-    public void setUserIsGoingHome(boolean isGoingHome) {
-        mControllers.taskbarStashController.setUserIsGoingHome(isGoingHome);
+    public void setUserIsNotGoingHome(boolean isNotGoingHome) {
+        mControllers.taskbarStashController.setUserIsNotGoingHome(isNotGoingHome);
+    }
+
+    /**
+     * Sets whether to prevent taskbar from reacting to launcher visibility during the recents
+     * transition animation.
+     */
+    public void setSkipLauncherVisibilityChange(boolean skip) {
+        mSkipLauncherVisibilityChange = skip;
+    }
+
+    /** Sets whether the hotseat is stashed */
+    public void stashHotseat(boolean stash) {
+    }
+
+    /** Un-stash the hotseat instantly */
+    public void unStashHotseatInstantly() {
+    }
+
+    /**
+     * Called when we want to unstash taskbar when user performs swipes up gesture.
+     */
+    public void onSwipeToUnstashTaskbar() {
     }
 }

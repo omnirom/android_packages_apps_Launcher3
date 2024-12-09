@@ -22,6 +22,7 @@
     <string name="recent_task_option_pin" msgid="7929860679018978258">"ਪਿੰਨ ਕਰੋ"</string>
     <string name="recent_task_option_freeform" msgid="48863056265284071">"ਫ੍ਰੀਫਾਰਮ"</string>
     <string name="recent_task_option_desktop" msgid="8280879717125435668">"ਡੈਸਕਟਾਪ"</string>
+    <string name="recent_task_desktop" msgid="8081113562549637334">"ਡੈਸਕਟਾਪ"</string>
     <string name="recents_empty_message" msgid="7040467240571714191">"ਕੋਈ ਹਾਲੀਆ ਆਈਟਮ ਨਹੀਂ"</string>
     <string name="accessibility_app_usage_settings" msgid="6312864233673544149">"ਐਪ ਵਰਤੋਂ ਦੀਆਂ ਸੈਟਿੰਗਾਂ"</string>
     <string name="recents_clear_all" msgid="5328176793634888831">"ਸਭ ਕਲੀਅਰ ਕਰੋ"</string>
@@ -99,7 +100,7 @@
     <string name="action_save_app_pair" msgid="5974823919237645229">"ਐਪ ਜੋੜਾਬੱਧ ਰੱਖਿਅਤ ਕਰੋ"</string>
     <string name="toast_split_select_app" msgid="8464310533320556058">"ਸਪਲਿਟ ਸਕ੍ਰੀਨ ਨੂੰ ਵਰਤਣ ਲਈ ਕਿਸੇ ਹੋਰ ਐਪ \'ਤੇ ਟੈਪ ਕਰੋ"</string>
     <string name="toast_contextual_split_select_app" msgid="433510957123687090">"ਸਪਲਿਟ ਸਕ੍ਰੀਨ ਵਰਤਣ ਲਈ ਕਿਸੇ ਹੋਰ ਐਪ ਨੂੰ ਚੁਣੋ"</string>
-    <string name="toast_split_select_app_cancel" msgid="1532690483356445639"><b>"ਰੱਦ ਕਰੋ"</b></string>
+    <string name="toast_split_select_app_cancel" msgid="1939025102486630426">"ਰੱਦ ਕਰੋ"</string>
     <string name="toast_split_select_cont_desc" msgid="2119685056059607602">"ਸਪਲਿਟ ਸਕ੍ਰੀਨ ਦੀ ਚੋਣ ਤੋਂ ਬਾਹਰ ਜਾਓ"</string>
     <string name="toast_split_app_unsupported" msgid="2360229567007828914">"ਸਪਲਿਟ ਸਕ੍ਰੀਨ ਵਰਤਣ ਲਈ ਕਿਸੇ ਹੋਰ ਐਪ ਨੂੰ ਚੁਣੋ"</string>
     <string name="blocked_by_policy" msgid="2071401072261365546">"ਐਪ ਜਾਂ ਤੁਹਾਡੀ ਸੰਸਥਾ ਵੱਲੋਂ ਇਸ ਕਾਰਵਾਈ ਦੀ ਇਜਾਜ਼ਤ ਨਹੀਂ ਹੈ"</string>
@@ -130,18 +131,27 @@
     <string name="taskbar_button_quick_settings" msgid="227662894293189391">"ਤਤਕਾਲ ਸੈਟਿੰਗਾਂ"</string>
     <string name="taskbar_a11y_title" msgid="6432169809852243110">"ਟਾਸਕਬਾਰ"</string>
     <string name="taskbar_a11y_shown_title" msgid="6842833581088937713">"ਟਾਸਕਬਾਰ ਨੂੰ ਦਿਖਾਇਆ ਗਿਆ"</string>
+    <string name="taskbar_a11y_shown_with_bubbles_left_title" msgid="4242431789851790046">"ਟਾਸਕਬਾਰ ਤੇ ਬਬਲ ਨੂੰ ਖੱਬੇ ਦਿਖਾਇਆ"</string>
+    <string name="taskbar_a11y_shown_with_bubbles_right_title" msgid="8219065376188180113">"ਟਾਸਕਬਾਰ ਤੇ ਬਬਲ ਨੂੰ ਸੱਜੇ ਦਿਖਾਇਆ"</string>
     <string name="taskbar_a11y_hidden_title" msgid="9154903639589659284">"ਟਾਸਕਬਾਰ ਨੂੰ ਲੁਕਾਇਆ ਗਿਆ"</string>
+    <string name="taskbar_a11y_hidden_with_bubbles_title" msgid="7397395993149508087">"ਟਾਸਕਬਾਰ ਅਤੇ ਬਬਲ ਨੂੰ ਲੁਕਾਇਆ ਗਿਆ"</string>
     <string name="taskbar_phone_a11y_title" msgid="4933360237131229395">"ਨੈਵੀਗੇਸ਼ਨ ਵਾਲੀ ਪੱਟੀ"</string>
     <string name="always_show_taskbar" msgid="3608801276107751229">"ਹਮੇਸ਼ਾਂ ਟਾਸਕਬਾਰ ਦਿਖਾਓ"</string>
     <string name="change_navigation_mode" msgid="9088393078736808968">"ਨੈਵੀਗੇਸ਼ਨ ਮੋਡ ਬਦਲੋ"</string>
     <string name="taskbar_divider_a11y_title" msgid="6608690309720242080">"ਟਾਸਕਬਾਰ ਵਿਭਾਜਕ"</string>
+    <string name="taskbar_overflow_a11y_title" msgid="7960342079198820179">"ਟਾਸਕਬਾਰ ਓਵਰਫ਼ਲੋ"</string>
     <string name="move_drop_target_top_or_left" msgid="2988702185049595807">"ਸਿਖਰਲੇ/ਖੱਬੇ ਪਾਸੇ ਲੈ ਕੇ ਜਾਓ"</string>
     <string name="move_drop_target_bottom_or_right" msgid="5431393418797620162">"ਹੇਠਾਂ/ਸੱਜੇ ਪਾਸੇ ਲੈ ਕੇ ਜਾਓ"</string>
-    <string name="quick_switch_overflow" msgid="6935266023013283353">"{count,plural, =1{# ਹੋਰ ਐਪ ਦਿਖਾਓ।}one{# ਹੋਰ ਐਪ ਦਿਖਾਓ।}other{# ਹੋਰ ਐਪਾਂ ਦਿਖਾਓ।}}"</string>
-    <string name="quick_switch_desktop" msgid="4834587349322698616">"{count,plural, =1{# ਡੈਸਕਟਾਪ ਐਪ ਦਿਖਾਓ।}one{# ਡੈਸਕਟਾਪ ਐਪ ਦਿਖਾਓ।}other{# ਡੈਸਕਟਾਪ ਐਪਾਂ ਦਿਖਾਓ।}}"</string>
+    <string name="quick_switch_overflow" msgid="3679780650881041632">"{count,plural, =1{ਹੋਰ ਐਪ}one{ਹੋਰ ਐਪ}other{ਹੋਰ ਐਪਾਂ}}"</string>
+    <string name="quick_switch_desktop" msgid="8393802056024499749">"ਡੈਸਕਟਾਪ"</string>
     <string name="quick_switch_split_task" msgid="5598194724255333896">"<xliff:g id="APP_NAME_1">%1$s</xliff:g> ਅਤੇ <xliff:g id="APP_NAME_2">%2$s</xliff:g>"</string>
     <string name="bubble_bar_bubble_fallback_description" msgid="7811684548953452009">"ਬਬਲ"</string>
     <string name="bubble_bar_overflow_description" msgid="8617628132733151708">"ਓਵਰਫ਼ਲੋ"</string>
     <string name="bubble_bar_bubble_description" msgid="1882466152448446446">"<xliff:g id="APP_NAME">%2$s</xliff:g> ਤੋਂ <xliff:g id="NOTIFICATION_TITLE">%1$s</xliff:g>"</string>
     <string name="bubble_bar_description_multiple_bubbles" msgid="3922207715357143648">"<xliff:g id="BUBBLE_BAR_BUBBLE_DESCRIPTION">%1$s</xliff:g> ਅਤੇ <xliff:g id="BUBBLE_COUNT">%2$d</xliff:g> ਹੋਰ"</string>
+    <string name="bubble_bar_action_move_left" msgid="3306922475737714758">"ਖੱਬੇ ਲਿਜਾਓ"</string>
+    <string name="bubble_bar_action_move_right" msgid="3455099638571411251">"ਸੱਜੇ ਲਿਜਾਓ"</string>
+    <string name="bubble_bar_action_dismiss_all" msgid="3290722022983403060">"ਸਭ ਖਾਰਜ ਕਰੋ"</string>
+    <string name="bubble_bar_accessibility_announce_expand" msgid="1503192695527477102">"<xliff:g id="BUBBLE_DESCRIPTION">%1$s</xliff:g> ਦਾ ਵਿਸਤਾਰ ਕਰੋ"</string>
+    <string name="bubble_bar_accessibility_announce_collapse" msgid="928284600086798791">"<xliff:g id="BUBBLE_DESCRIPTION">%1$s</xliff:g> ਨੂੰ ਸਮੇਟੋ"</string>
 </resources>

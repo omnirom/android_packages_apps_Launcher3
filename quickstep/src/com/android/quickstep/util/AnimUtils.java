@@ -17,18 +17,28 @@
 package com.android.quickstep.util;
 
 import static com.android.app.animation.Interpolators.clampToProgress;
+import static com.android.launcher3.LauncherState.NORMAL;
 import static com.android.launcher3.util.Executors.MAIN_EXECUTOR;
 
+import android.animation.AnimatorSet;
+import android.annotation.NonNull;
 import android.os.Bundle;
 import android.os.IRemoteCallback;
 import android.view.animation.Interpolator;
 
+import com.android.launcher3.logging.StatsLogManager;
+import com.android.launcher3.statemanager.BaseState;
+import com.android.launcher3.statemanager.StateManager;
+import com.android.launcher3.states.StateAnimationConfig;
 import com.android.launcher3.util.RunnableList;
+import com.android.quickstep.views.RecentsViewContainer;
 
 /**
  * Utility class containing methods to help manage animations, interpolators, and timings.
  */
 public class AnimUtils {
+    private static final int DURATION_DEFAULT_SPLIT_DISMISS = 350;
+
     /**
      * Fetches device-specific timings for the Overview > Split animation
      * (splitscreen initiated from Overview).
@@ -56,6 +66,33 @@ public class AnimUtils {
         return isTablet
                 ? SplitAnimationTimings.TABLET_APP_PAIR_LAUNCH
                 : SplitAnimationTimings.PHONE_APP_PAIR_LAUNCH;
+    }
+
+    /**
+     * Synchronizes the timing for the split dismiss animation to the current transition to
+     * NORMAL (launcher home/workspace)
+     */
+    public static void goToNormalStateWithSplitDismissal(@NonNull StateManager stateManager,
+            @NonNull RecentsViewContainer container,
+            @NonNull StatsLogManager.LauncherEvent exitReason,
+            @NonNull SplitAnimationController animationController) {
+        StateAnimationConfig config = new StateAnimationConfig();
+        BaseState startState = stateManager.getState();
+        long duration = startState.getTransitionDuration(container.asContext(),
+                false /*isToState*/);
+        if (duration == 0) {
+            // Case where we're in contextual on workspace (NORMAL), which by default has 0
+            // transition duration
+            duration = DURATION_DEFAULT_SPLIT_DISMISS;
+        }
+        config.duration = duration;
+        AnimatorSet stateAnim = stateManager.createAtomicAnimation(
+                startState, NORMAL, config);
+        AnimatorSet dismissAnim = animationController
+                .createPlaceholderDismissAnim(container, exitReason, duration);
+        stateAnim.play(dismissAnim);
+        stateManager.setCurrentAnimation(stateAnim, NORMAL);
+        stateAnim.start();
     }
 
     /**

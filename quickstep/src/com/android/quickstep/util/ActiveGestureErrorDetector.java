@@ -40,6 +40,7 @@ public class ActiveGestureErrorDetector {
         SCROLLER_ANIMATION_ABORTED, TASK_APPEARED, EXPECTING_TASK_APPEARED,
         FLAG_USING_OTHER_ACTIVITY_INPUT_CONSUMER, LAUNCHER_DESTROYED, RECENT_TASKS_MISSING,
         INVALID_VELOCITY_ON_SWIPE_UP, RECENTS_ANIMATION_START_PENDING,
+        QUICK_SWITCH_FROM_HOME_FALLBACK, QUICK_SWITCH_FROM_HOME_FAILED, NAVIGATION_MODE_SWITCHED,
 
         /**
          * These GestureEvents are specifically associated to state flags that get set in
@@ -280,6 +281,29 @@ public class ActiveGestureErrorDetector {
                             /* errorMessage= */ (eventEntry.getDuplicateCount() + 1)
                                     + " gesture(s) attempted while a requested recents"
                                     + " animation is still pending.",
+                            writer);
+                    break;
+                case QUICK_SWITCH_FROM_HOME_FALLBACK:
+                    errorDetected |= printErrorIfTrue(
+                            true,
+                            prefix,
+                            /* errorMessage= */ "Quick switch from home fallback case: the "
+                                    + "TaskView at the current page index was missing.",
+                            writer);
+                    break;
+                case QUICK_SWITCH_FROM_HOME_FAILED:
+                    errorDetected |= printErrorIfTrue(
+                            true,
+                            prefix,
+                            /* errorMessage= */ "Quick switch from home failed: the TaskViews at "
+                                    + "the current page index and index 0 were missing.",
+                            writer);
+                    break;
+                case NAVIGATION_MODE_SWITCHED:
+                    errorDetected |= printErrorIfTrue(
+                            true,
+                            prefix,
+                            /* errorMessage= */ "Navigation mode switched mid-gesture.",
                             writer);
                     break;
                 case EXPECTING_TASK_APPEARED:

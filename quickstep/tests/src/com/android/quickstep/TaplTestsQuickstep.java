@@ -266,9 +266,6 @@ public class TaplTestsQuickstep extends AbstractQuickStepTest {
         return launcher.<RecentsView>getOverviewPanel().getBottomRowTaskCountForTablet();
     }
 
-    // Staging; will be promoted to presubmit if stable
-    @TestStabilityRule.Stability(flavors = LOCAL | PLATFORM_POSTSUBMIT)
-
     @Test
     @NavigationModeSwitch
     @PortraitLandscape
@@ -292,9 +289,6 @@ public class TaplTestsQuickstep extends AbstractQuickStepTest {
             mLauncher.setIgnoreTaskbarVisibility(false);
         }
     }
-
-    // Staging; will be promoted to presubmit if stable
-    @TestStabilityRule.Stability(flavors = LOCAL | PLATFORM_POSTSUBMIT)
 
     @Test
     @NavigationModeSwitch
@@ -401,6 +395,7 @@ public class TaplTestsQuickstep extends AbstractQuickStepTest {
     @Test
     @NavigationModeSwitch
     @PortraitLandscape
+    @TestStabilityRule.Stability(flavors = LOCAL | PLATFORM_POSTSUBMIT) // b/325659406
     public void testQuickSwitchFromHome() throws Exception {
         startTestActivity(2);
         mLauncher.goHome().quickSwitchToPreviousApp();
@@ -482,7 +477,8 @@ public class TaplTestsQuickstep extends AbstractQuickStepTest {
 //        assertTrue("Launcher internal state didn't remain in Overview",
 //                isInState(() -> LauncherState.OVERVIEW));
 //        overview.getCurrentTask().dismiss();
-//        executeOnLauncher(launcher -> assertTrue("Grid did not rebalance after multiple dismissals",
+//        executeOnLauncher(launcher -> assertTrue("Grid did not rebalance after multiple
+//        dismissals",
 //                (Math.abs(getTopRowTaskCountForTablet(launcher) - getBottomRowTaskCountForTablet(
 //                        launcher)) <= 1)));
 
@@ -581,7 +577,7 @@ public class TaplTestsQuickstep extends AbstractQuickStepTest {
     public void testExcludeFromRecents() throws Exception {
         startExcludeFromRecentsTestActivity();
         OverviewTask currentTask = getAndAssertLaunchedApp().switchToOverview().getCurrentTask();
-        // TODO(b/326565120): the expected content description shouldn't be null but for now there
+        // TODO(b/342627272): the expected content description shouldn't be null but for now there
         // is a bug that causes it to sometimes be for excludeForRecents tasks.
         assertTrue("Can't find ExcludeFromRecentsTestActivity after entering Overview from it",
                 currentTask.containsContentDescription("ExcludeFromRecents")
@@ -591,7 +587,8 @@ public class TaplTestsQuickstep extends AbstractQuickStepTest {
         if (overview.hasTasks()) {
             currentTask = overview.getCurrentTask();
             assertFalse("Found ExcludeFromRecentsTestActivity after entering Overview from Home",
-                    currentTask.containsContentDescription("ExcludeFromRecents")
+                    currentTask.containsContentDescription(
+                            "ExcludeFromRecents")
                             || currentTask.containsContentDescription(null));
         } else {
             // Presumably the test started with 0 tasks and remains that way after going home.

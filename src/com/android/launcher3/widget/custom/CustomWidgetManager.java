@@ -30,6 +30,7 @@ import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.VisibleForTesting;
 
 import com.android.launcher3.R;
 import com.android.launcher3.util.MainThreadInitializedObject;
@@ -45,6 +46,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
@@ -62,9 +64,16 @@ public class CustomWidgetManager implements PluginListener<CustomWidgetPlugin>, 
     private final HashMap<ComponentName, CustomWidgetPlugin> mPlugins;
     private final List<CustomAppWidgetProviderInfo> mCustomWidgets;
     private Consumer<PackageUserKey> mWidgetRefreshCallback;
+    private final @NonNull AppWidgetManager mAppWidgetManager;
 
     private CustomWidgetManager(Context context) {
+        this(context, AppWidgetManager.getInstance(context));
+    }
+
+    @VisibleForTesting
+    CustomWidgetManager(Context context, @NonNull AppWidgetManager widgetManager) {
         mContext = context;
+        mAppWidgetManager = widgetManager;
         mPlugins = new HashMap<>();
         mCustomWidgets = new ArrayList<>();
         PluginManagerWrapper.INSTANCE.get(context)
@@ -94,7 +103,7 @@ public class CustomWidgetManager implements PluginListener<CustomWidgetPlugin>, 
 
     @Override
     public void onPluginConnected(CustomWidgetPlugin plugin, Context context) {
-        List<AppWidgetProviderInfo> providers = AppWidgetManager.getInstance(context)
+        List<AppWidgetProviderInfo> providers = mAppWidgetManager
                 .getInstalledProvidersForProfile(Process.myUserHandle());
         if (providers.isEmpty()) return;
         Parcel parcel = Parcel.obtain();
@@ -111,6 +120,12 @@ public class CustomWidgetManager implements PluginListener<CustomWidgetPlugin>, 
         ComponentName cn = getWidgetProviderComponent(plugin);
         mPlugins.remove(cn);
         mCustomWidgets.removeIf(w -> w.getComponent().equals(cn));
+    }
+
+    @VisibleForTesting
+    @NonNull
+    Map<ComponentName, CustomWidgetPlugin> getPlugins() {
+        return mPlugins;
     }
 
     /**

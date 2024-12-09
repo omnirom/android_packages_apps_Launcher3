@@ -85,7 +85,8 @@ class WidgetPreviewContainerSizesTest {
                 Point(1, 1) to WidgetPreviewContainerSize(1, 1),
                 // 2x1
                 Point(2, 1) to WidgetPreviewContainerSize(2, 1),
-                Point(3, 1) to WidgetPreviewContainerSize(2, 1),
+                // 3x1
+                Point(3, 1) to WidgetPreviewContainerSize(3, 1),
                 // 4x1
                 Point(4, 1) to WidgetPreviewContainerSize(4, 1),
                 // 2x2

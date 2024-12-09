@@ -35,7 +35,7 @@
     <string name="launcher_restore_event_logger_class" translatable="false">com.android.quickstep.LauncherRestoreEventLoggerImpl</string>
     <string name="plugin_manager_wrapper_class" translatable="false">com.android.launcher3.uioverrides.plugins.PluginManagerWrapperImpl</string>
     <string name="taskbar_edu_tooltip_controller_class" translatable="false">com.android.launcher3.taskbar.TaskbarEduTooltipController</string>
-
+    <string name="contextual_edu_manager_class" translatable="false">com.android.quickstep.contextualeducation.SystemContextualEduStatsManager</string>
     <string name="nav_handle_long_press_handler_class" translatable="false"></string>
     <string name="assist_utils_class" translatable="false"></string>
     <string name="assist_state_manager_class" translatable="false"></string>

@@ -22,6 +22,7 @@
     <string name="recent_task_option_pin" msgid="7929860679018978258">"பின் செய்தல்"</string>
     <string name="recent_task_option_freeform" msgid="48863056265284071">"குறிப்பிட்ட வடிவமில்லாத பயன்முறை"</string>
     <string name="recent_task_option_desktop" msgid="8280879717125435668">"டெஸ்க்டாப்"</string>
+    <string name="recent_task_desktop" msgid="8081113562549637334">"டெஸ்க்டாப்"</string>
     <string name="recents_empty_message" msgid="7040467240571714191">"சமீபத்தியவை எதுவுமில்லை"</string>
     <string name="accessibility_app_usage_settings" msgid="6312864233673544149">"ஆப்ஸ் உபயோக அமைப்புகள்"</string>
     <string name="recents_clear_all" msgid="5328176793634888831">"எல்லாம் அழி"</string>
@@ -72,7 +73,7 @@
     <string name="home_gesture_tutorial_success" msgid="1736295017642244751">"அருமை!"</string>
     <string name="overview_gesture_feedback_swipe_too_far_from_edge" msgid="6402349235265407385">"திரையின் கீழ் ஓரத்திலிருந்து மேல்நோக்கி ஸ்வைப் செய்வதை உறுதிசெய்துகொள்ளுங்கள்"</string>
     <string name="overview_gesture_feedback_home_detected" msgid="663432226180397138">"விடுவிப்பதற்கு முன்பாக நீண்டநேரம் சாளரத்தை அழுத்திப் பிடித்திருங்கள்"</string>
-    <string name="overview_gesture_feedback_wrong_swipe_direction" msgid="1191055451018584958">"மேல்நோக்கி நேராக ஸ்வைப் செய்தபிறகு இடைநிறுத்துவதை உறுதிசெய்துகொள்ளுங்கள்"</string>
+    <string name="overview_gesture_feedback_wrong_swipe_direction" msgid="1191055451018584958">"மேல்நோக்கி நேராக ஸ்வைப் செய்தபிறகு சற்றுநேரம் அழுத்திபடியே வைத்திருங்கள்"</string>
     <string name="overview_gesture_feedback_complete_with_follow_up" msgid="3544611727467765026">"சைகைகளை எப்படி உபயோகிப்பது என்று கற்றுக்கொண்டீர்கள். சைகைகளை முடக்க அமைப்புகளுக்குச் செல்லுங்கள்."</string>
     <string name="overview_gesture_feedback_complete_without_follow_up" msgid="2903050864432331629">"ஆப்ஸுக்கிடையே மாறும் சைகைப் பயிற்சியை நிறைவுசெய்துவிட்டீர்கள்"</string>
     <string name="overview_gesture_intro_title" msgid="2902054412868489378">"ஆப்ஸுக்கிடையே மாற ஸ்வைப் செய்யுங்கள்"</string>
@@ -90,7 +91,7 @@
     <string name="allset_title" msgid="5021126669778966707">"அனைத்தையும் அமைத்துவிட்டீர்கள்!"</string>
     <string name="allset_hint" msgid="459504134589971527">"முகப்புக்குச் செல்ல மேல்நோக்கி ஸ்வைப் செய்யுங்கள்"</string>
     <string name="allset_button_hint" msgid="2395219947744706291">"முகப்புத் திரைக்குச் செல்வதற்கு முகப்பு பட்டனைத் தட்டவும்"</string>
-    <string name="allset_description_generic" msgid="5385500062202019855">"உங்கள் <xliff:g id="DEVICE">%1$s</xliff:g> சாதனத்தைப் பயன்படுத்தத் தயாராகிவிட்டீர்கள்"</string>
+    <string name="allset_description_generic" msgid="5385500062202019855">"உங்கள் <xliff:g id="DEVICE">%1$s</xliff:g> ஐப் பயன்படுத்தத் தயாராகிவிட்டீர்கள்"</string>
     <string name="default_device_name" msgid="6660656727127422487">"சாதனம்"</string>
     <string name="allset_navigation_settings" msgid="4713404605961476027"><annotation id="link">"சிஸ்டம் வழிசெலுத்தல் அமைப்புகள்"</annotation></string>
     <string name="action_share" msgid="2648470652637092375">"பகிர்"</string>
@@ -99,7 +100,7 @@
     <string name="action_save_app_pair" msgid="5974823919237645229">"ஆப்ஸ் ஜோடியைச் சேமி"</string>
     <string name="toast_split_select_app" msgid="8464310533320556058">"திரைப் பிரிப்பைப் பயன்படுத்த வேறு ஆப்ஸைத் தட்டவும்"</string>
     <string name="toast_contextual_split_select_app" msgid="433510957123687090">"திரைப் பிரிப்பைப் பயன்படுத்த வேறு ஆப்ஸைத் தேர்வுசெய்யுங்கள்"</string>
-    <string name="toast_split_select_app_cancel" msgid="1532690483356445639"><b>"ரத்துசெய்"</b></string>
+    <string name="toast_split_select_app_cancel" msgid="1939025102486630426">"ரத்துசெய்"</string>
     <string name="toast_split_select_cont_desc" msgid="2119685056059607602">"திரைப் பிரிப்பு தேர்வில் இருந்து வெளியேறும்"</string>
     <string name="toast_split_app_unsupported" msgid="2360229567007828914">"திரைப் பிரிப்பை பயன்படுத்த வேறு ஆப்ஸை தேர்வுசெய்க"</string>
     <string name="blocked_by_policy" msgid="2071401072261365546">"ஆப்ஸோ உங்கள் நிறுவனமோ இந்த செயலை அனுமதிப்பதில்லை"</string>
@@ -130,18 +131,27 @@
     <string name="taskbar_button_quick_settings" msgid="227662894293189391">"விரைவு அமைப்புகள்"</string>
     <string name="taskbar_a11y_title" msgid="6432169809852243110">"செயல் பட்டி"</string>
     <string name="taskbar_a11y_shown_title" msgid="6842833581088937713">"செயல் பட்டி காட்டப்படுகிறது"</string>
+    <string name="taskbar_a11y_shown_with_bubbles_left_title" msgid="4242431789851790046">"செயல் பட்டி &amp; குமிழை இடதுபுறம் காட்டும்"</string>
+    <string name="taskbar_a11y_shown_with_bubbles_right_title" msgid="8219065376188180113">"செயல் பட்டி &amp; குமிழை வலதுபுறம் காட்டும்"</string>
     <string name="taskbar_a11y_hidden_title" msgid="9154903639589659284">"செயல் பட்டி மறைக்கப்பட்டுள்ளது"</string>
+    <string name="taskbar_a11y_hidden_with_bubbles_title" msgid="7397395993149508087">"செயல் பட்டி &amp; குமிழை மறைக்கும்"</string>
     <string name="taskbar_phone_a11y_title" msgid="4933360237131229395">"வழிசெலுத்தல் பட்டி"</string>
     <string name="always_show_taskbar" msgid="3608801276107751229">"செயல் பட்டியை எப்போதும் காட்டு"</string>
     <string name="change_navigation_mode" msgid="9088393078736808968">"வழிசெலுத்தல் பயன்முறையை மாற்று"</string>
     <string name="taskbar_divider_a11y_title" msgid="6608690309720242080">"செயல் பட்டிப் பிரிப்பான்"</string>
+    <string name="taskbar_overflow_a11y_title" msgid="7960342079198820179">"செயல் பட்டிக்கான கூடுதல் விருப்பங்கள்"</string>
     <string name="move_drop_target_top_or_left" msgid="2988702185049595807">"மேலே/இடதுபுறம் நகர்த்தும்"</string>
     <string name="move_drop_target_bottom_or_right" msgid="5431393418797620162">"கீழே/வலதுபுறம் நகர்த்தும்"</string>
-    <string name="quick_switch_overflow" msgid="6935266023013283353">"{count,plural, =1{மேலும் # ஆப்ஸைக் காட்டு.}other{மேலும் # ஆப்ஸைக் காட்டு.}}"</string>
-    <string name="quick_switch_desktop" msgid="4834587349322698616">"{count,plural, =1{# டெஸ்க்டாப் ஆப்ஸைக் காட்டு.}other{# டெஸ்க்டாப் ஆப்ஸைக் காட்டு.}}"</string>
+    <string name="quick_switch_overflow" msgid="3679780650881041632">"{count,plural, =1{கூடுதல் ஆப்ஸ்}other{கூடுதல் ஆப்ஸ்}}"</string>
+    <string name="quick_switch_desktop" msgid="8393802056024499749">"டெஸ்க்டாப்"</string>
     <string name="quick_switch_split_task" msgid="5598194724255333896">"<xliff:g id="APP_NAME_1">%1$s</xliff:g> மற்றும் <xliff:g id="APP_NAME_2">%2$s</xliff:g>"</string>
     <string name="bubble_bar_bubble_fallback_description" msgid="7811684548953452009">"குமிழ்"</string>
     <string name="bubble_bar_overflow_description" msgid="8617628132733151708">"கூடுதல் விருப்பங்களைக் காட்டும்"</string>
     <string name="bubble_bar_bubble_description" msgid="1882466152448446446">"<xliff:g id="APP_NAME">%2$s</xliff:g> வழங்கும் <xliff:g id="NOTIFICATION_TITLE">%1$s</xliff:g>"</string>
     <string name="bubble_bar_description_multiple_bubbles" msgid="3922207715357143648">"<xliff:g id="BUBBLE_BAR_BUBBLE_DESCRIPTION">%1$s</xliff:g> மற்றும் <xliff:g id="BUBBLE_COUNT">%2$d</xliff:g>"</string>
+    <string name="bubble_bar_action_move_left" msgid="3306922475737714758">"இடதுபுறம் நகர்த்தும்"</string>
+    <string name="bubble_bar_action_move_right" msgid="3455099638571411251">"வலதுபுறம் நகர்த்தும்"</string>
+    <string name="bubble_bar_action_dismiss_all" msgid="3290722022983403060">"அனைத்தையும் மூடும்"</string>
+    <string name="bubble_bar_accessibility_announce_expand" msgid="1503192695527477102">"<xliff:g id="BUBBLE_DESCRIPTION">%1$s</xliff:g> ஐ விரிவாக்கும்"</string>
+    <string name="bubble_bar_accessibility_announce_collapse" msgid="928284600086798791">"<xliff:g id="BUBBLE_DESCRIPTION">%1$s</xliff:g> ஐச் சுருக்கும்"</string>
 </resources>

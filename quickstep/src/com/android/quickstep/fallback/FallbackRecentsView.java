@@ -253,6 +253,9 @@ public class FallbackRecentsView extends RecentsView<RecentsActivity, RecentsSta
         }
 
         setFreezeViewVisibility(true);
+        if (mContainer.getDesktopVisibilityController() != null) {
+            mContainer.getDesktopVisibilityController().onLauncherStateChanged(toState);
+        }
     }
 
     @Override

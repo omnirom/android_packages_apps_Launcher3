@@ -17,6 +17,9 @@ package com.android.launcher3.celllayout;
 
 import static androidx.test.core.app.ApplicationProvider.getApplicationContext;
 
+import static com.android.launcher3.util.rule.TestStabilityRule.LOCAL;
+import static com.android.launcher3.util.rule.TestStabilityRule.PLATFORM_POSTSUBMIT;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -37,6 +40,8 @@ import com.android.launcher3.celllayout.board.WidgetRect;
 import com.android.launcher3.celllayout.testgenerator.RandomBoardGenerator;
 import com.android.launcher3.celllayout.testgenerator.RandomMultiBoardGenerator;
 import com.android.launcher3.util.ActivityContextWrapper;
+import com.android.launcher3.util.rule.TestStabilityRule;
+import com.android.launcher3.util.rule.TestStabilityRule.Stability;
 import com.android.launcher3.views.DoubleShadowBubbleTextView;
 
 import org.junit.Rule;
@@ -68,12 +73,16 @@ public class ReorderAlgorithmUnitTest {
     private Context mApplicationContext;
 
     @Rule
+    public TestStabilityRule mTestStabilityRule = new TestStabilityRule();
+
+    @Rule
     public UnitTestCellLayoutBuilderRule mCellLayoutBuilder = new UnitTestCellLayoutBuilderRule();
 
     /**
      * This test reads existing test cases and makes sure the CellLayout produces the same
      * output for each of them for a given input.
      */
+    @Stability(flavors = LOCAL | PLATFORM_POSTSUBMIT)
     @Test
     public void testAllCases() throws IOException {
         List<ReorderAlgorithmUnitTestCase> testCases = getTestCases(
@@ -116,6 +125,7 @@ public class ReorderAlgorithmUnitTest {
     /**
      * Same as above but testing the Multipage CellLayout.
      */
+    @Stability(flavors = LOCAL | PLATFORM_POSTSUBMIT)
     @Test
     public void generateValidTests_Multi() {
         Random generator = new Random(SEED);
@@ -144,8 +154,8 @@ public class ReorderAlgorithmUnitTest {
 
     public ItemConfiguration solve(CellLayoutBoard board, int x, int y, int spanX,
             int spanY, int minSpanX, int minSpanY, boolean isMulti) {
-        CellLayout cl = mCellLayoutBuilder.createCellLayout(board.getWidth(), board.getHeight(),
-                isMulti);
+        CellLayout cl = mCellLayoutBuilder.createCellLayoutDefaultSize(board.getWidth(),
+                board.getHeight(), isMulti);
 
         // The views have to be sorted or the result can vary
         board.getIcons()

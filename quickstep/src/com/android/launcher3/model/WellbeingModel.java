@@ -83,10 +83,8 @@ public final class WellbeingModel implements SafeCloseable {
 
     private final Handler mWorkerHandler;
     private final ContentObserver mContentObserver;
-    private final SimpleBroadcastReceiver mWellbeingAppChangeReceiver =
-            new SimpleBroadcastReceiver(t -> restartObserver());
-    private final SimpleBroadcastReceiver mAppAddRemoveReceiver =
-            new SimpleBroadcastReceiver(this::onAppPackageChanged);
+    private final SimpleBroadcastReceiver mWellbeingAppChangeReceiver;
+    private final SimpleBroadcastReceiver mAppAddRemoveReceiver;
 
     private final Object mModelLock = new Object();
     // Maps the action Id to the corresponding RemoteAction
@@ -101,6 +99,11 @@ public final class WellbeingModel implements SafeCloseable {
         mWorkerHandler = new Handler(TextUtils.isEmpty(mWellbeingProviderPkg)
                 ? Executors.UI_HELPER_EXECUTOR.getLooper()
                 : Executors.getPackageExecutor(mWellbeingProviderPkg).getLooper());
+        mWellbeingAppChangeReceiver =
+                new SimpleBroadcastReceiver(mWorkerHandler, t -> restartObserver());
+        mAppAddRemoveReceiver =
+                new SimpleBroadcastReceiver(mWorkerHandler, this::onAppPackageChanged);
+
 
         mContentObserver = new ContentObserver(mWorkerHandler) {
             @Override
@@ -111,6 +114,7 @@ public final class WellbeingModel implements SafeCloseable {
         mWorkerHandler.post(this::initializeInBackground);
     }
 
+    @WorkerThread
     private void initializeInBackground() {
         if (!TextUtils.isEmpty(mWellbeingProviderPkg)) {
             mContext.registerReceiver(

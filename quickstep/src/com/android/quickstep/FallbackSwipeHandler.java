@@ -64,6 +64,7 @@ import com.android.launcher3.states.StateAnimationConfig;
 import com.android.launcher3.util.DisplayController;
 import com.android.quickstep.fallback.FallbackRecentsView;
 import com.android.quickstep.fallback.RecentsState;
+import com.android.quickstep.util.ActiveGestureLog;
 import com.android.quickstep.util.RectFSpringAnim;
 import com.android.quickstep.util.SurfaceTransaction.SurfaceProperties;
 import com.android.quickstep.util.TransformParams;
@@ -170,14 +171,16 @@ public class FallbackSwipeHandler extends
     }
 
     @Override
-    protected boolean handleTaskAppeared(RemoteAnimationTarget[] appearedTaskTarget) {
+    protected boolean handleTaskAppeared(@NonNull RemoteAnimationTarget[] appearedTaskTarget,
+            @NonNull ActiveGestureLog.CompoundString failureReason) {
         if (mActiveAnimationFactory != null
                 && mActiveAnimationFactory.handleHomeTaskAppeared(appearedTaskTarget)) {
             mActiveAnimationFactory = null;
+            failureReason.append("(FallbackSwipeHandler) should be handled as home task appeared");
             return false;
         }
 
-        return super.handleTaskAppeared(appearedTaskTarget);
+        return super.handleTaskAppeared(appearedTaskTarget, failureReason);
     }
 
     @Override

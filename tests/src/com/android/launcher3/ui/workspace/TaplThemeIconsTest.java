@@ -16,6 +16,8 @@
 package com.android.launcher3.ui.workspace;
 
 import static com.android.launcher3.util.TestConstants.AppNames.TEST_APP_NAME;
+import static com.android.launcher3.util.rule.TestStabilityRule.LOCAL;
+import static com.android.launcher3.util.rule.TestStabilityRule.PLATFORM_POSTSUBMIT;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -38,6 +40,8 @@ import com.android.launcher3.tapl.HomeAppIcon;
 import com.android.launcher3.tapl.HomeAppIconMenuItem;
 import com.android.launcher3.ui.AbstractLauncherUiTest;
 import com.android.launcher3.util.Executors;
+import com.android.launcher3.util.rule.ScreenRecordRule;
+import com.android.launcher3.util.rule.TestStabilityRule;
 
 import org.junit.Test;
 
@@ -111,6 +115,8 @@ public class TaplThemeIconsTest extends AbstractLauncherUiTest<Launcher> {
     }
 
     @Test
+    @TestStabilityRule.Stability(flavors = LOCAL | PLATFORM_POSTSUBMIT) // b/350557998
+    @ScreenRecordRule.ScreenRecord // b/350557998
     public void testShortcutIconWithTheme() throws Exception {
         setThemeEnabled(true);
         initialize(this);

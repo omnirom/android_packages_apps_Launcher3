@@ -19,6 +19,7 @@ package com.android.launcher3.statehandlers;
 import static com.android.app.animation.Interpolators.LINEAR;
 import static com.android.launcher3.states.StateAnimationConfig.ANIM_DEPTH;
 import static com.android.launcher3.states.StateAnimationConfig.SKIP_DEPTH_CONTROLLER;
+import static com.android.launcher3.util.Executors.UI_HELPER_EXECUTOR;
 import static com.android.launcher3.util.MultiPropertyFactory.MULTI_PROPERTY_VALUE;
 
 import android.animation.Animator;
@@ -74,8 +75,9 @@ public class DepthController extends BaseDepthController implements StateHandler
             mOnAttachListener = new View.OnAttachStateChangeListener() {
                 @Override
                 public void onViewAttachedToWindow(View view) {
-                    CrossWindowBlurListeners.getInstance().addListener(mLauncher.getMainExecutor(),
-                            mCrossWindowBlurListener);
+                    UI_HELPER_EXECUTOR.execute(() ->
+                            CrossWindowBlurListeners.getInstance().addListener(
+                                    mLauncher.getMainExecutor(), mCrossWindowBlurListener));
                     mLauncher.getScrimView().addOpaquenessListener(mOpaquenessListener);
 
                     // To handle the case where window token is invalid during last setDepth call.
@@ -108,7 +110,9 @@ public class DepthController extends BaseDepthController implements StateHandler
 
     private void removeSecondaryListeners() {
         if (mCrossWindowBlurListener != null) {
-            CrossWindowBlurListeners.getInstance().removeListener(mCrossWindowBlurListener);
+            UI_HELPER_EXECUTOR.execute(() ->
+                    CrossWindowBlurListeners.getInstance()
+                            .removeListener(mCrossWindowBlurListener));
         }
         if (mOpaquenessListener != null) {
             mLauncher.getScrimView().removeOpaquenessListener(mOpaquenessListener);

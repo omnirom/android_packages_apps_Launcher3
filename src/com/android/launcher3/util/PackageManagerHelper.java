@@ -212,7 +212,7 @@ public class PackageManagerHelper implements SafeCloseable{
         if (info instanceof ItemInfoWithIcon appInfo
                 && (appInfo.runtimeStatusFlags & FLAG_INSTALL_SESSION_ACTIVE) != 0) {
             context.startActivity(ApiWrapper.INSTANCE.get(context).getAppMarketActivityIntent(
-                    appInfo.getTargetComponent().getPackageName(), Process.myUserHandle()));
+                    appInfo.getTargetComponent().getPackageName(), Process.myUserHandle()), opts);
             return;
         }
         ComponentName componentName = null;
@@ -303,10 +303,7 @@ public class PackageManagerHelper implements SafeCloseable{
 
     /** Returns the incremental download progress for the given shortcut's app. */
     public static int getLoadingProgress(LauncherActivityInfo info) {
-        if (Utilities.ATLEAST_S) {
-            return (int) (100 * info.getLoadingProgress());
-        }
-        return 100;
+        return (int) (100 * info.getLoadingProgress());
     }
 
     /** Returns true in case app is installed on the device or in archived state. */

@@ -37,6 +37,7 @@ import com.android.launcher3.testing.shared.TestProtocol;
 import com.android.launcher3.util.DisplayController.Info;
 import com.android.launcher3.util.NavigationMode;
 import com.android.launcher3.util.window.CachedDisplayInfo;
+import com.android.systemui.shared.Flags;
 
 import java.io.PrintWriter;
 import java.util.HashMap;
@@ -242,7 +243,8 @@ class OrientationTouchTransformer {
         int rotation = display.rotation;
         int touchHeight = mNavBarGesturalHeight;
         OrientationRectF orientationRectF = new OrientationRectF(0, 0, size.x, size.y, rotation);
-        if (mMode == NavigationMode.NO_BUTTON) {
+        if (mMode == NavigationMode.NO_BUTTON
+                || (mMode == NavigationMode.THREE_BUTTONS && Flags.threeButtonCornerSwipe())) {
             orientationRectF.top = orientationRectF.bottom - touchHeight;
             updateAssistantRegions(orientationRectF);
         } else {

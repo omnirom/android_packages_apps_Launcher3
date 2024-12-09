@@ -18,6 +18,8 @@ package com.android.launcher3.util;
 
 import static android.provider.Settings.System.ACCELEROMETER_ROTATION;
 
+import static com.android.launcher3.util.Executors.UI_HELPER_EXECUTOR;
+
 import android.content.ContentResolver;
 import android.content.Context;
 import android.database.ContentObserver;
@@ -87,7 +89,7 @@ public class SettingsCache extends ContentObserver implements SafeCloseable {
 
     @Override
     public void close() {
-        mResolver.unregisterContentObserver(this);
+        UI_HELPER_EXECUTOR.execute(() -> mResolver.unregisterContentObserver(this));
     }
 
     @Override
@@ -135,7 +137,8 @@ public class SettingsCache extends ContentObserver implements SafeCloseable {
             CopyOnWriteArrayList<OnChangeListener> l = new CopyOnWriteArrayList<>();
             l.add(changeListener);
             mListenerMap.put(uri, l);
-            mResolver.registerContentObserver(uri, false, this);
+            UI_HELPER_EXECUTOR.execute(
+                    () -> mResolver.registerContentObserver(uri, false, this));
         }
     }
 

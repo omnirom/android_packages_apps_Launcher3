@@ -795,6 +795,9 @@ public class StatsLogManager implements ResourceBasedOverride {
         @UiEvent(doc = "User launches Overview from meta+tab keyboard shortcut")
         LAUNCHER_OVERVIEW_SHOW_OVERVIEW_FROM_KEYBOARD_SHORTCUT(1765),
 
+        @UiEvent(doc = "User long pressed on the taskbar IME switcher button")
+        LAUNCHER_TASKBAR_IME_SWITCHER_BUTTON_LONGPRESS(1798),
+
         // ADD MORE
         ;
 

@@ -24,7 +24,6 @@ import static com.android.launcher3.util.VelocityUtils.PX_PER_MS;
 import static com.android.quickstep.AbsSwipeUpHandler.MIN_PROGRESS_FOR_OVERVIEW;
 import static com.android.quickstep.MultiStateCallback.DEBUG_STATES;
 import static com.android.quickstep.OverviewComponentObserver.startHomeIntentSafely;
-import static com.android.quickstep.TaskAnimationManager.ENABLE_SHELL_TRANSITIONS;
 import static com.android.quickstep.util.ActiveGestureLog.INTENT_EXTRA_LOG_TRACE_ID;
 
 import android.animation.Animator;
@@ -58,7 +57,6 @@ import com.android.quickstep.util.SurfaceTransaction.SurfaceProperties;
 import com.android.quickstep.util.TransformParams;
 import com.android.quickstep.util.TransformParams.BuilderProxy;
 import com.android.systemui.shared.recents.model.ThumbnailData;
-import com.android.systemui.shared.system.ActivityManagerWrapper;
 import com.android.systemui.shared.system.InputMonitorCompat;
 
 import java.util.HashMap;
@@ -213,15 +211,13 @@ public class DeviceLockedInputConsumer implements InputConsumer,
                         // This will come back and cancel the interaction.
                         startHomeIntentSafely(mContext, mGestureState.getHomeIntent(), null, TAG);
                         mHomeLaunched = true;
-                    } else if (ENABLE_SHELL_TRANSITIONS) {
-                        if (mTaskAnimationManager.getCurrentCallbacks() != null) {
-                            if (mRecentsAnimationController != null) {
-                                finishRecentsAnimationForShell(dismissTask);
-                            } else {
-                                // the transition of recents animation hasn't started, wait for it
-                                mCancelWhenRecentsStart = true;
-                                mDismissTask = dismissTask;
-                            }
+                    } else if (mTaskAnimationManager.getCurrentCallbacks() != null) {
+                        if (mRecentsAnimationController != null) {
+                            finishRecentsAnimationForShell(dismissTask);
+                        } else {
+                            // the transition of recents animation hasn't started, wait for it
+                            mCancelWhenRecentsStart = true;
+                            mDismissTask = dismissTask;
                         }
                     }
                     mStateCallback.setState(STATE_HANDLER_INVALIDATED);
@@ -278,9 +274,7 @@ public class DeviceLockedInputConsumer implements InputConsumer,
     }
 
     private void endRemoteAnimation() {
-        if (mHomeLaunched) {
-            ActivityManagerWrapper.getInstance().cancelRecentsAnimation(false);
-        } else if (mRecentsAnimationController != null) {
+        if (!mHomeLaunched && mRecentsAnimationController != null) {
             mRecentsAnimationController.finishController(
                     false /* toRecents */, null /* callback */, false /* sendUserLeaveHint */);
         }

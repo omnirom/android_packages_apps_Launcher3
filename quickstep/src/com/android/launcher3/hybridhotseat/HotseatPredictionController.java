@@ -536,6 +536,9 @@ public class HotseatPredictionController implements DragController.DragListener,
         writer.println(prefix + "HotseatPredictionController");
         writer.println(prefix + "\tFlags: " + getStateString(mPauseFlags));
         writer.println(prefix + "\tmHotSeatItemsCount: " + mHotSeatItemsCount);
-        writer.println(prefix + "\tmPredictedItems: " + mPredictedItems);
+        writer.println(prefix + "\tmPredictedItems: " + mPredictedItems.size());
+        for (ItemInfo info : mPredictedItems) {
+            writer.println(prefix + "\t\t" + info);
+        }
     }
 }

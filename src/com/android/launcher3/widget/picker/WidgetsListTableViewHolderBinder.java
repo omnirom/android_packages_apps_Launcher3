@@ -15,10 +15,7 @@
  */
 package com.android.launcher3.widget.picker;
 
-import static com.android.launcher3.widget.picker.WidgetsListItemAnimator.CHANGE_DURATION_MS;
-import static com.android.launcher3.widget.picker.WidgetsListItemAnimator.MOVE_DURATION_MS;
-
-import static android.animation.ValueAnimator.areAnimatorsEnabled;
+import static com.android.launcher3.widget.picker.WidgetsListItemAnimator.WIDGET_LIST_ITEM_APPEARANCE_START_DELAY;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -157,8 +154,7 @@ public final class WidgetsListTableViewHolderBinder
             // Pass resize delay to let the "move" and "change" animations run before resizing the
             // row.
             tableRow.setupRow(widgetItems.size(),
-                    /*resizeDelayMs=*/
-                    areAnimatorsEnabled() ? (CHANGE_DURATION_MS + MOVE_DURATION_MS) : 0);
+                    /*resizeDelayMs=*/ WIDGET_LIST_ITEM_APPEARANCE_START_DELAY);
             if (tableRow.getChildCount() > widgetItems.size()) {
                 for (int j = widgetItems.size(); j < tableRow.getChildCount(); j++) {
                     tableRow.getChildAt(j).setVisibility(View.GONE);

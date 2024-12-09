@@ -23,8 +23,6 @@ import static com.android.launcher3.model.data.LauncherAppWidgetInfo.FLAG_RESTOR
 import static com.android.launcher3.provider.LauncherDbUtils.itemIdMatch;
 import static com.android.launcher3.util.Executors.MODEL_EXECUTOR;
 import static com.android.launcher3.util.WidgetUtils.createWidgetInfo;
-import static com.android.launcher3.util.rule.TestStabilityRule.LOCAL;
-import static com.android.launcher3.util.rule.TestStabilityRule.PLATFORM_POSTSUBMIT;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -56,7 +54,6 @@ import com.android.launcher3.tapl.Workspace;
 import com.android.launcher3.ui.AbstractLauncherUiTest;
 import com.android.launcher3.ui.TestViewHelpers;
 import com.android.launcher3.util.rule.ShellCommandRule;
-import com.android.launcher3.util.rule.TestStabilityRule;
 import com.android.launcher3.widget.LauncherAppWidgetProviderInfo;
 import com.android.launcher3.widget.WidgetManagerHelper;
 
@@ -143,7 +140,6 @@ public class TaplBindWidgetTest extends AbstractLauncherUiTest<Launcher> {
     }
 
     @Test
-    @TestStabilityRule.Stability(flavors = LOCAL | PLATFORM_POSTSUBMIT) // b/310242894
     public void testPendingWidget_withConfigScreen() {
         // A non-restored widget with config screen get bound and shows a 'Click to setup' UI.
         // Do not bind the widget
@@ -193,7 +189,6 @@ public class TaplBindWidgetTest extends AbstractLauncherUiTest<Launcher> {
     }
 
     @Test
-    @TestStabilityRule.Stability(flavors = LOCAL | PLATFORM_POSTSUBMIT) // b/310242894
     public void testPendingWidget_notRestored_brokenInstall() {
         // A widget which is was being installed once, even if its not being
         // installed at the moment is not removed.

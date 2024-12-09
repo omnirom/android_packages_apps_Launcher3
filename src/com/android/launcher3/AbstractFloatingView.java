@@ -74,7 +74,8 @@ public abstract class AbstractFloatingView extends LinearLayout implements Touch
             TYPE_TASKBAR_ALL_APPS,
             TYPE_ADD_TO_HOME_CONFIRMATION,
             TYPE_TASKBAR_OVERLAY_PROXY,
-            TYPE_TASKBAR_PINNING_POPUP
+            TYPE_TASKBAR_PINNING_POPUP,
+            TYPE_PIN_IME_POPUP
     })
     @Retention(RetentionPolicy.SOURCE)
     public @interface FloatingViewType {}
@@ -137,9 +138,6 @@ public abstract class AbstractFloatingView extends LinearLayout implements Touch
     // Floating views that a TouchController should not try to intercept touches from.
     public static final int TYPE_TOUCH_CONTROLLER_NO_INTERCEPT = TYPE_ALL & ~TYPE_DISCOVERY_BOUNCE
             & ~TYPE_LISTENER & ~TYPE_TASKBAR_OVERLAYS;
-
-    public static final int TYPE_ALL_EXCEPT_ON_BOARD_POPUP = TYPE_ALL & ~TYPE_ON_BOARD_POPUP
-            & ~TYPE_PIN_IME_POPUP;
 
     protected boolean mIsOpen;
 

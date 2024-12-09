@@ -45,7 +45,6 @@ class GridSizeMigrationUtilTest {
 
     private lateinit var modelHelper: LauncherModelHelper
     private lateinit var context: Context
-    private lateinit var validPackages: Set<String>
     private lateinit var idp: InvariantDeviceProfile
     private lateinit var dbHelper: DatabaseHelper
     private lateinit var db: SQLiteDatabase
@@ -68,23 +67,9 @@ class GridSizeMigrationUtilTest {
             DatabaseHelper(
                 context,
                 null,
-                UserCache.INSTANCE.get(context)::getSerialNumberForUser
+                UserCache.INSTANCE.get(context)::getSerialNumberForUser,
             ) {}
         db = dbHelper.writableDatabase
-
-        validPackages =
-            setOf(
-                testPackage1,
-                testPackage2,
-                testPackage3,
-                testPackage4,
-                testPackage5,
-                testPackage6,
-                testPackage7,
-                testPackage8,
-                testPackage9,
-                testPackage10
-            )
 
         idp = InvariantDeviceProfile.INSTANCE[context]
         val userSerial = UserCache.INSTANCE[context].getSerialNumberForUser(Process.myUserHandle())
@@ -126,8 +111,8 @@ class GridSizeMigrationUtilTest {
         idp.numDatabaseHotseatIcons = 4
         idp.numColumns = 4
         idp.numRows = 4
-        val srcReader = DbReader(db, TMP_TABLE, context, validPackages)
-        val destReader = DbReader(db, TABLE_NAME, context, validPackages)
+        val srcReader = DbReader(db, TMP_TABLE, context)
+        val destReader = DbReader(db, TABLE_NAME, context)
         GridSizeMigrationUtil.migrate(
             dbHelper,
             srcReader,
@@ -135,7 +120,7 @@ class GridSizeMigrationUtilTest {
             idp.numDatabaseHotseatIcons,
             Point(idp.numColumns, idp.numRows),
             DeviceGridState(context),
-            DeviceGridState(idp)
+            DeviceGridState(idp),
         )
 
         // Check hotseat items
@@ -147,9 +132,8 @@ class GridSizeMigrationUtilTest {
                 null,
                 SCREEN,
                 null,
-                null
-            )
-                ?: throw IllegalStateException()
+                null,
+            ) ?: throw IllegalStateException()
 
         assertThat(c.count).isEqualTo(idp.numDatabaseHotseatIcons)
 
@@ -178,9 +162,8 @@ class GridSizeMigrationUtilTest {
                 null,
                 null,
                 null,
-                null
-            )
-                ?: throw IllegalStateException()
+                null,
+            ) ?: throw IllegalStateException()
 
         intentIndex = c.getColumnIndex(INTENT)
         val cellXIndex = c.getColumnIndex(CELLX)
@@ -238,8 +221,8 @@ class GridSizeMigrationUtilTest {
         idp.numDatabaseHotseatIcons = 4
         idp.numColumns = 4
         idp.numRows = 4
-        val readerGridA = DbReader(db, TMP_TABLE, context, validPackages)
-        val readerGridB = DbReader(db, TABLE_NAME, context, validPackages)
+        val readerGridA = DbReader(db, TMP_TABLE, context)
+        val readerGridB = DbReader(db, TABLE_NAME, context)
         // migrate from A -> B
         GridSizeMigrationUtil.migrate(
             dbHelper,
@@ -248,7 +231,7 @@ class GridSizeMigrationUtilTest {
             idp.numDatabaseHotseatIcons,
             Point(idp.numColumns, idp.numRows),
             DeviceGridState(context),
-            DeviceGridState(idp)
+            DeviceGridState(idp),
         )
 
         // Check hotseat items in grid B
@@ -260,15 +243,14 @@ class GridSizeMigrationUtilTest {
                 null,
                 SCREEN,
                 null,
-                null
-            )
-                ?: throw IllegalStateException()
+                null,
+            ) ?: throw IllegalStateException()
         // Expected hotseat items in grid B
         // 2 1 3 4
         verifyHotseat(
             c,
             idp,
-            mutableListOf(testPackage2, testPackage1, testPackage3, testPackage4).toList()
+            mutableListOf(testPackage2, testPackage1, testPackage3, testPackage4).toList(),
         )
 
         // Check workspace items in grid B
@@ -280,9 +262,8 @@ class GridSizeMigrationUtilTest {
                 null,
                 null,
                 null,
-                null
-            )
-                ?: throw IllegalStateException()
+                null,
+            ) ?: throw IllegalStateException()
         var locMap = parseLocMap(c)
         // Expected items in grid B
         // _ _ _ _
@@ -306,7 +287,7 @@ class GridSizeMigrationUtilTest {
             5,
             Point(5, 5),
             DeviceGridState(idp),
-            DeviceGridState(context)
+            DeviceGridState(context),
         )
         // Check hotseat items in grid A
         c =
@@ -317,15 +298,14 @@ class GridSizeMigrationUtilTest {
                 null,
                 SCREEN,
                 null,
-                null
-            )
-                ?: throw IllegalStateException()
+                null,
+            ) ?: throw IllegalStateException()
         // Expected hotseat items in grid A
         // 1 2 _ 3 4
         verifyHotseat(
             c,
             idp,
-            mutableListOf(testPackage1, testPackage2, null, testPackage3, testPackage4).toList()
+            mutableListOf(testPackage1, testPackage2, null, testPackage3, testPackage4).toList(),
         )
 
         // Check workspace items in grid A
@@ -337,9 +317,8 @@ class GridSizeMigrationUtilTest {
                 null,
                 null,
                 null,
-                null
-            )
-                ?: throw IllegalStateException()
+                null,
+            ) ?: throw IllegalStateException()
         locMap = parseLocMap(c)
         // Expected workspace items in grid A
         // _ _ _ _ _
@@ -367,7 +346,7 @@ class GridSizeMigrationUtilTest {
             idp.numDatabaseHotseatIcons,
             Point(idp.numColumns, idp.numRows),
             DeviceGridState(context),
-            DeviceGridState(idp)
+            DeviceGridState(idp),
         )
 
         // Check hotseat items in grid B
@@ -379,15 +358,14 @@ class GridSizeMigrationUtilTest {
                 null,
                 SCREEN,
                 null,
-                null
-            )
-                ?: throw IllegalStateException()
+                null,
+            ) ?: throw IllegalStateException()
         // Expected hotseat items in grid B
         // 2 1 3 4
         verifyHotseat(
             c,
             idp,
-            mutableListOf(testPackage2, testPackage1, testPackage3, testPackage4).toList()
+            mutableListOf(testPackage2, testPackage1, testPackage3, testPackage4).toList(),
         )
 
         // Check workspace items in grid B
@@ -399,9 +377,8 @@ class GridSizeMigrationUtilTest {
                 null,
                 null,
                 null,
-                null
-            )
-                ?: throw IllegalStateException()
+                null,
+            ) ?: throw IllegalStateException()
         locMap = parseLocMap(c)
         // Expected workspace items in grid B
         // _ _ _ _
@@ -455,7 +432,7 @@ class GridSizeMigrationUtilTest {
                     0,
                     testPackage1,
                     1,
-                    TMP_TABLE
+                    TMP_TABLE,
                 ),
                 addItem(
                     ITEM_TYPE_DEEP_SHORTCUT,
@@ -465,7 +442,7 @@ class GridSizeMigrationUtilTest {
                     0,
                     testPackage2,
                     2,
-                    TMP_TABLE
+                    TMP_TABLE,
                 ),
                 addItem(
                     ITEM_TYPE_APPLICATION,
@@ -475,7 +452,7 @@ class GridSizeMigrationUtilTest {
                     0,
                     testPackage3,
                     3,
-                    TMP_TABLE
+                    TMP_TABLE,
                 ),
                 addItem(
                     ITEM_TYPE_DEEP_SHORTCUT,
@@ -485,15 +462,15 @@ class GridSizeMigrationUtilTest {
                     0,
                     testPackage4,
                     4,
-                    TMP_TABLE
-                )
+                    TMP_TABLE,
+                ),
             )
         val numSrcDatabaseHotseatIcons = srcHotseatItems.size
         idp.numDatabaseHotseatIcons = 6
         idp.numColumns = 4
         idp.numRows = 4
-        val srcReader = DbReader(db, TMP_TABLE, context, validPackages)
-        val destReader = DbReader(db, TABLE_NAME, context, validPackages)
+        val srcReader = DbReader(db, TMP_TABLE, context)
+        val destReader = DbReader(db, TABLE_NAME, context)
         GridSizeMigrationUtil.migrate(
             dbHelper,
             srcReader,
@@ -501,7 +478,7 @@ class GridSizeMigrationUtilTest {
             idp.numDatabaseHotseatIcons,
             Point(idp.numColumns, idp.numRows),
             DeviceGridState(context),
-            DeviceGridState(idp)
+            DeviceGridState(idp),
         )
 
         // Check hotseat items
@@ -513,9 +490,8 @@ class GridSizeMigrationUtilTest {
                 null,
                 SCREEN,
                 null,
-                null
-            )
-                ?: throw IllegalStateException()
+                null,
+            ) ?: throw IllegalStateException()
 
         assertThat(c.count.toLong()).isEqualTo(numSrcDatabaseHotseatIcons.toLong())
         val screenIndex = c.getColumnIndex(SCREEN)
@@ -550,8 +526,8 @@ class GridSizeMigrationUtilTest {
         idp.numDatabaseHotseatIcons = 4
         idp.numColumns = 4
         idp.numRows = 4
-        val srcReader = DbReader(db, TMP_TABLE, context, validPackages)
-        val destReader = DbReader(db, TABLE_NAME, context, validPackages)
+        val srcReader = DbReader(db, TMP_TABLE, context)
+        val destReader = DbReader(db, TABLE_NAME, context)
         GridSizeMigrationUtil.migrate(
             dbHelper,
             srcReader,
@@ -559,7 +535,7 @@ class GridSizeMigrationUtilTest {
             idp.numDatabaseHotseatIcons,
             Point(idp.numColumns, idp.numRows),
             DeviceGridState(context),
-            DeviceGridState(idp)
+            DeviceGridState(idp),
         )
 
         // Check hotseat items
@@ -571,9 +547,8 @@ class GridSizeMigrationUtilTest {
                 null,
                 SCREEN,
                 null,
-                null
-            )
-                ?: throw IllegalStateException()
+                null,
+            ) ?: throw IllegalStateException()
 
         assertThat(c.count.toLong()).isEqualTo(idp.numDatabaseHotseatIcons.toLong())
         val screenIndex = c.getColumnIndex(SCREEN)
@@ -617,8 +592,8 @@ class GridSizeMigrationUtilTest {
         idp.numDatabaseHotseatIcons = 4
         idp.numColumns = 5
         idp.numRows = 5
-        val srcReader = DbReader(db, TMP_TABLE, context, validPackages)
-        val destReader = DbReader(db, TABLE_NAME, context, validPackages)
+        val srcReader = DbReader(db, TMP_TABLE, context)
+        val destReader = DbReader(db, TABLE_NAME, context)
         GridSizeMigrationUtil.migrate(
             dbHelper,
             srcReader,
@@ -626,7 +601,7 @@ class GridSizeMigrationUtilTest {
             idp.numDatabaseHotseatIcons,
             Point(idp.numColumns, idp.numRows),
             DeviceGridState(context),
-            DeviceGridState(idp)
+            DeviceGridState(idp),
         )
 
         // Get workspace items
@@ -638,9 +613,8 @@ class GridSizeMigrationUtilTest {
                 null,
                 null,
                 null,
-                null
-            )
-                ?: throw IllegalStateException()
+                null,
+            ) ?: throw IllegalStateException()
 
         val intentIndex = c.getColumnIndex(INTENT)
         val screenIndex = c.getColumnIndex(SCREEN)
@@ -678,8 +652,8 @@ class GridSizeMigrationUtilTest {
         idp.numDatabaseHotseatIcons = 4
         idp.numColumns = 4
         idp.numRows = 4
-        val srcReader = DbReader(db, TMP_TABLE, context, validPackages)
-        val destReader = DbReader(db, TABLE_NAME, context, validPackages)
+        val srcReader = DbReader(db, TMP_TABLE, context)
+        val destReader = DbReader(db, TABLE_NAME, context)
         GridSizeMigrationUtil.migrate(
             dbHelper,
             srcReader,
@@ -687,7 +661,7 @@ class GridSizeMigrationUtilTest {
             idp.numDatabaseHotseatIcons,
             Point(idp.numColumns, idp.numRows),
             DeviceGridState(context),
-            DeviceGridState(idp)
+            DeviceGridState(idp),
         )
 
         // Get workspace items
@@ -699,9 +673,8 @@ class GridSizeMigrationUtilTest {
                 null,
                 null,
                 null,
-                null
-            )
-                ?: throw IllegalStateException()
+                null,
+            ) ?: throw IllegalStateException()
         val intentIndex = c.getColumnIndex(INTENT)
         val screenIndex = c.getColumnIndex(SCREEN)
 
@@ -732,7 +705,7 @@ class GridSizeMigrationUtilTest {
         container: Int,
         x: Int,
         y: Int,
-        packageName: String?
+        packageName: String?,
     ): Int {
         return addItem(
             type,
@@ -742,7 +715,7 @@ class GridSizeMigrationUtilTest {
             y,
             packageName,
             dbHelper.generateNewItemId(),
-            TABLE_NAME
+            TABLE_NAME,
         )
     }
 
@@ -754,7 +727,7 @@ class GridSizeMigrationUtilTest {
         y: Int,
         packageName: String?,
         id: Int,
-        tableName: String
+        tableName: String,
     ): Int {
         val values = ContentValues()
         values.put(_ID, id)

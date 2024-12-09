@@ -15,6 +15,7 @@
  */
 package com.android.launcher3.util;
 
+import android.R;
 import android.content.Context;
 import android.content.ContextWrapper;
 import android.view.ContextThemeWrapper;
@@ -39,10 +40,15 @@ public class ActivityContextWrapper extends ContextThemeWrapper implements Activ
     private final MyDragLayer mMyDragLayer;
 
     public ActivityContextWrapper(Context base) {
-        super(base, android.R.style.Theme_DeviceDefault);
+        this(base, R.style.Theme_DeviceDefault);
+    }
+
+    public ActivityContextWrapper(Context base, int theme) {
+        super(base, theme);
         mProfile = InvariantDeviceProfile.INSTANCE.get(base).getDeviceProfile(base).copy(base);
         mMyDragLayer = new MyDragLayer(this);
     }
+
 
     @Override
     public BaseDragLayer getDragLayer() {

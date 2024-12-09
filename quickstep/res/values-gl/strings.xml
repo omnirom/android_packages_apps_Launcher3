@@ -22,6 +22,7 @@
     <string name="recent_task_option_pin" msgid="7929860679018978258">"Fixar"</string>
     <string name="recent_task_option_freeform" msgid="48863056265284071">"Forma libre"</string>
     <string name="recent_task_option_desktop" msgid="8280879717125435668">"Escritorio"</string>
+    <string name="recent_task_desktop" msgid="8081113562549637334">"Ordenador"</string>
     <string name="recents_empty_message" msgid="7040467240571714191">"Non hai elementos recentes"</string>
     <string name="accessibility_app_usage_settings" msgid="6312864233673544149">"Configuración do uso de aplicacións"</string>
     <string name="recents_clear_all" msgid="5328176793634888831">"Borrar todo"</string>
@@ -90,8 +91,8 @@
     <string name="allset_title" msgid="5021126669778966707">"Todo listo"</string>
     <string name="allset_hint" msgid="459504134589971527">"Pasa o dedo cara arriba para ir á pantalla de inicio"</string>
     <string name="allset_button_hint" msgid="2395219947744706291">"Toca o botón de inicio para ir á pantalla de inicio"</string>
-    <string name="allset_description_generic" msgid="5385500062202019855">"Xa podes comezar a utilizar o teu dispositivo (<xliff:g id="DEVICE">%1$s</xliff:g>)"</string>
-    <string name="default_device_name" msgid="6660656727127422487">"dispositivo"</string>
+    <string name="allset_description_generic" msgid="5385500062202019855">"<xliff:g id="DEVICE">%1$s</xliff:g> dispoñible para comezar a utilizar"</string>
+    <string name="default_device_name" msgid="6660656727127422487">"Dispositivo"</string>
     <string name="allset_navigation_settings" msgid="4713404605961476027"><annotation id="link">"Configuración da navegación do sistema"</annotation></string>
     <string name="action_share" msgid="2648470652637092375">"Compartir"</string>
     <string name="action_screenshot" msgid="8171125848358142917">"Facer captura"</string>
@@ -99,7 +100,7 @@
     <string name="action_save_app_pair" msgid="5974823919237645229">"Gardar parella apps"</string>
     <string name="toast_split_select_app" msgid="8464310533320556058">"Para usar a pantalla dividida, toca outra app"</string>
     <string name="toast_contextual_split_select_app" msgid="433510957123687090">"Escolle outra aplicación para usar a pantalla dividida."</string>
-    <string name="toast_split_select_app_cancel" msgid="1532690483356445639"><b>"Cancelar"</b></string>
+    <string name="toast_split_select_app_cancel" msgid="1939025102486630426">"Cancelar"</string>
     <string name="toast_split_select_cont_desc" msgid="2119685056059607602">"Saír da selección de pantalla dividida"</string>
     <string name="toast_split_app_unsupported" msgid="2360229567007828914">"Escolle outra app para usar a pantalla dividida"</string>
     <string name="blocked_by_policy" msgid="2071401072261365546">"A aplicación ou a túa organización non permite realizar esta acción"</string>
@@ -130,18 +131,27 @@
     <string name="taskbar_button_quick_settings" msgid="227662894293189391">"Configuración rápida"</string>
     <string name="taskbar_a11y_title" msgid="6432169809852243110">"Barra de tarefas"</string>
     <string name="taskbar_a11y_shown_title" msgid="6842833581088937713">"Estase mostrando a barra de tarefas"</string>
+    <string name="taskbar_a11y_shown_with_bubbles_left_title" msgid="4242431789851790046">"Barra e burbullas á esquerda"</string>
+    <string name="taskbar_a11y_shown_with_bubbles_right_title" msgid="8219065376188180113">"Barra e burbullas á dereita"</string>
     <string name="taskbar_a11y_hidden_title" msgid="9154903639589659284">"Non se está mostrando a barra de tarefas"</string>
+    <string name="taskbar_a11y_hidden_with_bubbles_title" msgid="7397395993149508087">"Barra e burbullas ocultas"</string>
     <string name="taskbar_phone_a11y_title" msgid="4933360237131229395">"Barra de navegación"</string>
     <string name="always_show_taskbar" msgid="3608801276107751229">"Ver sempre a barra de tarefas"</string>
     <string name="change_navigation_mode" msgid="9088393078736808968">"Cambiar modo de navegación"</string>
     <string name="taskbar_divider_a11y_title" msgid="6608690309720242080">"Divisor da Barra de tarefas"</string>
+    <string name="taskbar_overflow_a11y_title" msgid="7960342079198820179">"Menú adicional da barra de tarefas"</string>
     <string name="move_drop_target_top_or_left" msgid="2988702185049595807">"Mover á parte superior ou á esquerda"</string>
     <string name="move_drop_target_bottom_or_right" msgid="5431393418797620162">"Mover á parte inferior ou á dereita"</string>
-    <string name="quick_switch_overflow" msgid="6935266023013283353">"{count,plural, =1{Mostrar # aplicación máis.}other{Mostrar # aplicacións máis.}}"</string>
-    <string name="quick_switch_desktop" msgid="4834587349322698616">"{count,plural, =1{Mostrar # aplicación para ordenadores.}other{Mostrar # aplicacións para ordenadores.}}"</string>
+    <string name="quick_switch_overflow" msgid="3679780650881041632">"{count,plural, =1{aplicación máis}other{aplicacións máis}}"</string>
+    <string name="quick_switch_desktop" msgid="8393802056024499749">"Escritorio"</string>
     <string name="quick_switch_split_task" msgid="5598194724255333896">"<xliff:g id="APP_NAME_1">%1$s</xliff:g> e <xliff:g id="APP_NAME_2">%2$s</xliff:g>"</string>
     <string name="bubble_bar_bubble_fallback_description" msgid="7811684548953452009">"Burbulla"</string>
     <string name="bubble_bar_overflow_description" msgid="8617628132733151708">"Menú adicional"</string>
     <string name="bubble_bar_bubble_description" msgid="1882466152448446446">"<xliff:g id="NOTIFICATION_TITLE">%1$s</xliff:g> de <xliff:g id="APP_NAME">%2$s</xliff:g>"</string>
     <string name="bubble_bar_description_multiple_bubbles" msgid="3922207715357143648">"<xliff:g id="BUBBLE_BAR_BUBBLE_DESCRIPTION">%1$s</xliff:g> e <xliff:g id="BUBBLE_COUNT">%2$d</xliff:g> máis"</string>
+    <string name="bubble_bar_action_move_left" msgid="3306922475737714758">"Mover cara á esquerda"</string>
+    <string name="bubble_bar_action_move_right" msgid="3455099638571411251">"Mover cara á dereita"</string>
+    <string name="bubble_bar_action_dismiss_all" msgid="3290722022983403060">"Pechar todo"</string>
+    <string name="bubble_bar_accessibility_announce_expand" msgid="1503192695527477102">"despregar <xliff:g id="BUBBLE_DESCRIPTION">%1$s</xliff:g>"</string>
+    <string name="bubble_bar_accessibility_announce_collapse" msgid="928284600086798791">"contraer <xliff:g id="BUBBLE_DESCRIPTION">%1$s</xliff:g>"</string>
 </resources>

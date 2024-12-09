@@ -16,6 +16,8 @@
 
 package com.android.launcher3;
 
+import static android.graphics.fonts.FontStyle.FONT_WEIGHT_BOLD;
+import static android.graphics.fonts.FontStyle.FONT_WEIGHT_NORMAL;
 import static android.text.Layout.Alignment.ALIGN_NORMAL;
 
 import static com.android.launcher3.Flags.enableCursorHoverStates;
@@ -40,11 +42,15 @@ import android.graphics.Rect;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.icu.text.MessageFormat;
+import android.text.Spannable;
+import android.text.SpannableString;
 import android.text.StaticLayout;
 import android.text.TextPaint;
 import android.text.TextUtils;
 import android.text.TextUtils.TruncateAt;
+import android.text.style.ImageSpan;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.util.Property;
 import android.util.Size;
 import android.util.TypedValue;
@@ -54,6 +60,7 @@ import android.view.View;
 import android.view.ViewDebug;
 import android.widget.TextView;
 
+import androidx.annotation.DrawableRes;
 import androidx.annotation.Nullable;
 import androidx.annotation.UiThread;
 import androidx.annotation.VisibleForTesting;
@@ -82,7 +89,7 @@ import com.android.launcher3.util.SafeCloseable;
 import com.android.launcher3.util.ShortcutUtil;
 import com.android.launcher3.util.Themes;
 import com.android.launcher3.views.ActivityContext;
-import com.android.launcher3.views.IconLabelDotView;
+import com.android.launcher3.views.FloatingIconViewCompanion;
 
 import java.text.NumberFormat;
 import java.util.HashMap;
@@ -94,7 +101,9 @@ import java.util.Locale;
  * too aggressive.
  */
 public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
-        IconLabelDotView, DraggableView, Reorderable {
+        FloatingIconViewCompanion, DraggableView, Reorderable {
+
+    public static final String TAG = "BubbleTextView";
 
     public static final int DISPLAY_WORKSPACE = 0;
     public static final int DISPLAY_ALL_APPS = 1;
@@ -111,6 +120,7 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
     private static final String EMPTY = "";
     private static final StringMatcherUtility.StringMatcher MATCHER =
             StringMatcherUtility.StringMatcher.getInstance();
+    private static final int BOLD_TEXT_ADJUSTMENT = FONT_WEIGHT_BOLD - FONT_WEIGHT_NORMAL;
 
     private static final int[] STATE_PRESSED = new int[]{android.R.attr.state_pressed};
 
@@ -166,7 +176,7 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
     @ViewDebug.ExportedProperty(category = "launcher")
     private boolean mSkipUserBadge = false;
     @ViewDebug.ExportedProperty(category = "launcher")
-    private boolean mIsIconVisible = true;
+    protected boolean mIsIconVisible = true;
     @ViewDebug.ExportedProperty(category = "launcher")
     private int mTextColor;
     @ViewDebug.ExportedProperty(category = "launcher")
@@ -430,10 +440,21 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
         setDownloadStateContentDescription(info, info.getProgressLevel());
     }
 
+    /**
+     * Directly set the icon and label.
+     */
+    @UiThread
+    public void applyIconAndLabel(Drawable icon, CharSequence label) {
+        applyCompoundDrawables(icon);
+        setText(label);
+        setContentDescription(label);
+    }
+
     /** Updates whether the app this view represents is currently running. */
     @UiThread
     public void updateRunningState(RunningAppState runningAppState) {
         mRunningAppState = runningAppState;
+        invalidate();
     }
 
     protected void setItemInfo(ItemInfoWithIcon itemInfo) {
@@ -483,7 +504,13 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
             mLastOriginalText = label;
             mLastModifiedText = mLastOriginalText;
             mBreakPointsIntArray = StringMatcherUtility.getListOfBreakpoints(label, MATCHER);
-            setText(label);
+            if (Flags.useNewIconForArchivedApps()
+                    && info instanceof ItemInfoWithIcon infoWithIcon
+                    && infoWithIcon.isInactiveArchive()) {
+                setTextWithArchivingIcon(label);
+            } else {
+                setText(label);
+            }
         }
         if (info.contentDescription != null) {
             setContentDescription(info.isDisabled()
@@ -793,7 +820,13 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
                     getLineSpacingExtra());
             if (!TextUtils.equals(modifiedString, mLastModifiedText)) {
                 mLastModifiedText = modifiedString;
-                setText(modifiedString);
+                if (Flags.useNewIconForArchivedApps()
+                        && getTag() instanceof ItemInfoWithIcon infoWithIcon
+                        && infoWithIcon.isInactiveArchive()) {
+                    setTextWithArchivingIcon(modifiedString);
+                } else {
+                    setText(modifiedString);
+                }
                 // if text contains NEW_LINE, set max lines to 2
                 if (TextUtils.indexOf(modifiedString, NEW_LINE) != -1) {
                     setSingleLine(false);
@@ -812,6 +845,44 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
         mTextColor = color;
         mTextColorStateList = null;
         super.setTextColor(getModifiedColor());
+    }
+
+    /**
+     * Sets text with a start icon for App Archiving.
+     * Uses a bolded drawable if text is bolded.
+     * @param text
+     */
+    private void setTextWithArchivingIcon(CharSequence text) {
+        var drawableId = R.drawable.cloud_download_24px;
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S
+                && getResources().getConfiguration().fontWeightAdjustment >= BOLD_TEXT_ADJUSTMENT) {
+            // If System bold text setting is on, then use a bolded icon
+            drawableId = R.drawable.cloud_download_semibold_24px;
+        }
+        setTextWithStartIcon(text, drawableId);
+    }
+
+    /**
+     * Uses a SpannableString to set text with a Drawable at the start of the TextView
+     * @param text text to use for TextView
+     * @param drawableId Drawable Resource to use for drawing image at start of text
+     */
+    @VisibleForTesting
+    public void setTextWithStartIcon(CharSequence text, @DrawableRes int drawableId) {
+        Drawable drawable = getContext().getDrawable(drawableId);
+        if (drawable == null) {
+            setText(text);
+            Log.w(TAG, "setTextWithStartIcon: start icon Drawable not found from resources"
+                    + ", will just set text instead.");
+            return;
+        }
+        drawable.setTint(getCurrentTextColor());
+        drawable.setBounds(0, 0, Math.round(getTextSize()), Math.round(getTextSize()));
+        ImageSpan imageSpan = new ImageSpan(drawable, ImageSpan.ALIGN_CENTER);
+        // First space will be replaced with Drawable, second space is for space before text.
+        SpannableString spannable = new SpannableString("  " + text);
+        spannable.setSpan(imageSpan, 0, 1, Spannable.SPAN_INCLUSIVE_EXCLUSIVE);
+        setText(spannable);
     }
 
     @Override
@@ -972,12 +1043,11 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
     /** Applies the given progress level to the this icon's progress bar. */
     @Nullable
     public PreloadIconDrawable applyProgressLevel() {
-        if (!(getTag() instanceof ItemInfoWithIcon)
+        if (!(getTag() instanceof ItemInfoWithIcon info)
                 || ((ItemInfoWithIcon) getTag()).isInactiveArchive()) {
             return null;
         }
 
-        ItemInfoWithIcon info = (ItemInfoWithIcon) getTag();
         int progressLevel = info.getProgressLevel();
         if (progressLevel >= 100) {
             setContentDescription(info.contentDescription != null
@@ -997,6 +1067,10 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
             } else {
                 preloadIconDrawable = makePreloadIcon();
                 setIcon(preloadIconDrawable);
+                if (info.isArchived() && Flags.useNewIconForArchivedApps()) {
+                    // reapply text without cloud icon as soon as unarchiving is triggered
+                    applyLabel(info);
+                }
             }
             return preloadIconDrawable;
         }
@@ -1056,6 +1130,9 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
                 if (itemInfo.isDisabled()) {
                     setContentDescription(getContext().getString(R.string.disabled_app_label,
                             itemInfo.contentDescription));
+                } else if (itemInfo instanceof WorkspaceItemInfo wai && wai.isArchived()) {
+                    setContentDescription(
+                            getContext().getString(R.string.app_archived_title, itemInfo.title));
                 } else if (hasDot()) {
                     int count = mDotInfo.getNotificationCount();
                     setContentDescription(
@@ -1068,8 +1145,16 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
     }
 
     private void setDownloadStateContentDescription(ItemInfoWithIcon info, int progressLevel) {
-        if ((info.runtimeStatusFlags & ItemInfoWithIcon.FLAG_ARCHIVED) != 0 && progressLevel == 0) {
-            setContentDescription(getContext().getString(R.string.app_archived_title, info.title));
+        if ((info.runtimeStatusFlags & ItemInfoWithIcon.FLAG_ARCHIVED) != 0
+                && progressLevel == 0) {
+            if (mIcon instanceof PreloadIconDrawable) {
+                // Tell user that download is pending and not to tap to download again.
+                setContentDescription(getContext().getString(
+                        R.string.app_waiting_download_title, info.title));
+            } else {
+                setContentDescription(getContext().getString(
+                        R.string.app_archived_title, info.title));
+            }
         } else if ((info.runtimeStatusFlags & ItemInfoWithIcon.FLAG_SHOW_DOWNLOAD_PROGRESS_MASK)
                 != 0) {
             String percentageString = NumberFormat.getPercentInstance()
@@ -1290,14 +1375,5 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
      */
     public boolean canShowLongPressPopup() {
         return getTag() instanceof ItemInfo && ShortcutUtil.supportsShortcuts((ItemInfo) getTag());
-    }
-
-    /** Returns the package name of the app this icon represents. */
-    public String getTargetPackageName() {
-        Object tag = getTag();
-        if (tag instanceof ItemInfo itemInfo) {
-            return itemInfo.getTargetPackage();
-        }
-        return null;
     }
 }

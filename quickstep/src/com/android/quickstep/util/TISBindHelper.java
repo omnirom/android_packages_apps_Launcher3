@@ -25,6 +25,7 @@ import android.util.Log;
 
 import androidx.annotation.Nullable;
 
+import com.android.launcher3.statehandlers.DesktopVisibilityController;
 import com.android.launcher3.taskbar.TaskbarManager;
 import com.android.quickstep.OverviewCommandHelper;
 import com.android.quickstep.TouchInteractionService;
@@ -106,6 +107,11 @@ public class TISBindHelper implements ServiceConnection {
     @Nullable
     public TaskbarManager getTaskbarManager() {
         return mBinder == null ? null : mBinder.getTaskbarManager();
+    }
+
+    @Nullable
+    public DesktopVisibilityController getDesktopVisibilityController() {
+        return mBinder == null ? null : mBinder.getDesktopVisibilityController();
     }
 
     /**

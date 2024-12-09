@@ -17,7 +17,7 @@ package com.android.launcher3.taskbar.bubbles
 
 import android.graphics.Bitmap
 import android.graphics.Path
-import com.android.wm.shell.common.bubbles.BubbleInfo
+import com.android.wm.shell.shared.bubbles.BubbleInfo
 
 /** An entity in the bubble bar. */
 sealed class BubbleBarItem(open var key: String, open var view: BubbleView)
@@ -34,4 +34,8 @@ data class BubbleBarBubble(
 ) : BubbleBarItem(info.key, view)
 
 /** Represents the overflow bubble in the bubble bar. */
-data class BubbleBarOverflow(override var view: BubbleView) : BubbleBarItem("Overflow", view)
+data class BubbleBarOverflow(override var view: BubbleView) : BubbleBarItem(KEY, view) {
+    companion object {
+        const val KEY = "Overflow"
+    }
+}

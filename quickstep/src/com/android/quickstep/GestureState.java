@@ -179,7 +179,6 @@ public class GestureState implements RecentsAnimationCallbacks.RecentsAnimationL
     private RemoteAnimationTarget[] mLastAppearedTaskTargets;
     private Set<Integer> mPreviouslyAppearedTaskIds = new HashSet<>();
     private int[] mLastStartedTaskId = new int[]{INVALID_TASK_ID, INVALID_TASK_ID};
-    private RecentsAnimationController mRecentsAnimationController;
     private HashMap<Integer, ThumbnailData> mRecentsAnimationCanceledSnapshots;
 
     /** The time when the swipe up gesture is triggered. */
@@ -470,7 +469,6 @@ public class GestureState implements RecentsAnimationCallbacks.RecentsAnimationL
     @Override
     public void onRecentsAnimationStart(RecentsAnimationController controller,
             RecentsAnimationTargets targets) {
-        mRecentsAnimationController = controller;
         mStateCallback.setState(STATE_RECENTS_ANIMATION_STARTED);
     }
 
@@ -480,10 +478,6 @@ public class GestureState implements RecentsAnimationCallbacks.RecentsAnimationL
         mStateCallback.setState(STATE_RECENTS_ANIMATION_CANCELED);
         mStateCallback.setState(STATE_RECENTS_ANIMATION_ENDED);
         if (mRecentsAnimationCanceledSnapshots != null) {
-            // Clean up the screenshot to finalize the recents animation cancel
-            if (mRecentsAnimationController != null) {
-                mRecentsAnimationController.cleanupScreenshot();
-            }
             mRecentsAnimationCanceledSnapshots = null;
         }
     }
@@ -522,7 +516,7 @@ public class GestureState implements RecentsAnimationCallbacks.RecentsAnimationL
     HashMap<Integer, ThumbnailData> consumeRecentsAnimationCanceledSnapshot() {
         if (mRecentsAnimationCanceledSnapshots != null) {
             HashMap<Integer, ThumbnailData> data =
-                    new HashMap<Integer, ThumbnailData>(mRecentsAnimationCanceledSnapshots);
+                    new HashMap<>(mRecentsAnimationCanceledSnapshots);
             mRecentsAnimationCanceledSnapshots = null;
             return data;
         }

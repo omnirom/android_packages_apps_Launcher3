@@ -1,7 +1,5 @@
 package com.android.launcher3.widget;
 
-import static com.android.launcher3.Utilities.ATLEAST_S;
-
 import android.appwidget.AppWidgetProviderInfo;
 import android.content.ComponentName;
 import android.content.Context;
@@ -116,15 +114,13 @@ public class LauncherAppWidgetProviderInfo extends AppWidgetProviderInfo
                     getSpanY(widgetPadding, minResizeHeight, dp.cellLayoutBorderSpacePx.y,
                             cellSize.y));
 
-            if (ATLEAST_S) {
-                if (maxResizeWidth > 0) {
-                    maxSpanX = Math.min(maxSpanX, getSpanX(widgetPadding, maxResizeWidth,
-                            dp.cellLayoutBorderSpacePx.x, cellSize.x));
-                }
-                if (maxResizeHeight > 0) {
-                    maxSpanY = Math.min(maxSpanY, getSpanY(widgetPadding, maxResizeHeight,
-                            dp.cellLayoutBorderSpacePx.y, cellSize.y));
-                }
+            if (maxResizeWidth > 0) {
+                maxSpanX = Math.min(maxSpanX, getSpanX(widgetPadding, maxResizeWidth,
+                        dp.cellLayoutBorderSpacePx.x, cellSize.x));
+            }
+            if (maxResizeHeight > 0) {
+                maxSpanY = Math.min(maxSpanY, getSpanY(widgetPadding, maxResizeHeight,
+                        dp.cellLayoutBorderSpacePx.y, cellSize.y));
             }
 
             spanX = Math.max(spanX,
@@ -135,18 +131,16 @@ public class LauncherAppWidgetProviderInfo extends AppWidgetProviderInfo
                             cellSize.y));
         }
 
-        if (ATLEAST_S) {
-            // Ensures maxSpan >= minSpan
-            maxSpanX = Math.max(maxSpanX, minSpanX);
-            maxSpanY = Math.max(maxSpanY, minSpanY);
+        // Ensures maxSpan >= minSpan
+        maxSpanX = Math.max(maxSpanX, minSpanX);
+        maxSpanY = Math.max(maxSpanY, minSpanY);
 
-            // Use targetCellWidth/Height if it is within the min/max ranges.
-            // Otherwise, use the span of minWidth/Height.
-            if (targetCellWidth >= minSpanX && targetCellWidth <= maxSpanX
-                    && targetCellHeight >= minSpanY && targetCellHeight <= maxSpanY) {
-                spanX = targetCellWidth;
-                spanY = targetCellHeight;
-            }
+        // Use targetCellWidth/Height if it is within the min/max ranges.
+        // Otherwise, use the span of minWidth/Height.
+        if (targetCellWidth >= minSpanX && targetCellWidth <= maxSpanX
+                && targetCellHeight >= minSpanY && targetCellHeight <= maxSpanY) {
+            spanX = targetCellWidth;
+            spanY = targetCellHeight;
         }
 
         // If minSpanX/Y > spanX/Y, ignore the minSpanX/Y to match the behavior described in
@@ -213,8 +207,7 @@ public class LauncherAppWidgetProviderInfo extends AppWidgetProviderInfo
     }
 
     public boolean isConfigurationOptional() {
-        return ATLEAST_S
-                && isReconfigurable()
+        return isReconfigurable()
                 && (getWidgetFeatures() & WIDGET_FEATURE_CONFIGURATION_OPTIONAL) != 0;
     }
 

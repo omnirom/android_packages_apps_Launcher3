@@ -18,6 +18,7 @@ package com.android.launcher3.folder;
 
 import static com.android.launcher3.AbstractFloatingView.TYPE_ALL;
 import static com.android.launcher3.AbstractFloatingView.TYPE_FOLDER;
+import static com.android.launcher3.folder.FolderGridOrganizer.createFolderGridOrganizer;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
@@ -100,10 +101,21 @@ public class FolderPagedView extends PagedView<PageIndicatorDots> implements Cli
     private boolean mViewsBound = false;
 
     public FolderPagedView(Context context, AttributeSet attrs) {
+        this(
+                context,
+                attrs,
+                createFolderGridOrganizer(ActivityContext.lookupContext(context).getDeviceProfile())
+        );
+    }
+
+    public FolderPagedView(
+            Context context,
+            AttributeSet attrs,
+            FolderGridOrganizer folderGridOrganizer
+    ) {
         super(context, attrs);
         ActivityContext activityContext = ActivityContext.lookupContext(context);
-        DeviceProfile profile = activityContext.getDeviceProfile();
-        mOrganizer = new FolderGridOrganizer(profile);
+        mOrganizer = folderGridOrganizer;
 
         mIsRtl = Utilities.isRtl(getResources());
         setImportantForAccessibility(IMPORTANT_FOR_ACCESSIBILITY_YES);
@@ -361,8 +373,8 @@ public class FolderPagedView extends PagedView<PageIndicatorDots> implements Cli
         // Update footer
         mPageIndicator.setVisibility(getPageCount() > 1 ? View.VISIBLE : View.GONE);
         // Set the gravity as LEFT or RIGHT instead of START, as START depends on the actual text.
-        mFolder.mFolderName.setGravity(getPageCount() > 1 ?
-                (mIsRtl ? Gravity.RIGHT : Gravity.LEFT) : Gravity.CENTER_HORIZONTAL);
+        mFolder.getFolderName().setGravity(getPageCount() > 1
+                ? (mIsRtl ? Gravity.RIGHT : Gravity.LEFT) : Gravity.CENTER_HORIZONTAL);
     }
 
     public int getDesiredWidth() {

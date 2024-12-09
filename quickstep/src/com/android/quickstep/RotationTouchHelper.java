@@ -41,6 +41,7 @@ import com.android.launcher3.util.MainThreadInitializedObject;
 import com.android.launcher3.util.NavigationMode;
 import com.android.launcher3.util.SafeCloseable;
 import com.android.quickstep.util.RecentsOrientedState;
+import com.android.systemui.shared.Flags;
 import com.android.systemui.shared.system.QuickStepContract;
 import com.android.systemui.shared.system.TaskStackChangeListener;
 import com.android.systemui.shared.system.TaskStackChangeListeners;
@@ -157,7 +158,7 @@ public class RotationTouchHelper implements DisplayInfoChangeListener, SafeClose
         // Register for navigation mode changes
         mDisplayController.addChangeListener(this);
         DisplayController.Info info = mDisplayController.getInfo();
-        onDisplayInfoChangedInternal(info, CHANGE_ALL, info.getNavigationMode().hasGestures);
+        onDisplayInfoChangedInternal(info, CHANGE_ALL, hasGestures(info.getNavigationMode()));
         runOnDestroy(() -> mDisplayController.removeChangeListener(this));
 
         mOrientationListener = new OrientationEventListener(mContext) {
@@ -229,7 +230,7 @@ public class RotationTouchHelper implements DisplayInfoChangeListener, SafeClose
      * Updates the regions for detecting the swipe up/quickswitch and assistant gestures.
      */
     public void updateGestureTouchRegions() {
-        if (!mMode.hasGestures) {
+        if (!hasGestures(mMode)) {
             return;
         }
 
@@ -268,7 +269,7 @@ public class RotationTouchHelper implements DisplayInfoChangeListener, SafeClose
                 | CHANGE_SUPPORTED_BOUNDS)) != 0) {
             mDisplayRotation = info.rotation;
 
-            if (mMode.hasGestures) {
+            if (hasGestures(mMode)) {
                 updateGestureTouchRegions();
                 mOrientationTouchTransformer.createOrAddTouchRegion(info);
                 mCurrentAppRotation = mDisplayRotation;
@@ -295,9 +296,9 @@ public class RotationTouchHelper implements DisplayInfoChangeListener, SafeClose
             mOrientationTouchTransformer.setNavigationMode(newMode, mDisplayController.getInfo(),
                     mContext.getResources());
 
-            if (forceRegister || (!mMode.hasGestures && newMode.hasGestures)) {
+            if (forceRegister || (!hasGestures(mMode) && hasGestures(newMode))) {
                 setupOrientationSwipeHandler();
-            } else if (mMode.hasGestures && !newMode.hasGestures) {
+            } else if (hasGestures(mMode) && !hasGestures(newMode)) {
                 destroyOrientationSwipeHandlerCallback();
             }
 
@@ -399,7 +400,7 @@ public class RotationTouchHelper implements DisplayInfoChangeListener, SafeClose
     }
 
     public int getCurrentActiveRotation() {
-        if (!mMode.hasGestures) {
+        if (!hasGestures(mMode)) {
             // touch rotation should always match that of display for 3 button
             return mDisplayRotation;
         }
@@ -415,5 +416,9 @@ public class RotationTouchHelper implements DisplayInfoChangeListener, SafeClose
 
     public OrientationTouchTransformer getOrientationTouchTransformer() {
         return mOrientationTouchTransformer;
+    }
+
+    private boolean hasGestures(NavigationMode mode) {
+        return mode.hasGestures || (mode == THREE_BUTTONS && Flags.threeButtonCornerSwipe());
     }
 }

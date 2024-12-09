@@ -27,6 +27,7 @@ import android.view.MotionEvent;
 import android.view.View;
 
 import androidx.annotation.Nullable;
+import androidx.annotation.VisibleForTesting;
 
 import com.android.app.animation.Interpolators;
 import com.android.launcher3.DragSource;
@@ -69,8 +70,9 @@ public abstract class DragController<T extends ActivityContext>
      */
     protected DragDriver mDragDriver = null;
 
+    @VisibleForTesting
     /** Options controlling the drag behavior. */
-    protected DragOptions mOptions;
+    public DragOptions mOptions;
 
     /** Coordinate for motion down event */
     protected final Point mMotionDown = new Point();
@@ -79,7 +81,8 @@ public abstract class DragController<T extends ActivityContext>
 
     protected final Point mTmpPoint = new Point();
 
-    protected DropTarget.DragObject mDragObject;
+    @VisibleForTesting
+    public DropTarget.DragObject mDragObject;
 
     /** Who can receive drop events */
     private final ArrayList<DropTarget> mDropTargets = new ArrayList<>();

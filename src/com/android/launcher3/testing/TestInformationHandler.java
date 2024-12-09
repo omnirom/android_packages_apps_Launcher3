@@ -501,7 +501,7 @@ public class TestInformationHandler implements ResourceBasedOverride {
     /**
      * Returns the result by getting a generic property on UI thread
      */
-    private static <S, T> Bundle getUIProperty(
+    protected static <S, T> Bundle getUIProperty(
             BundleSetter<T> bundleSetter, Function<S, T> provider, Supplier<S> targetSupplier) {
         return getFromExecutorSync(MAIN_EXECUTOR, () -> {
             S target = targetSupplier.get();

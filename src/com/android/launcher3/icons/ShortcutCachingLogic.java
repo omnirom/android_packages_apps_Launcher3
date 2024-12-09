@@ -33,6 +33,7 @@ import androidx.annotation.Nullable;
 
 import com.android.launcher3.LauncherAppState;
 import com.android.launcher3.icons.BaseIconFactory.IconOptions;
+import com.android.launcher3.icons.cache.BaseIconCache;
 import com.android.launcher3.icons.cache.CachingLogic;
 import com.android.launcher3.shortcuts.ShortcutKey;
 import com.android.launcher3.util.Themes;
@@ -72,7 +73,8 @@ public class ShortcutCachingLogic implements CachingLogic<ShortcutInfo> {
 
     @NonNull
     @Override
-    public BitmapInfo loadIcon(@NonNull Context context, @NonNull ShortcutInfo info) {
+    public BitmapInfo loadIcon(@NonNull Context context, @NonNull BaseIconCache cache,
+            @NonNull ShortcutInfo info) {
         try (LauncherIcons li = LauncherIcons.obtain(context)) {
             Drawable unbadgedDrawable = ShortcutCachingLogic.getIcon(
                     context, info, LauncherAppState.getIDP(context).fillResIconDpi);

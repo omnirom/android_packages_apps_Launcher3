@@ -30,7 +30,6 @@ import com.android.launcher3.Flags
 import com.android.launcher3.InvariantDeviceProfile
 import com.android.launcher3.LauncherAppState
 import com.android.launcher3.LauncherSettings.Favorites
-import com.android.launcher3.Utilities
 import com.android.launcher3.backuprestore.LauncherRestoreEventLogger.RestoreError
 import com.android.launcher3.config.FeatureFlags
 import com.android.launcher3.logging.FileLog
@@ -76,7 +75,7 @@ class WorkspaceItemProcessor(
     private val pmHelper: PackageManagerHelper,
     private val iconRequestInfos: MutableList<IconRequestInfo<WorkspaceItemInfo>>,
     private val unlockedUsers: LongSparseArray<Boolean>,
-    private val allDeepShortcuts: MutableList<ShortcutInfo>
+    private val allDeepShortcuts: MutableList<ShortcutInfo>,
 ) {
 
     private val isSafeMode = app.isSafeModeEnabled
@@ -97,7 +96,7 @@ class WorkspaceItemProcessor(
                 // User has been deleted, remove the item.
                 c.markDeleted(
                     "User has been deleted for item id=${c.id}",
-                    RestoreError.PROFILE_DELETED
+                    RestoreError.PROFILE_DELETED,
                 )
                 return
             }
@@ -168,7 +167,7 @@ class WorkspaceItemProcessor(
                 FileLog.d(
                     TAG,
                     "Activity not enabled for id=${c.id}, component=$cn, user=${c.user}." +
-                        " Will attempt to find fallback Activity for targetPkg=$targetPkg."
+                        " Will attempt to find fallback Activity for targetPkg=$targetPkg.",
                 )
                 intent = pmHelper.getAppLaunchIntent(targetPkg, c.user)
                 if (intent != null) {
@@ -178,7 +177,7 @@ class WorkspaceItemProcessor(
                     c.markDeleted(
                         "No Activities found for id=${c.id}, targetPkg=$targetPkg, component=$cn." +
                             " Unable to create launch Intent.",
-                        RestoreError.MISSING_INFO
+                        RestoreError.MISSING_INFO,
                     )
                     return
                 }
@@ -213,7 +212,7 @@ class WorkspaceItemProcessor(
                             else -> {
                                 c.markDeleted(
                                     "removing app that is not restored and not installing. package: $targetPkg",
-                                    RestoreError.APP_NOT_INSTALLED
+                                    RestoreError.APP_NOT_INSTALLED,
                                 )
                                 return
                             }
@@ -238,7 +237,7 @@ class WorkspaceItemProcessor(
                         // Do not wait for external media load anymore.
                         c.markDeleted(
                             "Invalid package removed: $targetPkg",
-                            RestoreError.APP_NOT_INSTALLED
+                            RestoreError.APP_NOT_INSTALLED,
                         )
                         return
                     }
@@ -270,7 +269,7 @@ class WorkspaceItemProcessor(
                         // The shortcut is no longer valid.
                         c.markDeleted(
                             "Pinned shortcut not found from request. package=${key.packageName}, user=${c.user}",
-                            RestoreError.SHORTCUT_NOT_FOUND
+                            RestoreError.SHORTCUT_NOT_FOUND,
                         )
                         return
                     }
@@ -337,7 +336,7 @@ class WorkspaceItemProcessor(
                     activityInfo,
                     userCache.getUserInfo(c.user),
                     ApiWrapper.INSTANCE[app.context],
-                    pmHelper
+                    pmHelper,
                 )
             }
             if (
@@ -445,7 +444,7 @@ class WorkspaceItemProcessor(
                     ", id=${c.id}," +
                     ", appWidgetId=${c.appWidgetId}," +
                     ", component=${component}",
-                RestoreError.INVALID_LOCATION
+                RestoreError.INVALID_LOCATION,
             )
             return
         }
@@ -456,7 +455,7 @@ class WorkspaceItemProcessor(
                     ", appWidgetId=${c.appWidgetId}," +
                     ", component=${component}," +
                     ", container=${c.container}",
-                RestoreError.INVALID_LOCATION
+                RestoreError.INVALID_LOCATION,
             )
             return
         }
@@ -470,7 +469,7 @@ class WorkspaceItemProcessor(
             TAG,
             "processWidget: id=${c.id}" +
                 ", appWidgetId=${c.appWidgetId}" +
-                ", inflationResult=$inflationResult"
+                ", inflationResult=$inflationResult",
         )
         when (inflationResult.type) {
             WidgetInflater.TYPE_DELETE -> {
@@ -496,7 +495,7 @@ class WorkspaceItemProcessor(
                             ", appWidgetId=${c.appWidgetId}" +
                             ", component=${component}" +
                             ", restoreFlag:=${c.restoreFlag}",
-                        RestoreError.APP_NOT_INSTALLED
+                        RestoreError.APP_NOT_INSTALLED,
                     )
                     return
                 } else if (
@@ -512,7 +511,7 @@ class WorkspaceItemProcessor(
                     WidgetsModel.newPendingItemInfo(
                         app.context,
                         appWidgetInfo.providerName,
-                        appWidgetInfo.user
+                        appWidgetInfo.user,
                     )
                 iconCache.getTitleAndIconForApp(appWidgetInfo.pendingItemInfo, false)
             }
@@ -522,7 +521,7 @@ class WorkspaceItemProcessor(
                     lapi,
                     app.context,
                     appWidgetInfo.spanX,
-                    appWidgetInfo.spanY
+                    appWidgetInfo.spanY,
                 )
         }
 
@@ -541,7 +540,7 @@ class WorkspaceItemProcessor(
                     " processWidget: Widget ${lapi.component} minSizes not met: span=${appWidgetInfo.spanX}x${appWidgetInfo.spanY} minSpan=${lapi.minSpanX}x${lapi.minSpanY}," +
                         " id: ${c.id}," +
                         " appWidgetId: ${c.appWidgetId}," +
-                        " component=${component}"
+                        " component=${component}",
                 )
                 logWidgetInfo(app.invariantDeviceProfile, lapi)
             }
@@ -554,7 +553,7 @@ class WorkspaceItemProcessor(
 
         private fun logWidgetInfo(
             idp: InvariantDeviceProfile,
-            widgetProviderInfo: LauncherAppWidgetProviderInfo
+            widgetProviderInfo: LauncherAppWidgetProviderInfo,
         ) {
             val cellSize = Point()
             for (deviceProfile in idp.supportedProfiles) {
@@ -565,7 +564,7 @@ class WorkspaceItemProcessor(
                         " available height: ${deviceProfile.availableHeightPx}," +
                         " cellLayoutBorderSpacePx Horizontal: ${deviceProfile.cellLayoutBorderSpacePx.x}," +
                         " cellLayoutBorderSpacePx Vertical: ${deviceProfile.cellLayoutBorderSpacePx.y}," +
-                        " cellSize: $cellSize"
+                        " cellSize: $cellSize",
                 )
             }
             val widgetDimension = StringBuilder()
@@ -583,21 +582,19 @@ class WorkspaceItemProcessor(
                 .append("defaultHeight: ")
                 .append(widgetProviderInfo.minHeight)
                 .append("\n")
-            if (Utilities.ATLEAST_S) {
-                widgetDimension
-                    .append("targetCellWidth: ")
-                    .append(widgetProviderInfo.targetCellWidth)
-                    .append("\n")
-                    .append("targetCellHeight: ")
-                    .append(widgetProviderInfo.targetCellHeight)
-                    .append("\n")
-                    .append("maxResizeWidth: ")
-                    .append(widgetProviderInfo.maxResizeWidth)
-                    .append("\n")
-                    .append("maxResizeHeight: ")
-                    .append(widgetProviderInfo.maxResizeHeight)
-                    .append("\n")
-            }
+            widgetDimension
+                .append("targetCellWidth: ")
+                .append(widgetProviderInfo.targetCellWidth)
+                .append("\n")
+                .append("targetCellHeight: ")
+                .append(widgetProviderInfo.targetCellHeight)
+                .append("\n")
+                .append("maxResizeWidth: ")
+                .append(widgetProviderInfo.maxResizeWidth)
+                .append("\n")
+                .append("maxResizeHeight: ")
+                .append(widgetProviderInfo.maxResizeHeight)
+                .append("\n")
             FileLog.d(TAG, widgetDimension.toString())
         }
     }

@@ -55,6 +55,7 @@ import android.os.DeadObjectException;
 import android.os.Parcelable;
 import android.os.RemoteException;
 import android.os.SystemClock;
+import android.os.Trace;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.InputDevice;
@@ -98,6 +99,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.function.BooleanSupplier;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -427,14 +429,14 @@ public final class LauncherInstrumentation {
                 .getInt(TestProtocol.TEST_INFO_RESPONSE_FIELD);
     }
 
-    int getFocusedTaskHeightForTablet() {
-        return getTestInfo(TestProtocol.REQUEST_GET_FOCUSED_TASK_HEIGHT_FOR_TABLET).getInt(
-                TestProtocol.TEST_INFO_RESPONSE_FIELD);
+    Rect getOverviewTaskSize() {
+        return getTestInfo(TestProtocol.REQUEST_GET_OVERVIEW_TASK_SIZE)
+                .getParcelable(TestProtocol.TEST_INFO_RESPONSE_FIELD, Rect.class);
     }
 
-    Rect getGridTaskRectForTablet() {
-        return ((Rect) getTestInfo(TestProtocol.REQUEST_GET_GRID_TASK_SIZE_RECT_FOR_TABLET)
-                .getParcelable(TestProtocol.TEST_INFO_RESPONSE_FIELD));
+    Rect getOverviewGridTaskSize() {
+        return getTestInfo(TestProtocol.REQUEST_GET_OVERVIEW_GRID_TASK_SIZE)
+                .getParcelable(TestProtocol.TEST_INFO_RESPONSE_FIELD, Rect.class);
     }
 
     int getOverviewPageSpacing() {
@@ -453,10 +455,6 @@ public final class LauncherInstrumentation {
 
     public void setEnableRotation(boolean on) {
         getTestInfo(TestProtocol.REQUEST_ENABLE_ROTATION, Boolean.toString(on));
-    }
-
-    public void setEnableSuggestion(boolean enableSuggestion) {
-        getTestInfo(TestProtocol.REQUEST_ENABLE_SUGGESTION, Boolean.toString(enableSuggestion));
     }
 
     public boolean hadNontestEvents() {
@@ -527,16 +525,19 @@ public final class LauncherInstrumentation {
 
     Closable addContextLayer(String piece) {
         mDiagnosticContext.addLast(piece);
+        Trace.beginSection("Context: " + piece);
         log("Entering context: " + piece);
         return () -> {
+            Trace.endSection();
             log("Leaving context: " + piece);
             mDiagnosticContext.removeLast();
         };
     }
 
     public void dumpViewHierarchy() {
-        final ByteArrayOutputStream stream = new ByteArrayOutputStream();
         try {
+            Trace.beginSection("dumpViewHierarchy");
+            final ByteArrayOutputStream stream = new ByteArrayOutputStream();
             mDevice.dumpWindowHierarchy(stream);
             stream.flush();
             stream.close();
@@ -545,6 +546,8 @@ public final class LauncherInstrumentation {
             }
         } catch (IOException e) {
             Log.e(TAG, "error dumping XML to logcat", e);
+        } finally {
+            Trace.endSection();
         }
     }
 
@@ -624,15 +627,20 @@ public final class LauncherInstrumentation {
      */
     public void checkForAnomaly(
             boolean ignoreNavmodeChangeStates, boolean ignoreOnlySystemUiViews) {
-        if (mTestAnomalyChecker != null) mTestAnomalyChecker.run();
+        try {
+            Trace.beginSection("checkForAnomaly");
+            if (mTestAnomalyChecker != null) mTestAnomalyChecker.run();
 
-        final String systemAnomalyMessage =
-                getSystemAnomalyMessage(ignoreNavmodeChangeStates, ignoreOnlySystemUiViews);
-        if (systemAnomalyMessage != null) {
-            if (mOnFailure != null) mOnFailure.run();
-            Assert.fail(formatSystemHealthMessage(formatErrorWithEvents(
-                    "http://go/tapl : Tests are broken by a non-Launcher system error: "
-                            + systemAnomalyMessage, false)));
+            final String systemAnomalyMessage =
+                    getSystemAnomalyMessage(ignoreNavmodeChangeStates, ignoreOnlySystemUiViews);
+            if (systemAnomalyMessage != null) {
+                if (mOnFailure != null) mOnFailure.run();
+                Assert.fail(formatSystemHealthMessage(formatErrorWithEvents(
+                        "http://go/tapl : Tests are broken by a non-Launcher system error: "
+                                + systemAnomalyMessage, false)));
+            }
+        } finally {
+            Trace.endSection();
         }
     }
 
@@ -1008,16 +1016,20 @@ public final class LauncherInstrumentation {
     }
 
     public void waitForLauncherInitialized() {
-        for (int i = 0; i < 100; ++i) {
-            if (getTestInfo(
-                    TestProtocol.REQUEST_IS_LAUNCHER_INITIALIZED).
-                    getBoolean(TestProtocol.TEST_INFO_RESPONSE_FIELD)) {
-                return;
+        try {
+            Trace.beginSection("waitForLauncherInitialized");
+            for (int i = 0; i < 100; ++i) {
+                if (getTestInfo(TestProtocol.REQUEST_IS_LAUNCHER_INITIALIZED).getBoolean(
+                        TestProtocol.TEST_INFO_RESPONSE_FIELD)) {
+                    return;
+                }
+                SystemClock.sleep(100);
             }
-            SystemClock.sleep(100);
+            checkForAnomaly();
+            fail("Launcher didn't initialize");
+        } finally {
+            Trace.endSection();
         }
-        checkForAnomaly();
-        fail("Launcher didn't initialize");
     }
 
     public boolean isLauncherActivityStarted() {
@@ -1232,7 +1244,8 @@ public final class LauncherInstrumentation {
     void pressBackImpl() {
         waitForLauncherInitialized();
         final boolean launcherVisible =
-                isTablet() ? isLauncherContainerVisible() : isLauncherVisible();
+                (isTablet() || isTaskbarNavbarUnificationEnabled()) ? isLauncherContainerVisible()
+                        : isLauncherVisible();
         boolean isThreeFingerTrackpadGesture =
                 mTrackpadGestureType == TrackpadGestureType.THREE_FINGER;
         if (getNavigationModel() == NavigationModel.ZERO_BUTTON
@@ -1261,8 +1274,13 @@ public final class LauncherInstrumentation {
     }
 
     boolean isLauncherVisible() {
-        mDevice.waitForIdle();
-        return hasLauncherObject(getAnyObjectSelector());
+        try {
+            Trace.beginSection("isLauncherVisible");
+            mDevice.waitForIdle();
+            return hasLauncherObject(getAnyObjectSelector());
+        } finally {
+            Trace.endSection();
+        }
     }
 
     boolean isLauncherContainerVisible() {
@@ -1587,7 +1605,7 @@ public final class LauncherInstrumentation {
         return objects;
     }
 
-    private UiObject2 waitForObjectBySelector(BySelector selector) {
+    UiObject2 waitForObjectBySelector(BySelector selector) {
         Log.d(TEST_DRAG_APP_ICON_TO_MULTIPLE_WORKSPACES_FAILURE,
                 "LauncherInstrumentation.waitForObjectBySelector");
         final UiObject2 object = mDevice.wait(Until.findObject(selector), WAIT_TIME_MS);
@@ -2402,6 +2420,16 @@ public final class LauncherInstrumentation {
         disableSensorRotation();
         final Integer initialPid = getPid();
         final LogEventChecker eventChecker = new LogEventChecker(this);
+        eventChecker.setLogExclusionRule(event -> {
+            Matcher matcher = Pattern.compile("KeyEvent.*flags=0x([0-9a-fA-F]+)").matcher(event);
+            if (matcher.find()) {
+                long keyEventFlags = Long.parseLong(matcher.group(1), 16);
+                // ignore KeyEvents with FLAG_CANCELED
+                return (keyEventFlags & KeyEvent.FLAG_CANCELED) != 0;
+            }
+            return false;
+        });
+
         if (eventChecker.start()) mEventChecker = eventChecker;
 
         return () -> {
@@ -2459,7 +2487,8 @@ public final class LauncherInstrumentation {
     }
 
     float getWindowCornerRadius() {
-        // TODO(b/197326121): Check if the touch is overlapping with the corners by offsetting
+        // Return a larger corner radius to ensure gesture calculated from the radius are offset to
+        // prevent overlapping
         final float tmpBuffer = 100f;
         final Resources resources = getResources();
         if (!supportsRoundedCornersOnWindows(resources)) {

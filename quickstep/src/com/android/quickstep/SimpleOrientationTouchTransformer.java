@@ -34,12 +34,18 @@ public class SimpleOrientationTouchTransformer implements
 
     private final Context mContext;
     private OrientationRectF mOrientationRectF;
+    private OrientationRectF mTouchingOrientationRectF;
+    private int mViewRotation;
 
     public SimpleOrientationTouchTransformer(Context context) {
+        this(context, DisplayController.INSTANCE.get(context));
+    }
+
+    @androidx.annotation.VisibleForTesting
+    public SimpleOrientationTouchTransformer(Context context, DisplayController displayController) {
         mContext = context;
-        DisplayController.INSTANCE.get(context).addChangeListener(this);
-        onDisplayInfoChanged(context, DisplayController.INSTANCE.get(context).getInfo(),
-                CHANGE_ALL);
+        displayController.addChangeListener(this);
+        onDisplayInfoChanged(context, displayController.getInfo(), CHANGE_ALL);
     }
 
     @Override
@@ -56,7 +62,29 @@ public class SimpleOrientationTouchTransformer implements
                 info.rotation);
     }
 
+    /**
+     * Called when the touch is started. This preserves the touching orientation until the touch is
+     * done (i.e. ACTION_CANCEL or ACTION_UP). So the transform won't produce inconsistent position
+     * if display is changed during the touch.
+     */
+    public void updateTouchingOrientation(int viewRotation) {
+        mViewRotation = viewRotation;
+        mTouchingOrientationRectF = new OrientationRectF(mOrientationRectF.left,
+                mOrientationRectF.top, mOrientationRectF.right, mOrientationRectF.bottom,
+                mOrientationRectF.getRotation());
+    }
+
+    /** Called when the touch is finished. */
+    public void clearTouchingOrientation() {
+        mTouchingOrientationRectF = null;
+    }
+
     public void transform(MotionEvent ev, int rotation) {
+        if (mTouchingOrientationRectF != null) {
+            mTouchingOrientationRectF.applyTransformToRotation(ev, mViewRotation,
+                    true /* forceTransform */);
+            return;
+        }
         mOrientationRectF.applyTransformToRotation(ev, rotation, true /* forceTransform */);
     }
 }

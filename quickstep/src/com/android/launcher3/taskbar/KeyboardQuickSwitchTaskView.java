@@ -36,13 +36,14 @@ import androidx.constraintlayout.widget.ConstraintLayout;
 
 import com.android.launcher3.R;
 import com.android.launcher3.util.Preconditions;
+import com.android.launcher3.util.SplitConfigurationOptions.SplitBounds;
 import com.android.quickstep.util.BorderAnimator;
 import com.android.systemui.shared.recents.model.Task;
 import com.android.systemui.shared.recents.model.ThumbnailData;
 
-import java.util.function.Consumer;
-
 import kotlin.Unit;
+
+import java.util.function.Consumer;
 
 /**
  * A view that displays a recent task during a keyboard quick switch.
@@ -50,8 +51,10 @@ import kotlin.Unit;
 public class KeyboardQuickSwitchTaskView extends ConstraintLayout {
 
     private static final float THUMBNAIL_BLUR_RADIUS = 1f;
+    private static final int INVALID_BORDER_RADIUS = -1;
 
     @ColorInt private final int mBorderColor;
+    @ColorInt private final int mBorderRadius;
 
     @Nullable private BorderAnimator mBorderAnimator;
 
@@ -87,6 +90,8 @@ public class KeyboardQuickSwitchTaskView extends ConstraintLayout {
 
         mBorderColor = ta.getColor(
                 R.styleable.TaskView_focusBorderColor, DEFAULT_BORDER_COLOR);
+        mBorderRadius = ta.getDimensionPixelSize(
+                R.styleable.TaskView_focusBorderRadius, INVALID_BORDER_RADIUS);
         ta.recycle();
     }
 
@@ -103,8 +108,10 @@ public class KeyboardQuickSwitchTaskView extends ConstraintLayout {
 
         Preconditions.assertNotNull(mContent);
         mBorderAnimator = BorderAnimator.createScalingBorderAnimator(
-                /* borderRadiusPx= */ resources.getDimensionPixelSize(
-                        R.dimen.keyboard_quick_switch_task_view_radius),
+                /* borderRadiusPx= */ mBorderRadius != INVALID_BORDER_RADIUS
+                        ? mBorderRadius
+                        : resources.getDimensionPixelSize(
+                                R.dimen.keyboard_quick_switch_task_view_radius),
                 /* borderWidthPx= */ resources.getDimensionPixelSize(
                                 R.dimen.keyboard_quick_switch_border_width),
                 /* boundsBuilder= */ bounds -> {
@@ -165,6 +172,61 @@ public class KeyboardQuickSwitchTaskView extends ConstraintLayout {
                     task1.titleDescription,
                     task2.titleDescription));
         });
+    }
+
+    protected void setThumbnailsForSplitTasks(
+            @NonNull Task task1,
+            @Nullable Task task2,
+            @Nullable ThumbnailUpdateFunction thumbnailUpdateFunction,
+            @Nullable IconUpdateFunction iconUpdateFunction,
+            @Nullable SplitBounds splitBounds) {
+        setThumbnails(task1, task2, thumbnailUpdateFunction, iconUpdateFunction);
+
+        if (splitBounds == null) {
+            return;
+        }
+
+
+        final boolean isLeftRightSplit = !splitBounds.appsStackedVertically;
+        final float leftOrTopTaskPercent = isLeftRightSplit
+                ? splitBounds.leftTaskPercent : splitBounds.topTaskPercent;
+
+        ConstraintLayout.LayoutParams leftTopParams = (ConstraintLayout.LayoutParams)
+                mThumbnailView1.getLayoutParams();
+        ConstraintLayout.LayoutParams rightBottomParams = (ConstraintLayout.LayoutParams)
+                mThumbnailView2.getLayoutParams();
+
+        if (isLeftRightSplit) {
+            // Set thumbnail view ratio in left right split mode.
+            leftTopParams.width = 0; // Set width to 0dp, so it uses the constraint dimension ratio.
+            leftTopParams.height = ConstraintLayout.LayoutParams.MATCH_PARENT;
+            leftTopParams.matchConstraintPercentWidth = leftOrTopTaskPercent;
+            leftTopParams.leftToLeft = ConstraintLayout.LayoutParams.PARENT_ID;
+            leftTopParams.rightToLeft = R.id.thumbnail_2;
+            mThumbnailView1.setLayoutParams(leftTopParams);
+
+            rightBottomParams.width = 0;
+            rightBottomParams.height = ConstraintLayout.LayoutParams.MATCH_PARENT;
+            rightBottomParams.matchConstraintPercentWidth = 1 - leftOrTopTaskPercent;
+            rightBottomParams.leftToRight = R.id.thumbnail_1;
+            rightBottomParams.rightToRight = ConstraintLayout.LayoutParams.PARENT_ID;
+            mThumbnailView2.setLayoutParams(rightBottomParams);
+        } else {
+            // Set thumbnail view ratio in top bottom split mode.
+            leftTopParams.height = 0;
+            leftTopParams.width = ConstraintLayout.LayoutParams.MATCH_PARENT;
+            leftTopParams.matchConstraintPercentHeight = leftOrTopTaskPercent;
+            leftTopParams.topToTop = ConstraintLayout.LayoutParams.PARENT_ID;
+            leftTopParams.bottomToTop = R.id.thumbnail_2;
+            mThumbnailView1.setLayoutParams(leftTopParams);
+
+            rightBottomParams.height = 0;
+            rightBottomParams.width = ConstraintLayout.LayoutParams.MATCH_PARENT;
+            rightBottomParams.matchConstraintPercentHeight = 1 - leftOrTopTaskPercent;
+            rightBottomParams.topToBottom = R.id.thumbnail_1;
+            rightBottomParams.bottomToBottom = ConstraintLayout.LayoutParams.PARENT_ID;
+            mThumbnailView2.setLayoutParams(rightBottomParams);
+        }
     }
 
     private void applyThumbnail(

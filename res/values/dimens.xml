@@ -81,6 +81,11 @@
     <dimen name="fastscroll_popup_text_size">32dp</dimen>
     <dimen name="fastscroll_popup_margin">19dp</dimen>
 
+    <dimen name="fastscroll_list_letter_size">5dp</dimen>
+    <dimen name="fastscroll_list_letter_text_size">14sp</dimen>
+    <dimen name="fastscroll_list_letter_end_margin">-10dp</dimen>
+    <dimen name="bg_letter_list_text_size">20sp</dimen>
+
     <!--
       Fast scroller draws the content horizontally centered. The end of the track should be
       aligned at the end of the container.
@@ -172,8 +177,6 @@
     <dimen name="padded_rounded_button_height">48dp</dimen>
     <dimen name="rounded_button_height">48dp</dimen>
     <dimen name="rounded_button_radius">200dp</dimen>
-    <dimen name="rounded_button_padding">8dp</dimen>
-
 
     <!-- Widget tray -->
     <dimen name="widget_cell_vertical_padding">8dp</dimen>
@@ -308,6 +311,7 @@
     <dimen name="blur_size_medium_outline">2dp</dimen>
     <dimen name="blur_size_click_shadow">4dp</dimen>
     <dimen name="click_shadow_high_shift">2dp</dimen>
+    <dimen name="app_title_icon_shadow_inset">0.5dp</dimen>
 
     <!-- Pending widget -->
     <dimen name="pending_widget_min_padding">8dp</dimen>
@@ -457,6 +461,7 @@
     <!-- Overview placeholder to compile in Launcher3 without Quickstep -->
     <dimen name="task_thumbnail_icon_size">0dp</dimen>
     <dimen name="task_thumbnail_icon_drawable_size">0dp</dimen>
+    <dimen name="task_thumbnail_splash_icon_size">0dp</dimen>
     <dimen name="task_thumbnail_icon_drawable_size_grid">0dp</dimen>
     <dimen name="task_thumbnail_icon_menu_drawable_touch_size">0dp</dimen>
     <dimen name="task_menu_edge_padding">0dp</dimen>
@@ -483,8 +488,6 @@
     <dimen name="split_instructions_bottom_margin_phone_landscape">24dp</dimen>
     <dimen name="split_instructions_bottom_margin_phone_portrait">60dp</dimen>
     <dimen name="split_instructions_start_margin_cancel">8dp</dimen>
-    <dimen name="split_divider_handle_region_width">96dp</dimen>
-    <dimen name="split_divider_handle_region_height">48dp</dimen>
 
     <dimen name="focus_outline_radius">16dp</dimen>
     <dimen name="focus_inner_outline_radius">14dp</dimen>

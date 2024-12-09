@@ -148,16 +148,13 @@ public final class TestProtocol {
 
     public static final String REQUEST_HOTSEAT_CELL_CENTER = "hotseat-cell-center";
 
-    public static final String REQUEST_GET_FOCUSED_TASK_HEIGHT_FOR_TABLET =
-            "get-focused-task-height-for-tablet";
-    public static final String REQUEST_GET_GRID_TASK_SIZE_RECT_FOR_TABLET =
-            "get-grid-task-size-rect-for-tablet";
+    public static final String REQUEST_GET_OVERVIEW_TASK_SIZE = "get-overivew-task-size";
+    public static final String REQUEST_GET_OVERVIEW_GRID_TASK_SIZE = "get-overivew-grid-task-size";
     public static final String REQUEST_GET_OVERVIEW_PAGE_SPACING = "get-overview-page-spacing";
     public static final String REQUEST_GET_OVERVIEW_CURRENT_PAGE_INDEX =
             "get-overview-current-page-index";
     public static final String REQUEST_GET_SPLIT_SELECTION_ACTIVE = "get-split-selection-active";
     public static final String REQUEST_ENABLE_ROTATION = "enable_rotation";
-    public static final String REQUEST_ENABLE_SUGGESTION = "enable-suggestion";
     public static final String REQUEST_MODEL_QUEUE_CLEARED = "model-queue-cleared";
 
     public static boolean sDebugTracing = false;
@@ -173,7 +170,6 @@ public final class TestProtocol {
     public static final String UIOBJECT_STALE_ELEMENT = "b/319501259";
     public static final String TEST_DRAG_APP_ICON_TO_MULTIPLE_WORKSPACES_FAILURE = "b/326908466";
     public static final String WIDGET_CONFIG_NULL_EXTRA_INTENT = "b/324419890";
-    public static final String OVERVIEW_SELECT_TOOLTIP_MISALIGNED = "b/332485341";
 
     public static final String REQUEST_FLAG_ENABLE_GRID_ONLY_OVERVIEW = "enable-grid-only-overview";
     public static final String REQUEST_FLAG_ENABLE_APP_PAIRS = "enable-app-pairs";

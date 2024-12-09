@@ -32,7 +32,6 @@ import static com.android.launcher3.util.RotationUtils.deltaRotation;
 import static com.android.launcher3.util.RotationUtils.rotateRect;
 import static com.android.launcher3.util.RotationUtils.rotateSize;
 
-import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.res.Configuration;
 import android.content.res.Resources;
@@ -40,7 +39,6 @@ import android.graphics.Insets;
 import android.graphics.Point;
 import android.graphics.Rect;
 import android.hardware.display.DisplayManager;
-import android.os.Build;
 import android.util.ArrayMap;
 import android.util.Log;
 import android.view.Display;
@@ -54,7 +52,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.VisibleForTesting;
 
 import com.android.launcher3.R;
-import com.android.launcher3.Utilities;
 import com.android.launcher3.testing.shared.ResourceUtils;
 import com.android.launcher3.util.MainThreadInitializedObject;
 import com.android.launcher3.util.NavigationMode;
@@ -118,6 +115,20 @@ public class WindowManagerProxy implements ResourceBasedOverride, SafeCloseable 
      * Returns if we are in desktop mode or not.
      */
     public boolean isInDesktopMode() {
+        return false;
+    }
+
+    /**
+     * Returns if the pinned taskbar should be shown when home is visible.
+     */
+    public boolean showLockedTaskbarOnHome(Context displayInfoContext) {
+        return false;
+    }
+
+    /**
+     * Returns if the home is visible.
+     */
+    public boolean isHomeVisible(Context context) {
         return false;
     }
 
@@ -216,7 +227,7 @@ public class WindowManagerProxy implements ResourceBasedOverride, SafeCloseable 
             int screenWidthPx,
             @NonNull WindowInsets windowInsets,
             @NonNull WindowInsets.Builder insetsBuilder) {
-        if (!isLargeScreen || !Utilities.ATLEAST_S) {
+        if (!isLargeScreen) {
             return;
         }
 
@@ -391,25 +402,16 @@ public class WindowManagerProxy implements ResourceBasedOverride, SafeCloseable 
     /**
      * Returns a CachedDisplayInfo initialized for the current display
      */
-    @TargetApi(Build.VERSION_CODES.S)
     public CachedDisplayInfo getDisplayInfo(Context displayInfoContext) {
         int rotation = getRotation(displayInfoContext);
-        if (Utilities.ATLEAST_S) {
-            WindowMetrics windowMetrics = displayInfoContext.getSystemService(WindowManager.class)
-                    .getMaximumWindowMetrics();
-            return getDisplayInfo(windowMetrics, rotation);
-        } else {
-            Point size = new Point();
-            Display display = getDisplay(displayInfoContext);
-            display.getRealSize(size);
-            return new CachedDisplayInfo(size, rotation);
-        }
+        WindowMetrics windowMetrics = displayInfoContext.getSystemService(WindowManager.class)
+                .getMaximumWindowMetrics();
+        return getDisplayInfo(windowMetrics, rotation);
     }
 
     /**
      * Returns a CachedDisplayInfo initialized for the current display
      */
-    @TargetApi(Build.VERSION_CODES.S)
     protected CachedDisplayInfo getDisplayInfo(WindowMetrics windowMetrics, int rotation) {
         Point size = new Point(windowMetrics.getBounds().right, windowMetrics.getBounds().bottom);
         return new CachedDisplayInfo(size, rotation,
@@ -478,8 +480,7 @@ public class WindowManagerProxy implements ResourceBasedOverride, SafeCloseable 
                 }
             }
         }
-        return Utilities.ATLEAST_S ? NavigationMode.NO_BUTTON :
-                NavigationMode.THREE_BUTTONS;
+        return NavigationMode.NO_BUTTON;
     }
 
     @Override

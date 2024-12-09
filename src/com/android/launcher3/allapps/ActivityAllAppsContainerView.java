@@ -18,16 +18,16 @@ package com.android.launcher3.allapps;
 import static com.android.launcher3.Flags.enableExpandingPauseWorkButton;
 import static com.android.launcher3.allapps.ActivityAllAppsContainerView.AdapterHolder.MAIN;
 import static com.android.launcher3.allapps.ActivityAllAppsContainerView.AdapterHolder.SEARCH;
+import static com.android.launcher3.allapps.ActivityAllAppsContainerView.AdapterHolder.WORK;
 import static com.android.launcher3.allapps.BaseAllAppsAdapter.VIEW_TYPE_PRIVATE_SPACE_HEADER;
 import static com.android.launcher3.allapps.BaseAllAppsAdapter.VIEW_TYPE_WORK_DISABLED_CARD;
 import static com.android.launcher3.allapps.BaseAllAppsAdapter.VIEW_TYPE_WORK_EDU_CARD;
-import static com.android.launcher3.config.FeatureFlags.ALL_APPS_GONE_VISIBILITY;
-import static com.android.launcher3.config.FeatureFlags.ENABLE_ALL_APPS_RV_PREINFLATION;
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_ALLAPPS_COUNT;
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_ALLAPPS_TAP_ON_PERSONAL_TAB;
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_ALLAPPS_TAP_ON_WORK_TAB;
 import static com.android.launcher3.util.Executors.MAIN_EXECUTOR;
 import static com.android.launcher3.util.ScrollableLayoutManager.PREDICTIVE_BACK_MIN_SCALE;
+import static com.android.launcher3.views.RecyclerViewFastScroller.FastScrollerLocation.ALL_APPS_SCROLLER;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
@@ -64,6 +64,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.Px;
 import androidx.annotation.VisibleForTesting;
+import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.graphics.ColorUtils;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -71,6 +72,7 @@ import com.android.launcher3.DeviceProfile;
 import com.android.launcher3.DeviceProfile.OnDeviceProfileChangeListener;
 import com.android.launcher3.DragSource;
 import com.android.launcher3.DropTarget.DragObject;
+import com.android.launcher3.Flags;
 import com.android.launcher3.Insettable;
 import com.android.launcher3.InsettableFrameLayout;
 import com.android.launcher3.R;
@@ -166,6 +168,7 @@ public class ActivityAllAppsContainerView<T extends Context & ActivityContext>
     protected FloatingHeaderView mHeader;
     protected View mBottomSheetBackground;
     protected RecyclerViewFastScroller mFastScroller;
+    private ConstraintLayout mFastScrollLetterLayout;
 
     /**
      * View that defines the search box. Result is rendered inside {@link #mSearchRecyclerView}.
@@ -280,6 +283,13 @@ public class ActivityAllAppsContainerView<T extends Context & ActivityContext>
         mSearchRecyclerView = findViewById(R.id.search_results_list_view);
         mFastScroller = findViewById(R.id.fast_scroller);
         mFastScroller.setPopupView(findViewById(R.id.fast_scroller_popup));
+        mFastScrollLetterLayout = findViewById(R.id.scroll_letter_layout);
+        if (Flags.letterFastScroller()) {
+            // Set clip children to false otherwise the scroller letters will be clipped.
+            setClipChildren(false);
+        } else {
+            setClipChildren(true);
+        }
 
         mSearchContainer = inflateSearchBar();
         if (!isSearchBarFloating()) {
@@ -561,7 +571,8 @@ public class ActivityAllAppsContainerView<T extends Context & ActivityContext>
             mActivityContext.hideKeyboard();
         }
         if (mAH.get(currentActivePage).mRecyclerView != null) {
-            mAH.get(currentActivePage).mRecyclerView.bindFastScrollbar(mFastScroller);
+            mAH.get(currentActivePage).mRecyclerView.bindFastScrollbar(mFastScroller,
+                    ALL_APPS_SCROLLER);
         }
         // Header keeps track of active recycler view to properly render header protection.
         mHeader.setActiveRV(currentActivePage);
@@ -666,18 +677,13 @@ public class ActivityAllAppsContainerView<T extends Context & ActivityContext>
             @NonNull AllAppsRecyclerView mainRecyclerView,
             @Nullable AllAppsRecyclerView workRecyclerView,
             @NonNull AllAppsRecyclerViewPool recycledViewPool) {
-        if (!ENABLE_ALL_APPS_RV_PREINFLATION.get()) {
-            return;
-        }
         final boolean hasWorkProfile = workRecyclerView != null;
         recycledViewPool.setHasWorkProfile(hasWorkProfile);
         mainRecyclerView.setRecycledViewPool(recycledViewPool);
         if (workRecyclerView != null) {
             workRecyclerView.setRecycledViewPool(recycledViewPool);
         }
-        if (ALL_APPS_GONE_VISIBILITY.get()) {
-            mainRecyclerView.updatePoolSize(hasWorkProfile);
-        }
+        mainRecyclerView.updatePoolSize(hasWorkProfile);
     }
 
     private void replaceAppsRVContainer(boolean showTabs) {
@@ -722,9 +728,7 @@ public class ActivityAllAppsContainerView<T extends Context & ActivityContext>
 
         removeCustomRules(rvContainer);
         removeCustomRules(getSearchRecyclerView());
-        if (!isSearchSupported()) {
-            layoutWithoutSearchContainer(rvContainer, showTabs);
-        } else if (isSearchBarFloating()) {
+        if (isSearchBarFloating()) {
             alignParentTop(rvContainer, showTabs);
             alignParentTop(getSearchRecyclerView(), /* tabs= */ false);
         } else {
@@ -755,12 +759,20 @@ public class ActivityAllAppsContainerView<T extends Context & ActivityContext>
         });
 
         removeCustomRules(mHeader);
-        if (!isSearchSupported()) {
-            layoutWithoutSearchContainer(mHeader, false /* includeTabsMargin */);
-        } else if (isSearchBarFloating()) {
+        if (isSearchBarFloating()) {
             alignParentTop(mHeader, false /* includeTabsMargin */);
         } else {
             layoutBelowSearchContainer(mHeader, false /* includeTabsMargin */);
+        }
+    }
+
+    /**
+     * Force header height update with an offset. Used by {@link UniversalSearchInputView} to
+     * request {@link FloatingHeaderView} to update its maxTranslation for multiline search bar.
+     */
+    public void forceUpdateHeaderHeight(int offset) {
+        if (Flags.multilineSearchBar()) {
+            mHeader.updateSearchBarOffset(offset);
         }
     }
 
@@ -900,23 +912,6 @@ public class ActivityAllAppsContainerView<T extends Context & ActivityContext>
     protected BaseAllAppsAdapter<T> createAdapter(AlphabeticalAppsList<T> appsList) {
         return new AllAppsGridAdapter<>(mActivityContext, getLayoutInflater(), appsList,
                 mMainAdapterProvider);
-    }
-
-    // TODO(b/216683257): Remove when Taskbar All Apps supports search.
-    protected boolean isSearchSupported() {
-        return true;
-    }
-
-    private void layoutWithoutSearchContainer(View v, boolean includeTabsMargin) {
-        if (!(v.getLayoutParams() instanceof RelativeLayout.LayoutParams)) {
-            return;
-        }
-
-        RelativeLayout.LayoutParams layoutParams = (LayoutParams) v.getLayoutParams();
-        layoutParams.addRule(RelativeLayout.ALIGN_PARENT_TOP);
-        layoutParams.topMargin = getContext().getResources().getDimensionPixelSize(includeTabsMargin
-                ? R.dimen.all_apps_header_pill_height
-                : R.dimen.all_apps_header_top_margin);
     }
 
     public boolean isInAllApps() {
@@ -1302,6 +1297,10 @@ public class ActivityAllAppsContainerView<T extends Context & ActivityContext>
         return mAH.get(MAIN).mAppsList;
     }
 
+    public AlphabeticalAppsList<T> getWorkAppList() {
+        return mAH.get(WORK).mAppsList;
+    }
+
     public FloatingHeaderView getFloatingHeaderView() {
         return mHeader;
     }
@@ -1484,6 +1483,10 @@ public class ActivityAllAppsContainerView<T extends Context & ActivityContext>
         }
     }
 
+    ConstraintLayout getFastScrollerLetterList() {
+        return mFastScrollLetterLayout;
+    }
+
     /**
      * redraws header protection
      */
@@ -1551,7 +1554,7 @@ public class ActivityAllAppsContainerView<T extends Context & ActivityContext>
         void setup(@NonNull View rv, @Nullable Predicate<ItemInfo> matcher) {
             mAppsList.updateItemFilter(matcher);
             mRecyclerView = (AllAppsRecyclerView) rv;
-            mRecyclerView.bindFastScrollbar(mFastScroller);
+            mRecyclerView.bindFastScrollbar(mFastScroller, ALL_APPS_SCROLLER);
             mRecyclerView.setEdgeEffectFactory(createEdgeEffectFactory());
             mRecyclerView.setApps(mAppsList);
             mRecyclerView.setLayoutManager(mLayoutManager);

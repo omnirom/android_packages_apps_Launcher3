@@ -253,7 +253,7 @@ public class StateManager<STATE_TYPE extends BaseState<STATE_TYPE>,
             if (mConfig.currentAnimation == null) {
                 // Run any queued runnable
                 if (listener != null) {
-                    listener.onAnimationEnd(null);
+                    listener.onAnimationEnd(new AnimatorSet());
                 }
                 return;
             } else if ((!mConfig.isUserControlled() && animated && mConfig.targetState == state)
@@ -282,7 +282,7 @@ public class StateManager<STATE_TYPE extends BaseState<STATE_TYPE>,
 
             // Run any queued runnable
             if (listener != null) {
-                listener.onAnimationEnd(null);
+                listener.onAnimationEnd(new AnimatorSet());
             }
             return;
         }

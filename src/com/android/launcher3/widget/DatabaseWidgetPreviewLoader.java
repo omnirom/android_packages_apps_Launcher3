@@ -183,19 +183,14 @@ public class DatabaseWidgetPreviewLoader {
 
                 // Draw horizontal and vertical lines to represent individual columns.
                 final Paint p = new Paint(Paint.ANTI_ALIAS_FLAG);
+                boxRect = new RectF(/* left= */ 0, /* top= */ 0, /* right= */
+                        previewWidthF, /* bottom= */ previewHeightF);
 
-                if (Utilities.ATLEAST_S) {
-                    boxRect = new RectF(/* left= */ 0, /* top= */ 0, /* right= */
-                            previewWidthF, /* bottom= */ previewHeightF);
-
-                    p.setStyle(Paint.Style.FILL);
-                    p.setColor(Color.WHITE);
-                    float roundedCorner = mContext.getResources().getDimension(
-                            android.R.dimen.system_app_widget_background_radius);
-                    c.drawRoundRect(boxRect, roundedCorner, roundedCorner, p);
-                } else {
-                    boxRect = drawBoxWithShadow(c, previewWidthF, previewHeightF);
-                }
+                p.setStyle(Paint.Style.FILL);
+                p.setColor(Color.WHITE);
+                float roundedCorner = mContext.getResources().getDimension(
+                        android.R.dimen.system_app_widget_background_radius);
+                c.drawRoundRect(boxRect, roundedCorner, roundedCorner, p);
 
                 p.setStyle(Paint.Style.STROKE);
                 p.setStrokeWidth(mContext.getResources()

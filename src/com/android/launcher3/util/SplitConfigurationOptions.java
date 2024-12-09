@@ -186,12 +186,6 @@ public final class SplitConfigurationOptions {
         public int stagePosition = STAGE_POSITION_UNDEFINED;
         @StageType
         public int stageType = STAGE_TYPE_UNDEFINED;
-
-        @Override
-        public String toString() {
-            return "SplitStageInfo { taskId=" + taskId
-                    + ", stagePosition=" + stagePosition + ", stageType=" + stageType + " }";
-        }
     }
 
     public static StatsLogManager.EventEnum getLogEventForPosition(@StagePosition int position) {
@@ -217,7 +211,7 @@ public final class SplitConfigurationOptions {
         private Drawable drawable;
         public final Intent intent;
         public final SplitPositionOption position;
-        public final ItemInfo itemInfo;
+        private ItemInfo itemInfo;
         public final StatsLogManager.EventEnum splitEvent;
         /** Represents the taskId of the first app to start in split screen */
         public int alreadyRunningTaskId = INVALID_TASK_ID;
@@ -244,6 +238,10 @@ public final class SplitConfigurationOptions {
 
         public View getView() {
             return view;
+        }
+
+        public ItemInfo getItemInfo() {
+            return itemInfo;
         }
     }
 }

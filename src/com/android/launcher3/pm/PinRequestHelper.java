@@ -77,8 +77,9 @@ public class PinRequestHelper {
             WorkspaceItemInfo info = new WorkspaceItemInfo(si, context);
             // Apply the unbadged icon synchronously using the caching logic directly and
             // fetch the actual icon asynchronously.
-            info.bitmap = new ShortcutCachingLogic().loadIcon(context, si);
-            LauncherAppState.getInstance(context).getModel().updateAndBindWorkspaceItem(info, si);
+            LauncherAppState app = LauncherAppState.getInstance(context);
+            info.bitmap = new ShortcutCachingLogic().loadIcon(context, app.getIconCache(), si);
+            app.getModel().updateAndBindWorkspaceItem(info, si);
             return info;
         } else {
             return null;

@@ -209,7 +209,7 @@ public class OverviewState extends LauncherState {
         TaskView taskView = recentsView.getRunningTaskView();
         if (taskView != null) {
             if (recentsView.isTaskViewFullyVisible(taskView)) {
-                taskView.launchTasks();
+                taskView.launchWithAnimation();
             } else {
                 recentsView.snapToPage(recentsView.indexOfChild(taskView));
             }

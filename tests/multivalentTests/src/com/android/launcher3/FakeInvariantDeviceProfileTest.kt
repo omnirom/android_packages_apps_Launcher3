@@ -47,14 +47,13 @@ import org.mockito.kotlin.whenever
 abstract class FakeInvariantDeviceProfileTest {
 
     protected lateinit var context: Context
-    protected var inv: InvariantDeviceProfile? = null
-    protected val info: Info = mock()
-    protected var windowBounds: WindowBounds? = null
-    protected var isMultiWindowMode: Boolean = false
-    protected var transposeLayoutWithOrientation: Boolean = false
-    protected var useTwoPanels: Boolean = false
-    protected var isGestureMode: Boolean = true
-    protected var isTransientTaskbar: Boolean = true
+    protected lateinit var inv: InvariantDeviceProfile
+    protected val info = mock<Info>()
+    protected lateinit var windowBounds: WindowBounds
+    private var transposeLayoutWithOrientation = false
+    private var useTwoPanels = false
+    private var isGestureMode = true
+    private var isTransientTaskbar = true
 
     @Rule @JvmField val limitDevicesRule = LimitDevicesRule()
 
@@ -73,7 +72,7 @@ abstract class FakeInvariantDeviceProfileTest {
             info,
             windowBounds,
             SparseArray(),
-            isMultiWindowMode,
+            /*isMultiWindowMode=*/ false,
             transposeLayoutWithOrientation,
             useTwoPanels,
             isGestureMode,

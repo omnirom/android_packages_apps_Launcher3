@@ -109,8 +109,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.function.Predicate;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * Various utilities shared amongst the Launcher's classes.
@@ -119,17 +117,13 @@ public final class Utilities {
 
     private static final String TAG = "Launcher.Utilities";
 
-    private static final Pattern sTrimPattern =
-            Pattern.compile("^[\\s|\\p{javaSpaceChar}]*(.*)[\\s|\\p{javaSpaceChar}]*$");
+    private static final String TRIM_PATTERN = "(^\\h+|\\h+$)";
 
     private static final Matrix sMatrix = new Matrix();
     private static final Matrix sInverseMatrix = new Matrix();
 
     public static final String[] EMPTY_STRING_ARRAY = new String[0];
     public static final Person[] EMPTY_PERSON_ARRAY = new Person[0];
-
-    @ChecksSdkIntAtLeast(api = VERSION_CODES.S)
-    public static final boolean ATLEAST_S = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S;
 
     @ChecksSdkIntAtLeast(api = VERSION_CODES.TIRAMISU, codename = "T")
     public static final boolean ATLEAST_T = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU;
@@ -186,6 +180,11 @@ public final class Utilities {
 
     public static final String QSB_SHOW = "pref_qsb_show";
     public static final long WAIT_BEFORE_RESTART = 250;
+
+    /** Disables running test in test harness mode */
+    public static void disableRunningInTestHarnessForTests() {
+        sIsRunningInTestHarness = false;
+    }
 
     public static boolean isPropertyEnabled(String propertyName) {
         return Log.isLoggable(propertyName, Log.VERBOSE);
@@ -405,6 +404,28 @@ public final class Utilities {
     }
 
     /**
+     * Scales a {@code RectF} in place about a specified pivot point.
+     *
+     * <p>This method modifies the given {@code RectF} directly to scale it proportionally
+     * by the given {@code scale}, while preserving its center at the specified
+     * {@code (pivotX, pivotY)} coordinates.
+     *
+     * @param rectF the {@code RectF} to scale, modified directly.
+     * @param pivotX the x-coordinate of the pivot point about which to scale.
+     * @param pivotY the y-coordinate of the pivot point about which to scale.
+     * @param scale the factor by which to scale the rectangle. Values less than 1 will
+     *                    shrink the rectangle, while values greater than 1 will enlarge it.
+     */
+    public static void scaleRectFAboutPivot(RectF rectF, float pivotX, float pivotY, float scale) {
+        rectF.offset(-pivotX, -pivotY);
+        rectF.left *= scale;
+        rectF.top *= scale;
+        rectF.right *= scale;
+        rectF.bottom *= scale;
+        rectF.offset(pivotX, pivotY);
+    }
+
+    /**
      * Maps t from one range to another range.
      * @param t The value to map.
      * @param fromMin The lower bound of the range that t is being mapped from.
@@ -447,10 +468,7 @@ public final class Utilities {
         if (s == null) {
             return "";
         }
-
-        // Just strip any sequence of whitespace or java space characters from the beginning and end
-        Matcher m = sTrimPattern.matcher(s);
-        return m.replaceAll("$1");
+        return s.toString().replaceAll(TRIM_PATTERN, "").trim();
     }
 
     /**
@@ -724,9 +742,54 @@ public final class Utilities {
     }
 
     /**
-     * Rotates `inOutBounds` by `delta` 90-degree increments. Rotation is visually CCW. Parent
+     * Rotates `inOutBounds` by `delta` 90-degree increments. Rotation is visually CW. Parent
      * sizes represent the "space" that will rotate carrying inOutBounds along with it to determine
      * the final bounds.
+     *
+     * As an example if this is the input:
+     * +-------------+
+     * |   +-----+   |
+     * |   |     |   |
+     * |   +-----+   |
+     * |             |
+     * |             |
+     * |             |
+     * +-------------+
+     * This would be case delta % 4 == 0:
+     * +-------------+
+     * |   +-----+   |
+     * |   |     |   |
+     * |   +-----+   |
+     * |             |
+     * |             |
+     * |             |
+     * +-------------+
+     * This would be case delta % 4 == 1:
+     * +----------------+
+     * |          +--+  |
+     * |          |  |  |
+     * |          |  |  |
+     * |          +--+  |
+     * |                |
+     * +----------------+
+     * This would be case delta % 4 == 2: // This is case was reverted to previous behaviour which
+     * doesn't match the illustration due to b/353965234
+     * +-------------+
+     * |             |
+     * |             |
+     * |             |
+     * |   +-----+   |
+     * |   |     |   |
+     * |   +-----+   |
+     * +-------------+
+     * This would be case delta % 4 == 3:
+     * +----------------+
+     * |  +--+          |
+     * |  |  |          |
+     * |  |  |          |
+     * |  +--+          |
+     * |                |
+     * +----------------+
      */
     public static void rotateBounds(Rect inOutBounds, int parentWidth, int parentHeight,
             int delta) {
@@ -832,6 +895,9 @@ public final class Utilities {
             @NonNull Rect inclusionBounds,
             @NonNull Rect exclusionBounds,
             @AdjustmentDirection int adjustmentDirection) {
+        if (!Rect.intersects(targetViewBounds, exclusionBounds)) {
+            return;
+        }
         switch (adjustmentDirection) {
             case TRANSLATE_RIGHT:
                 targetView.setTranslationX(Math.min(

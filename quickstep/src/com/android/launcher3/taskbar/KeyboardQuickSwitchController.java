@@ -23,12 +23,11 @@ import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
 
 import com.android.launcher3.R;
-import com.android.launcher3.statehandlers.DesktopVisibilityController;
 import com.android.launcher3.taskbar.overlay.TaskbarOverlayContext;
-import com.android.quickstep.LauncherActivityInterface;
 import com.android.quickstep.RecentsModel;
 import com.android.quickstep.util.DesktopTask;
 import com.android.quickstep.util.GroupTask;
+import com.android.quickstep.util.LayoutUtils;
 import com.android.systemui.shared.recents.model.Task;
 import com.android.systemui.shared.recents.model.ThumbnailData;
 import com.android.systemui.shared.system.ActivityManagerWrapper;
@@ -65,6 +64,9 @@ public final class KeyboardQuickSwitchController implements
     private TaskbarControllers mControllers;
 
     @Nullable private KeyboardQuickSwitchViewController mQuickSwitchViewController;
+
+    private boolean mHasDesktopTask = false;
+    private boolean mWasDesktopTaskFilteredOut = false;
 
     /** Initialize the controller. */
     public void init(@NonNull TaskbarControllers controllers) {
@@ -112,10 +114,8 @@ public final class KeyboardQuickSwitchController implements
         mQuickSwitchViewController = new KeyboardQuickSwitchViewController(
                 mControllers, overlayContext, keyboardQuickSwitchView, mControllerCallbacks);
 
-        DesktopVisibilityController desktopController =
-                LauncherActivityInterface.INSTANCE.getDesktopVisibilityController();
         final boolean onDesktop =
-                desktopController != null && desktopController.areDesktopTasksVisible();
+                mControllers.taskbarDesktopModeController.getAreDesktopTasksVisible();
 
         if (mModel.isTaskListValid(mTaskListChangeId)) {
             // When we are opening the KQS with no focus override, check if the first task is
@@ -126,11 +126,15 @@ public final class KeyboardQuickSwitchController implements
                     /* updateTasks= */ false,
                     currentFocusedIndex == -1 && !mControllerCallbacks.isFirstTaskRunning()
                             ? 0 : currentFocusedIndex,
-                    onDesktop);
+                    onDesktop,
+                    mHasDesktopTask,
+                    mWasDesktopTaskFilteredOut);
             return;
         }
 
         mTaskListChangeId = mModel.getTasks((tasks) -> {
+            mHasDesktopTask = false;
+            mWasDesktopTaskFilteredOut = false;
             if (onDesktop) {
                 processLoadedTasksOnDesktop(tasks);
             } else {
@@ -144,7 +148,9 @@ public final class KeyboardQuickSwitchController implements
                     /* updateTasks= */ true,
                     currentFocusedIndex == -1 && !mControllerCallbacks.isFirstTaskRunning()
                             ? 0 : currentFocusedIndex,
-                    onDesktop);
+                    onDesktop,
+                    mHasDesktopTask,
+                    mWasDesktopTaskFilteredOut);
         });
     }
 
@@ -152,9 +158,22 @@ public final class KeyboardQuickSwitchController implements
         // Only store MAX_TASK tasks, from most to least recent
         Collections.reverse(tasks);
         mTasks = tasks.stream()
+                .filter(task -> !(task instanceof DesktopTask))
                 .limit(MAX_TASKS)
                 .collect(Collectors.toList());
-        mNumHiddenTasks = Math.max(0, tasks.size() - MAX_TASKS);
+
+        for (int i = 0; i < tasks.size(); i++) {
+            if (tasks.get(i) instanceof DesktopTask) {
+                mHasDesktopTask = true;
+                if (i < mTasks.size()) {
+                    mWasDesktopTaskFilteredOut = true;
+                }
+                break;
+            }
+        }
+
+        mNumHiddenTasks = Math.max(0,
+                tasks.size() - (mWasDesktopTaskFilteredOut ? 1 : 0) - MAX_TASKS);
     }
 
     private void processLoadedTasksOnDesktop(List<GroupTask> tasks) {
@@ -214,6 +233,8 @@ public final class KeyboardQuickSwitchController implements
         pw.println(prefix + "\tisOpen=" + (mQuickSwitchViewController != null));
         pw.println(prefix + "\tmNumHiddenTasks=" + mNumHiddenTasks);
         pw.println(prefix + "\tmTaskListChangeId=" + mTaskListChangeId);
+        pw.println(prefix + "\tmHasDesktopTask=" + mHasDesktopTask);
+        pw.println(prefix + "\tmWasDesktopTaskFilteredOut=" + mWasDesktopTaskFilteredOut);
         pw.println(prefix + "\tmTasks=[");
         for (GroupTask task : mTasks) {
             Task task1 = task.task1;
@@ -235,21 +256,26 @@ public final class KeyboardQuickSwitchController implements
 
     class ControllerCallbacks {
 
-        int getTaskCount() {
-            return mTasks.size() + (mNumHiddenTasks == 0 ? 0 : 1);
-        }
-
         @Nullable
         GroupTask getTaskAt(int index) {
             return index < 0 || index >= mTasks.size() ? null : mTasks.get(index);
         }
 
         void updateThumbnailInBackground(Task task, Consumer<ThumbnailData> callback) {
-            mModel.getThumbnailCache().updateThumbnailInBackground(task, callback);
+            mModel.getThumbnailCache().getThumbnailInBackground(task,
+                    thumbnailData -> {
+                        task.thumbnail = thumbnailData;
+                        callback.accept(thumbnailData);
+                    });
         }
 
         void updateIconInBackground(Task task, Consumer<Task> callback) {
-            mModel.getIconCache().updateIconInBackground(task, callback);
+            mModel.getIconCache().getIconInBackground(task, (icon, contentDescription, title) -> {
+                task.icon = icon;
+                task.titleDescription = contentDescription;
+                task.title = title;
+                callback.accept(task);
+            });
         }
 
         void onCloseComplete() {
@@ -269,6 +295,11 @@ public final class KeyboardQuickSwitchController implements
 
         boolean isFirstTaskRunning() {
             return isTaskRunning(getTaskAt(0));
+        }
+
+        boolean isAspectRatioSquare() {
+            return mControllers != null && LayoutUtils.isAspectRatioSquare(
+                    mControllers.taskbarActivityContext.getDeviceProfile().aspectRatio);
         }
     }
 }

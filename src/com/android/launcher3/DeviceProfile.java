@@ -25,7 +25,6 @@ import static com.android.launcher3.InvariantDeviceProfile.INDEX_TWO_PANEL_LANDS
 import static com.android.launcher3.InvariantDeviceProfile.INDEX_TWO_PANEL_PORTRAIT;
 import static com.android.launcher3.Utilities.dpiFromPx;
 import static com.android.launcher3.Utilities.pxFromSp;
-import static com.android.launcher3.config.FeatureFlags.ENABLE_MULTI_DISPLAY_PARTIAL_DEPTH;
 import static com.android.launcher3.folder.ClippedFolderIconLayoutRule.ICON_OVERLAP_FACTOR;
 import static com.android.launcher3.icons.GraphicsUtils.getShapePath;
 import static com.android.launcher3.icons.IconNormalizer.ICON_VISIBLE_AREA_FACTOR;
@@ -65,7 +64,6 @@ import com.android.launcher3.responsive.ResponsiveSpec.Companion.ResponsiveSpecT
 import com.android.launcher3.responsive.ResponsiveSpec.DimensionType;
 import com.android.launcher3.responsive.ResponsiveSpecsProvider;
 import com.android.launcher3.util.CellContentDimensions;
-import com.android.launcher3.util.DisplayController;
 import com.android.launcher3.util.DisplayController.Info;
 import com.android.launcher3.util.IconSizeSteps;
 import com.android.launcher3.util.ResourceHelper;
@@ -300,9 +298,6 @@ public class DeviceProfile {
     // the widgetView, such that the actual view size is same as the widget size.
     public final Rect widgetPadding = new Rect();
 
-    // When true, nav bar is on the left side of the screen.
-    private boolean mIsSeascape;
-
     // Notification dots
     public final DotRenderer mDotRendererWorkSpace;
     public final DotRenderer mDotRendererAllApps;
@@ -321,6 +316,74 @@ public class DeviceProfile {
     public final boolean isTransientTaskbar;
     // DragController
     public int flingToDeleteThresholdVelocity;
+
+    /** Used only as an alternative to mocking when null values cannot be used. */
+    @VisibleForTesting
+    public DeviceProfile() {
+        inv = null;
+        mInfo = null;
+        mMetrics = null;
+        mIconSizeSteps = null;
+        isTablet = false;
+        isPhone = false;
+        transposeLayoutWithOrientation = false;
+        isMultiDisplay = false;
+        isTwoPanels = false;
+        isPredictiveBackSwipe = false;
+        isQsbInline = false;
+        isLandscape = false;
+        isMultiWindowMode = false;
+        isGestureMode = false;
+        isLeftRightSplit = false;
+        windowX = 0;
+        windowY = 0;
+        widthPx = 0;
+        heightPx = 0;
+        availableWidthPx = 0;
+        availableHeightPx = 0;
+        rotationHint = 0;
+        aspectRatio = 1;
+        mIsScalableGrid = false;
+        mTypeIndex = 0;
+        mIsResponsiveGrid = false;
+        desiredWorkspaceHorizontalMarginOriginalPx = 0;
+        edgeMarginPx = 0;
+        workspaceContentScale = 0;
+        workspaceSpringLoadedMinNextPageVisiblePx = 0;
+        extraSpace = 0;
+        workspacePageIndicatorHeight = 0;
+        mWorkspacePageIndicatorOverlapWorkspace = 0;
+        numFolderRows = 0;
+        numFolderColumns = 0;
+        folderLabelTextScale = 0;
+        areNavButtonsInline = false;
+        mHotseatBarEdgePaddingPx = 0;
+        mHotseatBarWorkspaceSpacePx = 0;
+        hotseatQsbWidth = 0;
+        hotseatQsbHeight = 0;
+        hotseatQsbVisualHeight = 0;
+        hotseatQsbShadowHeight = 0;
+        hotseatBorderSpace = 0;
+        mMinHotseatIconSpacePx = 0;
+        mMinHotseatQsbWidthPx = 0;
+        mMaxHotseatIconSpacePx = 0;
+        inlineNavButtonsEndSpacingPx = 0;
+        mBubbleBarSpaceThresholdPx = 0;
+        numShownAllAppsColumns = 0;
+        overviewActionsHeight = 0;
+        overviewActionsTopMarginPx = 0;
+        overviewActionsButtonSpacing = 0;
+        mViewScaleProvider = null;
+        mDotRendererWorkSpace = null;
+        mDotRendererAllApps = null;
+        taskbarHeight = 0;
+        stashedTaskbarHeight = 0;
+        taskbarBottomMargin = 0;
+        taskbarIconSize = 0;
+        mTransientTaskbarClaimedSpace = 0;
+        startAlignTaskbar = false;
+        isTransientTaskbar = false;
+    }
 
     /** TODO: Once we fully migrate to staged split, remove "isMultiWindowMode" */
     DeviceProfile(Context context, InvariantDeviceProfile inv, Info info, WindowBounds windowBounds,
@@ -441,7 +504,7 @@ public class DeviceProfile {
         bottomSheetCloseDuration = res.getInteger(R.integer.config_bottomSheetCloseDuration);
         if (isTablet) {
             bottomSheetWorkspaceScale = workspaceContentScale;
-            if (isMultiDisplay && !ENABLE_MULTI_DISPLAY_PARTIAL_DEPTH.get()) {
+            if (isMultiDisplay) {
                 // TODO(b/259893832): Revert to use maxWallpaperScale to calculate bottomSheetDepth
                 // when screen recorder bug is fixed.
                 if (enableScalingRevealHomeAnimation()) {
@@ -2018,25 +2081,8 @@ public class DeviceProfile {
         return isLandscape && transposeLayoutWithOrientation;
     }
 
-    /**
-     * Updates orientation information and returns true if it has changed from the previous value.
-     */
-    public boolean updateIsSeascape(Context context) {
-        if (isVerticalBarLayout()) {
-            boolean isSeascape = DisplayController.INSTANCE.get(context)
-                    .getInfo().rotation == Surface.ROTATION_270;
-            if (mIsSeascape != isSeascape) {
-                mIsSeascape = isSeascape;
-                // Hotseat changing sides requires updating workspace left/right paddings
-                updateWorkspacePadding();
-                return true;
-            }
-        }
-        return false;
-    }
-
     public boolean isSeascape() {
-        return isVerticalBarLayout() && mIsSeascape;
+        return rotationHint == Surface.ROTATION_270 && isVerticalBarLayout();
     }
 
     public boolean shouldFadeAdjacentWorkspaceScreens() {

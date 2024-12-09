@@ -28,6 +28,7 @@ import android.view.View.MeasureSpec
 import android.widget.FrameLayout
 import androidx.core.util.component1
 import androidx.core.util.component2
+import androidx.core.view.updateLayoutParams
 import com.android.launcher3.DeviceProfile
 import com.android.launcher3.Flags
 import com.android.launcher3.R
@@ -125,7 +126,30 @@ class SeascapePagedViewHandler : LandscapePagedViewHandler() {
         }
     }
 
-    override fun getDwbLayoutTranslations(
+    override fun updateDwbBannerLayout(
+        taskViewWidth: Int,
+        taskViewHeight: Int,
+        isGroupedTaskView: Boolean,
+        deviceProfile: DeviceProfile,
+        snapshotViewWidth: Int,
+        snapshotViewHeight: Int,
+        banner: View
+    ) {
+        banner.pivotX = 0f
+        banner.pivotY = 0f
+        banner.rotation = degreesRotated
+        banner.updateLayoutParams<FrameLayout.LayoutParams> {
+            gravity = Gravity.BOTTOM or if (banner.isLayoutRtl) Gravity.END else Gravity.START
+            width =
+                if (isGroupedTaskView) {
+                    snapshotViewHeight
+                } else {
+                    taskViewHeight - deviceProfile.overviewTaskThumbnailTopMarginPx
+                }
+        }
+    }
+
+    override fun getDwbBannerTranslations(
         taskViewWidth: Int,
         taskViewHeight: Int,
         splitBounds: SplitBounds?,
@@ -135,39 +159,26 @@ class SeascapePagedViewHandler : LandscapePagedViewHandler() {
         banner: View
     ): Pair<Float, Float> {
         val snapshotParams = thumbnailViews[0].layoutParams as FrameLayout.LayoutParams
-        val isRtl = banner.layoutDirection == View.LAYOUT_DIRECTION_RTL
-
-        val bannerParams = banner.layoutParams as FrameLayout.LayoutParams
-        bannerParams.gravity = Gravity.BOTTOM or if (isRtl) Gravity.END else Gravity.START
-        banner.pivotX = 0f
-        banner.pivotY = 0f
-        banner.rotation = degreesRotated
-
         val translationX: Float = (taskViewWidth - banner.height).toFloat()
-        if (splitBounds == null) {
-            // Single, fullscreen case
-            bannerParams.width = taskViewHeight - snapshotParams.topMargin
-            return Pair(translationX, banner.height.toFloat())
-        }
-
-        // Set correct width and translations
         val translationY: Float
-        if (desiredTaskId == splitBounds.leftTopTaskId) {
-            bannerParams.width = thumbnailViews[0].measuredHeight
-            val bottomRightTaskPlusDividerPercent =
-                if (splitBounds.appsStackedVertically) {
-                    1f - splitBounds.topTaskPercent
-                } else {
-                    1f - splitBounds.leftTaskPercent
-                }
-            translationY =
-                banner.height -
-                    (taskViewHeight - snapshotParams.topMargin) * bottomRightTaskPlusDividerPercent
-        } else {
-            bannerParams.width = thumbnailViews[1].measuredHeight
+        if (splitBounds == null) {
             translationY = banner.height.toFloat()
+        } else {
+            if (desiredTaskId == splitBounds.leftTopTaskId) {
+                val bottomRightTaskPlusDividerPercent =
+                    if (splitBounds.appsStackedVertically) {
+                        1f - splitBounds.topTaskPercent
+                    } else {
+                        1f - splitBounds.leftTaskPercent
+                    }
+                translationY =
+                    banner.height -
+                        (taskViewHeight - snapshotParams.topMargin) *
+                            bottomRightTaskPlusDividerPercent
+            } else {
+                translationY = banner.height.toFloat()
+            }
         }
-
         return Pair(translationX, translationY)
     }
 
@@ -266,6 +277,10 @@ class SeascapePagedViewHandler : LandscapePagedViewHandler() {
         iconAppChipView.setRotation(degreesRotated)
     }
 
+    /**
+     * @param inSplitSelection Whether user currently has a task from this task group staged for
+     * split screen. Currently this state is not reachable in fake seascape.
+     */
     override fun measureGroupedTaskViewThumbnailBounds(
         primarySnapshot: View,
         secondarySnapshot: View,
@@ -273,7 +288,8 @@ class SeascapePagedViewHandler : LandscapePagedViewHandler() {
         parentHeight: Int,
         splitBoundsConfig: SplitBounds,
         dp: DeviceProfile,
-        isRtl: Boolean
+        isRtl: Boolean,
+        inSplitSelection: Boolean
     ) {
         val primaryParams = primarySnapshot.layoutParams as FrameLayout.LayoutParams
         val secondaryParams = secondarySnapshot.layoutParams as FrameLayout.LayoutParams
@@ -339,6 +355,7 @@ class SeascapePagedViewHandler : LandscapePagedViewHandler() {
         if (isRtl) displacement > 0 else displacement < 0
 
     override fun getTaskDragDisplacementFactor(isRtl: Boolean): Int = if (isRtl) -1 else 1
+
     /* -------------------- */
 
     override fun getSplitIconsPosition(

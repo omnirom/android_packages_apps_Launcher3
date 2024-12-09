@@ -65,7 +65,7 @@ public final class WidgetsPredictionUpdateTask implements ModelUpdateTask {
                 Collectors.toSet());
         Predicate<WidgetItem> notOnWorkspace = w -> !widgetsInWorkspace.contains(w);
         Map<ComponentKey, WidgetItem> allWidgets =
-                dataModel.widgetsModel.getAllWidgetComponentsWithoutShortcuts();
+                dataModel.widgetsModel.getWidgetsByComponentKey();
 
         List<WidgetItem> servicePredictedItems = new ArrayList<>();
 

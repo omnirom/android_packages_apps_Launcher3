@@ -16,9 +16,14 @@
 
 package com.android.quickstep.task.viewmodel
 
+import com.android.quickstep.views.TaskViewType
 import kotlinx.coroutines.flow.MutableStateFlow
 
-class TaskViewData {
+class TaskViewData(taskViewType: TaskViewType) {
     // This is typically a View concern but it is used to invalidate rendering in other Views
     val scale = MutableStateFlow(1f)
+
+    // TODO(b/331753115): This property should not be in TaskViewData once TaskView is MVVM.
+    /** Whether outline of TaskView is formed by outline thumbnail view(s). */
+    val isOutlineFormedByThumbnailView: Boolean = taskViewType != TaskViewType.DESKTOP
 }

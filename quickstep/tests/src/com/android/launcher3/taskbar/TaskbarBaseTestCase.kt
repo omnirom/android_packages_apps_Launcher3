@@ -57,6 +57,7 @@ abstract class TaskbarBaseTestCase {
     @Mock lateinit var keyboardQuickSwitchController: KeyboardQuickSwitchController
     @Mock lateinit var taskbarPinningController: TaskbarPinningController
     @Mock lateinit var optionalBubbleControllers: Optional<BubbleControllers>
+    @Mock lateinit var taskbarDesktopModeController: TaskbarDesktopModeController
 
     lateinit var taskbarControllers: TaskbarControllers
 
@@ -98,6 +99,7 @@ abstract class TaskbarBaseTestCase {
                 keyboardQuickSwitchController,
                 taskbarPinningController,
                 optionalBubbleControllers,
+                taskbarDesktopModeController
             )
     }
 }

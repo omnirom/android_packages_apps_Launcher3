@@ -52,10 +52,8 @@ public class Themes {
     }
 
     public static int getActivityThemeRes(Context context, int wallpaperColorHints) {
-        boolean supportsDarkText = Utilities.ATLEAST_S
-                && (wallpaperColorHints & HINT_SUPPORTS_DARK_TEXT) != 0;
-        boolean isMainColorDark = Utilities.ATLEAST_S
-                && (wallpaperColorHints & HINT_SUPPORTS_DARK_THEME) != 0;
+        boolean supportsDarkText = (wallpaperColorHints & HINT_SUPPORTS_DARK_TEXT) != 0;
+        boolean isMainColorDark = (wallpaperColorHints & HINT_SUPPORTS_DARK_THEME) != 0;
 
         if (Utilities.isDarkTheme(context)) {
             return supportsDarkText ? R.style.AppTheme_Dark_DarkText

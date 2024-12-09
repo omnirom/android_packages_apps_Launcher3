@@ -65,6 +65,7 @@ public class TaplDragTest extends AbstractLauncherUiTest<Launcher> {
     @Test
     @PortraitLandscape
     @PlatinumTest(focusArea = "launcher")
+    @ScreenRecordRule.ScreenRecord // b/353600888
     public void testDragToFolder() {
         // TODO: add the use case to drag an icon to an existing folder. Currently it either fails
         // on tablets or phones due to difference in resolution.
@@ -97,6 +98,7 @@ public class TaplDragTest extends AbstractLauncherUiTest<Launcher> {
      * icon left.
      */
     @Test
+    @ScreenRecordRule.ScreenRecord // b/353600888
     public void testDragOutOfFolder() {
         final HomeAppIcon playStoreIcon = createShortcutIfNotExist(STORE_APP_NAME, 0, 1);
         final HomeAppIcon photosIcon = createShortcutInCenterIfNotExist(PHOTOS_APP_NAME);
@@ -174,13 +176,13 @@ public class TaplDragTest extends AbstractLauncherUiTest<Launcher> {
     public void testDragAndCancelAppIcon() {
         final HomeAppIcon homeAppIcon = createShortcutInCenterIfNotExist(GMAIL_APP_NAME);
         Point positionBeforeDrag =
-                mLauncher.getWorkspace().getWorkspaceIconsPositions().get(GMAIL_APP_NAME);
+                mLauncher.getWorkspace().getWorkspaceIconPosition(GMAIL_APP_NAME);
         assertNotNull("App not found in Workspace before dragging.", positionBeforeDrag);
 
         mLauncher.getWorkspace().dragAndCancelAppIcon(homeAppIcon);
 
         Point positionAfterDrag =
-                mLauncher.getWorkspace().getWorkspaceIconsPositions().get(GMAIL_APP_NAME);
+                mLauncher.getWorkspace().getWorkspaceIconPosition(GMAIL_APP_NAME);
         assertNotNull("App not found in Workspace after dragging.", positionAfterDrag);
         assertEquals("App not returned to same position in Workspace after drag & cancel",
                 positionBeforeDrag, positionAfterDrag);
@@ -195,7 +197,6 @@ public class TaplDragTest extends AbstractLauncherUiTest<Launcher> {
     @PlatinumTest(focusArea = "launcher")
     @Test
     @PortraitLandscape
-    @ScreenRecordRule.ScreenRecord // b/343953783
     public void testDragAppIcon() {
 
         final HomeAllApps allApps = mLauncher.getWorkspace().switchToAllApps();

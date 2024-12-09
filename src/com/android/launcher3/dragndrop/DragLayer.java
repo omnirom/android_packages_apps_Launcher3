@@ -157,7 +157,8 @@ public class DragLayer extends BaseDragLayer<Launcher> implements LauncherOverla
                         isOverFolderOrSearchBar = isEventOverView(topView, ev) ||
                                 isEventOverAccessibleDropTargetBar(ev);
                         if (!isOverFolderOrSearchBar) {
-                            sendTapOutsideFolderAccessibilityEvent(currentFolder.isEditingName());
+                            sendTapOutsideFolderAccessibilityEvent(
+                                    currentFolder.getIsEditingName());
                             mHoverPointClosesFolder = true;
                             return true;
                         }
@@ -167,7 +168,8 @@ public class DragLayer extends BaseDragLayer<Launcher> implements LauncherOverla
                         isOverFolderOrSearchBar = isEventOverView(topView, ev) ||
                                 isEventOverAccessibleDropTargetBar(ev);
                         if (!isOverFolderOrSearchBar && !mHoverPointClosesFolder) {
-                            sendTapOutsideFolderAccessibilityEvent(currentFolder.isEditingName());
+                            sendTapOutsideFolderAccessibilityEvent(
+                                    currentFolder.getIsEditingName());
                             mHoverPointClosesFolder = true;
                             return true;
                         } else if (!isOverFolderOrSearchBar) {

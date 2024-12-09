@@ -223,7 +223,8 @@ public class AllAppsList {
                     if (DEBUG) {
                         Log.w(TAG, "updatePromiseInstallInfo: removing app due to install"
                                 + " failure and appInfo not startable."
-                                + " package=" + appInfo.getTargetPackage());
+                                + " package=" + appInfo.getTargetPackage()
+                                + ", user=" + user);
                     }
                     removeApp(i);
                 }
@@ -319,7 +320,8 @@ public class AllAppsList {
                     if (!findActivity(matches, applicationInfo.componentName)) {
                         if (DEBUG) {
                             Log.w(TAG, "Changing shortcut target due to app component name change."
-                                    + " package=" + packageName);
+                                    + " component=" + applicationInfo.componentName
+                                    + ", user=" + user);
                         }
                         removeApp(i);
                     }
@@ -346,8 +348,9 @@ public class AllAppsList {
         } else {
             // Remove all data for this package.
             if (DEBUG) {
-                Log.w(TAG, "updatePromiseInstallInfo: no Activities matched updated package,"
-                        + " removing all apps from package=" + packageName);
+                Log.w(TAG, "updatePackage: no Activities matched updated package,"
+                        + " removing any AppInfo with package=" + packageName
+                        + ", user=" + user);
             }
             for (int i = data.size() - 1; i >= 0; i--) {
                 final AppInfo applicationInfo = data.get(i);

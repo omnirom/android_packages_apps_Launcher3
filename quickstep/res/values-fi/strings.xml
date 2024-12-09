@@ -22,6 +22,7 @@
     <string name="recent_task_option_pin" msgid="7929860679018978258">"Kiinnitä"</string>
     <string name="recent_task_option_freeform" msgid="48863056265284071">"Vapaamuotoinen"</string>
     <string name="recent_task_option_desktop" msgid="8280879717125435668">"Tietokone"</string>
+    <string name="recent_task_desktop" msgid="8081113562549637334">"Tietokone"</string>
     <string name="recents_empty_message" msgid="7040467240571714191">"Ei viimeaikaisia kohteita"</string>
     <string name="accessibility_app_usage_settings" msgid="6312864233673544149">"Sovelluksen käyttöasetukset"</string>
     <string name="recents_clear_all" msgid="5328176793634888831">"Poista kaikki"</string>
@@ -72,7 +73,7 @@
     <string name="home_gesture_tutorial_success" msgid="1736295017642244751">"Hienoa!"</string>
     <string name="overview_gesture_feedback_swipe_too_far_from_edge" msgid="6402349235265407385">"Pyyhkäise ylös näytön alareunasta"</string>
     <string name="overview_gesture_feedback_home_detected" msgid="663432226180397138">"Kokeile pitää ikkunaa painettuna pidempään ennen kuin päästät irti"</string>
-    <string name="overview_gesture_feedback_wrong_swipe_direction" msgid="1191055451018584958">"Muista pyyhkäistä suoraan ylöspäin ja pysähdy sitten"</string>
+    <string name="overview_gesture_feedback_wrong_swipe_direction" msgid="1191055451018584958">"Pyyhkäise suoraan ylöspäin ja pysähdy sitten"</string>
     <string name="overview_gesture_feedback_complete_with_follow_up" msgid="3544611727467765026">"Olet oppinut käyttämään eleitä. Jos haluat laittaa eleet pois päältä, avaa Asetukset."</string>
     <string name="overview_gesture_feedback_complete_without_follow_up" msgid="2903050864432331629">"Olet oppinut sovellusten vaihtamiseleen"</string>
     <string name="overview_gesture_intro_title" msgid="2902054412868489378">"Vaihda sovellusta pyyhkäisemällä"</string>
@@ -99,7 +100,7 @@
     <string name="action_save_app_pair" msgid="5974823919237645229">"Tallenna pari"</string>
     <string name="toast_split_select_app" msgid="8464310533320556058">"Avaa jaettu näyttö napauttamalla toista sovellusta"</string>
     <string name="toast_contextual_split_select_app" msgid="433510957123687090">"Käytä jaettua näyttöä valitsemalla toinen sovellus"</string>
-    <string name="toast_split_select_app_cancel" msgid="1532690483356445639"><b>"Peruuta"</b></string>
+    <string name="toast_split_select_app_cancel" msgid="1939025102486630426">"Peru"</string>
     <string name="toast_split_select_cont_desc" msgid="2119685056059607602">"Poistu jaetun näytön valinnasta"</string>
     <string name="toast_split_app_unsupported" msgid="2360229567007828914">"Käytä jaettua näyttöä valitsemalla toinen sovellus"</string>
     <string name="blocked_by_policy" msgid="2071401072261365546">"Sovellus tai organisaatio ei salli tätä toimintoa"</string>
@@ -130,18 +131,27 @@
     <string name="taskbar_button_quick_settings" msgid="227662894293189391">"Pika-asetukset"</string>
     <string name="taskbar_a11y_title" msgid="6432169809852243110">"Tehtäväpalkki"</string>
     <string name="taskbar_a11y_shown_title" msgid="6842833581088937713">"Tehtäväpalkki näkyvissä"</string>
+    <string name="taskbar_a11y_shown_with_bubbles_left_title" msgid="4242431789851790046">"Vas. palkki ja kuplat näkyvissä"</string>
+    <string name="taskbar_a11y_shown_with_bubbles_right_title" msgid="8219065376188180113">"Oik. palkki ja kuplat näkyvissä"</string>
     <string name="taskbar_a11y_hidden_title" msgid="9154903639589659284">"Tehtäväpalkki piilotettu"</string>
+    <string name="taskbar_a11y_hidden_with_bubbles_title" msgid="7397395993149508087">"Palkki ja kuplat piilotettu"</string>
     <string name="taskbar_phone_a11y_title" msgid="4933360237131229395">"Navigointipalkki"</string>
     <string name="always_show_taskbar" msgid="3608801276107751229">"Näytä tehtäväpalkki aina"</string>
     <string name="change_navigation_mode" msgid="9088393078736808968">"Vaihda navigointitilaa"</string>
     <string name="taskbar_divider_a11y_title" msgid="6608690309720242080">"Tehtäväpalkin jakaja"</string>
+    <string name="taskbar_overflow_a11y_title" msgid="7960342079198820179">"Tehtäväpalkin ylivuotu"</string>
     <string name="move_drop_target_top_or_left" msgid="2988702185049595807">"Siirrä ylös tai vasemmalle"</string>
     <string name="move_drop_target_bottom_or_right" msgid="5431393418797620162">"Siirrä alas tai oikealle"</string>
-    <string name="quick_switch_overflow" msgid="6935266023013283353">"{count,plural, =1{Näytä # muu sovellus.}other{Näytä # muuta sovellusta.}}"</string>
-    <string name="quick_switch_desktop" msgid="4834587349322698616">"{count,plural, =1{Näytä # työpöytäsovellus.}other{Näytä # työpöytäsovellusta.}}"</string>
+    <string name="quick_switch_overflow" msgid="3679780650881041632">"{count,plural, =1{muu sovellus}other{muuta sovellusta}}"</string>
+    <string name="quick_switch_desktop" msgid="8393802056024499749">"Tietokone"</string>
     <string name="quick_switch_split_task" msgid="5598194724255333896">"<xliff:g id="APP_NAME_1">%1$s</xliff:g> ja <xliff:g id="APP_NAME_2">%2$s</xliff:g>"</string>
     <string name="bubble_bar_bubble_fallback_description" msgid="7811684548953452009">"Kupla"</string>
     <string name="bubble_bar_overflow_description" msgid="8617628132733151708">"Ylivuoto"</string>
     <string name="bubble_bar_bubble_description" msgid="1882466152448446446">"<xliff:g id="NOTIFICATION_TITLE">%1$s</xliff:g>: <xliff:g id="APP_NAME">%2$s</xliff:g>"</string>
     <string name="bubble_bar_description_multiple_bubbles" msgid="3922207715357143648">"<xliff:g id="BUBBLE_BAR_BUBBLE_DESCRIPTION">%1$s</xliff:g> ja <xliff:g id="BUBBLE_COUNT">%2$d</xliff:g> muuta"</string>
+    <string name="bubble_bar_action_move_left" msgid="3306922475737714758">"Siirrä vasemmalle"</string>
+    <string name="bubble_bar_action_move_right" msgid="3455099638571411251">"Siirrä oikealle"</string>
+    <string name="bubble_bar_action_dismiss_all" msgid="3290722022983403060">"Hylkää kaikki"</string>
+    <string name="bubble_bar_accessibility_announce_expand" msgid="1503192695527477102">"laajenna <xliff:g id="BUBBLE_DESCRIPTION">%1$s</xliff:g>"</string>
+    <string name="bubble_bar_accessibility_announce_collapse" msgid="928284600086798791">"tiivistä <xliff:g id="BUBBLE_DESCRIPTION">%1$s</xliff:g>"</string>
 </resources>

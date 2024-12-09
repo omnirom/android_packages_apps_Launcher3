@@ -33,6 +33,7 @@ import static com.android.systemui.shared.system.QuickStepContract.SYSUI_STATE_A
 import static com.android.systemui.shared.system.QuickStepContract.SYSUI_STATE_BUBBLES_EXPANDED;
 import static com.android.systemui.shared.system.QuickStepContract.SYSUI_STATE_DEVICE_DREAMING;
 import static com.android.systemui.shared.system.QuickStepContract.SYSUI_STATE_DIALOG_SHOWING;
+import static com.android.systemui.shared.system.QuickStepContract.SYSUI_STATE_DISABLE_GESTURE_PIP_ANIMATING;
 import static com.android.systemui.shared.system.QuickStepContract.SYSUI_STATE_DISABLE_GESTURE_SPLIT_INVOCATION;
 import static com.android.systemui.shared.system.QuickStepContract.SYSUI_STATE_HOME_DISABLED;
 import static com.android.systemui.shared.system.QuickStepContract.SYSUI_STATE_IME_SHOWING;
@@ -73,6 +74,7 @@ import com.android.quickstep.util.AssistStateManager;
 import com.android.quickstep.util.GestureExclusionManager;
 import com.android.quickstep.util.GestureExclusionManager.ExclusionListener;
 import com.android.quickstep.util.NavBarPosition;
+import com.android.systemui.shared.Flags;
 import com.android.systemui.shared.system.ActivityManagerWrapper;
 import com.android.systemui.shared.system.QuickStepContract;
 import com.android.systemui.shared.system.QuickStepContract.SystemUiStateFlags;
@@ -301,6 +303,10 @@ public class RecentsAnimationDeviceState implements DisplayInfoChangeListener, E
         return mNavBarPosition;
     }
 
+    public NavigationMode getMode() {
+        return mMode;
+    }
+
     /**
      * @return whether the current nav mode is fully gestural.
      */
@@ -412,7 +418,8 @@ public class RecentsAnimationDeviceState implements DisplayInfoChangeListener, E
                         | SYSUI_STATE_QUICK_SETTINGS_EXPANDED
                         | SYSUI_STATE_MAGNIFICATION_OVERLAP
                         | SYSUI_STATE_DEVICE_DREAMING
-                        | SYSUI_STATE_DISABLE_GESTURE_SPLIT_INVOCATION;
+                        | SYSUI_STATE_DISABLE_GESTURE_SPLIT_INVOCATION
+                        | SYSUI_STATE_DISABLE_GESTURE_PIP_ANIMATING;
         return (gestureDisablingStates & mSystemUiStateFlags) == 0 && homeOrOverviewEnabled;
     }
 
@@ -539,6 +546,13 @@ public class RecentsAnimationDeviceState implements DisplayInfoChangeListener, E
      */
     public float getAssistantVisibility() {
         return mAssistantVisibility;
+    }
+
+    /**
+     * @return whether the Assistant gesture can be used in 3 button navigation mode.
+     */
+    public boolean supportsAssistantGestureInButtonNav() {
+        return Flags.threeButtonCornerSwipe();
     }
 
     /**

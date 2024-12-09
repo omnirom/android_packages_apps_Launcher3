@@ -26,6 +26,7 @@ import android.graphics.Matrix;
 import android.graphics.Matrix.ScaleToFit;
 import android.graphics.Rect;
 import android.graphics.RectF;
+import android.util.Log;
 import android.view.RemoteAnimationTarget;
 
 import androidx.annotation.NonNull;
@@ -381,6 +382,8 @@ public abstract class SwipeUpAnimationLogic implements
     protected class SpringAnimationRunner extends AnimationSuccessListener
             implements RectFSpringAnim.OnUpdateListener, BuilderProxy {
 
+        private static final String TAG = "SpringAnimationRunner";
+
         final Rect mCropRect = new Rect();
         final Matrix mMatrix = new Matrix();
 
@@ -481,10 +484,26 @@ public abstract class SwipeUpAnimationLogic implements
                 return;
             }
             mTargetTaskView.setAlpha(mAnimationFactory.isAnimatingIntoIcon() ? 1f : alpha);
-            float width = mThumbnailStartBounds.width();
-            float height =  mThumbnailStartBounds.height();
-            float scale = Math.min(currentRect.width(), currentRect.height())
-                    / Math.min(width, height);
+            float startWidth = mThumbnailStartBounds.width();
+            float startHeight =  mThumbnailStartBounds.height();
+            float currentWidth = currentRect.width();
+            float currentHeight = currentRect.height();
+            float scale;
+
+            boolean isStartWidthValid = Float.compare(startWidth, 0f) > 0;
+            boolean isStartHeightValid = Float.compare(startHeight, 0f) > 0;
+            if (isStartWidthValid && isStartHeightValid) {
+                scale = Math.min(currentWidth, currentHeight) / Math.min(startWidth, startHeight);
+            } else {
+                Log.e(TAG, "TaskView starting bounds are invalid: " + mThumbnailStartBounds);
+                if (isStartWidthValid) {
+                    scale = currentWidth / startWidth;
+                } else if (isStartHeightValid) {
+                    scale = currentHeight / startHeight;
+                } else {
+                    scale = 1f;
+                }
+            }
 
             mTargetTaskView.setScaleX(scale);
             mTargetTaskView.setScaleY(scale);

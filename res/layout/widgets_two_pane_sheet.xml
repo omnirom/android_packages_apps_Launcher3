@@ -48,20 +48,23 @@
             android:textSize="24sp" />
 
         <TextView
-            android:id="@+id/no_widgets_text"
-            style="@style/PrimaryHeadline"
+            android:id="@+id/widget_picker_description"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:gravity="center"
-            android:textSize="18sp"
+            android:layout_height="wrap_content"
+            android:gravity="center_horizontal"
+            android:layout_below="@id/title"
+            android:maxLines="1"
+            android:paddingHorizontal="@dimen/widget_list_horizontal_margin_two_pane"
+            android:textColor="?attr/widgetPickerDescriptionColor"
             android:visibility="gone"
-            tools:text="@string/no_widgets_available" />
+            android:lineHeight="20sp"
+            android:textSize="14sp" />
 
         <LinearLayout
             android:id="@+id/linear_layout_container"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_below="@id/title">
+            android:layout_below="@id/widget_picker_description">
 
             <FrameLayout
                 android:id="@+id/recycler_view_container"
@@ -124,6 +127,16 @@
                             android:background="@drawable/widgets_surface_background"
                             android:importantForAccessibility="yes"
                             android:id="@+id/right_pane">
+                            <TextView
+                                android:id="@+id/no_widgets_text"
+                                style="@style/PrimaryHeadline"
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:gravity="center"
+                                android:textSize="18sp"
+                                android:visibility="gone"
+                                tools:text="@string/no_widgets_available" />
+
                             <!-- Shown when there are recommendations to display -->
                             <LinearLayout
                                 android:id="@+id/widget_recommendations_container"

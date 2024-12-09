@@ -45,6 +45,9 @@
     <string name="split_app_info_accessibility">App info for %1$s</string>
     <string name="split_app_usage_settings">Usage settings for %1$s</string>
 
+    <!-- Title for an option to open a new window for a given app   -->
+    <string name="new_window_option_taskbar">New Window</string>
+
     <!-- App pairs -->
     <string name="save_app_pair">Save app pair</string>
     <!-- App pair default title -->
@@ -61,6 +64,12 @@
     <string name="long_press_widget_to_add">Touch &amp; hold to move a widget.</string>
     <!-- Accessibility spoken hint message in widget picker, which allows user to add a widget. Custom action is the label for additional accessibility actions available in this mode [CHAR_LIMIT=100] -->
     <string name="long_accessible_way_to_add">Double-tap &amp; hold to move a widget or use custom actions.</string>
+    <!-- Accessibility label for the icon button shown in the widget picker that opens a overflow
+         menu with widgets viewing options. [CHAR_LIMIT=25] -->
+    <string name="widget_picker_widget_options_button_description">More options</string>
+    <!-- Label for the checkbox shown in the widget picker toggles whether to show all widgets or
+     the default set. [CHAR_LIMIT=25] -->
+    <string name="widget_picker_show_all_widgets_menu_item_title">Show all widgets</string>
     <!-- The format string for the dimensions of a widget in the drawer -->
     <!-- There is a special version of this format string for Farsi -->
     <string name="widget_dims_format">%1$d \u00d7 %2$d</string>
@@ -209,7 +218,8 @@
     <string name="dismiss_prediction_label">Don\'t suggest app</string>
     <!-- Label for pinning predicted app. -->
     <string name="pin_prediction">Pin Prediction</string>
-
+    <!-- Label for bubbling a launcher item. [CHAR_LIMIT=20] -->
+    <string name="bubble">Bubble</string>
 
     <!-- Permissions: -->
     <skip />

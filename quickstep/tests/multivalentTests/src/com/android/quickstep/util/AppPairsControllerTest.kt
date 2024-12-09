@@ -28,9 +28,9 @@ import com.android.quickstep.TopTaskTracker
 import com.android.quickstep.TopTaskTracker.CachedTaskInfo
 import com.android.systemui.shared.recents.model.Task
 import com.android.systemui.shared.recents.model.Task.TaskKey
-import com.android.wm.shell.common.split.SplitScreenConstants.SNAP_TO_30_70
-import com.android.wm.shell.common.split.SplitScreenConstants.SNAP_TO_50_50
-import com.android.wm.shell.common.split.SplitScreenConstants.SNAP_TO_70_30
+import com.android.wm.shell.shared.split.SplitScreenConstants.SNAP_TO_30_70
+import com.android.wm.shell.shared.split.SplitScreenConstants.SNAP_TO_50_50
+import com.android.wm.shell.shared.split.SplitScreenConstants.SNAP_TO_70_30
 import java.util.function.Consumer
 import org.junit.Assert.assertEquals
 import org.junit.Before

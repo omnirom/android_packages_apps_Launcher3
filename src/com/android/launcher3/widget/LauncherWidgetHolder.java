@@ -20,6 +20,7 @@ import static android.app.Activity.RESULT_CANCELED;
 import static com.android.launcher3.BuildConfig.WIDGETS_ENABLED;
 import static com.android.launcher3.Flags.enableWorkspaceInflation;
 import static com.android.launcher3.util.Executors.MAIN_EXECUTOR;
+import static com.android.launcher3.util.Executors.UI_HELPER_EXECUTOR;
 import static com.android.launcher3.widget.LauncherAppWidgetProviderInfo.fromProviderInfo;
 
 import android.appwidget.AppWidgetHost;
@@ -36,6 +37,8 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.VisibleForTesting;
+import androidx.annotation.WorkerThread;
 
 import com.android.launcher3.BaseActivity;
 import com.android.launcher3.BaseDraggingActivity;
@@ -44,13 +47,14 @@ import com.android.launcher3.Utilities;
 import com.android.launcher3.model.data.ItemInfo;
 import com.android.launcher3.testing.TestLogging;
 import com.android.launcher3.testing.shared.TestProtocol;
+import com.android.launcher3.util.LooperExecutor;
 import com.android.launcher3.util.ResourceBasedOverride;
 import com.android.launcher3.util.SafeCloseable;
-import com.android.launcher3.widget.LauncherAppWidgetHost.ListenableHostView;
 import com.android.launcher3.widget.custom.CustomWidgetManager;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.IntConsumer;
 
 /**
@@ -77,7 +81,7 @@ public class LauncherWidgetHolder {
     protected final SparseArray<LauncherAppWidgetHostView> mViews = new SparseArray<>();
     protected final List<ProviderChangedListener> mProviderChangedListeners = new ArrayList<>();
 
-    protected int mFlags = FLAG_STATE_IS_NORMAL;
+    protected AtomicInteger mFlags = new AtomicInteger(FLAG_STATE_IS_NORMAL);
 
     // TODO(b/191735836): Replace with ActivityOptions.KEY_SPLASH_SCREEN_STYLE when un-hidden
     private static final String KEY_SPLASH_SCREEN_STYLE = "android.activity.splashScreenStyle";
@@ -96,6 +100,10 @@ public class LauncherWidgetHolder {
                 context, appWidgetRemovedCallback, mProviderChangedListeners);
     }
 
+    protected LooperExecutor getWidgetHolderExecutor() {
+        return UI_HELPER_EXECUTOR;
+    }
+
     /**
      * Starts listening to the widget updates from the server side
      */
@@ -104,21 +112,23 @@ public class LauncherWidgetHolder {
             return;
         }
 
-        try {
-            mWidgetHost.startListening();
-        } catch (Exception e) {
-            if (!Utilities.isBinderSizeError(e)) {
-                throw new RuntimeException(e);
+        getWidgetHolderExecutor().execute(() -> {
+            try {
+                mWidgetHost.startListening();
+            } catch (Exception e) {
+                if (!Utilities.isBinderSizeError(e)) {
+                    throw new RuntimeException(e);
+                }
+                // We're willing to let this slide. The exception is being caused by the list of
+                // RemoteViews which is being passed back. The startListening relationship will
+                // have been established by this point, and we will end up populating the
+                // widgets upon bind anyway. See issue 14255011 for more context.
             }
-            // We're willing to let this slide. The exception is being caused by the list of
-            // RemoteViews which is being passed back. The startListening relationship will
-            // have been established by this point, and we will end up populating the
-            // widgets upon bind anyway. See issue 14255011 for more context.
-        }
-        // TODO: Investigate why widgetHost.startListening() always return non-empty updates
-        setListeningFlag(true);
+            // TODO: Investigate why widgetHost.startListening() always return non-empty updates
+            setListeningFlag(true);
 
-        updateDeferredView();
+            MAIN_EXECUTOR.execute(() -> updateDeferredView());
+        });
     }
 
     /**
@@ -282,16 +292,23 @@ public class LauncherWidgetHolder {
         if (!WIDGETS_ENABLED) {
             return;
         }
-        mWidgetHost.stopListening();
-        setListeningFlag(false);
+        getWidgetHolderExecutor().execute(() -> {
+            mWidgetHost.stopListening();
+            setListeningFlag(false);
+        });
     }
 
+    /**
+     * Update {@link FLAG_LISTENING} on {@link mFlags} after making binder calls from
+     * {@link sWidgetHost}.
+     */
+    @WorkerThread
     protected void setListeningFlag(final boolean isListening) {
         if (isListening) {
-            mFlags |= FLAG_LISTENING;
+            mFlags.updateAndGet(old -> old | FLAG_LISTENING);
             return;
         }
-        mFlags &= ~FLAG_LISTENING;
+        mFlags.updateAndGet(old -> old & ~FLAG_LISTENING);
     }
 
     /**
@@ -373,7 +390,7 @@ public class LauncherWidgetHolder {
      *      as a result of using the same flow.
      */
     protected LauncherAppWidgetHostView recycleExistingView(LauncherAppWidgetHostView view) {
-        if ((mFlags & FLAG_LISTENING) == 0) {
+        if ((mFlags.get() & FLAG_LISTENING) == 0) {
             if (view instanceof PendingAppWidgetHostView pv && pv.isDeferredWidget()) {
                 return view;
             } else {
@@ -395,7 +412,7 @@ public class LauncherWidgetHolder {
     @NonNull
     protected LauncherAppWidgetHostView createViewInternal(
             int appWidgetId, @NonNull LauncherAppWidgetProviderInfo appWidget) {
-        if ((mFlags & FLAG_LISTENING) == 0) {
+        if ((mFlags.get() & FLAG_LISTENING) == 0) {
             // Since the launcher hasn't started listening to widget updates, we can't simply call
             // host.createView here because the later will make a binder call to retrieve
             // RemoteViews from system process.
@@ -460,25 +477,27 @@ public class LauncherWidgetHolder {
      * @return True if the host is listening to the updates, false otherwise
      */
     public boolean isListening() {
-        return (mFlags & FLAG_LISTENING) != 0;
+        return (mFlags.get() & FLAG_LISTENING) != 0;
     }
 
     /**
      * Sets or unsets a flag the can change whether the widget host should be in the listening
      * state.
      */
-    private void setShouldListenFlag(int flag, boolean on) {
+    @VisibleForTesting
+    void setShouldListenFlag(int flag, boolean on) {
         if (on) {
-            mFlags |= flag;
+            mFlags.updateAndGet(old -> old | flag);
         } else {
-            mFlags &= ~flag;
+            mFlags.updateAndGet(old -> old & ~flag);
         }
 
         final boolean listening = isListening();
-        if (!listening && shouldListen(mFlags)) {
+        int currentFlag = mFlags.get();
+        if (!listening && shouldListen(currentFlag)) {
             // Postpone starting listening until all flags are on.
             startListening();
-        } else if (listening && (mFlags & FLAG_ACTIVITY_STARTED) == 0) {
+        } else if (listening && (currentFlag & FLAG_ACTIVITY_STARTED) == 0) {
             // Postpone stopping listening until the activity is stopped.
             stopListening();
         }

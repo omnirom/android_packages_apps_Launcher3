@@ -20,9 +20,9 @@ import static android.app.WindowConfiguration.WINDOWING_MODE_FREEFORM;
 import static android.content.Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS;
 import static android.view.Surface.ROTATION_0;
 
+import static com.android.launcher3.Flags.enableRefactorTaskThumbnail;
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_SYSTEM_SHORTCUT_FREE_FORM_TAP;
 import static com.android.launcher3.util.SplitConfigurationOptions.STAGE_POSITION_BOTTOM_OR_RIGHT;
-import static com.android.window.flags.Flags.enableDesktopWindowingMode;
 
 import android.app.ActivityOptions;
 import android.graphics.Bitmap;
@@ -55,14 +55,14 @@ import com.android.quickstep.util.RecentsOrientedState;
 import com.android.quickstep.views.GroupedTaskView;
 import com.android.quickstep.views.RecentsView;
 import com.android.quickstep.views.RecentsViewContainer;
-import com.android.quickstep.views.TaskThumbnailViewDeprecated;
+import com.android.quickstep.views.TaskContainer;
 import com.android.quickstep.views.TaskView;
-import com.android.quickstep.views.TaskView.TaskContainer;
 import com.android.systemui.shared.recents.model.Task;
 import com.android.systemui.shared.recents.view.AppTransitionAnimationSpecCompat;
 import com.android.systemui.shared.recents.view.AppTransitionAnimationSpecsFuture;
 import com.android.systemui.shared.recents.view.RecentsTransition;
 import com.android.systemui.shared.system.ActivityManagerWrapper;
+import com.android.wm.shell.shared.desktopmode.DesktopModeStatus;
 
 import java.util.Collections;
 import java.util.List;
@@ -174,7 +174,7 @@ public interface TaskShortcutFactory {
         private Handler mHandler;
 
         private final RecentsView mRecentsView;
-        private final TaskThumbnailViewDeprecated mThumbnailView;
+        private final TaskContainer mTaskContainer;
         private final TaskView mTaskView;
         private final LauncherEvent mLauncherEvent;
 
@@ -186,7 +186,7 @@ public interface TaskShortcutFactory {
             mHandler = new Handler(Looper.getMainLooper());
             mTaskView = taskContainer.getTaskView();
             mRecentsView = container.getOverviewPanel();
-            mThumbnailView = taskContainer.getThumbnailViewDeprecated();
+            mTaskContainer = taskContainer;
         }
 
         @Override
@@ -220,19 +220,25 @@ public interface TaskShortcutFactory {
                 };
 
                 final int[] position = new int[2];
-                mThumbnailView.getLocationOnScreen(position);
-                final int width = (int) (mThumbnailView.getWidth() * mTaskView.getScaleX());
-                final int height = (int) (mThumbnailView.getHeight() * mTaskView.getScaleY());
+                View snapShotView = mTaskContainer.getSnapshotView();
+                snapShotView.getLocationOnScreen(position);
+                final int width = (int) (snapShotView.getWidth() * mTaskView.getScaleX());
+                final int height = (int) (snapShotView.getHeight() * mTaskView.getScaleY());
                 final Rect taskBounds = new Rect(position[0], position[1],
                         position[0] + width, position[1] + height);
 
                 // Take the thumbnail of the task without a scrim and apply it back after
-                float alpha = mThumbnailView.getDimAlpha();
-                mThumbnailView.setDimAlpha(0);
+                // TODO(b/348643341) add ability to get override the scrim for this Bitmap retrieval
+                float alpha = 0f;
+                if (!enableRefactorTaskThumbnail()) {
+                    alpha = mTaskContainer.getThumbnailViewDeprecated().getDimAlpha();
+                    mTaskContainer.getThumbnailViewDeprecated().setDimAlpha(0);
+                }
                 Bitmap thumbnail = RecentsTransition.drawViewIntoHardwareBitmap(
-                        taskBounds.width(), taskBounds.height(), mThumbnailView, 1f,
-                        Color.BLACK);
-                mThumbnailView.setDimAlpha(alpha);
+                        taskBounds.width(), taskBounds.height(), snapShotView, 1f, Color.BLACK);
+                if (!enableRefactorTaskThumbnail()) {
+                    mTaskContainer.getThumbnailViewDeprecated().setDimAlpha(alpha);
+                }
 
                 AppTransitionAnimationSpecsFuture future =
                         new AppTransitionAnimationSpecsFuture(mHandler) {
@@ -309,12 +315,12 @@ public interface TaskShortcutFactory {
             boolean isTaskSplitNotSupported = !task.isDockable ||
                     (intentFlags & FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS) != 0;
             boolean hideForExistingMultiWindow = container.getDeviceProfile().isMultiWindowMode;
-            boolean isFocusedTask = deviceProfile.isTablet && taskView.isFocusedTask();
+            boolean isLargeTile = deviceProfile.isTablet && taskView.isLargeTile();
             boolean isTaskInExpectedScrollPosition =
                     recentsView.isTaskInExpectedScrollPosition(recentsView.indexOfChild(taskView));
 
             if (notEnoughTasksToSplit || isTaskSplitNotSupported || hideForExistingMultiWindow
-                    || (isFocusedTask && isTaskInExpectedScrollPosition)) {
+                    || (isLargeTile && isTaskInExpectedScrollPosition)) {
                 return null;
             }
 
@@ -334,11 +340,11 @@ public interface TaskShortcutFactory {
             DeviceProfile deviceProfile = container.getDeviceProfile();
             final TaskView taskView = taskContainer.getTaskView();
             final RecentsView recentsView = taskView.getRecentsView();
-            boolean isLargeTileFocusedTask = deviceProfile.isTablet && taskView.isFocusedTask();
+            boolean isLargeTile = deviceProfile.isTablet && taskView.isLargeTile();
             boolean isInExpectedScrollPosition =
                     recentsView.isTaskInExpectedScrollPosition(recentsView.indexOfChild(taskView));
             boolean shouldShowActionsButtonInstead =
-                    isLargeTileFocusedTask && isInExpectedScrollPosition;
+                    isLargeTile && isInExpectedScrollPosition;
 
             // No "save app pair" menu item if:
             // - we are in 3p launcher
@@ -388,7 +394,7 @@ public interface TaskShortcutFactory {
             return Settings.Global.getInt(
                     container.asContext().getContentResolver(),
                     Settings.Global.DEVELOPMENT_ENABLE_FREEFORM_WINDOWS_SUPPORT, 0) != 0
-                    && !enableDesktopWindowingMode();
+                    && !DesktopModeStatus.canEnterDesktopMode(container.asContext());
         }
     };
 
@@ -425,7 +431,7 @@ public interface TaskShortcutFactory {
 
         @Override
         public void onClick(View view) {
-            if (mTaskView.launchTaskAnimated() != null) {
+            if (mTaskView.launchAsStaticTile() != null) {
                 SystemUiProxy.INSTANCE.get(mTarget.asContext()).startScreenPinning(
                         mTaskView.getFirstTask().key.id);
             }

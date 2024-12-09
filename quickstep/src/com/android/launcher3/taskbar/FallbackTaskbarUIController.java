@@ -70,7 +70,6 @@ public class FallbackTaskbarUIController extends TaskbarUIController {
     @Override
     protected void init(TaskbarControllers taskbarControllers) {
         super.init(taskbarControllers);
-
         mRecentsActivity.setTaskbarUIController(this);
         mRecentsActivity.getStateManager().addStateListener(mStateListener);
     }
@@ -78,6 +77,7 @@ public class FallbackTaskbarUIController extends TaskbarUIController {
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        getRecentsView().setTaskLaunchListener(null);
         mRecentsActivity.setTaskbarUIController(null);
         mRecentsActivity.getStateManager().removeStateListener(mStateListener);
     }

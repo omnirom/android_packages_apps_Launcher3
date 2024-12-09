@@ -23,6 +23,7 @@ import android.graphics.Paint
 import android.graphics.Path
 import android.graphics.RectF
 import com.android.app.animation.Interpolators
+import com.android.internal.policy.ScreenDecorationsUtils
 import com.android.launcher3.R
 import com.android.launcher3.Utilities
 import com.android.launcher3.Utilities.mapRange
@@ -66,8 +67,8 @@ class TaskbarBackgroundRenderer(private val context: TaskbarActivityContext) {
     private var keyShadowDistance = 0f
     private var bottomMargin = 0
 
-    private val fullCornerRadius = context.cornerRadius.toFloat()
-    private var cornerRadius = fullCornerRadius
+    private val fullCornerRadius: Float
+    private var cornerRadius = 0f
     private var widthInsetPercentage = 0f
     private val square = Path()
     private val circle = Path()
@@ -97,7 +98,14 @@ class TaskbarBackgroundRenderer(private val context: TaskbarActivityContext) {
             shadowAlpha = LIGHT_THEME_SHADOW_ALPHA
         }
 
-        setCornerRoundness(DEFAULT_ROUNDNESS)
+        if (context.areDesktopTasksVisible()) {
+            fullCornerRadius = ScreenDecorationsUtils.getWindowCornerRadius(context)
+            cornerRadius = fullCornerRadius
+        } else {
+            fullCornerRadius = context.cornerRadius.toFloat()
+            cornerRadius = fullCornerRadius
+            setCornerRoundness(MAX_ROUNDNESS)
+        }
     }
 
     fun updateStashedHandleWidth(context: TaskbarActivityContext, res: Resources) {
@@ -188,7 +196,7 @@ class TaskbarBackgroundRenderer(private val context: TaskbarActivityContext) {
                 mapRange(
                         scale,
                         0f,
-                        res.getDimensionPixelSize(R.dimen.transient_taskbar_bottom_margin).toFloat()
+                        res.getDimensionPixelSize(R.dimen.transient_taskbar_bottom_margin).toFloat(),
                     )
                     .toInt()
             shadowBlur =
@@ -227,7 +235,7 @@ class TaskbarBackgroundRenderer(private val context: TaskbarActivityContext) {
                 -mapRange(
                     1f - progress,
                     0f,
-                    if (isAnimatingPinning) 0f else stashedHandleHeight / 2f
+                    if (isAnimatingPinning) 0f else stashedHandleHeight / 2f,
                 )
 
         // Draw shadow.
@@ -237,7 +245,7 @@ class TaskbarBackgroundRenderer(private val context: TaskbarActivityContext) {
             shadowBlur,
             0f,
             keyShadowDistance,
-            setColorAlphaBound(Color.BLACK, Math.round(newShadowAlpha))
+            setColorAlphaBound(Color.BLACK, Math.round(newShadowAlpha)),
         )
         strokePaint.alpha = (paint.alpha * strokeAlpha) / 255
 
@@ -263,7 +271,7 @@ class TaskbarBackgroundRenderer(private val context: TaskbarActivityContext) {
     }
 
     companion object {
-        const val DEFAULT_ROUNDNESS = 1f
+        const val MAX_ROUNDNESS = 1f
         private const val DARK_THEME_STROKE_ALPHA = 51
         private const val LIGHT_THEME_STROKE_ALPHA = 41
         private const val DARK_THEME_SHADOW_ALPHA = 51f

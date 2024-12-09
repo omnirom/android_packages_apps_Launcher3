@@ -15,7 +15,6 @@
  */
 package com.android.launcher3.allapps;
 
-import static com.android.launcher3.config.FeatureFlags.ENABLE_ALL_APPS_RV_PREINFLATION;
 import static com.android.launcher3.model.data.AppInfo.COMPONENT_KEY_COMPARATOR;
 import static com.android.launcher3.model.data.AppInfo.EMPTY_ARRAY;
 import static com.android.launcher3.model.data.ItemInfoWithIcon.FLAG_SHOW_DOWNLOAD_PROGRESS_MASK;
@@ -42,6 +41,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Consumer;
@@ -108,7 +108,7 @@ public class AllAppsStore<T extends Context & ActivityContext> {
         mPackageUserKeytoUidMap = map;
         // Preinflate all apps RV when apps has changed, which can happen after unlocking screen,
         // rotating screen, or downloading/upgrading apps.
-        if (shouldPreinflate && ENABLE_ALL_APPS_RV_PREINFLATION.get()) {
+        if (shouldPreinflate) {
             mAllAppsRecyclerViewPool.preInflateAllAppsViewHolders(mContext);
         }
     }
@@ -260,8 +260,13 @@ public class AllAppsStore<T extends Context & ActivityContext> {
     public void dump(String prefix, PrintWriter writer) {
         writer.println(prefix + "\tAllAppsStore Apps[] size: " + mApps.length);
         for (int i = 0; i < mApps.length; i++) {
-            writer.println(String.format("%s\tPackage index and name: %d/%s", prefix, i,
-                    mApps[i].componentName.getPackageName()));
+            writer.println(String.format(Locale.getDefault(),
+                    "%s\tPackage index, name, class, and description: %d/%s:%s, %s",
+                    prefix,
+                    i,
+                    mApps[i].componentName.getPackageName(),
+                    mApps[i].componentName.getClassName(),
+                    mApps[i].contentDescription));
         }
     }
 }

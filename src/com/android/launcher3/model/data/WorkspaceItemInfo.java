@@ -25,6 +25,7 @@ import android.text.TextUtils;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.android.launcher3.Flags;
 import com.android.launcher3.LauncherSettings;
@@ -97,6 +98,8 @@ public class WorkspaceItemInfo extends ItemInfoWithIcon {
 
     public int options;
 
+    @Nullable
+    private ShortcutInfo mShortcutInfo = null;
 
     public WorkspaceItemInfo() {
         itemType = LauncherSettings.Favorites.ITEM_TYPE_APPLICATION;
@@ -175,6 +178,9 @@ public class WorkspaceItemInfo extends ItemInfoWithIcon {
 
     public void updateFromDeepShortcutInfo(@NonNull final ShortcutInfo shortcutInfo,
             @NonNull final Context context) {
+        if (com.android.wm.shell.Flags.enableBubbleAnything()) {
+            mShortcutInfo = shortcutInfo;
+        }
         // {@link ShortcutInfo#getActivity} can change during an update. Recreate the intent
         intent = ShortcutKey.makeIntent(shortcutInfo);
         title = shortcutInfo.getShortLabel();
@@ -202,6 +208,11 @@ public class WorkspaceItemInfo extends ItemInfoWithIcon {
         Person[] persons = ApiWrapper.INSTANCE.get(context).getPersons(shortcutInfo);
         personKeys = persons.length == 0 ? Utilities.EMPTY_STRING_ARRAY
             : Arrays.stream(persons).map(Person::getKey).sorted().toArray(String[]::new);
+    }
+
+    @Nullable
+    public ShortcutInfo getDeepShortcutInfo() {
+        return mShortcutInfo;
     }
 
     /**
