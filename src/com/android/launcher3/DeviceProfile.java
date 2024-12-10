@@ -363,6 +363,7 @@ public class DeviceProfile {
         hotseatQsbHeight = 0;
         hotseatQsbVisualHeight = 0;
         hotseatQsbShadowHeight = 0;
+        hotseatQsbMarginTop = 0;
         hotseatBorderSpace = 0;
         mMinHotseatIconSpacePx = 0;
         mMinHotseatQsbWidthPx = 0;
