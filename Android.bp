@@ -480,6 +480,7 @@ android_library {
     ],
     manifest: "quickstep/AndroidManifest.xml",
     platform_apis: true,
+    plugins: ["dagger2-compiler"],
     min_sdk_version: "current",
     // TODO(b/319712088): re-enable use_resource_processor
     use_resource_processor: false,
@@ -487,16 +488,21 @@ android_library {
 
 android_library {
     name: "Launcher3QuickStepLibMock",
+    defaults: [
+        "launcher_compose_defaults",
+        "quickstep_compose_defaults",
+    ],
     srcs: [
         "src_overlay/mock/com/android/launcher3/overlay/OverlayCallbackImpl.java",
         "src_overlay/mock/com/google/android/libraries/gsa/launcherclient/LauncherClientCallbacks.java",
         ":launcher-src",
         ":launcher-quickstep-src",
+        ":launcher-quickstep-dagger",
         ":launcher-build-config",
     ],
     resource_dirs: [],
     libs: [
-        "framework-statsd",
+        "framework-statsd.stubs.module_lib",
     ],
     // Note the ordering here is important when it comes to resource
     // overriding. We want the most specific resource overrides defined
