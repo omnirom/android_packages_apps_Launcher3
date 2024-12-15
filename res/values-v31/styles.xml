@@ -25,10 +25,20 @@
         <item name="android:navigationBarColor">@android:color/transparent</item>
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:switchStyle">@style/SwitchStyle</item>
-        <item name="android:textAppearanceListItem">@style/HomeSettings.PreferenceTitle</item>
+        <item name="android:textAppearanceListItem">@style/Omni.PreferenceTitle</item>
         <item name="android:windowActionBar">false</item>
         <item name="android:windowNoTitle">true</item>
-        <item name="preferenceTheme">@style/HomeSettings.PreferenceTheme</item>
+        <item name="preferenceTheme">@style/Omni.PreferenceTheme</item>
+        <item name="alertDialogTheme">@style/AlertDialogTheme</item>
+    </style>
+
+    <style name="AlertDialogTheme" parent="@style/Theme.AppCompat.DayNight.Dialog.Alert">
+        <item name="colorAccent">@color/home_settings_header_accent</item>
+        <item name="android:colorBackground">@color/home_settings_header_expanded</item>
+        <item name="android:windowSoftInputMode">adjustResize</item>
+        <item name="android:clipToPadding">true</item>
+        <item name="android:clipChildren">true</item>
+        <item name="dialogCornerRadius">8dp</item>
     </style>
 
     <style name="HomeSettings.PreferenceTheme" parent="@style/PreferenceThemeOverlay">
