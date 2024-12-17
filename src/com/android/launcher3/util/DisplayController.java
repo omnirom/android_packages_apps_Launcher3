@@ -90,10 +90,13 @@ public class DisplayController implements ComponentCallbacks, SafeCloseable {
     public static final int CHANGE_NAVIGATION_MODE = 1 << 4;
     public static final int CHANGE_TASKBAR_PINNING = 1 << 5;
     public static final int CHANGE_DESKTOP_MODE = 1 << 6;
+    public static final int CHANGE_UI_MODE = 1 << 7;
+    public static final int CHANGE_OVERLAYS = 1 << 8;
 
     public static final int CHANGE_ALL = CHANGE_ACTIVE_SCREEN | CHANGE_ROTATION
             | CHANGE_DENSITY | CHANGE_SUPPORTED_BOUNDS | CHANGE_NAVIGATION_MODE
-            | CHANGE_TASKBAR_PINNING | CHANGE_DESKTOP_MODE;
+            | CHANGE_TASKBAR_PINNING | CHANGE_DESKTOP_MODE | CHANGE_UI_MODE
+            | CHANGE_OVERLAYS;
 
     private static final String ACTION_OVERLAY_CHANGED = "android.intent.action.OVERLAY_CHANGED";
     private static final String TARGET_OVERLAY_PACKAGE = "android";
@@ -115,6 +118,7 @@ public class DisplayController implements ComponentCallbacks, SafeCloseable {
 
     private Info mInfo;
     private boolean mDestroyed = false;
+    private int mUiMode = -1;
 
     private SharedPreferences.OnSharedPreferenceChangeListener
             mTaskbarPinningPreferenceChangeListener;
@@ -152,7 +156,7 @@ public class DisplayController implements ComponentCallbacks, SafeCloseable {
                                     && mInfo.mIsTaskbarPinnedInDesktopMode != prefs.get(
                                     TASKBAR_PINNING_IN_DESKTOP_MODE);
                     if (isTaskbarPinningChanged || isTaskbarPinningDesktopModeChanged) {
-                        notifyConfigChange();
+                        notifyConfigChange(false, false);
                     }
                 };
 
@@ -245,7 +249,9 @@ public class DisplayController implements ComponentCallbacks, SafeCloseable {
         }
         if (ACTION_OVERLAY_CHANGED.equals(intent.getAction())) {
             Log.d(TAG, "Overlay changed, notifying listeners");
-            notifyConfigChange();
+            Configuration config = mContext.getResources().getConfiguration();
+            boolean uiModeChanged = mUiMode != config.uiMode;
+            notifyConfigChange(true, uiModeChanged);
         }
     }
 
@@ -258,8 +264,9 @@ public class DisplayController implements ComponentCallbacks, SafeCloseable {
                 || !mInfo.mScreenSizeDp.equals(
                         new PortraitSize(config.screenHeightDp, config.screenWidthDp))
                 || mWindowContext.getDisplay().getRotation() != mInfo.rotation) {
-            notifyConfigChange();
+            notifyConfigChange(false, mUiMode != config.uiMode);
         }
+        mUiMode = config.uiMode;
     }
 
     @Override
@@ -283,6 +290,11 @@ public class DisplayController implements ComponentCallbacks, SafeCloseable {
 
     @AnyThread
     public void notifyConfigChange() {
+        notifyConfigChange(false, false);
+    }
+
+    @AnyThread
+    public void notifyConfigChange(boolean overlaysChanged, boolean uiModeChanged) {
         WindowManagerProxy wmProxy = WindowManagerProxy.INSTANCE.get(mContext);
         Info oldInfo = mInfo;
 
@@ -323,6 +335,13 @@ public class DisplayController implements ComponentCallbacks, SafeCloseable {
         }
         if (newInfo.mIsInDesktopMode != oldInfo.mIsInDesktopMode) {
             change |= CHANGE_DESKTOP_MODE;
+        }
+
+        if (overlaysChanged) {
+            change |= CHANGE_OVERLAYS;
+        }
+        if (uiModeChanged) {
+            change |= CHANGE_UI_MODE;
         }
 
         if (DEBUG) {
