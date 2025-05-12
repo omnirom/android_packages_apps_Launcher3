@@ -26,7 +26,7 @@ import static com.android.launcher3.util.Executors.MAIN_EXECUTOR;
 import static com.android.launcher3.util.Executors.MODEL_EXECUTOR;
 import static com.android.launcher3.util.SplitConfigurationOptions.STAGE_POSITION_BOTTOM_OR_RIGHT;
 import static com.android.launcher3.util.SplitConfigurationOptions.STAGE_POSITION_TOP_OR_LEFT;
-import static com.android.wm.shell.shared.split.SplitScreenConstants.SNAP_TO_50_50;
+import static com.android.wm.shell.shared.split.SplitScreenConstants.SNAP_TO_2_50_50;
 import static com.android.wm.shell.shared.split.SplitScreenConstants.SNAP_TO_NONE;
 import static com.android.wm.shell.shared.split.SplitScreenConstants.SPLIT_POSITION_BOTTOM_OR_RIGHT;
 import static com.android.wm.shell.shared.split.SplitScreenConstants.SPLIT_POSITION_TOP_OR_LEFT;
@@ -189,7 +189,7 @@ public class AppPairsController {
         @PersistentSnapPosition int snapPosition = gtv.getSnapPosition();
         if (snapPosition == SNAP_TO_NONE) {
             // Free snap mode is enabled, just save it as 50/50 split.
-            snapPosition = SNAP_TO_50_50;
+            snapPosition = SNAP_TO_2_50_50;
         }
         if (!isPersistentSnapPosition(snapPosition)) {
             // If we received an illegal snap position, log an error and do not create the app pair
@@ -409,8 +409,8 @@ public class AppPairsController {
             );
         } else {
             // Tapped an app pair while in a single app
-            int runningTaskId = topTaskTracker
-                    .getCachedTopTask(false /* filterOnlyVisibleRecents */).getTaskId();
+            final TopTaskTracker.CachedTaskInfo runningTask = topTaskTracker
+                    .getCachedTopTask(false /* filterOnlyVisibleRecents */);
 
             mSplitSelectStateController.findLastActiveTasksAndRunCallback(
                     componentKeys,
@@ -418,10 +418,21 @@ public class AppPairsController {
                     foundTasks -> {
                         Task foundTask1 = foundTasks[0];
                         Task foundTask2 = foundTasks[1];
-                        boolean task1IsOnScreen =
-                                foundTask1 != null && foundTask1.getKey().getId() == runningTaskId;
-                        boolean task2IsOnScreen =
-                                foundTask2 != null && foundTask2.getKey().getId() == runningTaskId;
+                        boolean task1IsOnScreen;
+                        boolean task2IsOnScreen;
+                        if (com.android.wm.shell.Flags.enableShellTopTaskTracking()) {
+                            task1IsOnScreen = foundTask1 != null
+                                    && runningTask.topGroupedTaskContainsTask(
+                                    foundTask1.getKey().getId());
+                            task2IsOnScreen = foundTask2 != null
+                                    && runningTask.topGroupedTaskContainsTask(
+                                    foundTask2.getKey().getId());
+                        } else {
+                            task1IsOnScreen = foundTask1 != null && foundTask1.getKey().getId()
+                                    == runningTask.getTaskId();
+                            task2IsOnScreen = foundTask2 != null && foundTask2.getKey().getId()
+                                    == runningTask.getTaskId();
+                        }
 
                         if (!task1IsOnScreen && !task2IsOnScreen) {
                             // Neither App A nor App B are on-screen, launch the app pair normally.

@@ -155,6 +155,9 @@ public final class RecentsViewStateController extends
                 0,
                 timings.getGridSlideSecondaryInterpolator());
 
+        mRecentsView.handleDesktopTaskInSplitSelectState(builder,
+                timings.getDesktopTaskFadeInterpolator());
+
         if (!animate) {
             AnimatorSet as = builder.buildAnim();
             as.start();

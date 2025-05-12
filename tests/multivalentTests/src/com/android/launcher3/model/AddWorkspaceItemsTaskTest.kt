@@ -27,7 +27,6 @@ import com.android.launcher3.util.TestUtil.runOnExecutorSync
 import com.google.common.truth.Truth.assertThat
 import org.junit.After
 import org.junit.Before
-import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Mockito.times
@@ -43,8 +42,6 @@ import org.mockito.kotlin.whenever
 @SmallTest
 @RunWith(AndroidJUnit4::class)
 class AddWorkspaceItemsTaskTest : AbstractWorkspaceModelTest() {
-
-    @get:Rule val modelTestRule = ModelTestRule()
 
     private lateinit var mDataModelCallbacks: MyCallbacks
 
@@ -121,18 +118,8 @@ class AddWorkspaceItemsTaskTest : AbstractWorkspaceModelTest() {
     @Test
     fun givenMultipleItems_whenExecuteTask_thenAddThem() {
         val itemsToAdd =
-            arrayOf(
-                getNewItem(),
-                getExistingItem(),
-                getNewItem(),
-                getNewItem(),
-                getExistingItem(),
-            )
-        givenNewItemSpaces(
-            NewItemSpace(1, 3, 3),
-            NewItemSpace(2, 0, 0),
-            NewItemSpace(2, 0, 1),
-        )
+            arrayOf(getNewItem(), getExistingItem(), getNewItem(), getNewItem(), getExistingItem())
+        givenNewItemSpaces(NewItemSpace(1, 3, 3), NewItemSpace(2, 0, 0), NewItemSpace(2, 0, 1))
         val nonEmptyScreenIds = listOf(0, 1)
 
         val addedItems = testAddItems(nonEmptyScreenIds, *itemsToAdd)
@@ -173,7 +160,7 @@ class AddWorkspaceItemsTaskTest : AbstractWorkspaceModelTest() {
                 eq(IntArray.wrap(*nonEmptyScreenIds.toIntArray())),
                 eq(IntArray()),
                 eq(1),
-                eq(1)
+                eq(1),
             )
     }
 
@@ -183,7 +170,7 @@ class AddWorkspaceItemsTaskTest : AbstractWorkspaceModelTest() {
      */
     private fun testAddItems(
         nonEmptyScreenIds: List<Int>,
-        vararg itemsToAdd: WorkspaceItemInfo
+        vararg itemsToAdd: WorkspaceItemInfo,
     ): List<AddedItem> {
         setupWorkspaces(nonEmptyScreenIds)
         val task = newTask(*itemsToAdd)
@@ -220,7 +207,7 @@ private class MyCallbacks : BgDataModel.Callbacks {
     override fun bindAppsAdded(
         newScreens: IntArray?,
         addNotAnimated: ArrayList<ItemInfo>,
-        addAnimated: ArrayList<ItemInfo>
+        addAnimated: ArrayList<ItemInfo>,
     ) {
         addedItems.addAll(addAnimated.map { AddedItem(it, true) })
         addedItems.addAll(addNotAnimated.map { AddedItem(it, false) })

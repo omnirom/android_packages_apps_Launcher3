@@ -16,10 +16,34 @@
 
 package com.android.launcher3.taskbar
 
+import android.content.Context
 import androidx.test.platform.app.InstrumentationRegistry.getInstrumentation
+import com.android.launcher3.ConstantItem
+import com.android.launcher3.LauncherPrefs
+import kotlin.properties.ReadWriteProperty
+import kotlin.reflect.KProperty
 
 object TaskbarControllerTestUtil {
     inline fun runOnMainSync(crossinline runTest: () -> Unit) {
         getInstrumentation().runOnMainSync { runTest() }
+    }
+
+    /** Returns a property to read/write the value of a [ConstantItem]. */
+    fun <T : Any> ConstantItem<T>.asProperty(context: Context): ReadWriteProperty<Any?, T> {
+        return TaskbarItemProperty(context, this)
+    }
+
+    private class TaskbarItemProperty<T : Any>(
+        private val context: Context,
+        private val item: ConstantItem<T>,
+    ) : ReadWriteProperty<Any?, T> {
+
+        override fun getValue(thisRef: Any?, property: KProperty<*>): T {
+            return LauncherPrefs.get(context).get(item)
+        }
+
+        override fun setValue(thisRef: Any?, property: KProperty<*>, value: T) {
+            runOnMainSync { LauncherPrefs.get(context).put(item, value) }
+        }
     }
 }

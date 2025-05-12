@@ -24,6 +24,7 @@ import static com.android.launcher3.LauncherSettings.Favorites.CONTAINER_WIDGETS
 
 import android.appwidget.AppWidgetHostView;
 import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.os.Process;
@@ -270,8 +271,9 @@ public class LauncherAppWidgetInfo extends ItemInfo {
 
     @NonNull
     @Override
-    public LauncherAtom.ItemInfo buildProto(@Nullable CollectionInfo collectionInfo) {
-        LauncherAtom.ItemInfo info = super.buildProto(collectionInfo);
+    public LauncherAtom.ItemInfo buildProto(
+            @Nullable CollectionInfo collectionInfo, Context context) {
+        LauncherAtom.ItemInfo info = super.buildProto(collectionInfo, context);
         return info.toBuilder()
                 .setWidget(info.getWidget().toBuilder().setWidgetFeatures(widgetFeatures))
                 .addItemAttributes(getAttribute(sourceContainer))

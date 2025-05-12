@@ -35,6 +35,7 @@ import androidx.annotation.Nullable;
 
 import com.android.launcher3.AbstractFloatingView;
 import com.android.launcher3.DeviceProfile;
+import com.android.launcher3.Flags;
 import com.android.launcher3.taskbar.TaskbarActivityContext;
 import com.android.launcher3.taskbar.TaskbarControllers;
 import com.android.systemui.shared.system.TaskStackChangeListener;
@@ -216,6 +217,13 @@ public final class TaskbarOverlayController {
         @Override
         protected void handleClose(boolean animate) {
             if (!mIsOpen) return;
+            if (Flags.taskbarOverflow()) {
+                // Mark the view closed before attempting to remove it, so the drag layer does not
+                // schedule another call to close. Needed for taskbar overflow in case the KQS
+                // view shown for taskbar overflow needs to be reshown - delayed close call would
+                // would result in reshown KQS view getting hidden.
+                mIsOpen = false;
+            }
             mTaskbarContext.getDragLayer().removeView(this);
             Optional.ofNullable(mOverlayContext).ifPresent(c -> {
                 if (canCloseWindow()) {

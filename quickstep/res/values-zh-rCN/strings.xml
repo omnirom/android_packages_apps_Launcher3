@@ -22,6 +22,7 @@
     <string name="recent_task_option_pin" msgid="7929860679018978258">"固定"</string>
     <string name="recent_task_option_freeform" msgid="48863056265284071">"自由窗口"</string>
     <string name="recent_task_option_desktop" msgid="8280879717125435668">"桌面"</string>
+    <string name="recent_task_option_external_display" msgid="4533840664313389484">"移至外接显示屏"</string>
     <string name="recent_task_desktop" msgid="8081113562549637334">"桌面设备"</string>
     <string name="recents_empty_message" msgid="7040467240571714191">"近期没有任何内容"</string>
     <string name="accessibility_app_usage_settings" msgid="6312864233673544149">"应用使用设置"</string>
@@ -139,7 +140,7 @@
     <string name="always_show_taskbar" msgid="3608801276107751229">"始终显示任务栏"</string>
     <string name="change_navigation_mode" msgid="9088393078736808968">"更改导航模式"</string>
     <string name="taskbar_divider_a11y_title" msgid="6608690309720242080">"任务栏分隔线"</string>
-    <string name="taskbar_overflow_a11y_title" msgid="7960342079198820179">"溢出式任务栏"</string>
+    <string name="taskbar_overflow_a11y_title" msgid="7960342079198820179">"任务栏溢出图标"</string>
     <string name="move_drop_target_top_or_left" msgid="2988702185049595807">"移到顶部/左侧"</string>
     <string name="move_drop_target_bottom_or_right" msgid="5431393418797620162">"移到底部/右侧"</string>
     <string name="quick_switch_overflow" msgid="3679780650881041632">"{count,plural, =1{多个应用}other{多个应用}}"</string>
@@ -154,4 +155,5 @@
     <string name="bubble_bar_action_dismiss_all" msgid="3290722022983403060">"全部关闭"</string>
     <string name="bubble_bar_accessibility_announce_expand" msgid="1503192695527477102">"展开“<xliff:g id="BUBBLE_DESCRIPTION">%1$s</xliff:g>”"</string>
     <string name="bubble_bar_accessibility_announce_collapse" msgid="928284600086798791">"收起“<xliff:g id="BUBBLE_DESCRIPTION">%1$s</xliff:g>”"</string>
+    <string name="search_gesture_feature_title" msgid="1294044108313175306">"圈定即搜"</string>
 </resources>

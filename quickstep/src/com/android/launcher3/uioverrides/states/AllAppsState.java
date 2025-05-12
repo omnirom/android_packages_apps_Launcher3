@@ -118,7 +118,7 @@ public class AllAppsState extends LauncherState {
 
     @Override
     public ScaleAndTranslation getHotseatScaleAndTranslation(Launcher launcher) {
-        if (launcher.getDeviceProfile().isTablet) {
+        if (launcher.getDeviceProfile().shouldShowAllAppsOnSheet()) {
             return getWorkspaceScaleAndTranslation(launcher);
         } else {
             ScaleAndTranslation overviewScaleAndTranslation = LauncherState.OVERVIEW
@@ -133,7 +133,7 @@ public class AllAppsState extends LauncherState {
     @Override
     protected <DEVICE_PROFILE_CONTEXT extends Context & ActivityContext>
             float getDepthUnchecked(DEVICE_PROFILE_CONTEXT context) {
-        if (context.getDeviceProfile().isTablet) {
+        if (context.getDeviceProfile().shouldShowAllAppsOnSheet()) {
             return context.getDeviceProfile().bottomSheetDepth;
         } else {
             // The scrim fades in at approximately 50% of the swipe gesture.
@@ -154,7 +154,7 @@ public class AllAppsState extends LauncherState {
         return new PageAlphaProvider(DECELERATE_2) {
             @Override
             public float getPageAlpha(int pageIndex) {
-                return launcher.getDeviceProfile().isTablet
+                return launcher.getDeviceProfile().shouldShowAllAppsOnSheet()
                         ? superPageAlphaProvider.getPageAlpha(pageIndex)
                         : 0;
             }
@@ -164,8 +164,8 @@ public class AllAppsState extends LauncherState {
     @Override
     public int getVisibleElements(Launcher launcher) {
         int elements = ALL_APPS_CONTENT | FLOATING_SEARCH_BAR;
-        // Only add HOTSEAT_ICONS for tablets in ALL_APPS state.
-        if (launcher.getDeviceProfile().isTablet) {
+        // When All Apps is presented on a bottom sheet, HOTSEAT_ICONS are visible.
+        if (launcher.getDeviceProfile().shouldShowAllAppsOnSheet()) {
             elements |= HOTSEAT_ICONS;
         }
         return elements;
@@ -202,7 +202,7 @@ public class AllAppsState extends LauncherState {
 
     @Override
     public int getWorkspaceScrimColor(Launcher launcher) {
-        return launcher.getDeviceProfile().isTablet
+        return launcher.getDeviceProfile().shouldShowAllAppsOnSheet()
                 ? launcher.getResources().getColor(R.color.widgets_picker_scrim)
                 : Themes.getAttrColor(launcher, R.attr.allAppsScrimColor);
     }

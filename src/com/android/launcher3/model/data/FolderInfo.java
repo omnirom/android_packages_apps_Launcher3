@@ -24,6 +24,8 @@ import static com.android.launcher3.logger.LauncherAtom.Attribute.EMPTY_LABEL;
 import static com.android.launcher3.logger.LauncherAtom.Attribute.MANUAL_LABEL;
 import static com.android.launcher3.logger.LauncherAtom.Attribute.SUGGESTED_LABEL;
 
+import android.content.Context;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
@@ -245,13 +247,13 @@ public class FolderInfo extends CollectionInfo {
 
     @NonNull
     @Override
-    public LauncherAtom.ItemInfo buildProto(@Nullable CollectionInfo cInfo) {
+    public LauncherAtom.ItemInfo buildProto(@Nullable CollectionInfo cInfo, Context context) {
         FolderIcon.Builder folderIcon = FolderIcon.newBuilder()
                 .setCardinality(getContents().size());
         if (LabelState.SUGGESTED.equals(getLabelState())) {
             folderIcon.setLabelInfo(title.toString());
         }
-        return getDefaultItemInfoBuilder()
+        return getDefaultItemInfoBuilder(context)
                 .setFolderIcon(folderIcon)
                 .setRank(rank)
                 .addItemAttributes(getLabelState().mLogAttribute)

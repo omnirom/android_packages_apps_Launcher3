@@ -180,6 +180,7 @@ public class RotationTouchHelper implements DisplayInfoChangeListener, SafeClose
                 }
             }
         };
+        runOnDestroy(() -> mOrientationListener.disable());
         mNeedsInit = false;
     }
 
@@ -212,6 +213,7 @@ public class RotationTouchHelper implements DisplayInfoChangeListener, SafeClose
             r.run();
         }
         mNeedsInit = true;
+        mOnDestroyActions.clear();
     }
 
     public boolean isTaskListFrozen() {
@@ -234,7 +236,8 @@ public class RotationTouchHelper implements DisplayInfoChangeListener, SafeClose
             return;
         }
 
-        mOrientationTouchTransformer.createOrAddTouchRegion(mDisplayController.getInfo());
+        mOrientationTouchTransformer.createOrAddTouchRegion(mDisplayController.getInfo(),
+                "RTH.updateGestureTouchRegions");
     }
 
     /**
@@ -271,7 +274,8 @@ public class RotationTouchHelper implements DisplayInfoChangeListener, SafeClose
 
             if (hasGestures(mMode)) {
                 updateGestureTouchRegions();
-                mOrientationTouchTransformer.createOrAddTouchRegion(info);
+                mOrientationTouchTransformer.createOrAddTouchRegion(info,
+                        "RTH.onDisplayInfoChanged");
                 mCurrentAppRotation = mDisplayRotation;
 
                 /* Update nav bars on the following:

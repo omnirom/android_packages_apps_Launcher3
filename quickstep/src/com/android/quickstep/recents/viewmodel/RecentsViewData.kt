@@ -22,9 +22,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 class RecentsViewData {
     val fullscreenProgress = MutableStateFlow(1f)
 
-    // This is typically a View concern but it is used to invalidate rendering in other Views
-    val scale = MutableStateFlow(1f)
-
     // Whether the current RecentsView state supports task overlays.
     // TODO(b/331753115): Derive from RecentsView state flow once migrated to MVVM.
     val overlayEnabled = MutableStateFlow(false)

@@ -535,7 +535,13 @@ public class BgDataModel {
         default void bindWidgetsRestored(ArrayList<LauncherAppWidgetInfo> widgets) { }
         default void bindRestoreItemsChange(HashSet<ItemInfo> updates) { }
         default void bindWorkspaceComponentsRemoved(Predicate<ItemInfo> matcher) { }
-        default void bindAllWidgets(List<WidgetsListBaseEntry> widgets) { }
+
+        /**
+         * Binds the app widgets to the providers that share widgets with the UI.
+         */
+        default void bindAllWidgets(@NonNull List<WidgetsListBaseEntry> widgets,
+                @NonNull List<WidgetsListBaseEntry> defaultWidgets) {
+        }
         default void bindSmartspaceWidget() { }
 
         /** Called when workspace has been bound. */

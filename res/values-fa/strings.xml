@@ -32,6 +32,7 @@
     <string name="split_app_info_accessibility" msgid="5475288491241414932">"‏اطلاعات برنامه %1$s"</string>
     <string name="split_app_usage_settings" msgid="7214375263347964093">"‏تنظیمات مصرف برای %1$s"</string>
     <string name="new_window_option_taskbar" msgid="6448780542727767211">"پنجره جدید"</string>
+    <string name="manage_windows_option_taskbar" msgid="2294109489960654212">"مدیریت کردن پنجره‌ها"</string>
     <string name="save_app_pair" msgid="5647523853662686243">"ذخیره جفت برنامه"</string>
     <string name="app_pair_default_title" msgid="4045241727446873529">"<xliff:g id="APP1">%1$s</xliff:g> | <xliff:g id="APP2">%2$s</xliff:g>"</string>
     <string name="app_pair_unlaunchable_at_screen_size" msgid="3446551575502685376">"از این جفت برنامه در این دستگاه پشتیبانی نمی‌شود"</string>
@@ -67,8 +68,13 @@
     <string name="widgets_full_sheet_work_tab" msgid="3767150027110633765">"ابزاره‌های کاری"</string>
     <string name="widget_category_conversations" msgid="8894438636213590446">"مکالمه‌ها"</string>
     <string name="widget_category_note_taking" msgid="3469689394504266039">"یادداشت‌برداری"</string>
+    <string name="widget_cell_tap_to_show_add_button_label" msgid="4354194214317043581">"نشان دادن دکمه افزودن"</string>
+    <string name="widget_cell_tap_to_hide_add_button_label" msgid="6117805205101555997">"پنهان کردن دکمه افزودن"</string>
     <string name="widget_add_button_label" msgid="2761267068711937179">"افزودن"</string>
     <string name="widget_add_button_content_description" msgid="1810530016360039643">"افزودن ابزاره <xliff:g id="WIDGET_NAME">%1$s</xliff:g>"</string>
+    <string name="widgets_list_expand_button_label" msgid="7912016136574932622">"نمایش همه"</string>
+    <string name="widgets_list_expand_button_content_description" msgid="4600513860973450888">"نمایش همه ابزاره‌ها"</string>
+    <string name="widgets_list_expanded" msgid="7374857868788557730">"درحال نمایش دادن همه ابزاره‌ها"</string>
     <string name="reconfigurable_widget_education_tip" msgid="6336962690888067057">"برای تغییر تنظیمات ابزاره، تک‌ضرب بزنید"</string>
     <string name="widget_reconfigure_button_content_description" msgid="8811472721881205250">"تغییر تنظیمات ابزاره"</string>
     <string name="all_apps_search_bar_hint" msgid="1390553134053255246">"جستجوی برنامه‌ها"</string>
@@ -102,7 +108,7 @@
     <string name="permdesc_write_settings" msgid="726859348127868466">"به برنامه اجازه می‌دهد تنظیمات و میان‌برهای صفحه اصلی را تغییر دهد."</string>
     <string name="gadget_error_text" msgid="740356548025791839">"ابزاره را نمی‌توان بار کرد"</string>
     <string name="gadget_setup_text" msgid="8348374825537681407">"تنظیمات ابزاره"</string>
-    <string name="gadget_complete_setup_text" msgid="309040266978007925">"برای تکمیل راه‌اندازی تک‌ضرب بزنید"</string>
+    <string name="gadget_complete_setup_text" msgid="309040266978007925">"برای تمام کردن راه‌اندازی تک‌ضرب بزنید"</string>
     <string name="uninstall_system_app_text" msgid="4172046090762920660">"این برنامه سیستمی است و حذف نصب نمی‌شود."</string>
     <string name="folder_hint_text" msgid="5174843001373488816">"ویرایش نام"</string>
     <string name="disabled_app_label" msgid="6673129024321402780">"<xliff:g id="APP_NAME">%1$s</xliff:g> غیرفعال شد"</string>
@@ -124,6 +130,8 @@
     <string name="msg_disabled_by_admin" msgid="6898038085516271325">"توسط سرپرست سیستم غیرفعال شده است"</string>
     <string name="allow_rotation_title" msgid="7222049633713050106">"مجاز کردن چرخش صفحه اصلی"</string>
     <string name="allow_rotation_desc" msgid="8662546029078692509">"وقتی تلفن چرخانده می‌شود"</string>
+    <string name="landscape_mode_title" msgid="5138814555934843926">"حالت افقی"</string>
+    <string name="landscape_mode_desc" msgid="7372569859592816793">"تنظیم تلفن روی حالت افقی"</string>
     <string name="notification_dots_title" msgid="9062440428204120317">"نقطه‌های اعلان"</string>
     <string name="notification_dots_desc_on" msgid="1679848116452218908">"روشن"</string>
     <string name="notification_dots_desc_off" msgid="1760796511504341095">"خاموش"</string>
@@ -142,7 +150,8 @@
     <string name="app_installing_title" msgid="5864044122733792085">"<xliff:g id="NAME">%1$s</xliff:g> درحال نصب است، <xliff:g id="PROGRESS">%2$s</xliff:g> تکمیل شده است"</string>
     <string name="app_downloading_title" msgid="8336702962104482644">"درحال بارگیری <xliff:g id="NAME">%1$s</xliff:g>، <xliff:g id="PROGRESS">%2$s</xliff:g> کامل شد"</string>
     <string name="app_waiting_download_title" msgid="7053938513995617849">"<xliff:g id="NAME">%1$s</xliff:g> درانتظار نصب"</string>
-    <string name="app_archived_title" msgid="7717956158562544081">"<xliff:g id="NAME">%1$s</xliff:g> بایگانی شده است. برای بارگیری و بازیابی تک‌ضرب بزنید."</string>
+    <string name="app_archived_title" msgid="4548283110222420708">"‫<xliff:g id="NAME">%1$s</xliff:g> بایگانی شده است."</string>
+    <string name="app_unarchiving_action" msgid="5736107006413929484">"بارگیری و بازیابی کردن"</string>
     <string name="dialog_update_title" msgid="114234265740994042">"برنامه باید به‌روز شود"</string>
     <string name="dialog_update_message" msgid="4176784553982226114">"برنامه برای این نماد به‌روز نشده است. می‌توانید آن را به‌صورت دستی به‌روز کنید تا میان‌بر دوباره فعال شود، یا نماد را بردارید."</string>
     <string name="dialog_update" msgid="2178028071796141234">"به‌روزرسانی"</string>
@@ -171,22 +180,23 @@
     <string name="action_decrease_width" msgid="1374549771083094654">"کاهش عرض"</string>
     <string name="action_decrease_height" msgid="282377193880900022">"کاهش ارتفاع"</string>
     <string name="widget_resized" msgid="9130327887929620">"اندازه ابزاره به عرض <xliff:g id="NUMBER_0">%1$s</xliff:g> ارتفاع <xliff:g id="NUMBER_1">%2$s</xliff:g> تغییر کرد"</string>
-    <string name="action_deep_shortcut" msgid="2864038805849372848">"میان‌برها"</string>
+    <string name="action_deep_shortcut" msgid="4766835855579976045">"منو میان‌بر"</string>
     <string name="action_dismiss_notification" msgid="5909461085055959187">"رد کردن"</string>
     <string name="accessibility_close" msgid="2277148124685870734">"بستن"</string>
     <string name="all_apps_personal_tab" msgid="4190252696685155002">"شخصی"</string>
     <string name="all_apps_work_tab" msgid="4884822796154055118">"کاری"</string>
     <string name="work_profile_toggle_label" msgid="3081029915775481146">"نمایه کاری"</string>
     <string name="work_profile_edu_work_apps" msgid="7895468576497746520">"برنامه‌های کاری نشان‌دار هستند و سرپرست فناوری اطلاعات می‌تواند آن‌ها را ببیند"</string>
-    <string name="work_profile_edu_accept" msgid="6069788082535149071">"متوجه‌ام"</string>
+    <string name="work_profile_edu_accept" msgid="6069788082535149071">"متوجهم"</string>
     <string name="work_apps_paused_title" msgid="3040901117349444598">"برنامه‌های کاری موقتاً متوقف شده‌اند."</string>
     <string name="work_apps_paused_info_body" msgid="1687828929959237477">"از برنامه‌های کاری‌تان اعلان دریافت نخواهید کرد"</string>
     <string name="work_apps_paused_body" msgid="261634750995824906">"برنامه‌های کاری نمی‌توانند برای شما اعلان ارسال کنند، از باتری استفاده کنند، یا به مکانتان دسترسی داشته باشند"</string>
     <string name="work_apps_paused_telephony_unavailable_body" msgid="8358872357502756790">"از برنامه‌های کاری‌تان تماس تلفنی، پیام نوشتاری، یا اعلان دریافت نخواهید کرد"</string>
     <string name="work_apps_paused_edu_banner" msgid="8872412121608402058">"برنامه‌های کاری نشان‌دار هستند و سرپرست فناوری اطلاعات می‌تواند آن‌ها را ببیند."</string>
-    <string name="work_apps_paused_edu_accept" msgid="6377476824357318532">"متوجه‌ام"</string>
+    <string name="work_apps_paused_edu_accept" msgid="6377476824357318532">"متوجهم"</string>
     <string name="work_apps_pause_btn_text" msgid="4669288269140620646">"توقف موقت برنامه‌های کاری"</string>
     <string name="work_apps_enable_btn_text" msgid="1736198302467317371">"ازسرگیری"</string>
+    <string name="work_scheduler_button_content_description" msgid="917340740986764967">"برنامه زمانی برنامه‌های کاری"</string>
     <string name="developer_options_filter_hint" msgid="5896817443635989056">"فیلتر"</string>
     <string name="remote_action_failed" msgid="1383965239183576790">"ناموفق بود: <xliff:g id="WHAT">%1$s</xliff:g>"</string>
     <string name="private_space_label" msgid="2359721649407947001">"فضای خصوصی"</string>

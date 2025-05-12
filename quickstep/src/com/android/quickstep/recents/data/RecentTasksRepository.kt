@@ -40,5 +40,5 @@ interface RecentTasksRepository {
      * Sets the tasks that are visible, indicating that properties relating to visuals need to be
      * populated e.g. icons/thumbnails etc.
      */
-    fun setVisibleTasks(visibleTaskIdList: List<Int>)
+    fun setVisibleTasks(visibleTaskIdList: Set<Int>)
 }

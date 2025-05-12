@@ -16,7 +16,6 @@
 
 package com.android.launcher3.taskbar.rules
 
-import androidx.test.platform.app.InstrumentationRegistry.getInstrumentation
 import com.android.launcher3.InvariantDeviceProfile
 import com.android.launcher3.taskbar.rules.TaskbarModeRule.Mode.PINNED
 import com.android.launcher3.taskbar.rules.TaskbarModeRule.Mode.THREE_BUTTONS
@@ -35,9 +34,8 @@ import org.junit.runner.RunWith
 @EmulatedDevices(["pixelFoldable2023", "pixelTablet2023"])
 class TaskbarModeRuleTest {
 
-    private val context = TaskbarWindowSandboxContext.create(getInstrumentation().targetContext)
-
-    @get:Rule val taskbarModeRule = TaskbarModeRule(context)
+    @get:Rule(order = 0) val context = TaskbarWindowSandboxContext.create()
+    @get:Rule(order = 1) val taskbarModeRule = TaskbarModeRule(context)
 
     @Test
     @TaskbarMode(TRANSIENT)

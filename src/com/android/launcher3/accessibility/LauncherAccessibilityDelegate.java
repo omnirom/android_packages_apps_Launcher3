@@ -48,6 +48,8 @@ import com.android.launcher3.model.data.WorkspaceItemFactory;
 import com.android.launcher3.model.data.WorkspaceItemInfo;
 import com.android.launcher3.popup.ArrowPopup;
 import com.android.launcher3.popup.PopupContainerWithArrow;
+import com.android.launcher3.shortcuts.DeepShortcutTextView;
+import com.android.launcher3.shortcuts.DeepShortcutView;
 import com.android.launcher3.touch.ItemLongClickListener;
 import com.android.launcher3.util.IntArray;
 import com.android.launcher3.util.IntSet;
@@ -104,11 +106,15 @@ public class LauncherAccessibilityDelegate extends BaseAccessibilityDelegate<Lau
                 R.string.action_deep_shortcut, KeyEvent.KEYCODE_S));
     }
 
+    private static boolean isNotInShortcutMenu(@Nullable View view) {
+        return view == null || !(view.getParent() instanceof DeepShortcutView);
+    }
+
     @Override
     protected void getSupportedActions(View host, ItemInfo item, List<LauncherAction> out) {
         // If the request came from keyboard, do not add custom shortcuts as that is already
         // exposed as a direct shortcut
-        if (ShortcutUtil.supportsShortcuts(item)) {
+        if (isNotInShortcutMenu(host) && ShortcutUtil.supportsShortcuts(item)) {
             out.add(mActions.get(DEEP_SHORTCUTS));
         }
 
@@ -415,7 +421,6 @@ public class LauncherAccessibilityDelegate extends BaseAccessibilityDelegate<Lau
                         screenId, coordinates[0], coordinates[1]);
 
                 bindItem(info, accessibility, finishCallback);
-                announceConfirmation(R.string.item_added_to_workspace);
             } else if (item instanceof PendingAddItemInfo) {
                 PendingAddItemInfo info = (PendingAddItemInfo) item;
                 if (info instanceof PendingAddWidgetInfo widgetInfo

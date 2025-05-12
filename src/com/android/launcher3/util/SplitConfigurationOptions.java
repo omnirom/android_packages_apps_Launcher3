@@ -73,7 +73,27 @@ public final class SplitConfigurationOptions {
      */
     public static final int STAGE_TYPE_SIDE = 1;
 
-    @IntDef({STAGE_TYPE_UNDEFINED, STAGE_TYPE_MAIN, STAGE_TYPE_SIDE})
+    /**
+     * Position independent stage identifier for a given Stage
+     */
+    public static final int STAGE_TYPE_A = 2;
+    /**
+     * Position independent stage identifier for a given Stage
+     */
+    public static final int STAGE_TYPE_B = 3;
+    /**
+     * Position independent stage identifier for a given Stage
+     */
+    public static final int STAGE_TYPE_C = 4;
+
+    @IntDef({
+            STAGE_TYPE_UNDEFINED,
+            STAGE_TYPE_MAIN,
+            STAGE_TYPE_SIDE,
+            STAGE_TYPE_A,
+            STAGE_TYPE_B,
+            STAGE_TYPE_C
+    })
     public @interface StageType {}
     ///////////////////////////////////
 

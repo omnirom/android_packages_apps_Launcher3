@@ -175,6 +175,10 @@ public class StatsLogManager implements ResourceBasedOverride {
         @UiEvent(doc = "User searched for a widget in the widget picker.")
         LAUNCHER_WIDGETSTRAY_SEARCHED(819),
 
+        @UiEvent(doc = "User clicked on view all button to expand the displayed list in the "
+                + "widget picker.")
+        LAUNCHER_WIDGETSTRAY_EXPAND_PRESS(1978),
+
         @UiEvent(doc = "A dragged item is dropped on 'Remove' button in the target bar")
         LAUNCHER_ITEM_DROPPED_ON_REMOVE(465),
 
@@ -220,6 +224,9 @@ public class StatsLogManager implements ResourceBasedOverride {
 
         @UiEvent(doc = "User tapped on desktop icon on a task menu.")
         LAUNCHER_SYSTEM_SHORTCUT_DESKTOP_TAP(1706),
+
+        @UiEvent(doc = "Use tapped on external display icon on a task menu,")
+        LAUNCHER_SYSTEM_SHORTCUT_EXTERNAL_DISPLAY_TAP(1957),
 
         @UiEvent(doc = "User tapped on pause app system shortcut.")
         LAUNCHER_SYSTEM_SHORTCUT_PAUSE_TAP(521),
@@ -798,6 +805,51 @@ public class StatsLogManager implements ResourceBasedOverride {
         @UiEvent(doc = "User long pressed on the taskbar IME switcher button")
         LAUNCHER_TASKBAR_IME_SWITCHER_BUTTON_LONGPRESS(1798),
 
+        @UiEvent(doc = "Failed to launch assistant due to Google assistant not available")
+        LAUNCHER_LAUNCH_ASSISTANT_FAILED_NOT_AVAILABLE(1465),
+
+        @UiEvent(doc = "Failed to launch assistant due to service error")
+        LAUNCHER_LAUNCH_ASSISTANT_FAILED_SERVICE_ERROR(1466),
+
+        @UiEvent(doc = "User launched assistant by long-pressing nav handle")
+        LAUNCHER_LAUNCH_ASSISTANT_SUCCESSFUL_NAV_HANDLE(1467),
+
+        @UiEvent(doc = "Failed to launch due to Contextual Search not available")
+        LAUNCHER_LAUNCH_OMNI_FAILED_NOT_AVAILABLE(1471),
+
+        @UiEvent(doc = "Failed to launch due to Contextual Search setting disabled")
+        LAUNCHER_LAUNCH_OMNI_FAILED_SETTING_DISABLED(1632),
+
+        @UiEvent(doc = "User launched Contextual Search by long-pressing home in 3-button mode")
+        LAUNCHER_LAUNCH_OMNI_SUCCESSFUL_HOME(1481),
+
+        @UiEvent(doc = "User launched Contextual Search by using accessibility System Action")
+        LAUNCHER_LAUNCH_OMNI_SUCCESSFUL_SYSTEM_ACTION(1492),
+
+        @UiEvent(doc = "User launched Contextual Search by long pressing the meta key")
+        LAUNCHER_LAUNCH_OMNI_SUCCESSFUL_META(1606),
+
+        @UiEvent(doc = "Contextual Search invocation was attempted over the notification shade")
+        LAUNCHER_LAUNCH_OMNI_ATTEMPTED_OVER_NOTIFICATION_SHADE(1485),
+
+        @UiEvent(doc = "The Contextual Search all entrypoints toggle value in Settings")
+        LAUNCHER_SETTINGS_OMNI_ALL_ENTRYPOINTS_TOGGLE_VALUE(1633),
+
+        @UiEvent(doc = "Contextual Search invocation was attempted over the keyguard")
+        LAUNCHER_LAUNCH_OMNI_ATTEMPTED_OVER_KEYGUARD(1501),
+
+        @UiEvent(doc = "Contextual Search invocation was attempted while splitscreen is active")
+        LAUNCHER_LAUNCH_OMNI_ATTEMPTED_SPLITSCREEN(1505),
+
+        @UiEvent(doc = "User long press nav handle and a long press runnable was created.")
+        LAUNCHER_OMNI_GET_LONG_PRESS_RUNNABLE(1545),
+
+        // One Grid Flags
+        @UiEvent(doc = "User sets the device in Fixed Landscape")
+        FIXED_LANDSCAPE_TOGGLE_ENABLE(2014),
+
+        @UiEvent(doc = "User sets the device in Fixed Landscape")
+        FIXED_LANDSCAPE_TOGGLE_DISABLED(2020),
         // ADD MORE
         ;
 
@@ -828,6 +880,10 @@ public class StatsLogManager implements ResourceBasedOverride {
 
         @UiEvent(doc = "The duration of asynchronous loading workspace")
         LAUNCHER_LATENCY_STARTUP_WORKSPACE_LOADER_ASYNC(1367),
+
+        @UiEvent(doc = "Time passed between Contextual Search runnable creation and execution. This"
+                + " ensures that Recent animations have finished before Contextual Search starts.")
+        LAUNCHER_LATENCY_OMNI_RUNNABLE(1546),
         ;
 
         private final int mId;

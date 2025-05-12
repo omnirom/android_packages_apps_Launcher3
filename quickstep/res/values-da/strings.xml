@@ -22,7 +22,8 @@
     <string name="recent_task_option_pin" msgid="7929860679018978258">"Fastgør"</string>
     <string name="recent_task_option_freeform" msgid="48863056265284071">"Frit format"</string>
     <string name="recent_task_option_desktop" msgid="8280879717125435668">"Computertilstand"</string>
-    <string name="recent_task_desktop" msgid="8081113562549637334">"Computer"</string>
+    <string name="recent_task_option_external_display" msgid="4533840664313389484">"Flyt til ekstern skærm"</string>
+    <string name="recent_task_desktop" msgid="8081113562549637334">"Computertilstand"</string>
     <string name="recents_empty_message" msgid="7040467240571714191">"Ingen nye elementer"</string>
     <string name="accessibility_app_usage_settings" msgid="6312864233673544149">"Indstillinger for appforbrug"</string>
     <string name="recents_clear_all" msgid="5328176793634888831">"Ryd alt"</string>
@@ -51,8 +52,8 @@
     <string name="back_gesture_feedback_swipe_too_far_from_edge" msgid="4175100312909721217">"Stryg fra kanten yderst til højre eller venstre"</string>
     <string name="back_gesture_feedback_cancelled" msgid="762621530959111290">"Stryg fra højre eller venstre kant mod midten af skærmen, og løft fingeren"</string>
     <string name="back_gesture_feedback_complete_with_overview_follow_up" msgid="9176400654037014471">"Du har lært, hvordan du stryger fra højre for at gå tilbage. Nu skal du se, hvordan du skifter app."</string>
-    <string name="back_gesture_feedback_complete_with_follow_up" msgid="8653374779579748392">"Du har fuldført bevægelsen for Gå tilbage. Som det næste kan du se, hvordan du skifter app."</string>
-    <string name="back_gesture_feedback_complete_without_follow_up" msgid="197189945858268342">"Du har fuldført bevægelsen for Gå tilbage"</string>
+    <string name="back_gesture_feedback_complete_with_follow_up" msgid="8653374779579748392">"Du har udført bevægelsen for Gå tilbage. Som det næste kan du se, hvordan du skifter app."</string>
+    <string name="back_gesture_feedback_complete_without_follow_up" msgid="197189945858268342">"Du har udført bevægelsen for Gå tilbage"</string>
     <string name="back_gesture_feedback_swipe_in_nav_bar" msgid="9157480023651452969">"Undgå at stryge for tæt på bunden af skærmen"</string>
     <string name="back_gesture_tutorial_confirm_subtitle" msgid="5181305411668713250">"Juster følsomheden for bevægelsen Gå tilbage i Indstillinger"</string>
     <string name="back_gesture_intro_title" msgid="19551256430224428">"Stryg for at gå tilbage"</string>
@@ -63,8 +64,8 @@
     <string name="home_gesture_feedback_swipe_too_far_from_edge" msgid="4816365433160895458">"Stryg opad fra bunden af skærmen"</string>
     <string name="home_gesture_feedback_overview_detected" msgid="5177627157303895077">"Undlad at holde fingeren stille, indtil du løfter fingeren"</string>
     <string name="home_gesture_feedback_wrong_swipe_direction" msgid="8328465201424027148">"Stryg lige opad"</string>
-    <string name="home_gesture_feedback_complete_with_follow_up" msgid="8766981412895888417">"Du har fuldført bevægelsen for Gå til startskærmen. Som det næste kan du se, hvordan du går tilbage."</string>
-    <string name="home_gesture_feedback_complete_without_follow_up" msgid="2978063221383413443">"Du har fuldført bevægelsen for Gå til startskærmen"</string>
+    <string name="home_gesture_feedback_complete_with_follow_up" msgid="8766981412895888417">"Du har udført bevægelsen for Gå til startskærmen. Som det næste kan du se, hvordan du går tilbage."</string>
+    <string name="home_gesture_feedback_complete_without_follow_up" msgid="2978063221383413443">"Du har udført bevægelsen for Gå til startskærmen"</string>
     <string name="home_gesture_intro_title" msgid="836590312858441830">"Stryg for at gå til startskærmen"</string>
     <string name="home_gesture_intro_subtitle" msgid="2632238748497975326">"Stryg opad fra bunden af skærmen. Denne bevægelse åbner altid startskærmen."</string>
     <string name="home_gesture_spoken_intro_subtitle" msgid="1030987707382031750">"Stryg opad med 2 fingre fra bunden af skærmen. Denne bevægelse åbner altid startskærmen."</string>
@@ -75,7 +76,7 @@
     <string name="overview_gesture_feedback_home_detected" msgid="663432226180397138">"Prøv at holde fingeren nede på vinduet i længere tid, inden du løfter den"</string>
     <string name="overview_gesture_feedback_wrong_swipe_direction" msgid="1191055451018584958">"Stryg lige opad, og hold derefter fingeren stille"</string>
     <string name="overview_gesture_feedback_complete_with_follow_up" msgid="3544611727467765026">"Du har lært, hvordan du bruger bevægelser. Du kan aktivere bevægelser i Indstillinger."</string>
-    <string name="overview_gesture_feedback_complete_without_follow_up" msgid="2903050864432331629">"Du har fuldført bevægelsen for at skifte mellem apps"</string>
+    <string name="overview_gesture_feedback_complete_without_follow_up" msgid="2903050864432331629">"Du har udført bevægelsen for at skifte mellem apps"</string>
     <string name="overview_gesture_intro_title" msgid="2902054412868489378">"Stryg for at skifte app"</string>
     <string name="overview_gesture_intro_subtitle" msgid="4968091015637850859">"Skift mellem apps ved at stryge opad fra bunden af skærmen, holde fingeren stille og løfte den."</string>
     <string name="overview_gesture_spoken_intro_subtitle" msgid="3853371838260201751">"Skift mellem apps ved at stryge opad fra bunden af skærmen med 2 fingre, holde dem nede og slippe."</string>
@@ -143,7 +144,7 @@
     <string name="move_drop_target_top_or_left" msgid="2988702185049595807">"Flyt til toppen eller venstre side"</string>
     <string name="move_drop_target_bottom_or_right" msgid="5431393418797620162">"Flyt til bunden eller højre side"</string>
     <string name="quick_switch_overflow" msgid="3679780650881041632">"{count,plural, =1{yderligere app}one{yderligere app}other{yderligere apps}}"</string>
-    <string name="quick_switch_desktop" msgid="8393802056024499749">"Computer"</string>
+    <string name="quick_switch_desktop" msgid="8393802056024499749">"Computertilstand"</string>
     <string name="quick_switch_split_task" msgid="5598194724255333896">"<xliff:g id="APP_NAME_1">%1$s</xliff:g> og <xliff:g id="APP_NAME_2">%2$s</xliff:g>"</string>
     <string name="bubble_bar_bubble_fallback_description" msgid="7811684548953452009">"Boble"</string>
     <string name="bubble_bar_overflow_description" msgid="8617628132733151708">"Overløb"</string>
@@ -154,4 +155,5 @@
     <string name="bubble_bar_action_dismiss_all" msgid="3290722022983403060">"Afvis alle"</string>
     <string name="bubble_bar_accessibility_announce_expand" msgid="1503192695527477102">"udvid <xliff:g id="BUBBLE_DESCRIPTION">%1$s</xliff:g>"</string>
     <string name="bubble_bar_accessibility_announce_collapse" msgid="928284600086798791">"skjul <xliff:g id="BUBBLE_DESCRIPTION">%1$s</xliff:g>"</string>
+    <string name="search_gesture_feature_title" msgid="1294044108313175306">"Circle to Search"</string>
 </resources>

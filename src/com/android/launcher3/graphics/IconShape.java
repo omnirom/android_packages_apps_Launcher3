@@ -41,10 +41,12 @@ import android.view.ViewOutlineProvider;
 
 import com.android.launcher3.R;
 import com.android.launcher3.anim.RoundedRectRevealOutlineProvider;
+import com.android.launcher3.dagger.ApplicationContext;
+import com.android.launcher3.dagger.LauncherAppSingleton;
+import com.android.launcher3.dagger.LauncherBaseAppComponent;
 import com.android.launcher3.icons.GraphicsUtils;
 import com.android.launcher3.icons.IconNormalizer;
-import com.android.launcher3.util.MainThreadInitializedObject;
-import com.android.launcher3.util.SafeCloseable;
+import com.android.launcher3.util.DaggerSingletonObject;
 import com.android.launcher3.views.ClipPathView;
 
 import org.xmlpull.v1.XmlPullParser;
@@ -54,19 +56,22 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.inject.Inject;
+
 /**
  * Abstract representation of the shape of an icon shape
  */
-public final class IconShape implements SafeCloseable {
+@LauncherAppSingleton
+public final class IconShape {
 
-    public static final MainThreadInitializedObject<IconShape> INSTANCE =
-            new MainThreadInitializedObject<>(IconShape::new);
-
+    public static DaggerSingletonObject<IconShape> INSTANCE =
+            new DaggerSingletonObject<>(LauncherBaseAppComponent::getIconShape);
 
     private ShapeDelegate mDelegate = new Circle();
     private float mNormalizationScale = ICON_VISIBLE_AREA_FACTOR;
 
-    private IconShape(Context context) {
+    @Inject
+    public IconShape(@ApplicationContext Context context) {
         pickBestShape(context);
     }
 
@@ -77,9 +82,6 @@ public final class IconShape implements SafeCloseable {
     public float getNormalizationScale() {
         return mNormalizationScale;
     }
-
-    @Override
-    public void close() { }
 
     /**
      * Initializes the shape which is closest to the {@link AdaptiveIconDrawable}

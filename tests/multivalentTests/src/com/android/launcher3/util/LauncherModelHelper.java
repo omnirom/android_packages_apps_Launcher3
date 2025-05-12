@@ -22,6 +22,7 @@ import static androidx.test.platform.app.InstrumentationRegistry.getInstrumentat
 import static com.android.launcher3.util.Executors.MAIN_EXECUTOR;
 import static com.android.launcher3.util.Executors.MODEL_EXECUTOR;
 import static com.android.launcher3.util.TestUtil.runOnExecutorSync;
+import static com.android.launcher3.util.TestUtil.grantWriteSecurePermission;
 
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
@@ -30,6 +31,7 @@ import static org.mockito.Mockito.spy;
 
 import android.content.ContentProvider;
 import android.content.ContentResolver;
+import android.content.Context;
 import android.content.pm.PackageInstaller;
 import android.content.pm.PackageInstaller.SessionParams;
 import android.content.pm.PackageManager;
@@ -185,6 +187,8 @@ public class LauncherModelHelper {
      */
     public LauncherModelHelper setupDefaultLayoutProvider(LauncherLayoutBuilder builder)
             throws Exception {
+        grantWriteSecurePermission();
+
         InvariantDeviceProfile idp = InvariantDeviceProfile.INSTANCE.get(sandboxContext);
         if (idp.numRows == 0 && idp.numColumns == 0) {
             idp.numRows = idp.numColumns = idp.numDatabaseHotseatIcons = DEFAULT_GRID_SIZE;
@@ -247,15 +251,16 @@ public class LauncherModelHelper {
         private final File mDbDir;
 
         public SandboxModelContext() {
-            super(ApplicationProvider.getApplicationContext());
+            this(ApplicationProvider.getApplicationContext());
+        }
+
+        public SandboxModelContext(Context context) {
+            super(context);
 
             // System settings cache content provider. Ensure that they are statically initialized
-            Settings.Secure.getString(
-                    ApplicationProvider.getApplicationContext().getContentResolver(), "test");
-            Settings.System.getString(
-                    ApplicationProvider.getApplicationContext().getContentResolver(), "test");
-            Settings.Global.getString(
-                    ApplicationProvider.getApplicationContext().getContentResolver(), "test");
+            Settings.Secure.getString(context.getContentResolver(), "test");
+            Settings.System.getString(context.getContentResolver(), "test");
+            Settings.Global.getString(context.getContentResolver(), "test");
 
             mPm = spy(getBaseContext().getPackageManager());
             mDbDir = new File(getCacheDir(), UUID.randomUUID().toString());
@@ -283,11 +288,11 @@ public class LauncherModelHelper {
         }
 
         @Override
-        public void onDestroy() {
+        protected void cleanUpObjects() {
             if (deleteContents(mDbDir)) {
                 mDbDir.delete();
             }
-            super.onDestroy();
+            super.cleanUpObjects();
         }
 
         @Override

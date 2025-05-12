@@ -18,8 +18,8 @@ package com.android.launcher3.util;
 
 import android.content.Context;
 
-import com.android.launcher3.LauncherApplication;
 import com.android.launcher3.dagger.LauncherAppComponent;
+import com.android.launcher3.dagger.LauncherComponentProvider;
 
 import java.util.function.Function;
 
@@ -29,7 +29,7 @@ import java.util.function.Function;
  * We should delete this class at the end and use @Inject to get dagger provided singletons.
  */
 
-public class DaggerSingletonObject<T extends SafeCloseable> {
+public class DaggerSingletonObject<T> {
     private final Function<LauncherAppComponent, T> mFunction;
 
     public DaggerSingletonObject(Function<LauncherAppComponent, T> function) {
@@ -37,8 +37,6 @@ public class DaggerSingletonObject<T extends SafeCloseable> {
     }
 
     public T get(Context context) {
-        LauncherAppComponent component =
-                ((LauncherApplication) context.getApplicationContext()).getAppComponent();
-        return mFunction.apply(component);
+        return mFunction.apply(LauncherComponentProvider.get(context));
     }
 }

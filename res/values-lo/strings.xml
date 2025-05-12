@@ -32,6 +32,7 @@
     <string name="split_app_info_accessibility" msgid="5475288491241414932">"ຂໍ້ມູນແອັບສຳລັບ %1$s"</string>
     <string name="split_app_usage_settings" msgid="7214375263347964093">"ການຕັ້ງຄ່າການນຳໃຊ້ສຳລັບ %1$s"</string>
     <string name="new_window_option_taskbar" msgid="6448780542727767211">"ໜ້າຈໍໃໝ່"</string>
+    <string name="manage_windows_option_taskbar" msgid="2294109489960654212">"ຈັດການໜ້າຈໍ"</string>
     <string name="save_app_pair" msgid="5647523853662686243">"ບັນທຶກຈັບຄູ່ແອັບ"</string>
     <string name="app_pair_default_title" msgid="4045241727446873529">"<xliff:g id="APP1">%1$s</xliff:g> | <xliff:g id="APP2">%2$s</xliff:g>"</string>
     <string name="app_pair_unlaunchable_at_screen_size" msgid="3446551575502685376">"ການຈັບຄູ່ແອັບນີ້ບໍ່ຮອງຮັບຢູ່ອຸປະກອນນີ້"</string>
@@ -67,8 +68,13 @@
     <string name="widgets_full_sheet_work_tab" msgid="3767150027110633765">"ວຽກ"</string>
     <string name="widget_category_conversations" msgid="8894438636213590446">"ການສົນທະນາ"</string>
     <string name="widget_category_note_taking" msgid="3469689394504266039">"ການຈົດບັນທຶກ"</string>
+    <string name="widget_cell_tap_to_show_add_button_label" msgid="4354194214317043581">"ສະແດງປຸ່ມເພີ່ມ"</string>
+    <string name="widget_cell_tap_to_hide_add_button_label" msgid="6117805205101555997">"ເຊື່ອງປຸ່ມເພີ່ມ"</string>
     <string name="widget_add_button_label" msgid="2761267068711937179">"ເພີ່ມ"</string>
     <string name="widget_add_button_content_description" msgid="1810530016360039643">"ເພີ່ມວິດເຈັດ <xliff:g id="WIDGET_NAME">%1$s</xliff:g>"</string>
+    <string name="widgets_list_expand_button_label" msgid="7912016136574932622">"ສະແດງທັງໝົດ"</string>
+    <string name="widgets_list_expand_button_content_description" msgid="4600513860973450888">"ສະແດງວິດເຈັດທັງໝົດ"</string>
+    <string name="widgets_list_expanded" msgid="7374857868788557730">"ກໍາລັງສະແດງວິດເຈັດທັງໝົດ"</string>
     <string name="reconfigurable_widget_education_tip" msgid="6336962690888067057">"ແຕະເພື່ອປ່ຽນການຕັ້ງຄ່າວິດເຈັດ"</string>
     <string name="widget_reconfigure_button_content_description" msgid="8811472721881205250">"ປ່ຽນການຕັ້ງຄ່າວິດເຈັດ"</string>
     <string name="all_apps_search_bar_hint" msgid="1390553134053255246">"ຊອກຫາແອັບ"</string>
@@ -124,6 +130,8 @@
     <string name="msg_disabled_by_admin" msgid="6898038085516271325">"ຖືກປິດການນຳໃຊ້ໂດຍຜູ້ເບິ່ງແຍງລະບົບຂອງທ່ານ"</string>
     <string name="allow_rotation_title" msgid="7222049633713050106">"ອະນຸຍາດໃຫ້ໝຸນໜ້າຈໍຢູ່ໂຮມສະກຣີນໄດ້"</string>
     <string name="allow_rotation_desc" msgid="8662546029078692509">"ເມື່ອໝຸນໂທລະສັບ"</string>
+    <string name="landscape_mode_title" msgid="5138814555934843926">"ໂໝດແນວນອນ"</string>
+    <string name="landscape_mode_desc" msgid="7372569859592816793">"ຕັ້ງຄ່າໂທລະສັບເປັນໂໝດແນວນອນ"</string>
     <string name="notification_dots_title" msgid="9062440428204120317">"ຈຸດການແຈ້ງເຕືອນ"</string>
     <string name="notification_dots_desc_on" msgid="1679848116452218908">"ເປີດ"</string>
     <string name="notification_dots_desc_off" msgid="1760796511504341095">"ປິດ"</string>
@@ -142,7 +150,8 @@
     <string name="app_installing_title" msgid="5864044122733792085">"ກຳລັງຕິດຕັ້ງ <xliff:g id="NAME">%1$s</xliff:g>, <xliff:g id="PROGRESS">%2$s</xliff:g> ສຳເລັດແລ້ວ"</string>
     <string name="app_downloading_title" msgid="8336702962104482644">"<xliff:g id="NAME">%1$s</xliff:g> ກຳ​ລັງ​ດາວ​ໂຫຼດ, <xliff:g id="PROGRESS">%2$s</xliff:g> ສຳ​ເລັດ"</string>
     <string name="app_waiting_download_title" msgid="7053938513995617849">"<xliff:g id="NAME">%1$s</xliff:g> ກຳ​ລັງ​ລໍ​ຖ້າ​ຕິດ​ຕັ້ງ"</string>
-    <string name="app_archived_title" msgid="7717956158562544081">"<xliff:g id="NAME">%1$s</xliff:g> ຖືກເກັບໄວ້ໃນແຟ້ມ. ແຕະເພື່ອດາວໂຫຼດ ແລະ ກູ້ຄືນ."</string>
+    <string name="app_archived_title" msgid="4548283110222420708">"<xliff:g id="NAME">%1$s</xliff:g> ຖືກເກັບໄວ້ໃນແຟ້ມ."</string>
+    <string name="app_unarchiving_action" msgid="5736107006413929484">"ດາວໂຫຼດ ແລະ ກູ້ຄືນ"</string>
     <string name="dialog_update_title" msgid="114234265740994042">"ຈຳເປັນຕ້ອງອັບເດດແອັບ"</string>
     <string name="dialog_update_message" msgid="4176784553982226114">"ບໍ່ໄດ້ອັບເດດແອັບສຳລັບໄອຄອນນີ້. ທ່ານສາມາດອັບເດດເອງໄດ້ເພື່ອເປີດການນຳໃຊ້ທາງລັດນີ້ຄືນໃໝ່ ຫຼື ລຶບໄອຄອນດັ່ງກ່າວອອກ."</string>
     <string name="dialog_update" msgid="2178028071796141234">"ອັບເດດ"</string>
@@ -171,7 +180,7 @@
     <string name="action_decrease_width" msgid="1374549771083094654">"ຫຼຸດ​ລວງ​ກ້​ວາງ​ລົງ"</string>
     <string name="action_decrease_height" msgid="282377193880900022">"ຫຼຸດ​ລວງ​ສູງ​ລົງ"</string>
     <string name="widget_resized" msgid="9130327887929620">"ປ່ຽນ​ຂະ​ໜາດ​ວິດ​ເຈັດ​ເປັນ​ລວງ​ກ້​ວາງ <xliff:g id="NUMBER_0">%1$s</xliff:g> ລວງ​ສູງ <xliff:g id="NUMBER_1">%2$s</xliff:g> ແລ້ວ"</string>
-    <string name="action_deep_shortcut" msgid="2864038805849372848">"ທາງລັດ"</string>
+    <string name="action_deep_shortcut" msgid="4766835855579976045">"ເມນູທາງລັດ"</string>
     <string name="action_dismiss_notification" msgid="5909461085055959187">"ປິດໄວ້"</string>
     <string name="accessibility_close" msgid="2277148124685870734">"ປິດ"</string>
     <string name="all_apps_personal_tab" msgid="4190252696685155002">"ສ່ວນຕົວ"</string>
@@ -187,6 +196,7 @@
     <string name="work_apps_paused_edu_accept" msgid="6377476824357318532">"ເຂົ້າໃຈແລ້ວ"</string>
     <string name="work_apps_pause_btn_text" msgid="4669288269140620646">"ຢຸດແອັບບ່ອນເຮັດວຽກຊົ່ວຄາວ"</string>
     <string name="work_apps_enable_btn_text" msgid="1736198302467317371">"ຍົກເລີກການຢຸດຊົ່ວຄາວ"</string>
+    <string name="work_scheduler_button_content_description" msgid="917340740986764967">"ກຳນົດເວລາຂອງແອັບບ່ອນເຮັດວຽກ"</string>
     <string name="developer_options_filter_hint" msgid="5896817443635989056">"ກັ່ນຕອງ"</string>
     <string name="remote_action_failed" msgid="1383965239183576790">"ບໍ່ສຳເລັດ: <xliff:g id="WHAT">%1$s</xliff:g>"</string>
     <string name="private_space_label" msgid="2359721649407947001">"ພື້ນທີ່ສ່ວນຕົວ"</string>

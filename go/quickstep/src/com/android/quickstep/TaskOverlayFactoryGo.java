@@ -149,8 +149,7 @@ public final class TaskOverlayFactoryGo extends TaskOverlayFactory {
             // Disable Overview Actions for Work Profile apps
             boolean isManagedProfileTask =
                     UserManager.get(mApplicationContext).isManagedProfile(task.key.userId);
-            boolean isAllowedByPolicy = mTaskContainer.getThumbnailViewDeprecated().isRealSnapshot()
-                    && !isManagedProfileTask;
+            boolean isAllowedByPolicy = isRealSnapshot() && !isManagedProfileTask;
             getActionsView().setCallbacks(new OverlayUICallbacksGoImpl(isAllowedByPolicy, task));
             mTaskPackageName = task.key.getPackageName();
             mSharedPreferences = LauncherPrefs.getPrefs(mApplicationContext);

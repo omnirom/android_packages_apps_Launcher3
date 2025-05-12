@@ -16,7 +16,7 @@
 package com.android.launcher3.statehandlers;
 
 import static android.view.View.VISIBLE;
-import static android.window.flags.DesktopModeFlags.ENABLE_DESKTOP_WINDOWING_WALLPAPER_ACTIVITY;
+import static android.window.DesktopModeFlags.ENABLE_DESKTOP_WINDOWING_WALLPAPER_ACTIVITY;
 
 import static com.android.launcher3.util.Executors.MAIN_EXECUTOR;
 
@@ -111,10 +111,9 @@ public class DesktopVisibilityController {
     public boolean areDesktopTasksVisible() {
         boolean desktopTasksVisible = mVisibleDesktopTasksCount > 0;
         if (DEBUG) {
-            Log.d(TAG, "areDesktopTasksVisible: desktopVisible=" + desktopTasksVisible
-                    + " overview=" + mInOverviewState);
+            Log.d(TAG, "areDesktopTasksVisible: desktopVisible=" + desktopTasksVisible);
         }
-        return desktopTasksVisible && !mInOverviewState;
+        return desktopTasksVisible;
     }
 
     /**
@@ -219,12 +218,8 @@ public class DesktopVisibilityController {
                     + " currentValue=" + mInOverviewState);
         }
         if (overviewStateEnabled != mInOverviewState) {
-            final boolean wereDesktopTasksVisibleBefore = areDesktopTasksVisible();
             mInOverviewState = overviewStateEnabled;
             final boolean areDesktopTasksVisibleNow = areDesktopTasksVisible();
-            if (wereDesktopTasksVisibleBefore != areDesktopTasksVisibleNow) {
-                notifyDesktopVisibilityListeners(areDesktopTasksVisibleNow);
-            }
 
             if (ENABLE_DESKTOP_WINDOWING_WALLPAPER_ACTIVITY.isTrue()) {
                 return;
@@ -384,7 +379,7 @@ public class DesktopVisibilityController {
             Log.d(TAG, "markLauncherPaused " + Debug.getCaller());
         }
         StatefulActivity<LauncherState> activity =
-                QuickstepLauncher.ACTIVITY_TRACKER.getCreatedActivity();
+                QuickstepLauncher.ACTIVITY_TRACKER.getCreatedContext();
         if (activity != null) {
             activity.setPaused();
         }
@@ -404,7 +399,7 @@ public class DesktopVisibilityController {
             Log.d(TAG, "markLauncherResumed " + Debug.getCaller());
         }
         StatefulActivity<LauncherState> activity =
-                QuickstepLauncher.ACTIVITY_TRACKER.getCreatedActivity();
+                QuickstepLauncher.ACTIVITY_TRACKER.getCreatedContext();
         // Check activity state before calling setResumed(). Launcher may have been actually
         // paused (eg fullscreen task moved to front).
         // In this case we should not mark the activity as resumed.
@@ -487,6 +482,15 @@ public class DesktopVisibilityController {
                             doesAnyTaskRequireTaskbarRounding);
                 }
             });
+        }
+
+        public void onEnterDesktopModeTransitionStarted(int transitionDuration) {
+
+        }
+
+        @Override
+        public void onExitDesktopModeTransitionStarted(int transitionDuration) {
+
         }
     }
 

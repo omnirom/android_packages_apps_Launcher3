@@ -18,7 +18,6 @@ package com.android.launcher3.taskbar.overlay
 
 import android.app.ActivityManager.RunningTaskInfo
 import android.view.MotionEvent
-import androidx.test.platform.app.InstrumentationRegistry.getInstrumentation
 import com.android.launcher3.AbstractFloatingView
 import com.android.launcher3.AbstractFloatingView.TYPE_OPTIONS_POPUP
 import com.android.launcher3.AbstractFloatingView.TYPE_TASKBAR_ALL_APPS
@@ -42,12 +41,8 @@ import org.junit.runner.RunWith
 @EmulatedDevices(["pixelFoldable2023"])
 class TaskbarOverlayControllerTest {
 
-    @get:Rule
-    val taskbarUnitTestRule =
-        TaskbarUnitTestRule(
-            this,
-            TaskbarWindowSandboxContext.create(getInstrumentation().targetContext),
-        )
+    @get:Rule(order = 0) val context = TaskbarWindowSandboxContext.create()
+    @get:Rule(order = 1) val taskbarUnitTestRule = TaskbarUnitTestRule(this, context)
     @InjectController lateinit var overlayController: TaskbarOverlayController
 
     private val taskbarContext: TaskbarActivityContext
@@ -223,9 +218,8 @@ class TaskbarOverlayControllerTest {
     }
 
     private class TestOverlayView
-    private constructor(
-        private val overlayContext: TaskbarOverlayContext,
-    ) : AbstractFloatingView(overlayContext, null) {
+    private constructor(private val overlayContext: TaskbarOverlayContext) :
+        AbstractFloatingView(overlayContext, null) {
 
         var type = TYPE_OPTIONS_POPUP
 

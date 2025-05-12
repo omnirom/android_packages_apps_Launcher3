@@ -22,6 +22,7 @@
     <string name="recent_task_option_pin" msgid="7929860679018978258">"Speld vas"</string>
     <string name="recent_task_option_freeform" msgid="48863056265284071">"Vormvry"</string>
     <string name="recent_task_option_desktop" msgid="8280879717125435668">"Rekenaar"</string>
+    <string name="recent_task_option_external_display" msgid="4533840664313389484">"Skuif na eksterne skerm"</string>
     <string name="recent_task_desktop" msgid="8081113562549637334">"Werkskerm"</string>
     <string name="recents_empty_message" msgid="7040467240571714191">"Geen onlangse items nie"</string>
     <string name="accessibility_app_usage_settings" msgid="6312864233673544149">"Programgebruikinstellings"</string>
@@ -45,7 +46,7 @@
     <string name="hotseat_tip_gaps_filled" msgid="3035673010274223538">"Programvoorstelle is in leë spasie bygevoeg"</string>
     <string name="hotsaet_tip_prediction_enabled" msgid="2233554377501347650">"Programvoorstelle is geaktiveer"</string>
     <string name="hotsaet_tip_prediction_disabled" msgid="1506426298884658491">"Programvoorstelle is gedeaktiveer"</string>
-    <string name="hotseat_prediction_content_description" msgid="4582028296938078419">"Voorspelde program: <xliff:g id="TITLE">%1$s</xliff:g>"</string>
+    <string name="hotseat_prediction_content_description" msgid="4582028296938078419">"Voorspelde app: <xliff:g id="TITLE">%1$s</xliff:g>"</string>
     <string name="gesture_tutorial_rotation_prompt_title" msgid="7537946781362766964">"Draai jou toestel"</string>
     <string name="gesture_tutorial_rotation_prompt" msgid="1664493449851960691">"Draai asseblief jou toestel om die tutoriaal oor gebaarnavigasie te voltooi"</string>
     <string name="back_gesture_feedback_swipe_too_far_from_edge" msgid="4175100312909721217">"Maak seker dat jy van die rand heel regs of heel links af swiep"</string>
@@ -103,10 +104,10 @@
     <string name="toast_split_select_app_cancel" msgid="1939025102486630426">"Kanselleer"</string>
     <string name="toast_split_select_cont_desc" msgid="2119685056059607602">"Verlaat verdeeldeskermkeuse"</string>
     <string name="toast_split_app_unsupported" msgid="2360229567007828914">"Kies nog ’n app as jy verdeelde skerm wil gebruik"</string>
-    <string name="blocked_by_policy" msgid="2071401072261365546">"Jou organisasie laat nie hierdie program toe nie"</string>
-    <string name="split_widgets_not_supported" msgid="1355743038053053866">"Legstukke word nie tans ondersteun nie; kies asseblief ’n ander program"</string>
+    <string name="blocked_by_policy" msgid="2071401072261365546">"Jou organisasie laat nie hierdie app toe nie"</string>
+    <string name="split_widgets_not_supported" msgid="1355743038053053866">"Legstukke word nie tans ondersteun nie; kies asseblief ’n ander app"</string>
     <string name="skip_tutorial_dialog_title" msgid="2725643161260038458">"Slaan navigasietutoriaal oor?"</string>
-    <string name="skip_tutorial_dialog_subtitle" msgid="544063326241955662">"Jy kan dit later in die <xliff:g id="NAME">%1$s</xliff:g>-program kry"</string>
+    <string name="skip_tutorial_dialog_subtitle" msgid="544063326241955662">"Jy kan dit later in die <xliff:g id="NAME">%1$s</xliff:g>-app kry"</string>
     <string name="gesture_tutorial_action_button_label_cancel" msgid="3809842569351264108">"Kanselleer"</string>
     <string name="gesture_tutorial_action_button_label_skip" msgid="394452764989751960">"Slaan oor"</string>
     <string name="accessibility_rotate_button" msgid="4771825231336502943">"Draai skerm"</string>
@@ -154,4 +155,5 @@
     <string name="bubble_bar_action_dismiss_all" msgid="3290722022983403060">"Maak almal toe"</string>
     <string name="bubble_bar_accessibility_announce_expand" msgid="1503192695527477102">"vou <xliff:g id="BUBBLE_DESCRIPTION">%1$s</xliff:g> uit"</string>
     <string name="bubble_bar_accessibility_announce_collapse" msgid="928284600086798791">"vou <xliff:g id="BUBBLE_DESCRIPTION">%1$s</xliff:g> in"</string>
+    <string name="search_gesture_feature_title" msgid="1294044108313175306">"Omkring en Soek"</string>
 </resources>

@@ -21,6 +21,7 @@ import static com.android.app.animation.Interpolators.AGGRESSIVE_EASE_IN_OUT;
 import static com.android.app.animation.Interpolators.FINAL_FRAME;
 import static com.android.app.animation.Interpolators.INSTANT;
 import static com.android.app.animation.Interpolators.LINEAR;
+import static com.android.launcher3.Flags.enableLargeDesktopWindowingTile;
 import static com.android.launcher3.LauncherState.QUICK_SWITCH_FROM_HOME;
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_SPLIT_SELECTION_EXIT_HOME;
 import static com.android.launcher3.states.StateAnimationConfig.ANIM_OVERVIEW_FADE;
@@ -31,6 +32,7 @@ import static com.android.launcher3.states.StateAnimationConfig.ANIM_OVERVIEW_TR
 import static com.android.launcher3.states.StateAnimationConfig.ANIM_OVERVIEW_TRANSLATE_Y;
 import static com.android.launcher3.states.StateAnimationConfig.SKIP_OVERVIEW;
 import static com.android.quickstep.views.RecentsView.ADJACENT_PAGE_HORIZONTAL_OFFSET;
+import static com.android.quickstep.views.RecentsView.DESKTOP_CAROUSEL_DETACH_PROGRESS;
 import static com.android.quickstep.views.RecentsView.RECENTS_GRID_PROGRESS;
 import static com.android.quickstep.views.RecentsView.RECENTS_SCALE_PROPERTY;
 import static com.android.quickstep.views.RecentsView.TASK_SECONDARY_TRANSLATION;
@@ -76,6 +78,10 @@ public abstract class BaseRecentsViewStateController<T extends RecentsView>
         RECENTS_GRID_PROGRESS.set(mRecentsView,
                 state.displayOverviewTasksAsGrid(mLauncher.getDeviceProfile()) ? 1f : 0f);
         TASK_THUMBNAIL_SPLASH_ALPHA.set(mRecentsView, state.showTaskThumbnailSplash() ? 1f : 0f);
+        if (enableLargeDesktopWindowingTile()) {
+            DESKTOP_CAROUSEL_DETACH_PROGRESS.set(mRecentsView,
+                    state.detachDesktopCarousel() ? 1f : 0f);
+        }
     }
 
     @Override
@@ -86,7 +92,7 @@ public abstract class BaseRecentsViewStateController<T extends RecentsView>
         }
         setStateWithAnimationInternal(toState, config, builder);
         builder.addEndListener(success -> {
-            if (!success) {
+            if (!success && !toState.isRecentsViewVisible) {
                 mRecentsView.reset();
             }
         });
@@ -142,6 +148,12 @@ public abstract class BaseRecentsViewStateController<T extends RecentsView>
         setter.setFloat(mRecentsView, RECENTS_GRID_PROGRESS,
                 toState.displayOverviewTasksAsGrid(mLauncher.getDeviceProfile()) ? 1f : 0f,
                 getOverviewInterpolator(fromState, toState));
+
+        if (enableLargeDesktopWindowingTile()) {
+            setter.setFloat(mRecentsView, DESKTOP_CAROUSEL_DETACH_PROGRESS,
+                    toState.detachDesktopCarousel() ? 1f : 0f,
+                    getOverviewInterpolator(fromState, toState));
+        }
     }
 
     private Interpolator getOverviewInterpolator(LauncherState fromState, LauncherState toState) {

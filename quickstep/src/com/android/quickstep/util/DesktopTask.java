@@ -50,6 +50,11 @@ public class DesktopTask extends GroupTask {
 
     @Override
     public boolean hasMultipleTasks() {
+        return tasks.size() > 1;
+    }
+
+    @Override
+    public boolean supportsMultipleTasks() {
         return true;
     }
 

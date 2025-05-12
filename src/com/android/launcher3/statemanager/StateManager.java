@@ -18,6 +18,7 @@ package com.android.launcher3.statemanager;
 
 import static android.animation.ValueAnimator.areAnimatorsEnabled;
 
+import static com.android.launcher3.Flags.enableStateManagerProtoLog;
 import static com.android.launcher3.anim.AnimatorPlaybackController.callListenerCommandRecursively;
 import static com.android.launcher3.states.StateAnimationConfig.HANDLE_STATE_APPLY;
 import static com.android.launcher3.states.StateAnimationConfig.SKIP_ALL_ANIMATIONS;
@@ -39,6 +40,7 @@ import com.android.launcher3.anim.PendingAnimation;
 import com.android.launcher3.states.StateAnimationConfig;
 import com.android.launcher3.states.StateAnimationConfig.AnimationFlags;
 import com.android.launcher3.states.StateAnimationConfig.AnimationPropertyFlags;
+import com.android.launcher3.util.StateManagerProtoLogProxy;
 
 import java.io.PrintWriter;
 import java.util.ArrayList;
@@ -243,7 +245,10 @@ public class StateManager<STATE_TYPE extends BaseState<STATE_TYPE>,
 
     private void goToState(
             STATE_TYPE state, boolean animated, long delay, AnimatorListener listener) {
-        if (DEBUG) {
+        if (enableStateManagerProtoLog()) {
+            StateManagerProtoLogProxy.logGoToState(
+                    mState, state, getTrimmedStackTrace("StateManager.goToState"));
+        } else if (DEBUG) {
             Log.d(TAG, "goToState - fromState: " + mState + ", toState: " + state
                     + ", partial trace:\n" + getTrimmedStackTrace("StateManager.goToState"));
         }
@@ -331,7 +336,10 @@ public class StateManager<STATE_TYPE extends BaseState<STATE_TYPE>,
      */
     public AnimatorSet createAtomicAnimation(
             STATE_TYPE fromState, STATE_TYPE toState, StateAnimationConfig config) {
-        if (DEBUG) {
+        if (enableStateManagerProtoLog()) {
+            StateManagerProtoLogProxy.logCreateAtomicAnimation(
+                    mState, toState, getTrimmedStackTrace("StateManager.createAtomicAnimation"));
+        } else if (DEBUG) {
             Log.d(TAG, "createAtomicAnimation - fromState: " + fromState + ", toState: " + toState
                     + ", partial trace:\n" + getTrimmedStackTrace(
                             "StateManager.createAtomicAnimation"));
@@ -408,7 +416,9 @@ public class StateManager<STATE_TYPE extends BaseState<STATE_TYPE>,
         mState = state;
         mStatefulContainer.onStateSetStart(mState);
 
-        if (DEBUG) {
+        if (enableStateManagerProtoLog()) {
+            StateManagerProtoLogProxy.logOnStateTransitionStart(state);
+        } else if (DEBUG) {
             Log.d(TAG, "onStateTransitionStart - state: " + state);
         }
         for (int i = mListeners.size() - 1; i >= 0; i--) {
@@ -428,7 +438,9 @@ public class StateManager<STATE_TYPE extends BaseState<STATE_TYPE>,
             setRestState(null);
         }
 
-        if (DEBUG) {
+        if (enableStateManagerProtoLog()) {
+            StateManagerProtoLogProxy.logOnStateTransitionEnd(state);
+        } else if (DEBUG) {
             Log.d(TAG, "onStateTransitionEnd - state: " + state);
         }
         for (int i = mListeners.size() - 1; i >= 0; i--) {
@@ -468,7 +480,11 @@ public class StateManager<STATE_TYPE extends BaseState<STATE_TYPE>,
      * Cancels the current animation.
      */
     public void cancelAnimation() {
-        if (DEBUG && mConfig.currentAnimation != null) {
+        if (enableStateManagerProtoLog()) {
+            StateManagerProtoLogProxy.logCancelAnimation(
+                    mConfig.currentAnimation != null,
+                    getTrimmedStackTrace("StateManager.cancelAnimation"));
+        } else if (DEBUG && mConfig.currentAnimation != null) {
             Log.d(TAG, "cancelAnimation - with ongoing animation"
                     + ", partial trace:\n" + getTrimmedStackTrace("StateManager.cancelAnimation"));
         }

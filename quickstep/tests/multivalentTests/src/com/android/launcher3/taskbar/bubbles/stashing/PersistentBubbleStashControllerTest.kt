@@ -27,6 +27,7 @@ import com.android.launcher3.anim.AnimatedFloat
 import com.android.launcher3.taskbar.TaskbarInsetsController
 import com.android.launcher3.taskbar.bubbles.BubbleBarView
 import com.android.launcher3.taskbar.bubbles.BubbleBarViewController
+import com.android.launcher3.taskbar.bubbles.stashing.BubbleStashController.BubbleLauncherState
 import com.android.launcher3.util.MultiValueAlpha
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
@@ -36,7 +37,9 @@ import org.junit.runner.RunWith
 import org.mockito.Mock
 import org.mockito.junit.MockitoJUnit
 import org.mockito.junit.MockitoRule
+import org.mockito.kotlin.any
 import org.mockito.kotlin.clearInvocations
+import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 
@@ -47,6 +50,7 @@ class PersistentBubbleStashControllerTest {
 
     companion object {
         const val BUBBLE_BAR_HEIGHT = 100f
+        const val HOTSEAT_VERTICAL_CENTER = 95
         const val HOTSEAT_TRANSLATION_Y = -45f
         const val TASK_BAR_TRANSLATION_Y = -5f
     }
@@ -73,24 +77,39 @@ class PersistentBubbleStashControllerTest {
             PersistentBubbleStashController(DefaultDimensionsProvider())
         setUpBubbleBarView()
         setUpBubbleBarController()
+        persistentTaskBarStashController.bubbleBarVerticalCenterForHome = HOTSEAT_VERTICAL_CENTER
         persistentTaskBarStashController.init(
             taskbarInsetsController,
             bubbleBarViewController,
             null,
-            ImmediateAction()
+            ImmediateAction(),
         )
+    }
+
+    @Test
+    fun updateLauncherState_noBubbles_controllerNotified() {
+        // Given bubble bar has  no bubbles
+        whenever(bubbleBarViewController.hasBubbles()).thenReturn(false)
+
+        // When switch to home screen
+        getInstrumentation().runOnMainSync {
+            persistentTaskBarStashController.launcherState = BubbleLauncherState.HOME
+        }
+
+        // Then bubble bar view controller is notified
+        verify(bubbleBarViewController).onBubbleBarConfigurationChanged(/* animate= */ false)
     }
 
     @Test
     fun setBubblesShowingOnHomeUpdatedToFalse_barPositionYUpdated_controllersNotified() {
         // Given bubble bar is on home and has bubbles
         whenever(bubbleBarViewController.hasBubbles()).thenReturn(false)
-        persistentTaskBarStashController.isBubblesShowingOnHome = true
+        persistentTaskBarStashController.launcherState = BubbleLauncherState.HOME
         whenever(bubbleBarViewController.hasBubbles()).thenReturn(true)
 
         // When switch out of the home screen
         getInstrumentation().runOnMainSync {
-            persistentTaskBarStashController.isBubblesShowingOnHome = false
+            persistentTaskBarStashController.launcherState = BubbleLauncherState.IN_APP
         }
 
         // Then translation Y is animating and the bubble bar controller is notified
@@ -110,7 +129,7 @@ class PersistentBubbleStashControllerTest {
 
         // When switch to home screen
         getInstrumentation().runOnMainSync {
-            persistentTaskBarStashController.isBubblesShowingOnHome = true
+            persistentTaskBarStashController.launcherState = BubbleLauncherState.HOME
         }
 
         // Then translation Y is animating and the bubble bar controller is notified
@@ -127,11 +146,11 @@ class PersistentBubbleStashControllerTest {
     @Test
     fun setBubblesShowingOnOverviewUpdatedToFalse_controllersNotified() {
         // Given bubble bar is on overview
-        persistentTaskBarStashController.isBubblesShowingOnOverview = true
+        persistentTaskBarStashController.launcherState = BubbleLauncherState.OVERVIEW
         clearInvocations(bubbleBarViewController)
 
         // When switch out of the overview screen
-        persistentTaskBarStashController.isBubblesShowingOnOverview = false
+        persistentTaskBarStashController.launcherState = BubbleLauncherState.IN_APP
 
         // Then bubble bar controller is notified
         verify(bubbleBarViewController).onBubbleBarConfigurationChanged(/* animate= */ true)
@@ -140,7 +159,7 @@ class PersistentBubbleStashControllerTest {
     @Test
     fun setBubblesShowingOnOverviewUpdatedToTrue_controllersNotified() {
         // When switch to the overview screen
-        persistentTaskBarStashController.isBubblesShowingOnOverview = true
+        persistentTaskBarStashController.launcherState = BubbleLauncherState.OVERVIEW
 
         // Then bubble bar controller is notified
         verify(bubbleBarViewController).onBubbleBarConfigurationChanged(/* animate= */ true)
@@ -150,7 +169,7 @@ class PersistentBubbleStashControllerTest {
     fun isSysuiLockedSwitchedToFalseForOverview_unlockAnimationIsShown() {
         // Given screen is locked and bubble bar has bubbles
         persistentTaskBarStashController.isSysuiLocked = true
-        persistentTaskBarStashController.isBubblesShowingOnOverview = true
+        persistentTaskBarStashController.launcherState = BubbleLauncherState.OVERVIEW
         whenever(bubbleBarViewController.hasBubbles()).thenReturn(true)
 
         // When switch to the overview screen
@@ -211,18 +230,156 @@ class PersistentBubbleStashControllerTest {
     fun bubbleBarTranslationYForTaskbar() {
         // Give bubble bar is on home
         whenever(bubbleBarViewController.hasBubbles()).thenReturn(false)
-        persistentTaskBarStashController.isBubblesShowingOnHome = true
+        persistentTaskBarStashController.launcherState = BubbleLauncherState.HOME
 
         // Then bubbleBarTranslationY would be HOTSEAT_TRANSLATION_Y
         assertThat(persistentTaskBarStashController.bubbleBarTranslationY)
             .isEqualTo(HOTSEAT_TRANSLATION_Y)
 
         // Give bubble bar is not on home
-        persistentTaskBarStashController.isBubblesShowingOnHome = false
+        persistentTaskBarStashController.launcherState = BubbleLauncherState.IN_APP
 
         // Then bubbleBarTranslationY would be TASK_BAR_TRANSLATION_Y
         assertThat(persistentTaskBarStashController.bubbleBarTranslationY)
             .isEqualTo(TASK_BAR_TRANSLATION_Y)
+    }
+
+    @Test
+    fun inAppDisplayOverrideProgress_onHome_updatesTranslationFromHomeToInApp() {
+        whenever(bubbleBarViewController.hasBubbles()).thenReturn(false)
+        persistentTaskBarStashController.launcherState = BubbleLauncherState.HOME
+
+        assertThat(persistentTaskBarStashController.bubbleBarTranslationY)
+            .isEqualTo(HOTSEAT_TRANSLATION_Y)
+
+        persistentTaskBarStashController.inAppDisplayOverrideProgress = 0.5f
+
+        val middleBetweenHotseatAndTaskbar = (HOTSEAT_TRANSLATION_Y + TASK_BAR_TRANSLATION_Y) / 2f
+        assertThat(persistentTaskBarStashController.bubbleBarTranslationY)
+            .isWithin(0.1f)
+            .of(middleBetweenHotseatAndTaskbar)
+
+        persistentTaskBarStashController.inAppDisplayOverrideProgress = 1f
+
+        assertThat(persistentTaskBarStashController.bubbleBarTranslationY)
+            .isEqualTo(TASK_BAR_TRANSLATION_Y)
+    }
+
+    @Test
+    fun inAppDisplayOverrideProgress_onHome_updatesInsetsWhenProgressReachesOne() {
+        whenever(bubbleBarViewController.hasBubbles()).thenReturn(false)
+        persistentTaskBarStashController.launcherState = BubbleLauncherState.HOME
+        // Reset invocations to track only changes from in-app display override
+        clearInvocations(taskbarInsetsController)
+
+        // Insets are not updated for values between 0 and 1
+        persistentTaskBarStashController.inAppDisplayOverrideProgress = 0.5f
+        verify(taskbarInsetsController, never()).onTaskbarOrBubblebarWindowHeightOrInsetsChanged()
+
+        // Update insets when progress reaches 1
+        persistentTaskBarStashController.inAppDisplayOverrideProgress = 1f
+        verify(taskbarInsetsController).onTaskbarOrBubblebarWindowHeightOrInsetsChanged()
+    }
+
+    @Test
+    fun inAppDisplayOverrideProgress_onHome_updatesInsetsWhenProgressReachesZero() {
+        whenever(bubbleBarViewController.hasBubbles()).thenReturn(false)
+        persistentTaskBarStashController.launcherState = BubbleLauncherState.HOME
+        persistentTaskBarStashController.inAppDisplayOverrideProgress = 1f
+        // Reset invocations to track only changes from in-app display override
+        clearInvocations(taskbarInsetsController)
+
+        // Insets are not updated for values between 0 and 1
+        persistentTaskBarStashController.inAppDisplayOverrideProgress = 0.5f
+        verify(taskbarInsetsController, never()).onTaskbarOrBubblebarWindowHeightOrInsetsChanged()
+
+        // Update insets when progress reaches 0
+        persistentTaskBarStashController.inAppDisplayOverrideProgress = 0f
+        verify(taskbarInsetsController).onTaskbarOrBubblebarWindowHeightOrInsetsChanged()
+    }
+
+    @Test
+    fun inAppDisplayOverrideProgress_onHome_cancelExistingAnimation() {
+        whenever(bubbleBarViewController.hasBubbles()).thenReturn(false)
+        persistentTaskBarStashController.launcherState = BubbleLauncherState.HOME
+
+        bubbleBarViewController.bubbleBarTranslationY.animateToValue(100f)
+        advanceTimeBy(10)
+        assertThat(bubbleBarViewController.bubbleBarTranslationY.isAnimating).isTrue()
+
+        getInstrumentation().runOnMainSync {
+            persistentTaskBarStashController.inAppDisplayOverrideProgress = 0.5f
+        }
+        assertThat(bubbleBarViewController.bubbleBarTranslationY.isAnimating).isFalse()
+    }
+
+    @Test
+    fun inAppDisplayProgressUpdate_inApp_noTranslationUpdate() {
+        whenever(bubbleBarViewController.hasBubbles()).thenReturn(false)
+        persistentTaskBarStashController.launcherState = BubbleLauncherState.IN_APP
+
+        assertThat(persistentTaskBarStashController.bubbleBarTranslationY)
+            .isEqualTo(TASK_BAR_TRANSLATION_Y)
+
+        persistentTaskBarStashController.inAppDisplayOverrideProgress = 0.5f
+
+        assertThat(persistentTaskBarStashController.bubbleBarTranslationY)
+            .isEqualTo(TASK_BAR_TRANSLATION_Y)
+    }
+
+    @Test
+    fun inAppDisplayOverrideProgress_inApp_noInsetsUpdate() {
+        whenever(bubbleBarViewController.hasBubbles()).thenReturn(false)
+        persistentTaskBarStashController.launcherState = BubbleLauncherState.IN_APP
+
+        // Reset invocations to track only changes from in-app display override
+        clearInvocations(taskbarInsetsController)
+
+        persistentTaskBarStashController.inAppDisplayOverrideProgress = 0.5f
+        persistentTaskBarStashController.inAppDisplayOverrideProgress = 1f
+        persistentTaskBarStashController.inAppDisplayOverrideProgress = 0f
+
+        // Never triggers an update to insets
+        verify(taskbarInsetsController, never()).onTaskbarOrBubblebarWindowHeightOrInsetsChanged()
+    }
+
+    @Test
+    fun showBubbleBar_expand_bubbleBarGesture() {
+        whenever(bubbleBarViewController.isHiddenForNoBubbles).thenReturn(false)
+        whenever(bubbleBarViewController.isExpanded).thenReturn(false)
+
+        persistentTaskBarStashController.showBubbleBar(
+            expandBubbles = true,
+            bubbleBarGesture = true,
+        )
+
+        verify(bubbleBarViewController).setExpanded(true, true)
+    }
+
+    @Test
+    fun showBubbleBar_expand_notBubbleBarGesture() {
+        whenever(bubbleBarViewController.isHiddenForNoBubbles).thenReturn(false)
+        whenever(bubbleBarViewController.isExpanded).thenReturn(false)
+
+        persistentTaskBarStashController.showBubbleBar(
+            expandBubbles = true,
+            bubbleBarGesture = false,
+        )
+
+        verify(bubbleBarViewController).setExpanded(true, false)
+    }
+
+    @Test
+    fun showBubbleBar_notExpanding_bubbleBarGesture() {
+        whenever(bubbleBarViewController.isHiddenForNoBubbles).thenReturn(false)
+        whenever(bubbleBarViewController.isExpanded).thenReturn(false)
+
+        persistentTaskBarStashController.showBubbleBar(
+            expandBubbles = false,
+            bubbleBarGesture = true,
+        )
+
+        verify(bubbleBarViewController, never()).setExpanded(any(), any())
     }
 
     private fun advanceTimeBy(advanceMs: Long) {

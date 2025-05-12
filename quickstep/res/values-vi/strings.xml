@@ -22,6 +22,7 @@
     <string name="recent_task_option_pin" msgid="7929860679018978258">"Ghim"</string>
     <string name="recent_task_option_freeform" msgid="48863056265284071">"Dạng tự do"</string>
     <string name="recent_task_option_desktop" msgid="8280879717125435668">"Máy tính"</string>
+    <string name="recent_task_option_external_display" msgid="4533840664313389484">"Chuyển sang màn hình ngoài"</string>
     <string name="recent_task_desktop" msgid="8081113562549637334">"Máy tính"</string>
     <string name="recents_empty_message" msgid="7040467240571714191">"Không có mục gần đây nào"</string>
     <string name="accessibility_app_usage_settings" msgid="6312864233673544149">"Cài đặt mức sử dụng ứng dụng"</string>
@@ -52,7 +53,7 @@
     <string name="back_gesture_feedback_cancelled" msgid="762621530959111290">"Hãy vuốt từ mép phải hoặc mép trái tới giữa màn hình rồi nhấc ngón tay ra"</string>
     <string name="back_gesture_feedback_complete_with_overview_follow_up" msgid="9176400654037014471">"Bạn đã học được cách vuốt từ mép phải để quay lại. Tiếp theo, hãy tìm hiểu cách chuyển đổi ứng dụng."</string>
     <string name="back_gesture_feedback_complete_with_follow_up" msgid="8653374779579748392">"Bạn đã thực hiện xong cử chỉ quay lại. Tiếp theo, hãy tìm hiểu cách chuyển đổi ứng dụng."</string>
-    <string name="back_gesture_feedback_complete_without_follow_up" msgid="197189945858268342">"Bạn đã thực hiện xong cử chỉ quay lại"</string>
+    <string name="back_gesture_feedback_complete_without_follow_up" msgid="197189945858268342">"Bạn đã hoàn tất cử chỉ quay lại"</string>
     <string name="back_gesture_feedback_swipe_in_nav_bar" msgid="9157480023651452969">"Hãy nhớ không được vuốt quá gần phần dưới cùng của màn hình"</string>
     <string name="back_gesture_tutorial_confirm_subtitle" msgid="5181305411668713250">"Để thay đổi độ nhạy của cử chỉ quay lại, hãy vào mục Cài đặt"</string>
     <string name="back_gesture_intro_title" msgid="19551256430224428">"Vuốt để quay lại"</string>
@@ -154,4 +155,5 @@
     <string name="bubble_bar_action_dismiss_all" msgid="3290722022983403060">"Đóng tất cả"</string>
     <string name="bubble_bar_accessibility_announce_expand" msgid="1503192695527477102">"mở rộng <xliff:g id="BUBBLE_DESCRIPTION">%1$s</xliff:g>"</string>
     <string name="bubble_bar_accessibility_announce_collapse" msgid="928284600086798791">"thu gọn <xliff:g id="BUBBLE_DESCRIPTION">%1$s</xliff:g>"</string>
+    <string name="search_gesture_feature_title" msgid="1294044108313175306">"Khoanh tròn để tìm kiếm"</string>
 </resources>

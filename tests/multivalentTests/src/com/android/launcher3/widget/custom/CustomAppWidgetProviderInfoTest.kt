@@ -17,7 +17,6 @@
 package com.android.launcher3.widget.custom
 
 import android.content.ComponentName
-import android.content.pm.PackageManager
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.MediumTest
 import androidx.test.platform.app.InstrumentationRegistry.getInstrumentation
@@ -25,7 +24,6 @@ import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.mockito.Mockito.mock
 
 @MediumTest
 @RunWith(AndroidJUnit4::class)
@@ -47,7 +45,7 @@ class CustomAppWidgetProviderInfoTest {
     @Test
     fun get_label() {
         underTest.label = "  TEST_LABEL"
-        assertEquals(LABEL_NAME, underTest.getLabel(mock(PackageManager::class.java)))
+        assertEquals(LABEL_NAME, underTest.getLabel())
     }
 
     companion object {

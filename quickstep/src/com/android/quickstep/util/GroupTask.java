@@ -66,6 +66,13 @@ public class GroupTask {
     }
 
     /**
+     * Returns whether this task supports multiple tasks or not.
+     */
+    public boolean supportsMultipleTasks() {
+        return taskViewType == TaskViewType.GROUPED;
+    }
+
+    /**
      * Returns a List of all the Tasks in this GroupTask
      */
     public List<Task> getTasks() {

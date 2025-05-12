@@ -24,12 +24,10 @@ import java.util.function.Supplier
 
 object RoboApiWrapper {
 
-    fun initialize() {}
-
     fun registerInputStream(
         contentResolver: ContentResolver,
         uri: Uri,
-        inputStreamSupplier: Supplier<InputStream>
+        inputStreamSupplier: Supplier<InputStream>,
     ) {}
 
     fun waitForLooperSync(looper: Looper) {}

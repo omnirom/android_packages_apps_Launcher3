@@ -18,6 +18,7 @@ package com.android.launcher3.folder
 
 import android.R
 import android.content.Context
+import android.graphics.Bitmap
 import android.os.Process
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -26,10 +27,9 @@ import androidx.test.platform.app.InstrumentationRegistry.getInstrumentation
 import com.android.launcher3.LauncherPrefs.Companion.THEMED_ICONS
 import com.android.launcher3.LauncherPrefs.Companion.get
 import com.android.launcher3.graphics.PreloadIconDrawable
-import com.android.launcher3.icons.BaseIconFactory
 import com.android.launcher3.icons.FastBitmapDrawable
 import com.android.launcher3.icons.UserBadgeDrawable
-import com.android.launcher3.model.ModelTestRule
+import com.android.launcher3.icons.mono.MonoThemedBitmap
 import com.android.launcher3.model.data.FolderInfo
 import com.android.launcher3.model.data.ItemInfo
 import com.android.launcher3.model.data.ItemInfoWithIcon.FLAG_ARCHIVED
@@ -45,7 +45,6 @@ import com.android.launcher3.util.UserIconInfo
 import com.google.common.truth.Truth.assertThat
 import org.junit.After
 import org.junit.Before
-import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 
@@ -53,8 +52,6 @@ import org.junit.runner.RunWith
 @SmallTest
 @RunWith(AndroidJUnit4::class)
 class PreviewItemManagerTest {
-
-    @get:Rule val modelTestRule = ModelTestRule()
 
     private lateinit var previewItemManager: PreviewItemManager
     private lateinit var context: Context
@@ -92,54 +89,26 @@ class PreviewItemManagerTest {
         // Use getAppContents() to "cast" contents to WorkspaceItemInfo so we can set bitmaps
         val folderApps = modelHelper.bgDataModel.collections.valueAt(0).getAppContents()
         // Set first icon to be themed.
-        folderApps[0]
-            .bitmap
-            .setMonoIcon(
+        folderApps[0].bitmap.themedBitmap =
+            MonoThemedBitmap(
                 folderApps[0].bitmap.icon,
-                BaseIconFactory(
-                    context,
-                    context.resources.configuration.densityDpi,
-                    previewItemManager.mIconSize
-                )
+                Bitmap.createBitmap(10, 10, Bitmap.Config.ARGB_8888),
             )
 
         // Set second icon to be non-themed.
-        folderApps[1]
-            .bitmap
-            .setMonoIcon(
-                null,
-                BaseIconFactory(
-                    context,
-                    context.resources.configuration.densityDpi,
-                    previewItemManager.mIconSize
-                )
-            )
+        folderApps[1].bitmap.themedBitmap = null
 
         // Set third icon to be themed with badge.
-        folderApps[2]
-            .bitmap
-            .setMonoIcon(
+        folderApps[2].bitmap.themedBitmap =
+            MonoThemedBitmap(
                 folderApps[2].bitmap.icon,
-                BaseIconFactory(
-                    context,
-                    context.resources.configuration.densityDpi,
-                    previewItemManager.mIconSize
-                )
+                Bitmap.createBitmap(10, 10, Bitmap.Config.ARGB_8888),
             )
         folderApps[2].bitmap = folderApps[2].bitmap.withFlags(profileFlagOp(UserIconInfo.TYPE_WORK))
 
         // Set fourth icon to be non-themed with badge.
         folderApps[3].bitmap = folderApps[3].bitmap.withFlags(profileFlagOp(UserIconInfo.TYPE_WORK))
-        folderApps[3]
-            .bitmap
-            .setMonoIcon(
-                null,
-                BaseIconFactory(
-                    context,
-                    context.resources.configuration.densityDpi,
-                    previewItemManager.mIconSize
-                )
-            )
+        folderApps[3].bitmap.themedBitmap = null
 
         defaultThemedIcons = get(context).get(THEMED_ICONS)
     }

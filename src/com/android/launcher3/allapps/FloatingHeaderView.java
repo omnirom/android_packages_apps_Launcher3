@@ -15,6 +15,8 @@
  */
 package com.android.launcher3.allapps;
 
+import static com.android.launcher3.allapps.FloatingHeaderRow.NO_ROWS;
+
 import android.animation.ValueAnimator;
 import android.content.Context;
 import android.graphics.Point;
@@ -109,11 +111,11 @@ public class FloatingHeaderView extends LinearLayout implements
 
     // This is initialized once during inflation and stays constant after that. Fixed views
     // cannot be added or removed dynamically.
-    private FloatingHeaderRow[] mFixedRows = FloatingHeaderRow.NO_ROWS;
+    private FloatingHeaderRow[] mFixedRows = NO_ROWS;
 
     // Array of all fixed rows and plugin rows. This is initialized every time a plugin is
     // enabled or disabled, and represent the current set of all rows.
-    private FloatingHeaderRow[] mAllRows = FloatingHeaderRow.NO_ROWS;
+    private FloatingHeaderRow[] mAllRows = NO_ROWS;
 
     public FloatingHeaderView(@NonNull Context context) {
         this(context, null);
@@ -180,6 +182,10 @@ public class FloatingHeaderView extends LinearLayout implements
 
     @Override
     public void onPluginConnected(AllAppsRow allAppsRowPlugin, Context context) {
+        if (mPluginRows.containsKey(allAppsRowPlugin)) {
+            // Plugin has already been connected
+            return;
+        }
         PluginHeaderRow headerRow = new PluginHeaderRow(allAppsRowPlugin, this);
         addView(headerRow.mView, indexOfChild(mTabLayout));
         mPluginRows.put(allAppsRowPlugin, headerRow);
@@ -211,6 +217,9 @@ public class FloatingHeaderView extends LinearLayout implements
     @Override
     public void onPluginDisconnected(AllAppsRow plugin) {
         PluginHeaderRow row = mPluginRows.get(plugin);
+        if (row == null) {
+            return;
+        }
         removeView(row.mView);
         mPluginRows.remove(plugin);
         recreateAllRowsArray();

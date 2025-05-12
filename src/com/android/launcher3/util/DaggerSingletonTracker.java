@@ -16,6 +16,8 @@
 
 package com.android.launcher3.util;
 
+import static com.android.launcher3.util.Executors.MAIN_EXECUTOR;
+
 import com.android.launcher3.dagger.LauncherAppSingleton;
 
 import java.util.ArrayList;
@@ -31,7 +33,9 @@ import javax.inject.Inject;
 @LauncherAppSingleton
 public class DaggerSingletonTracker implements SafeCloseable {
 
-    private final ArrayList<SafeCloseable> mLauncherAppSingletons = new ArrayList<>();
+    private final ArrayList<SafeCloseable> mCloseables = new ArrayList<>();
+
+    private boolean mClosed = false;
 
     @Inject
     DaggerSingletonTracker() {
@@ -44,14 +48,21 @@ public class DaggerSingletonTracker implements SafeCloseable {
      * {@link MainThreadInitializedObject.SandboxContext#onDestroy()}
      */
     public void addCloseable(SafeCloseable closeable) {
-        mLauncherAppSingletons.add(closeable);
+        MAIN_EXECUTOR.execute(() -> {
+            if (mClosed) {
+                closeable.close();
+            } else {
+                mCloseables.add(closeable);
+            }
+        });
     }
 
     @Override
     public void close() {
+        mClosed = true;
         // Destroy in reverse order
-        for (int i = mLauncherAppSingletons.size() - 1; i >= 0; i--) {
-            mLauncherAppSingletons.get(i).close();
+        for (int i = mCloseables.size() - 1; i >= 0; i--) {
+            mCloseables.get(i).close();
         }
     }
 }

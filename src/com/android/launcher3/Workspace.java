@@ -16,6 +16,7 @@
 
 package com.android.launcher3;
 
+import static com.android.launcher3.AbstractFloatingView.TYPE_WIDGET_RESIZE_FRAME;
 import static com.android.launcher3.BubbleTextView.DISPLAY_FOLDER;
 import static com.android.launcher3.Flags.enableSmartspaceRemovalToggle;
 import static com.android.launcher3.LauncherAnimUtils.SPRING_LOADED_EXIT_DELAY;
@@ -115,6 +116,7 @@ import com.android.launcher3.util.IntArray;
 import com.android.launcher3.util.IntSet;
 import com.android.launcher3.util.IntSparseArrayMap;
 import com.android.launcher3.util.LauncherBindableItemsContainer;
+import com.android.launcher3.util.MSDLPlayerWrapper;
 import com.android.launcher3.util.OverlayEdgeEffect;
 import com.android.launcher3.util.PackageUserKey;
 import com.android.launcher3.util.RunnableList;
@@ -131,6 +133,8 @@ import com.android.launcher3.widget.WidgetManagerHelper;
 import com.android.launcher3.widget.util.WidgetSizes;
 import com.android.systemui.plugins.shared.LauncherOverlayManager.LauncherOverlayCallbacks;
 import com.android.systemui.plugins.shared.LauncherOverlayManager.LauncherOverlayTouchProxy;
+
+import com.google.android.msdl.data.model.MSDLToken;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -298,6 +302,8 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
 
     private final StatsLogManager mStatsLogManager;
 
+    private final MSDLPlayerWrapper mMSDLPlayerWrapper;
+
     /**
      * Used to inflate the Workspace from XML.
      *
@@ -330,6 +336,7 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
         setMotionEventSplittingEnabled(true);
         setOnTouchListener(new WorkspaceTouchListener(mLauncher, this));
         mStatsLogManager = StatsLogManager.newInstance(context);
+        mMSDLPlayerWrapper = MSDLPlayerWrapper.INSTANCE.get(context);
     }
 
     @Override
@@ -1222,6 +1229,10 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
     }
 
     protected void onPageBeginTransition() {
+        // Widget resize frame doesn't receive events to close when talkback is enabled. For that
+        // case, close it here.
+        AbstractFloatingView.closeOpenViews(mLauncher, false, TYPE_WIDGET_RESIZE_FRAME);
+
         super.onPageBeginTransition();
         updateChildrenLayersEnabled();
     }
@@ -2674,7 +2685,9 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
         ItemInfo info = dragObject.dragInfo;
         boolean userFolderPending = willCreateUserFolder(info, mDragOverView, false);
         if (mDragMode == DRAG_MODE_NONE && userFolderPending) {
-
+            if (Flags.msdlFeedback()) {
+                mMSDLPlayerWrapper.playToken(MSDLToken.DRAG_INDICATOR_DISCRETE);
+            }
             mFolderCreateBg = new PreviewBackground(getContext());
             mFolderCreateBg.setup(mLauncher, mLauncher, null,
                     mDragOverView.getMeasuredWidth(), mDragOverView.getPaddingTop());

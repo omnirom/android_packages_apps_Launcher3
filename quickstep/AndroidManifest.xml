@@ -54,6 +54,7 @@
         android:protectionLevel="signature|privileged" />
 
     <application android:backupAgent="com.android.launcher3.LauncherBackupAgent"
+         android:enableOnBackInvokedCallback="true"
          android:fullBackupOnly="true"
          android:fullBackupContent="@xml/backupscheme"
          android:hardwareAccelerated="true"
@@ -80,7 +81,7 @@
              android:stateNotNeeded="true"
              android:theme="@style/LauncherTheme"
              android:screenOrientation="behind"
-             android:configChanges="keyboard|keyboardHidden|mcc|mnc|navigation|orientation|screenSize|screenLayout|smallestScreenSize"
+             android:configChanges="keyboard|keyboardHidden|mcc|mnc|navigation|orientation|screenSize|screenLayout|smallestScreenSize|uiMode"
              android:resizeableActivity="true"
              android:resumeWhilePausing="true"
              android:enableOnBackInvokedCallback="false"
@@ -151,7 +152,7 @@
             android:showOnLockScreen="true"
             android:launchMode="singleTop"
             android:exported="true"
-            android:permission="android.permission.START_WIDGET_PICKER_ACTIVITY">
+            android:permission="${applicationId}.permission.START_WIDGET_PICKER_ACTIVITY">
             <intent-filter>
                 <action android:name="android.intent.action.PICK" />
                 <category android:name="android.intent.category.DEFAULT" />

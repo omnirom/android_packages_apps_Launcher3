@@ -52,9 +52,9 @@ public class LogConfig {
     public static final String WEB_APP_SEARCH_LOGGING = "WebAppSearchLogging";
 
     /**
-     * When turned on, we enable quick launch v2 related logging.
+     * When turned on, we enable quick launch related logging.
      */
-    public static final String QUICK_LAUNCH_V2 = "QuickLaunchV2";
+    public static final String QUICK_LAUNCH = "QuickLaunch";
 
     /**
      * When turned on, we enable Gms Play related logging.

@@ -48,16 +48,6 @@ class RecentsViewUtils {
         return otherTasks + desktopTasks
     }
 
-    /** Returns the expected index of the focus task. */
-    fun getFocusedTaskIndex(taskGroups: List<GroupTask>): Int {
-        // The focused task index is placed after the desktop tasks views.
-        return if (enableLargeDesktopWindowingTile()) {
-            taskGroups.count { it.taskViewType == TaskViewType.DESKTOP }
-        } else {
-            0
-        }
-    }
-
     /** Counts [TaskView]s that are [DesktopTaskView] instances. */
     fun getDesktopTaskViewCount(taskViews: Iterable<TaskView>): Int =
         taskViews.count { it is DesktopTaskView }
@@ -66,13 +56,52 @@ class RecentsViewUtils {
     fun getLargeTaskViewIds(taskViews: Iterable<TaskView>): List<Int> =
         taskViews.filter { it.isLargeTile }.map { it.taskViewId }
 
+    /** Counts [TaskView]s that are large tiles. */
+    fun getLargeTileCount(taskViews: Iterable<TaskView>): Int = taskViews.count { it.isLargeTile }
+
     /**
      * Returns the first TaskView that should be displayed as a large tile.
      *
      * @param taskViews List of [TaskView]s
+     * @param splitSelectActive current split state
      */
-    fun getFirstLargeTaskView(taskViews: Iterable<TaskView>): TaskView? =
-        taskViews.firstOrNull { it.isLargeTile }
+    fun getFirstLargeTaskView(
+        taskViews: MutableIterable<TaskView>,
+        splitSelectActive: Boolean,
+    ): TaskView? =
+        taskViews.firstOrNull { it.isLargeTile && !(splitSelectActive && it is DesktopTaskView) }
+
+    /** Returns the expected focus task. */
+    fun getExpectedFocusedTask(taskViews: Iterable<TaskView>): TaskView? =
+        if (enableLargeDesktopWindowingTile()) taskViews.firstOrNull { it !is DesktopTaskView }
+        else taskViews.firstOrNull()
+
+    /**
+     * Returns the [TaskView] that should be the current page during task binding, in the following
+     * priorities:
+     * 1. Running task
+     * 2. Focused task
+     * 3. First non-desktop task
+     * 4. Last desktop task
+     * 5. null otherwise
+     */
+    fun getExpectedCurrentTask(
+        runningTaskView: TaskView?,
+        focusedTaskView: TaskView?,
+        taskViews: Iterable<TaskView>,
+    ): TaskView? =
+        runningTaskView
+            ?: focusedTaskView
+            ?: taskViews.firstOrNull { it !is DesktopTaskView }
+            ?: taskViews.lastOrNull()
+
+    /**
+     * Returns the first TaskView that is not large
+     *
+     * @param taskViews List of [TaskView]s
+     */
+    fun getFirstSmallTaskView(taskViews: MutableIterable<TaskView>): TaskView? =
+        taskViews.firstOrNull { !it.isLargeTile }
 
     /** Returns the last TaskView that should be displayed as a large tile. */
     fun getLastLargeTaskView(taskViews: Iterable<TaskView>): TaskView? =
@@ -80,23 +109,29 @@ class RecentsViewUtils {
 
     /** Returns the first [TaskView], with some tasks possibly hidden in the carousel. */
     fun getFirstTaskViewInCarousel(
-        nonRunningTaskCategoryHidden: Boolean,
+        nonRunningTaskCarouselHidden: Boolean,
         taskViews: Iterable<TaskView>,
         runningTaskView: TaskView?,
     ): TaskView? =
         taskViews.firstOrNull {
-            it.isVisibleInCarousel(runningTaskView, nonRunningTaskCategoryHidden)
+            it.isVisibleInCarousel(runningTaskView, nonRunningTaskCarouselHidden)
         }
 
     /** Returns the last [TaskView], with some tasks possibly hidden in the carousel. */
     fun getLastTaskViewInCarousel(
-        nonRunningTaskCategoryHidden: Boolean,
+        nonRunningTaskCarouselHidden: Boolean,
         taskViews: Iterable<TaskView>,
         runningTaskView: TaskView?,
     ): TaskView? =
         taskViews.lastOrNull {
-            it.isVisibleInCarousel(runningTaskView, nonRunningTaskCategoryHidden)
+            it.isVisibleInCarousel(runningTaskView, nonRunningTaskCarouselHidden)
         }
+
+    /** Returns if any small tasks are fully visible */
+    fun isAnySmallTaskFullyVisible(
+        taskViews: Iterable<TaskView>,
+        isTaskViewFullyVisible: (TaskView) -> Boolean,
+    ): Boolean = taskViews.any { !it.isLargeTile && isTaskViewFullyVisible(it) }
 
     /** Returns the current list of [TaskView] children. */
     fun getTaskViews(taskViewCount: Int, requireTaskViewAt: (Int) -> TaskView): Iterable<TaskView> =
@@ -106,28 +141,33 @@ class RecentsViewUtils {
     fun applyAttachAlpha(
         taskViews: Iterable<TaskView>,
         runningTaskView: TaskView?,
-        runningTaskTileHidden: Boolean,
-        nonRunningTaskCategoryHidden: Boolean,
+        runningTaskAttachAlpha: Float,
+        nonRunningTaskCarouselHidden: Boolean,
     ) {
         taskViews.forEach { taskView ->
-            val isVisible =
-                if (taskView == runningTaskView) !runningTaskTileHidden
-                else taskView.isVisibleInCarousel(runningTaskView, nonRunningTaskCategoryHidden)
-            taskView.attachAlpha = if (isVisible) 1f else 0f
+            taskView.attachAlpha =
+                if (taskView == runningTaskView) {
+                    runningTaskAttachAlpha
+                } else {
+                    if (taskView.isVisibleInCarousel(runningTaskView, nonRunningTaskCarouselHidden))
+                        1f
+                    else 0f
+                }
         }
     }
 
-    private fun TaskView.isVisibleInCarousel(
+    fun TaskView.isVisibleInCarousel(
         runningTaskView: TaskView?,
-        nonRunningTaskCategoryHidden: Boolean,
+        nonRunningTaskCarouselHidden: Boolean,
     ): Boolean =
-        if (!nonRunningTaskCategoryHidden) true
-        else if (runningTaskView == null) true else getCategory() == runningTaskView.getCategory()
+        if (!nonRunningTaskCarouselHidden) true
+        else getCarouselType() == runningTaskView.getCarouselType()
 
-    private fun TaskView.getCategory(): TaskViewCategory =
-        if (this is DesktopTaskView) TaskViewCategory.DESKTOP else TaskViewCategory.FULL_SCREEN
+    /** Returns the carousel type of the TaskView, and default to fullscreen if it's null. */
+    private fun TaskView?.getCarouselType(): TaskViewCarousel =
+        if (this is DesktopTaskView) TaskViewCarousel.DESKTOP else TaskViewCarousel.FULL_SCREEN
 
-    private enum class TaskViewCategory {
+    private enum class TaskViewCarousel {
         FULL_SCREEN,
         DESKTOP,
     }

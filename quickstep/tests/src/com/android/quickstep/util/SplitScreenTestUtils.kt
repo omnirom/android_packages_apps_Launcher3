@@ -43,11 +43,11 @@ object SplitScreenTestUtils {
         val currentTask = overviewWithSplitPair.currentTask
         currentTask.containsContentDescription(
             By.pkg(AbstractLauncherUiTest.getAppPackageName()).text("TestActivity3").toString(),
-            OverviewTask.OverviewSplitTask.SPLIT_TOP_OR_LEFT
+            OverviewTask.OverviewTaskContainer.SPLIT_TOP_OR_LEFT,
         )
         currentTask.containsContentDescription(
             By.pkg(AbstractLauncherUiTest.getAppPackageName()).text("TestActivity2").toString(),
-            OverviewTask.OverviewSplitTask.SPLIT_BOTTOM_OR_RIGHT
+            OverviewTask.OverviewTaskContainer.SPLIT_BOTTOM_OR_RIGHT,
         )
         return overviewWithSplitPair
     }

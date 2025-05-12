@@ -34,7 +34,6 @@ import com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_NAVI
 import com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_NOTIFICATION_DOT_ENABLED
 import com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_THEMED_ICON_DISABLED
 import com.android.launcher3.states.RotationHelper.ALLOW_ROTATION_PREFERENCE_KEY
-import com.android.launcher3.util.DaggerSingletonTracker
 import com.google.common.truth.Truth.assertThat
 import org.junit.After
 import org.junit.Before
@@ -63,7 +62,6 @@ class SettingsChangeLoggerTest {
     @Mock private lateinit var mMockLogger: StatsLogManager.StatsLogger
 
     @Captor private lateinit var mEventCaptor: ArgumentCaptor<StatsLogManager.EventEnum>
-    @Mock private lateinit var mTracker: DaggerSingletonTracker
 
     private var mDefaultThemedIcons = false
     private var mDefaultAllowRotation = false
@@ -81,7 +79,7 @@ class SettingsChangeLoggerTest {
         // To match the default value of ALLOW_ROTATION
         LauncherPrefs.get(mContext).put(item = ALLOW_ROTATION, value = false)
 
-        mSystemUnderTest = SettingsChangeLogger(mContext, mStatsLogManager, mTracker)
+        mSystemUnderTest = SettingsChangeLogger(mContext, mStatsLogManager)
     }
 
     @After
@@ -92,7 +90,7 @@ class SettingsChangeLoggerTest {
 
     @Test
     fun loggingPrefs_correctDefaultValue() {
-        val systemUnderTest = SettingsChangeLogger(mContext, mStatsLogManager, mTracker)
+        val systemUnderTest = SettingsChangeLogger(mContext, mStatsLogManager)
 
         assertThat(systemUnderTest.loggingPrefs[ALLOW_ROTATION_PREFERENCE_KEY]!!.defaultValue)
             .isFalse()
@@ -119,7 +117,7 @@ class SettingsChangeLoggerTest {
         LauncherPrefs.get(mContext).put(item = ALLOW_ROTATION, value = true)
 
         // This a new object so the values of mLoggablePrefs will be different
-        SettingsChangeLogger(mContext, mStatsLogManager, mTracker).logSnapshot(mInstanceId)
+        SettingsChangeLogger(mContext, mStatsLogManager).logSnapshot(mInstanceId)
 
         verify(mMockLogger, atLeastOnce()).log(mEventCaptor.capture())
         val capturedEvents = mEventCaptor.allValues

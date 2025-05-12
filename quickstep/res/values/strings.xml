@@ -28,6 +28,8 @@
     <string name="recent_task_option_freeform">Freeform</string>
     <!-- Title and content description for an option to enter desktop windowing mode for a given app -->
     <string name="recent_task_option_desktop">Desktop</string>
+    <!-- Title and content description for an option to move app to external display. -->
+    <string name="recent_task_option_external_display">Move to external display</string>
 
     <!-- Title and content description for Desktop tile in Recents screen that contains apps opened inside desktop windowing mode [CHAR LIMIT=NONE] -->
     <string name="recent_task_desktop">Desktop</string>
@@ -360,4 +362,8 @@
     <string name="bubble_bar_accessibility_announce_expand">expand <xliff:g id="bubble_description" example="some title from Messages">%1$s</xliff:g></string>
     <!-- Accessibility announcement when the bubble bar collapses. [CHAR LIMIT=NONE]-->
     <string name="bubble_bar_accessibility_announce_collapse">collapse <xliff:g id="bubble_description" example="some title from Messages">%1$s</xliff:g></string>
+
+    <!-- Name of Google's new feature to circle to search anything on your phone screen, without
+     switching apps. [CHAR_LIMIT=60] -->
+    <string name="search_gesture_feature_title">Circle to Search</string>
 </resources>

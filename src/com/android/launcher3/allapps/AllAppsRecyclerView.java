@@ -331,6 +331,9 @@ public class AllAppsRecyclerView extends FastScrollRecyclerView {
 
     public void setLettersToScrollLayout(
             List<AlphabeticalAppsList.FastScrollSectionInfo> fastScrollSections) {
+        if (fastScrollSections.isEmpty()) {
+            return;
+        }
         if (mLetterList != null) {
             mLetterList.removeAllViews();
         }
@@ -346,17 +349,12 @@ public class AllAppsRecyclerView extends FastScrollRecyclerView {
                     (LetterListTextView) LayoutInflater.from(context).inflate(
                             R.layout.fast_scroller_letter_list_text_view, mLetterList, false);
             int viewId = View.generateViewId();
-            textView.setId(viewId);
+            textView.apply(sectionInfo /* FastScrollSectionInfo */, viewId /* viewId */);
             sectionInfo.setId(viewId);
-            textView.setText(sectionInfo.sectionName);
             if (i == fastScrollSections.size() - 1) {
                 // The last section info is just a duplicate so that user can scroll to the bottom.
                 textView.setVisibility(INVISIBLE);
             }
-            ConstraintLayout.LayoutParams lp = new ConstraintLayout.LayoutParams(
-                    MATCH_CONSTRAINT, WRAP_CONTENT);
-            lp.dimensionRatio = "v,1:1";
-            textView.setLayoutParams(lp);
             textViews.add(textView);
             mLetterList.addView(textView);
         }
@@ -369,6 +367,8 @@ public class AllAppsRecyclerView extends FastScrollRecyclerView {
         mLetterList.addView(lastLetterListTextView);
         constraintTextViewsVertically(mLetterList, textViews);
         mLetterList.setVisibility(VISIBLE);
+        // Set the alpha to 0 to avoid the letter list being shown when it shouldn't be.
+        mLetterList.setAlpha(0);
     }
 
     private void constraintTextViewsVertically(ConstraintLayout constraintLayout,

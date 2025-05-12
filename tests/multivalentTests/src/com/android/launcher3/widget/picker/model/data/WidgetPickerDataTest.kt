@@ -27,8 +27,8 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.android.launcher3.InvariantDeviceProfile
 import com.android.launcher3.LauncherAppState
 import com.android.launcher3.LauncherSettings.Favorites.CONTAINER_WIDGETS_PREDICTION
-import com.android.launcher3.icons.ComponentWithLabel
 import com.android.launcher3.icons.IconCache
+import com.android.launcher3.icons.cache.CachedObject
 import com.android.launcher3.model.WidgetItem
 import com.android.launcher3.model.data.ItemInfo
 import com.android.launcher3.model.data.PackageItemInfo
@@ -86,11 +86,11 @@ class WidgetPickerDataTest {
         testInvariantProfile = LauncherAppState.getIDP(context)
 
         doAnswer { invocation: InvocationOnMock ->
-                val componentWithLabel = invocation.getArgument<Any>(0) as ComponentWithLabel
+                val componentWithLabel = invocation.getArgument<Any>(0) as CachedObject
                 componentWithLabel.getComponent().shortClassName
             }
             .`when`(iconCache)
-            .getTitleNoCache(any<ComponentWithLabel>())
+            .getTitleNoCache(any<CachedObject>())
 
         app1PackageItemInfo = packageItemInfoWithTitle(APP_1_PACKAGE_NAME, APP_1_PACKAGE_TITLE)
         app2PackageItemInfo = packageItemInfoWithTitle(APP_2_PACKAGE_NAME, APP_2_PACKAGE_TITLE)
@@ -123,7 +123,7 @@ class WidgetPickerDataTest {
         val widgetPickerData =
             WidgetPickerData(
                 allWidgets = appTwoWidgetsListBaseEntries(),
-                defaultWidgets = appTwoWidgetsListBaseEntries()
+                defaultWidgets = appTwoWidgetsListBaseEntries(),
             )
 
         val newWidgetData =
@@ -143,19 +143,19 @@ class WidgetPickerDataTest {
                         addAll(appOneWidgetsListBaseEntries())
                         addAll(appTwoWidgetsListBaseEntries())
                     },
-                defaultWidgets = buildList { appTwoWidgetsListBaseEntries() }
+                defaultWidgets = buildList { appTwoWidgetsListBaseEntries() },
             )
         val recommendations: List<ItemInfo> =
             listOf(
                 PendingAddWidgetInfo(
                     app1WidgetItem1.widgetInfo,
                     CONTAINER_WIDGETS_PREDICTION,
-                    CATEGORY_1
+                    CATEGORY_1,
                 ),
                 PendingAddWidgetInfo(
                     app2WidgetItem1.widgetInfo,
                     CONTAINER_WIDGETS_PREDICTION,
-                    CATEGORY_2
+                    CATEGORY_2,
                 ),
             )
 
@@ -175,7 +175,7 @@ class WidgetPickerDataTest {
                         addAll(appOneWidgetsListBaseEntries())
                         addAll(appTwoWidgetsListBaseEntries())
                     },
-                defaultWidgets = buildList { appTwoWidgetsListBaseEntries() }
+                defaultWidgets = buildList { appTwoWidgetsListBaseEntries() },
             )
         val recommendations: List<ItemInfo> =
             listOf(
@@ -201,7 +201,7 @@ class WidgetPickerDataTest {
                         addAll(appTwoWidgetsListBaseEntries())
                     },
                 defaultWidgets = buildList { appTwoWidgetsListBaseEntries() },
-                recommendations = mapOf(CATEGORY_1 to listOf(app1WidgetItem1))
+                recommendations = mapOf(CATEGORY_1 to listOf(app1WidgetItem1)),
             )
 
         val updatedData = widgetPickerData.withRecommendedWidgets(listOf())
@@ -242,7 +242,7 @@ class WidgetPickerDataTest {
                         addAll(appOneWidgetsListBaseEntries())
                         addAll(appTwoWidgetsListBaseEntries())
                     },
-                defaultWidgets = buildList { addAll(appTwoWidgetsListBaseEntries()) }
+                defaultWidgets = buildList { addAll(appTwoWidgetsListBaseEntries()) },
             )
         val app1PackageUserKey = PackageUserKey.fromPackageItemInfo(app1PackageItemInfo)
 
@@ -263,7 +263,7 @@ class WidgetPickerDataTest {
                         addAll(appTwoWidgetsListBaseEntries())
                     },
                 defaultWidgets =
-                    buildList { addAll(appOneWidgetsListBaseEntries(includeWidgetTwo = false)) }
+                    buildList { addAll(appOneWidgetsListBaseEntries(includeWidgetTwo = false)) },
             )
         val app1PackageUserKey = PackageUserKey.fromPackageItemInfo(app1PackageItemInfo)
 
@@ -271,7 +271,7 @@ class WidgetPickerDataTest {
             findContentEntryForPackageUser(
                 widgetPickerData = widgetPickerData,
                 packageUserKey = app1PackageUserKey,
-                fromDefaultWidgets = true
+                fromDefaultWidgets = true,
             )
 
         assertThat(contentEntry).isNotNull()
@@ -302,7 +302,7 @@ class WidgetPickerDataTest {
                         addAll(appTwoWidgetsListBaseEntries())
                     },
                 defaultWidgets =
-                    buildList { addAll(appOneWidgetsListBaseEntries(includeWidgetTwo = false)) }
+                    buildList { addAll(appOneWidgetsListBaseEntries(includeWidgetTwo = false)) },
             )
 
         val widgets = findAllWidgetsForPackageUser(widgetPickerData, app1PackageUserKey)
@@ -314,9 +314,7 @@ class WidgetPickerDataTest {
     @Test
     fun findAllWidgetsForPackageUser_noMatch_returnsEmptyList() {
         val widgetPickerData =
-            WidgetPickerData(
-                allWidgets = buildList { addAll(appTwoWidgetsListBaseEntries()) },
-            )
+            WidgetPickerData(allWidgets = buildList { addAll(appTwoWidgetsListBaseEntries()) })
         val app1PackageUserKey = PackageUserKey.fromPackageItemInfo(app1PackageItemInfo)
 
         val widgets = findAllWidgetsForPackageUser(widgetPickerData, app1PackageUserKey)

@@ -57,8 +57,6 @@ public class NavigationModeSwitchRule implements TestRule {
 
     static final String TAG = "QuickStepOnOffRule";
 
-    public static final int WAIT_TIME_MS = 10000;
-
     public enum Mode {
         THREE_BUTTON, ZERO_BUTTON, ALL
     }
@@ -179,12 +177,13 @@ public class NavigationModeSwitchRule implements TestRule {
         }
 
         Wait.atMost("Couldn't switch to " + overlayPackage,
-                () -> launcher.getNavigationModel() == expectedMode, WAIT_TIME_MS, launcher);
+                () -> launcher.getNavigationModel() == expectedMode,
+                launcher);
 
         Wait.atMost(() -> "Switching nav mode: "
                         + launcher.getNavigationModeMismatchError(false),
                 () -> launcher.getNavigationModeMismatchError(false) == null,
-                WAIT_TIME_MS, launcher);
+                launcher);
         AbstractLauncherUiTest.checkDetectedLeaks(launcher, false);
         return true;
     }

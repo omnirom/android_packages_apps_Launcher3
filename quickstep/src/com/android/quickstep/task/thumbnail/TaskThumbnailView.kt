@@ -17,31 +17,27 @@
 package com.android.quickstep.task.thumbnail
 
 import android.content.Context
-import android.content.res.Configuration
 import android.graphics.Color
 import android.graphics.Outline
 import android.graphics.Rect
 import android.util.AttributeSet
+import android.util.Log
 import android.view.View
 import android.view.ViewOutlineProvider
 import androidx.annotation.ColorInt
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.view.isInvisible
 import com.android.launcher3.R
-import com.android.launcher3.Utilities
 import com.android.launcher3.util.ViewPool
 import com.android.quickstep.recents.di.RecentsDependencies
-import com.android.quickstep.recents.di.inject
+import com.android.quickstep.recents.di.get
 import com.android.quickstep.task.thumbnail.TaskThumbnailUiState.BackgroundOnly
 import com.android.quickstep.task.thumbnail.TaskThumbnailUiState.LiveTile
 import com.android.quickstep.task.thumbnail.TaskThumbnailUiState.Snapshot
 import com.android.quickstep.task.thumbnail.TaskThumbnailUiState.SnapshotSplash
 import com.android.quickstep.task.thumbnail.TaskThumbnailUiState.Uninitialized
 import com.android.quickstep.task.viewmodel.TaskThumbnailViewModel
-import com.android.quickstep.util.TaskCornerRadius
 import com.android.quickstep.views.FixedSizeImageView
-import com.android.systemui.shared.system.QuickStepContract
-import kotlin.math.abs
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -51,9 +47,8 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 
 class TaskThumbnailView : ConstraintLayout, ViewPool.Reusable {
-
-    private val viewData: TaskThumbnailViewData by RecentsDependencies.inject(this)
-    private val viewModel: TaskThumbnailViewModel by RecentsDependencies.inject(this)
+    private lateinit var viewData: TaskThumbnailViewData
+    private lateinit var viewModel: TaskThumbnailViewModel
 
     private lateinit var viewAttachedScope: CoroutineScope
 
@@ -64,17 +59,14 @@ class TaskThumbnailView : ConstraintLayout, ViewPool.Reusable {
     private val splashIcon: FixedSizeImageView by lazy { findViewById(R.id.splash_icon) }
 
     private var uiState: TaskThumbnailUiState = Uninitialized
-    private var inheritedScale: Float = 1f
 
-    private val _measuredBounds = Rect()
-    private val measuredBounds: Rect
-        get() {
-            _measuredBounds.set(0, 0, measuredWidth, measuredHeight)
-            return _measuredBounds
+    private val bounds = Rect()
+
+    var cornerRadius: Float = 0f
+        set(value) {
+            field = value
+            invalidateOutline()
         }
-
-    private var overviewCornerRadius: Float = TaskCornerRadius.get(context)
-    private var fullscreenCornerRadius: Float = QuickStepContract.getWindowCornerRadius(context)
 
     constructor(context: Context) : super(context)
 
@@ -90,8 +82,12 @@ class TaskThumbnailView : ConstraintLayout, ViewPool.Reusable {
         super.onAttachedToWindow()
         viewAttachedScope =
             CoroutineScope(SupervisorJob() + Dispatchers.Main + CoroutineName("TaskThumbnailView"))
+        viewData = RecentsDependencies.get(this)
+        updateViewDataValues()
+        viewModel = RecentsDependencies.get(this)
         viewModel.uiState
             .onEach { viewModelUiState ->
+                Log.d(TAG, "viewModelUiState changed from: $uiState to: $viewModelUiState")
                 uiState = viewModelUiState
                 resetViews()
                 when (viewModelUiState) {
@@ -111,19 +107,12 @@ class TaskThumbnailView : ConstraintLayout, ViewPool.Reusable {
                 splashIcon.alpha = splashAlpha
             }
             .launchIn(viewAttachedScope)
-        viewModel.cornerRadiusProgress.onEach { invalidateOutline() }.launchIn(viewAttachedScope)
-        viewModel.inheritedScale
-            .onEach { viewModelInheritedScale ->
-                inheritedScale = viewModelInheritedScale
-                invalidateOutline()
-            }
-            .launchIn(viewAttachedScope)
 
         clipToOutline = true
         outlineProvider =
             object : ViewOutlineProvider() {
                 override fun getOutline(view: View, outline: Outline) {
-                    outline.setRoundRect(measuredBounds, getCurrentCornerRadius())
+                    outline.setRoundRect(bounds, cornerRadius)
                 }
             }
     }
@@ -140,9 +129,13 @@ class TaskThumbnailView : ConstraintLayout, ViewPool.Reusable {
     override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
         super.onLayout(changed, left, top, right, bottom)
         if (changed) {
-            viewData.width.value = abs(right - left)
-            viewData.height.value = abs(bottom - top)
+            updateViewDataValues()
         }
+    }
+
+    private fun updateViewDataValues() {
+        viewData.width.value = width
+        viewData.height.value = height
     }
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
@@ -150,6 +143,8 @@ class TaskThumbnailView : ConstraintLayout, ViewPool.Reusable {
         if (uiState is SnapshotSplash) {
             setImageMatrix()
         }
+        bounds.set(0, 0, w, h)
+        invalidateOutline()
     }
 
     override fun setScaleX(scaleX: Float) {
@@ -162,14 +157,6 @@ class TaskThumbnailView : ConstraintLayout, ViewPool.Reusable {
         super.setScaleY(scaleY)
         // Splash icon should ignore scale on TTV
         splashIcon.scaleY = 1 / scaleY
-    }
-
-    override fun onConfigurationChanged(newConfig: Configuration?) {
-        super.onConfigurationChanged(newConfig)
-
-        overviewCornerRadius = TaskCornerRadius.get(context)
-        fullscreenCornerRadius = QuickStepContract.getWindowCornerRadius(context)
-        invalidateOutline()
     }
 
     private fun resetViews() {
@@ -207,10 +194,7 @@ class TaskThumbnailView : ConstraintLayout, ViewPool.Reusable {
         thumbnailView.imageMatrix = viewModel.getThumbnailPositionState(width, height, isLayoutRtl)
     }
 
-    private fun getCurrentCornerRadius() =
-        Utilities.mapRange(
-            viewModel.cornerRadiusProgress.value,
-            overviewCornerRadius,
-            fullscreenCornerRadius
-        ) / inheritedScale
+    private companion object {
+        const val TAG = "TaskThumbnailView"
+    }
 }

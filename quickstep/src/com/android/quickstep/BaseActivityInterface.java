@@ -36,7 +36,6 @@ import android.animation.AnimatorSet;
 import android.view.MotionEvent;
 
 import androidx.annotation.Nullable;
-import androidx.annotation.UiThread;
 
 import com.android.launcher3.anim.AnimatorPlaybackController;
 import com.android.launcher3.anim.PendingAnimation;
@@ -62,17 +61,14 @@ import java.util.function.Consumer;
 public abstract class BaseActivityInterface<STATE_TYPE extends BaseState<STATE_TYPE>,
         ACTIVITY_TYPE extends StatefulActivity<STATE_TYPE> & RecentsViewContainer> extends
         BaseContainerInterface<STATE_TYPE, ACTIVITY_TYPE> {
-    private final STATE_TYPE mBackgroundState;
 
     private STATE_TYPE mTargetState;
 
-    @Nullable private Runnable mOnInitBackgroundStateUICallback = null;
-
     protected BaseActivityInterface(boolean rotationSupportedByActivity,
             STATE_TYPE overviewState, STATE_TYPE backgroundState) {
+        super(backgroundState);
         this.rotationSupportedByActivity = rotationSupportedByActivity;
         mTargetState = overviewState;
-        mBackgroundState = backgroundState;
     }
 
     /**
@@ -124,13 +120,6 @@ public abstract class BaseActivityInterface<STATE_TYPE extends BaseState<STATE_T
         return activity != null && activity.isStarted();
     }
 
-    @UiThread
-    @Nullable
-    public abstract <T extends RecentsView> T getVisibleRecentsView();
-
-    @UiThread
-    public abstract boolean switchToRecentsIfVisible(Animator.AnimatorListener animatorListener);
-
     public boolean deferStartingActivity(RecentsAnimationDeviceState deviceState, MotionEvent ev) {
         TaskbarUIController controller = getTaskbarController();
         boolean isEventOverBubbleBarStashHandle =
@@ -163,49 +152,6 @@ public abstract class BaseActivityInterface<STATE_TYPE extends BaseState<STATE_T
         recentsView.switchToScreenshot(thumbnailDatas, runnable);
     }
 
-
-    protected void runOnInitBackgroundStateUI(Runnable callback) {
-        ACTIVITY_TYPE activity = getCreatedContainer();
-        if (activity != null && activity.getStateManager().getState() == mBackgroundState) {
-            callback.run();
-            onInitBackgroundStateUI();
-            return;
-        }
-        mOnInitBackgroundStateUICallback = callback;
-    }
-
-    private void onInitBackgroundStateUI() {
-        if (mOnInitBackgroundStateUICallback != null) {
-            mOnInitBackgroundStateUICallback.run();
-            mOnInitBackgroundStateUICallback = null;
-        }
-    }
-
-    public interface AnimationFactory {
-
-        void createActivityInterface(long transitionLength);
-
-        /**
-         * @param attached Whether to show RecentsView alongside the app window. If false, recents
-         *                 will be hidden by some property we can animate, e.g. alpha.
-         * @param animate Whether to animate recents to/from its new attached state.
-         * @param updateRunningTaskAlpha Whether to update the running task's attached alpha
-         */
-        default void setRecentsAttachedToAppWindow(
-                boolean attached, boolean animate, boolean updateRunningTaskAlpha) { }
-
-        default boolean isRecentsAttachedToAppWindow() {
-            return false;
-        }
-
-        default boolean hasRecentsEverAttachedToAppWindow() {
-            return false;
-        }
-
-        /** Called when the gesture ends and we know what state it is going towards */
-        default void setEndTarget(GestureState.GestureEndTarget endTarget) { }
-    }
-
     class DefaultAnimationFactory implements AnimationFactory {
 
         protected final ACTIVITY_TYPE mActivity;
@@ -234,7 +180,7 @@ public abstract class BaseActivityInterface<STATE_TYPE extends BaseState<STATE_T
         }
 
         @Override
-        public void createActivityInterface(long transitionLength) {
+        public void createContainerInterface(long transitionLength) {
             PendingAnimation pa = new PendingAnimation(transitionLength * 2);
             createBackgroundToOverviewAnim(mActivity, pa);
             AnimatorPlaybackController controller = pa.createPlaybackController();

@@ -53,6 +53,7 @@ import com.android.quickstep.util.TaskViewSimulator;
 import com.android.quickstep.views.FloatingWidgetView;
 import com.android.quickstep.views.RecentsView;
 import com.android.quickstep.views.TaskView;
+import com.android.systemui.animation.TransitionAnimator;
 import com.android.systemui.shared.system.InputConsumerController;
 
 import java.util.Collections;
@@ -68,7 +69,7 @@ public class LauncherSwipeHandlerV2 extends AbsSwipeUpHandler<
             TaskAnimationManager taskAnimationManager, GestureState gestureState, long touchTimeMs,
             boolean continuingLastGesture, InputConsumerController inputConsumer) {
         super(context, deviceState, taskAnimationManager, gestureState, touchTimeMs,
-                continuingLastGesture, inputConsumer);
+                continuingLastGesture, inputConsumer, null);
     }
 
 
@@ -107,7 +108,9 @@ public class LauncherSwipeHandlerV2 extends AbsSwipeUpHandler<
 
         mContainer.getRootView().setForceHideBackArrow(true);
 
-        if (!canUseWorkspaceView || appCanEnterPip || mIsSwipeForSplit) {
+        boolean handOffAnimation = TransitionAnimator.Companion.longLivedReturnAnimationsEnabled()
+                && mHandOffAnimationToHome;
+        if (handOffAnimation || !canUseWorkspaceView || appCanEnterPip || mIsSwipeForSplit) {
             return new LauncherHomeAnimationFactory() {
 
                 @Nullable

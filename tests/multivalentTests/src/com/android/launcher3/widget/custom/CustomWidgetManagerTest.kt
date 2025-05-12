@@ -23,19 +23,22 @@ import android.platform.test.flag.junit.SetFlagsRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.SmallTest
 import androidx.test.platform.app.InstrumentationRegistry.getInstrumentation
+import com.android.launcher3.util.DaggerSingletonTracker
 import com.android.launcher3.util.LauncherModelHelper.SandboxModelContext
 import com.android.launcher3.util.PluginManagerWrapper
+import com.android.launcher3.util.SafeCloseable
 import com.android.launcher3.util.WidgetUtils
 import com.android.launcher3.widget.LauncherAppWidgetHostView
 import com.android.launcher3.widget.LauncherAppWidgetProviderInfo
 import com.android.systemui.plugins.CustomWidgetPlugin
-import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.mockito.ArgumentCaptor
+import org.mockito.Captor
 import org.mockito.Mock
 import org.mockito.Mockito.mock
 import org.mockito.MockitoAnnotations
@@ -57,17 +60,14 @@ class CustomWidgetManagerTest {
 
     @Mock private lateinit var pluginManager: PluginManagerWrapper
     @Mock private lateinit var mockAppWidgetManager: AppWidgetManager
+    @Mock private lateinit var tracker: DaggerSingletonTracker
+
+    @Captor private lateinit var closableCaptor: ArgumentCaptor<SafeCloseable>
 
     @Before
     fun setUp() {
         MockitoAnnotations.initMocks(this)
-        context.putObject(PluginManagerWrapper.INSTANCE, pluginManager)
-        underTest = CustomWidgetManager(context, mockAppWidgetManager)
-    }
-
-    @After
-    fun tearDown() {
-        underTest.close()
+        underTest = CustomWidgetManager(context, pluginManager, mockAppWidgetManager, tracker)
     }
 
     @Test
@@ -78,7 +78,8 @@ class CustomWidgetManagerTest {
 
     @Test
     fun close_widget_manager_should_remove_plugin_listener() {
-        underTest.close()
+        verify(tracker).addCloseable(closableCaptor.capture())
+        closableCaptor.allValues.forEach(SafeCloseable::close)
         verify(pluginManager).removePluginListener(same(underTest))
     }
 

@@ -26,25 +26,34 @@ import android.view.Display;
 
 import androidx.annotation.WorkerThread;
 
-import com.android.launcher3.util.MainThreadInitializedObject;
+import com.android.launcher3.dagger.ApplicationContext;
+import com.android.launcher3.dagger.LauncherAppComponent;
+import com.android.launcher3.dagger.LauncherAppSingleton;
+import com.android.launcher3.util.DaggerSingletonObject;
+import com.android.launcher3.util.DaggerSingletonTracker;
 import com.android.launcher3.util.SafeCloseable;
+
+import javax.inject.Inject;
 
 /**
  * Utility class to track refresh rate of the current device
  */
+@LauncherAppSingleton
 public class RefreshRateTracker implements DisplayListener, SafeCloseable {
 
-    private static final MainThreadInitializedObject<RefreshRateTracker> INSTANCE =
-            new MainThreadInitializedObject<>(RefreshRateTracker::new);
+    private static final DaggerSingletonObject<RefreshRateTracker> INSTANCE =
+            new DaggerSingletonObject<>(LauncherAppComponent::getRefreshRateTracker);
 
     private int mSingleFrameMs = 1;
 
     private final DisplayManager mDM;
 
-    private RefreshRateTracker(Context context) {
+    @Inject
+    RefreshRateTracker(@ApplicationContext Context context, DaggerSingletonTracker tracker) {
         mDM = context.getSystemService(DisplayManager.class);
         updateSingleFrameMs();
         mDM.registerDisplayListener(this, UI_HELPER_EXECUTOR.getHandler());
+        tracker.addCloseable(this);
     }
 
     /**

@@ -29,7 +29,7 @@ class AppWidgetsRestoredReceiverTest {
 
     @Before
     fun setup() {
-        launcherPrefs = LauncherPrefs(DeviceHelpers.context)
+        launcherPrefs = LauncherPrefs.get(DeviceHelpers.context)
         receiverUnderTest = AppWidgetsRestoredReceiver()
     }
 

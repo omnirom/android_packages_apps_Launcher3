@@ -420,6 +420,36 @@
             </intent-filter>
         </activity>
 
+        <activity-alias android:name="AppIconActivity"
+            android:label="Application Icon"
+            android:exported="true"
+            android:targetActivity="com.android.launcher3.testcomponent.BaseTestingActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+        </activity-alias>
+        <activity-alias android:name="DiffIconActivity"
+            android:label="Different icon"
+            android:exported="true"
+            android:icon="@drawable/test_different_activity_icon"
+            android:targetActivity="com.android.launcher3.testcomponent.BaseTestingActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+        </activity-alias>
+        <activity-alias android:name="WrongIconActivity"
+            android:label="Wrong icon"
+            android:exported="true"
+            android:icon="@drawable/test_wrong_activity_icon"
+            android:targetActivity="com.android.launcher3.testcomponent.BaseTestingActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+        </activity-alias>
+
         <!-- Disable eager initialization of Jetpack libraries. See bug 197780098. -->
         <provider
             android:name="androidx.startup.InitializationProvider"

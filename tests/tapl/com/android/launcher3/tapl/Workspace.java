@@ -25,8 +25,6 @@ import static android.view.accessibility.AccessibilityEvent.TYPE_VIEW_SCROLLED;
 import static com.android.launcher3.testing.shared.TestProtocol.ALL_APPS_STATE_ORDINAL;
 import static com.android.launcher3.testing.shared.TestProtocol.NORMAL_STATE_ORDINAL;
 import static com.android.launcher3.testing.shared.TestProtocol.OVERVIEW_STATE_ORDINAL;
-import static com.android.launcher3.testing.shared.TestProtocol.TEST_DRAG_APP_ICON_TO_MULTIPLE_WORKSPACES_FAILURE;
-import static com.android.launcher3.testing.shared.TestProtocol.UIOBJECT_STALE_ELEMENT;
 
 import static junit.framework.TestCase.assertNotNull;
 import static junit.framework.TestCase.assertTrue;
@@ -34,7 +32,6 @@ import static junit.framework.TestCase.assertTrue;
 import android.graphics.Point;
 import android.graphics.Rect;
 import android.os.SystemClock;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 
@@ -371,14 +368,9 @@ public final class Workspace extends Home {
                 .collect(
                         Collectors.toMap(
                                 /* keyMapper= */ uiObject21 -> {
-                                    Log.d(UIOBJECT_STALE_ELEMENT, "keyText: "
-                                            + uiObject21.getText());
                                     return uiObject21.getText();
                                 },
                                 /* valueMapper= */ uiObject2 -> {
-                                    Log.d(UIOBJECT_STALE_ELEMENT, uiObject2.getText() +
-                                            " dispId" + uiObject2.getDisplayId() +
-                                            " parent" + uiObject2.getParent());
                                     return uiObject2.getVisibleCenter();
                                 },
                                 /* mergeFunction= */ (p1, p2) -> p1.x < p2.x ? p1 : p2));
@@ -646,8 +638,6 @@ public final class Workspace extends Home {
         try (LauncherInstrumentation.Closable ignored = launcher.addContextLayer(
                 "want to drag icon to workspace")) {
             final long downTime = SystemClock.uptimeMillis();
-            Log.d(TEST_DRAG_APP_ICON_TO_MULTIPLE_WORKSPACES_FAILURE,
-                    "Workspace.dragIconToWorkspace: starting drag | downtime: " + downTime);
             Point dragStart = launchable.startDrag(
                     downTime,
                     expectLongClickEvents,

@@ -22,8 +22,6 @@ import android.util.Log;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 
-import androidx.appcompat.content.res.AppCompatResources;
-
 import com.android.launcher3.R;
 import com.android.launcher3.Utilities;
 import com.android.launcher3.icons.GraphicsUtils;
@@ -91,9 +89,8 @@ public class TutorialStepIndicator extends LinearLayout {
         int inactiveStepIndicatorColor = GraphicsUtils.getAttrColor(
                 getContext(), android.R.attr.textColorSecondaryInverse);
         for (int i = 0; i < mTotalSteps; i++) {
-            Drawable pageIndicatorPillDrawable = AppCompatResources.getDrawable(
-                    getContext(), R.drawable.tutorial_step_indicator_pill);
-
+            Drawable pageIndicatorPillDrawable =
+                    getContext().getDrawable(R.drawable.tutorial_step_indicator_pill);
             if (i >= getChildCount()) {
                 ImageView pageIndicatorPill = new ImageView(getContext());
                 pageIndicatorPill.setImageDrawable(pageIndicatorPillDrawable);

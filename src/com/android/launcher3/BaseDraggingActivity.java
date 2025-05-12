@@ -82,8 +82,12 @@ public abstract class BaseDraggingActivity extends BaseActivity
 
     private void updateTheme() {
         if (mThemeRes != Themes.getActivityThemeRes(this)) {
-            recreate();
+            recreateToUpdateTheme();
         }
+    }
+
+    protected void recreateToUpdateTheme() {
+        recreate();
     }
 
     @Override

@@ -16,14 +16,11 @@
 package com.android.launcher3.dragging;
 
 import static com.android.launcher3.testing.shared.TestProtocol.ICON_MISSING;
-import static com.android.launcher3.testing.shared.TestProtocol.UIOBJECT_STALE_ELEMENT;
 import static com.android.launcher3.util.TestConstants.AppNames.DUMMY_APP_NAME;
 import static com.android.launcher3.util.TestConstants.AppNames.GMAIL_APP_NAME;
 import static com.android.launcher3.util.TestConstants.AppNames.MAPS_APP_NAME;
 import static com.android.launcher3.util.TestConstants.AppNames.STORE_APP_NAME;
 import static com.android.launcher3.util.TestConstants.AppNames.TEST_APP_NAME;
-import static com.android.launcher3.util.rule.TestStabilityRule.LOCAL;
-import static com.android.launcher3.util.rule.TestStabilityRule.PLATFORM_POSTSUBMIT;
 
 import static com.google.common.truth.Truth.assertThat;
 
@@ -40,7 +37,6 @@ import com.android.launcher3.ui.PortraitLandscapeRunner.PortraitLandscape;
 import com.android.launcher3.util.TestUtil;
 import com.android.launcher3.util.Wait;
 import com.android.launcher3.util.rule.ScreenRecordRule;
-import com.android.launcher3.util.rule.TestStabilityRule;
 
 import org.junit.Test;
 
@@ -73,8 +69,7 @@ public class TaplUninstallRemoveTest extends AbstractLauncherUiTest<Launcher> {
     private void verifyAppUninstalledFromAllApps(Workspace workspace, String appName) {
         final HomeAllApps allApps = workspace.switchToAllApps();
         Wait.atMost(appName + " app was found on all apps after being uninstalled",
-                () -> allApps.tryGetAppIcon(appName) == null,
-                DEFAULT_UI_TIMEOUT, mLauncher);
+                () -> allApps.tryGetAppIcon(appName) == null, mLauncher);
     }
 
     private void installDummyAppAndWaitForUIUpdate() throws IOException {
@@ -150,7 +145,6 @@ public class TaplUninstallRemoveTest extends AbstractLauncherUiTest<Launcher> {
                     0, Math.min(gridPositions.length, appNameCandidates.length));
 
             for (int i = 0; i < appNames.length; ++i) {
-                Log.d(UIOBJECT_STALE_ELEMENT, "creatingShortcut for: " + appNames[i]);
                 createShortcutIfNotExist(appNames[i], gridPositions[i]);
             }
 

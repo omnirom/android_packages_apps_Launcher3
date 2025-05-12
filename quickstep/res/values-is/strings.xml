@@ -22,6 +22,7 @@
     <string name="recent_task_option_pin" msgid="7929860679018978258">"Festa"</string>
     <string name="recent_task_option_freeform" msgid="48863056265284071">"Frjálst snið"</string>
     <string name="recent_task_option_desktop" msgid="8280879717125435668">"Tölva"</string>
+    <string name="recent_task_option_external_display" msgid="4533840664313389484">"Færa í annað tæki"</string>
     <string name="recent_task_desktop" msgid="8081113562549637334">"Tölva"</string>
     <string name="recents_empty_message" msgid="7040467240571714191">"Engin nýleg atriði"</string>
     <string name="accessibility_app_usage_settings" msgid="6312864233673544149">"Notkunarstillingar forrits"</string>
@@ -51,8 +52,8 @@
     <string name="back_gesture_feedback_swipe_too_far_from_edge" msgid="4175100312909721217">"Passaðu að strjúka frá jaðri hægri eða vinstri brúnar"</string>
     <string name="back_gesture_feedback_cancelled" msgid="762621530959111290">"Passaðu að strjúka frá jaðri hægri eða vinstri brúnar að miðju skjásins og sleppa síðan"</string>
     <string name="back_gesture_feedback_complete_with_overview_follow_up" msgid="9176400654037014471">"Þú lærðir að strjúka frá hægri til að bakka. Næst skaltu læra hvernig þú skiptir á milli forrita."</string>
-    <string name="back_gesture_feedback_complete_with_follow_up" msgid="8653374779579748392">"Þú laukst við að kynna þér bendinguna „til baka“. Næst skaltu læra hvernig þú skiptir á milli forrita."</string>
-    <string name="back_gesture_feedback_complete_without_follow_up" msgid="197189945858268342">"Þú laukst við að kynna þér bendinguna „til baka“"</string>
+    <string name="back_gesture_feedback_complete_with_follow_up" msgid="8653374779579748392">"Þú laukst við að kynna þér bendinguna „Til baka“. Næst skaltu læra hvernig þú skiptir á milli forrita."</string>
+    <string name="back_gesture_feedback_complete_without_follow_up" msgid="197189945858268342">"Þú laukst við að kynna þér bendinguna „Til baka“"</string>
     <string name="back_gesture_feedback_swipe_in_nav_bar" msgid="9157480023651452969">"Passaðu að strjúka ekki of nálægt neðri brún skjásins"</string>
     <string name="back_gesture_tutorial_confirm_subtitle" msgid="5181305411668713250">"Til að breyta næmi til baka-bendingar ferðu í stillingar"</string>
     <string name="back_gesture_intro_title" msgid="19551256430224428">"Strjúktu til að fara til baka"</string>
@@ -154,4 +155,5 @@
     <string name="bubble_bar_action_dismiss_all" msgid="3290722022983403060">"Hunsa allt"</string>
     <string name="bubble_bar_accessibility_announce_expand" msgid="1503192695527477102">"stækka <xliff:g id="BUBBLE_DESCRIPTION">%1$s</xliff:g>"</string>
     <string name="bubble_bar_accessibility_announce_collapse" msgid="928284600086798791">"minnka <xliff:g id="BUBBLE_DESCRIPTION">%1$s</xliff:g>"</string>
+    <string name="search_gesture_feature_title" msgid="1294044108313175306">"Circle to Search"</string>
 </resources>

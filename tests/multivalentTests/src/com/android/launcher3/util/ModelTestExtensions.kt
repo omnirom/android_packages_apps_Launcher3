@@ -1,6 +1,7 @@
 package com.android.launcher3.util
 
 import android.content.ContentValues
+import com.android.launcher3.Flags
 import com.android.launcher3.LauncherModel
 import com.android.launcher3.LauncherSettings.Favorites
 import com.android.launcher3.LauncherSettings.Favorites.APPWIDGET_ID
@@ -30,7 +31,8 @@ object ModelTestExtensions {
         loadModelSync()
         TestUtil.runOnExecutorSync(Executors.MODEL_EXECUTOR) {
             modelDbController.run {
-                tryMigrateDB(null /* restoreEventLogger */)
+                if (Flags.gridMigrationRefactor()) attemptMigrateDb(null /* restoreEventLogger */)
+                else tryMigrateDB(null /* restoreEventLogger */)
                 createEmptyDB()
                 clearEmptyDbFlag()
             }
@@ -67,12 +69,12 @@ object ModelTestExtensions {
         tableName: String = Favorites.TABLE_NAME,
         appWidgetId: Int = -1,
         appWidgetSource: Int = -1,
-        appWidgetProvider: String? = null
+        appWidgetProvider: String? = null,
     ) {
         loadModelSync()
         TestUtil.runOnExecutorSync(Executors.MODEL_EXECUTOR) {
             val controller: ModelDbController = modelDbController
-            controller.tryMigrateDB(null /* restoreEventLogger */)
+            controller.attemptMigrateDb(null /* restoreEventLogger */)
             modelDbController.newTransaction().use { transaction ->
                 val values =
                     ContentValues().apply {

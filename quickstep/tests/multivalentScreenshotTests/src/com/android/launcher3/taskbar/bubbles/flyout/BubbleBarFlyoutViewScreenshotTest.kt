@@ -18,6 +18,7 @@ package com.android.launcher3.taskbar.bubbles.flyout
 
 import android.content.Context
 import android.graphics.Color
+import android.graphics.PointF
 import android.graphics.drawable.ColorDrawable
 import androidx.test.core.app.ApplicationProvider
 import com.google.android.apps.nexuslauncher.imagecomparison.goldenpathmanager.ViewScreenshotGoldenPathManager
@@ -59,15 +60,12 @@ class BubbleBarFlyoutViewScreenshotTest(emulationSpec: DeviceEmulationSpec) {
     fun bubbleBarFlyoutView_noAvatar_onRight() {
         screenshotRule.screenshotTest("bubbleBarFlyoutView_noAvatar_onRight") { activity ->
             activity.actionBar?.hide()
-            val flyout = BubbleBarFlyoutView(context, onLeft = false)
-            flyout.setData(
-                BubbleBarFlyoutMessage(
-                    senderAvatar = null,
-                    senderName = "sender",
-                    message = "message",
-                    isGroupChat = false,
-                )
-            )
+            val flyout =
+                BubbleBarFlyoutView(context, FakeBubbleBarFlyoutPositioner(isOnLeft = false))
+            flyout.showFromCollapsed(
+                BubbleBarFlyoutMessage(icon = null, title = "sender", message = "message")
+            ) {}
+            flyout.updateExpansionProgress(1f)
             flyout
         }
     }
@@ -76,15 +74,12 @@ class BubbleBarFlyoutViewScreenshotTest(emulationSpec: DeviceEmulationSpec) {
     fun bubbleBarFlyoutView_noAvatar_onLeft() {
         screenshotRule.screenshotTest("bubbleBarFlyoutView_noAvatar_onLeft") { activity ->
             activity.actionBar?.hide()
-            val flyout = BubbleBarFlyoutView(context, onLeft = true)
-            flyout.setData(
-                BubbleBarFlyoutMessage(
-                    senderAvatar = null,
-                    senderName = "sender",
-                    message = "message",
-                    isGroupChat = false,
-                )
-            )
+            val flyout =
+                BubbleBarFlyoutView(context, FakeBubbleBarFlyoutPositioner(isOnLeft = true))
+            flyout.showFromCollapsed(
+                BubbleBarFlyoutMessage(icon = null, title = "sender", message = "message")
+            ) {}
+            flyout.updateExpansionProgress(1f)
             flyout
         }
     }
@@ -93,15 +88,16 @@ class BubbleBarFlyoutViewScreenshotTest(emulationSpec: DeviceEmulationSpec) {
     fun bubbleBarFlyoutView_noAvatar_longMessage() {
         screenshotRule.screenshotTest("bubbleBarFlyoutView_noAvatar_longMessage") { activity ->
             activity.actionBar?.hide()
-            val flyout = BubbleBarFlyoutView(context, onLeft = true)
-            flyout.setData(
+            val flyout =
+                BubbleBarFlyoutView(context, FakeBubbleBarFlyoutPositioner(isOnLeft = true))
+            flyout.showFromCollapsed(
                 BubbleBarFlyoutMessage(
-                    senderAvatar = null,
-                    senderName = "sender",
+                    icon = null,
+                    title = "sender",
                     message = "really, really, really, really, really long message. like really.",
-                    isGroupChat = false,
                 )
-            )
+            ) {}
+            flyout.updateExpansionProgress(1f)
             flyout
         }
     }
@@ -110,15 +106,16 @@ class BubbleBarFlyoutViewScreenshotTest(emulationSpec: DeviceEmulationSpec) {
     fun bubbleBarFlyoutView_avatar_onRight() {
         screenshotRule.screenshotTest("bubbleBarFlyoutView_avatar_onRight") { activity ->
             activity.actionBar?.hide()
-            val flyout = BubbleBarFlyoutView(context, onLeft = false)
-            flyout.setData(
+            val flyout =
+                BubbleBarFlyoutView(context, FakeBubbleBarFlyoutPositioner(isOnLeft = false))
+            flyout.showFromCollapsed(
                 BubbleBarFlyoutMessage(
-                    senderAvatar = ColorDrawable(Color.RED),
-                    senderName = "sender",
+                    icon = ColorDrawable(Color.RED),
+                    title = "sender",
                     message = "message",
-                    isGroupChat = true,
                 )
-            )
+            ) {}
+            flyout.updateExpansionProgress(1f)
             flyout
         }
     }
@@ -127,15 +124,16 @@ class BubbleBarFlyoutViewScreenshotTest(emulationSpec: DeviceEmulationSpec) {
     fun bubbleBarFlyoutView_avatar_onLeft() {
         screenshotRule.screenshotTest("bubbleBarFlyoutView_avatar_onLeft") { activity ->
             activity.actionBar?.hide()
-            val flyout = BubbleBarFlyoutView(context, onLeft = true)
-            flyout.setData(
+            val flyout =
+                BubbleBarFlyoutView(context, FakeBubbleBarFlyoutPositioner(isOnLeft = true))
+            flyout.showFromCollapsed(
                 BubbleBarFlyoutMessage(
-                    senderAvatar = ColorDrawable(Color.RED),
-                    senderName = "sender",
+                    icon = ColorDrawable(Color.RED),
+                    title = "sender",
                     message = "message",
-                    isGroupChat = true,
                 )
-            )
+            ) {}
+            flyout.updateExpansionProgress(1f)
             flyout
         }
     }
@@ -144,16 +142,112 @@ class BubbleBarFlyoutViewScreenshotTest(emulationSpec: DeviceEmulationSpec) {
     fun bubbleBarFlyoutView_avatar_longMessage() {
         screenshotRule.screenshotTest("bubbleBarFlyoutView_avatar_longMessage") { activity ->
             activity.actionBar?.hide()
-            val flyout = BubbleBarFlyoutView(context, onLeft = true)
-            flyout.setData(
+            val flyout =
+                BubbleBarFlyoutView(context, FakeBubbleBarFlyoutPositioner(isOnLeft = true))
+            flyout.showFromCollapsed(
                 BubbleBarFlyoutMessage(
-                    senderAvatar = ColorDrawable(Color.RED),
-                    senderName = "sender",
+                    icon = ColorDrawable(Color.RED),
+                    title = "sender",
                     message = "really, really, really, really, really long message. like really.",
-                    isGroupChat = true,
                 )
-            )
+            ) {}
+            flyout.updateExpansionProgress(1f)
             flyout
         }
+    }
+
+    @Test
+    fun bubbleBarFlyoutView_collapsed_onLeft() {
+        screenshotRule.screenshotTest("bubbleBarFlyoutView_collapsed_onLeft") { activity ->
+            activity.actionBar?.hide()
+            val flyout =
+                BubbleBarFlyoutView(context, FakeBubbleBarFlyoutPositioner(isOnLeft = true))
+            flyout.showFromCollapsed(
+                BubbleBarFlyoutMessage(
+                    icon = ColorDrawable(Color.RED),
+                    title = "sender",
+                    message = "collapsed on left",
+                )
+            ) {}
+            flyout.updateExpansionProgress(0f)
+            flyout
+        }
+    }
+
+    @Test
+    fun bubbleBarFlyoutView_collapsed_onRight() {
+        screenshotRule.screenshotTest("bubbleBarFlyoutView_collapsed_onRight") { activity ->
+            activity.actionBar?.hide()
+            val flyout =
+                BubbleBarFlyoutView(context, FakeBubbleBarFlyoutPositioner(isOnLeft = false))
+            flyout.showFromCollapsed(
+                BubbleBarFlyoutMessage(
+                    icon = ColorDrawable(Color.RED),
+                    title = "sender",
+                    message = "collapsed on right",
+                )
+            ) {}
+            flyout.updateExpansionProgress(0f)
+            flyout
+        }
+    }
+
+    @Test
+    fun bubbleBarFlyoutView_90p_onLeft() {
+        screenshotRule.screenshotTest("bubbleBarFlyoutView_90p_onLeft") { activity ->
+            activity.actionBar?.hide()
+            val flyout =
+                BubbleBarFlyoutView(
+                    context,
+                    FakeBubbleBarFlyoutPositioner(
+                        isOnLeft = true,
+                        distanceToCollapsedPosition = PointF(100f, 100f),
+                    ),
+                )
+            flyout.showFromCollapsed(
+                BubbleBarFlyoutMessage(
+                    icon = ColorDrawable(Color.RED),
+                    title = "sender",
+                    message = "expanded 90% on left",
+                )
+            ) {}
+            flyout.updateExpansionProgress(0.9f)
+            flyout
+        }
+    }
+
+    @Test
+    fun bubbleBarFlyoutView_80p_onRight() {
+        screenshotRule.screenshotTest("bubbleBarFlyoutView_80p_onRight") { activity ->
+            activity.actionBar?.hide()
+            val flyout =
+                BubbleBarFlyoutView(
+                    context,
+                    FakeBubbleBarFlyoutPositioner(
+                        isOnLeft = false,
+                        distanceToCollapsedPosition = PointF(200f, 100f),
+                    ),
+                )
+            flyout.showFromCollapsed(
+                BubbleBarFlyoutMessage(
+                    icon = ColorDrawable(Color.RED),
+                    title = "sender",
+                    message = "expanded 80% on right",
+                )
+            ) {}
+            flyout.updateExpansionProgress(0.8f)
+            flyout
+        }
+    }
+
+    private class FakeBubbleBarFlyoutPositioner(
+        override val isOnLeft: Boolean,
+        override val distanceToCollapsedPosition: PointF = PointF(0f, 0f),
+    ) : BubbleBarFlyoutPositioner {
+        override val targetTy = 0f
+        override val collapsedSize = 30f
+        override val collapsedColor = Color.BLUE
+        override val collapsedElevation = 1f
+        override val distanceToRevealTriangle = 10f
     }
 }

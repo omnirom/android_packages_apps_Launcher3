@@ -32,6 +32,7 @@
     <string name="split_app_info_accessibility" msgid="5475288491241414932">"Informacije o aplikaciji %1$s"</string>
     <string name="split_app_usage_settings" msgid="7214375263347964093">"Postavke upotrebe za %1$s"</string>
     <string name="new_window_option_taskbar" msgid="6448780542727767211">"Novi prozor"</string>
+    <string name="manage_windows_option_taskbar" msgid="2294109489960654212">"Upravljanje prozorima"</string>
     <string name="save_app_pair" msgid="5647523853662686243">"Spremi par aplikacija"</string>
     <string name="app_pair_default_title" msgid="4045241727446873529">"<xliff:g id="APP1">%1$s</xliff:g> | <xliff:g id="APP2">%2$s</xliff:g>"</string>
     <string name="app_pair_unlaunchable_at_screen_size" msgid="3446551575502685376">"Taj par aplikacija nije podržan na ovom uređaju"</string>
@@ -67,8 +68,13 @@
     <string name="widgets_full_sheet_work_tab" msgid="3767150027110633765">"Posao"</string>
     <string name="widget_category_conversations" msgid="8894438636213590446">"Razgovori"</string>
     <string name="widget_category_note_taking" msgid="3469689394504266039">"Pisanje bilježaka"</string>
+    <string name="widget_cell_tap_to_show_add_button_label" msgid="4354194214317043581">"Prikaži gumb za dodavanje"</string>
+    <string name="widget_cell_tap_to_hide_add_button_label" msgid="6117805205101555997">"Sakrij gumb za dodavanje"</string>
     <string name="widget_add_button_label" msgid="2761267068711937179">"Dodaj"</string>
     <string name="widget_add_button_content_description" msgid="1810530016360039643">"Dodaj widget <xliff:g id="WIDGET_NAME">%1$s</xliff:g>"</string>
+    <string name="widgets_list_expand_button_label" msgid="7912016136574932622">"Prikaži sve"</string>
+    <string name="widgets_list_expand_button_content_description" msgid="4600513860973450888">"Prikaži sve widgete"</string>
+    <string name="widgets_list_expanded" msgid="7374857868788557730">"Prikazuju se svi widgeti"</string>
     <string name="reconfigurable_widget_education_tip" msgid="6336962690888067057">"Dodirnite da biste promijenili postavke widgeta"</string>
     <string name="widget_reconfigure_button_content_description" msgid="8811472721881205250">"Promijenite postavke widgeta"</string>
     <string name="all_apps_search_bar_hint" msgid="1390553134053255246">"Pretraži aplikacije"</string>
@@ -124,6 +130,8 @@
     <string name="msg_disabled_by_admin" msgid="6898038085516271325">"Onemogućio administrator"</string>
     <string name="allow_rotation_title" msgid="7222049633713050106">"Dopusti zakretanje početnog zaslona"</string>
     <string name="allow_rotation_desc" msgid="8662546029078692509">"Kada se telefon zakrene"</string>
+    <string name="landscape_mode_title" msgid="5138814555934843926">"Pejzažni način"</string>
+    <string name="landscape_mode_desc" msgid="7372569859592816793">"Postavljanje telefona u pejzažni način"</string>
     <string name="notification_dots_title" msgid="9062440428204120317">"Točke obavijesti"</string>
     <string name="notification_dots_desc_on" msgid="1679848116452218908">"Uključeno"</string>
     <string name="notification_dots_desc_off" msgid="1760796511504341095">"Isključeno"</string>
@@ -142,7 +150,8 @@
     <string name="app_installing_title" msgid="5864044122733792085">"Instaliranje aplikacije <xliff:g id="NAME">%1$s</xliff:g>, <xliff:g id="PROGRESS">%2$s</xliff:g> dovršeno"</string>
     <string name="app_downloading_title" msgid="8336702962104482644">"Preuzimanje aplikacije <xliff:g id="NAME">%1$s</xliff:g>, dovršeno <xliff:g id="PROGRESS">%2$s</xliff:g>"</string>
     <string name="app_waiting_download_title" msgid="7053938513995617849">"Čekanje na instaliranje aplikacije <xliff:g id="NAME">%1$s</xliff:g>"</string>
-    <string name="app_archived_title" msgid="7717956158562544081">"Aplikacija <xliff:g id="NAME">%1$s</xliff:g> je arhivirana. Dodirnite da biste je preuzeli i vratili."</string>
+    <string name="app_archived_title" msgid="4548283110222420708">"Aplikacija <xliff:g id="NAME">%1$s</xliff:g> je arhivirana."</string>
+    <string name="app_unarchiving_action" msgid="5736107006413929484">"preuzmi i vrati"</string>
     <string name="dialog_update_title" msgid="114234265740994042">"Aplikacija se treba ažurirati"</string>
     <string name="dialog_update_message" msgid="4176784553982226114">"Aplikacija ove ikone nije ažurirana. Možete ručno ažurirati da biste ponovo omogućili ovaj prečac ili uklonite ikonu."</string>
     <string name="dialog_update" msgid="2178028071796141234">"Ažuriraj"</string>
@@ -171,7 +180,7 @@
     <string name="action_decrease_width" msgid="1374549771083094654">"Smanjenje širine"</string>
     <string name="action_decrease_height" msgid="282377193880900022">"Smanjenje visine"</string>
     <string name="widget_resized" msgid="9130327887929620">"Širina widgeta promijenjena je na <xliff:g id="NUMBER_0">%1$s</xliff:g>, a visina na <xliff:g id="NUMBER_1">%2$s</xliff:g>"</string>
-    <string name="action_deep_shortcut" msgid="2864038805849372848">"Prečaci"</string>
+    <string name="action_deep_shortcut" msgid="4766835855579976045">"Izbornik prečaca"</string>
     <string name="action_dismiss_notification" msgid="5909461085055959187">"Odbaci"</string>
     <string name="accessibility_close" msgid="2277148124685870734">"Zatvori"</string>
     <string name="all_apps_personal_tab" msgid="4190252696685155002">"Osobno"</string>
@@ -187,6 +196,7 @@
     <string name="work_apps_paused_edu_accept" msgid="6377476824357318532">"Shvaćam"</string>
     <string name="work_apps_pause_btn_text" msgid="4669288269140620646">"Pauziraj poslovne aplikacije"</string>
     <string name="work_apps_enable_btn_text" msgid="1736198302467317371">"Ponovno pokreni"</string>
+    <string name="work_scheduler_button_content_description" msgid="917340740986764967">"Raspored za poslovne aplikacije"</string>
     <string name="developer_options_filter_hint" msgid="5896817443635989056">"Filtrirajte"</string>
     <string name="remote_action_failed" msgid="1383965239183576790">"Nije uspjelo: <xliff:g id="WHAT">%1$s</xliff:g>"</string>
     <string name="private_space_label" msgid="2359721649407947001">"Privatni prostor"</string>

@@ -44,54 +44,6 @@
     <attr name="focusOutlineColor" format="color" />
     <attr name="focusInnerOutlineColor" format="color" />
 
-    <!--    Recreating Dynamic Color attributes found in the system. This should be the way to go on
-     all launcher projects since they all inherit from launcher3. Avoid creating other color
-     attributes if these can be user directly. -->
-    <attr name="materialColorOnSecondaryFixedVariant" format="color" />
-    <attr name="materialColorOnTertiaryFixedVariant" format="color" />
-    <attr name="materialColorSurfaceContainerLowest" format="color" />
-    <attr name="materialColorOnPrimaryFixedVariant" format="color" />
-    <attr name="materialColorOnSecondaryContainer" format="color" />
-    <attr name="materialColorOnTertiaryContainer" format="color" />
-    <attr name="materialColorSurfaceContainerLow" format="color" />
-    <attr name="materialColorOnPrimaryContainer" format="color" />
-    <attr name="materialColorSecondaryFixedDim" format="color" />
-    <attr name="materialColorOnErrorContainer" format="color" />
-    <attr name="materialColorOnSecondaryFixed" format="color" />
-    <attr name="materialColorOnSurfaceInverse" format="color" />
-    <attr name="materialColorTertiaryFixedDim" format="color" />
-    <attr name="materialColorOnTertiaryFixed" format="color" />
-    <attr name="materialColorPrimaryFixedDim" format="color" />
-    <attr name="materialColorSecondaryContainer" format="color" />
-    <attr name="materialColorErrorContainer" format="color" />
-    <attr name="materialColorOnPrimaryFixed" format="color" />
-    <attr name="materialColorPrimaryInverse" format="color" />
-    <attr name="materialColorSecondaryFixed" format="color" />
-    <attr name="materialColorSurfaceInverse" format="color" />
-    <attr name="materialColorSurfaceVariant" format="color" />
-    <attr name="materialColorTertiaryContainer" format="color" />
-    <attr name="materialColorTertiaryFixed" format="color" />
-    <attr name="materialColorPrimaryContainer" format="color" />
-    <attr name="materialColorOnBackground" format="color" />
-    <attr name="materialColorPrimaryFixed" format="color" />
-    <attr name="materialColorOnSecondary" format="color" />
-    <attr name="materialColorOnTertiary" format="color" />
-    <attr name="materialColorSurfaceDim" format="color" />
-    <attr name="materialColorSurfaceBright" format="color" />
-    <attr name="materialColorOnError" format="color" />
-    <attr name="materialColorSurface" format="color" />
-    <attr name="materialColorSurfaceContainerHigh" format="color" />
-    <attr name="materialColorSurfaceContainerHighest" format="color" />
-    <attr name="materialColorOnSurfaceVariant" format="color" />
-    <attr name="materialColorOutline" format="color" />
-    <attr name="materialColorOutlineVariant" format="color" />
-    <attr name="materialColorOnPrimary" format="color" />
-    <attr name="materialColorOnSurface" format="color" />
-    <attr name="materialColorSurfaceContainer" format="color" />
-    <attr name="materialColorPrimary" format="color" />
-    <attr name="materialColorSecondary" format="color" />
-    <attr name="materialColorTertiary" format="color" />
-    <attr name="materialColorError" format="color" />
 
     <attr name="pageIndicatorDotColor" format="color" />
     <attr name="folderPreviewColor" format="color" />
@@ -126,6 +78,8 @@
     <attr name="widgetPickerCollapseHandleColor" format="color"/>
     <attr name="widgetPickerAddButtonBackgroundColor" format="color"/>
     <attr name="widgetPickerAddButtonTextColor" format="color"/>
+    <attr name="widgetPickerExpandButtonBackgroundColor" format="color"/>
+    <attr name="widgetPickerExpandButtonTextColor" format="color"/>
     <attr name="widgetCellTitleColor" format="color" />
     <attr name="widgetCellSubtitleColor" format="color" />
 
@@ -208,8 +162,19 @@
         <attr name="layout_sticky" format="boolean" />
     </declare-styleable>
 
+    <declare-styleable name="GridSize">
+        <attr name="minDeviceWidthDp" format="float"/>
+        <attr name="minDeviceHeightDp" format="float"/>
+        <attr name="numGridRows" format="integer"/>
+        <attr name="numGridColumns" format="integer"/>
+        <attr name="dbFile" />
+        <attr name="defaultLayoutId"/>
+        <attr name="demoModeLayoutId"/>
+    </declare-styleable>
+
     <declare-styleable name="GridDisplayOption">
         <attr name="name" format="string" />
+        <attr name="title" />
 
         <attr name="numRows" format="integer" />
         <attr name="numColumns" format="integer" />
@@ -260,6 +225,9 @@
              defaults to @dimen/taskbar_button_margin_default -->
         <attr name="inlineNavButtonsEndSpacing" format="reference" />
 
+        <!-- Grid flips row and column count when rotating the device -->
+        <attr name="isDualGrid" format="boolean" />
+
         <attr name="dbFile" format="string" />
         <attr name="defaultLayoutId" format="reference" />
         <attr name="demoModeLayoutId" format="reference" />
@@ -294,8 +262,13 @@
         <!-- File that contains the specs for all apps icon and text size.
         Needs FeatureFlags.ENABLE_RESPONSIVE_WORKSPACE enabled -->
         <attr name="allAppsCellSpecsId" format="reference" />
+        <attr name="gridSizeSpecsId" format="reference" />
         <!-- defaults to allAppsCellSpecsId, if not specified -->
         <attr name="allAppsCellSpecsTwoPanelId" format="reference" />
+        <!-- defaults to false, if not specified -->
+        <attr name="isFixedLandscape" format="boolean" />
+        <!-- defaults to false, if not specified -->
+        <attr name="isOldGrid" format="boolean" />
 
         <!-- By default all categories are enabled -->
         <attr name="deviceCategory" format="integer">

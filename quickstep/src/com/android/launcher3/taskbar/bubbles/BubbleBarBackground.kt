@@ -43,9 +43,10 @@ class BubbleBarBackground(context: Context, private var backgroundHeight: Float)
     private val arrowTipRadius: Float
     private val arrowVisibleHeight: Float
 
-    private val shadowAlpha: Float
-    private var shadowBlur = 0f
-    private var keyShadowDistance = 0f
+    private val strokeAlpha: Int
+    private val shadowAlpha: Int
+    private val shadowBlur: Float
+    private val keyShadowDistance: Float
     private var arrowHeightFraction = 1f
 
     var arrowPositionX: Float = 0f
@@ -105,13 +106,13 @@ class BubbleBarBackground(context: Context, private var backgroundHeight: Float)
         strokePaint.strokeWidth = res.getDimension(R.dimen.transient_taskbar_stroke_width)
         // apply theme alpha attributes
         if (Utilities.isDarkTheme(context)) {
-            strokePaint.alpha = DARK_THEME_STROKE_ALPHA
+            strokeAlpha = DARK_THEME_STROKE_ALPHA
             shadowAlpha = DARK_THEME_SHADOW_ALPHA
         } else {
-            strokePaint.alpha = LIGHT_THEME_STROKE_ALPHA
+            strokeAlpha = LIGHT_THEME_STROKE_ALPHA
             shadowAlpha = LIGHT_THEME_SHADOW_ALPHA
         }
-
+        strokePaint.alpha = strokeAlpha
         shadowBlur = res.getDimension(R.dimen.transient_taskbar_shadow_blur)
         keyShadowDistance = res.getDimension(R.dimen.transient_taskbar_key_shadow_distance)
         arrowWidth = res.getDimension(R.dimen.bubblebar_pointer_width)
@@ -132,15 +133,14 @@ class BubbleBarBackground(context: Context, private var backgroundHeight: Float)
     override fun draw(canvas: Canvas) {
         canvas.save()
 
-        // TODO (b/277359345): Should animate the alpha similar to taskbar (see TaskbarDragLayer)
         // Draw shadows.
         val newShadowAlpha =
-            mapToRange(fillPaint.alpha.toFloat(), 0f, 255f, 0f, shadowAlpha, Interpolators.LINEAR)
+            mapToRange(fillPaint.alpha, 0, 255, 0, shadowAlpha, Interpolators.LINEAR)
         fillPaint.setShadowLayer(
             shadowBlur,
             0f,
             keyShadowDistance,
-            setColorAlphaBound(Color.BLACK, Math.round(newShadowAlpha))
+            setColorAlphaBound(Color.BLACK, newShadowAlpha),
         )
         // Create background path
         val backgroundPath = Path()
@@ -172,7 +172,7 @@ class BubbleBarBackground(context: Context, private var backgroundHeight: Float)
             arrowWidth,
             scaledHeight,
             arrowTipRadius,
-            arrowPath
+            arrowPath,
         )
         // flip it horizontally
         val pathTransform = Matrix()
@@ -196,6 +196,7 @@ class BubbleBarBackground(context: Context, private var backgroundHeight: Float)
 
     override fun setAlpha(alpha: Int) {
         fillPaint.alpha = alpha
+        strokePaint.alpha = mapToRange(alpha, 0, 255, 0, strokeAlpha, Interpolators.LINEAR)
         invalidateSelf()
     }
 
@@ -237,7 +238,7 @@ class BubbleBarBackground(context: Context, private var backgroundHeight: Float)
     companion object {
         private const val DARK_THEME_STROKE_ALPHA = 51
         private const val LIGHT_THEME_STROKE_ALPHA = 41
-        private const val DARK_THEME_SHADOW_ALPHA = 51f
-        private const val LIGHT_THEME_SHADOW_ALPHA = 25f
+        private const val DARK_THEME_SHADOW_ALPHA = 51
+        private const val LIGHT_THEME_SHADOW_ALPHA = 25
     }
 }

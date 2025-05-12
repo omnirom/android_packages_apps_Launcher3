@@ -407,10 +407,7 @@ public abstract class AbstractStateChangeTouchController
     }
 
     private void updateContextualEduStats(LauncherState targetState) {
-        if (targetState == NORMAL) {
-            ContextualEduStatsManager.INSTANCE.get(
-                    mLauncher).updateEduStats(mDetector.isTrackpadGesture(), GestureType.HOME);
-        } else if (targetState == OVERVIEW) {
+        if (targetState == OVERVIEW) {
             ContextualEduStatsManager.INSTANCE.get(
                     mLauncher).updateEduStats(mDetector.isTrackpadGesture(), GestureType.OVERVIEW);
         } else if (targetState == ALL_APPS && !mDetector.isTrackpadGesture()) {

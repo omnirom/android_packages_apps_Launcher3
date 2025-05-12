@@ -18,6 +18,7 @@ package com.android.quickstep.views;
 import android.animation.Animator;
 import android.animation.Animator.AnimatorListener;
 import android.annotation.TargetApi;
+import android.app.TaskInfo;
 import android.content.Context;
 import android.graphics.Matrix;
 import android.graphics.RectF;
@@ -333,11 +334,16 @@ public class FloatingWidgetView extends FrameLayout implements AnimatorListener,
      * context's theme background color.
      */
     public static int getDefaultBackgroundColor(
-            Context context, RemoteAnimationTarget target) {
-        return (target != null && target.taskInfo != null
-                && target.taskInfo.taskDescription != null)
-                ? target.taskInfo.taskDescription.getBackgroundColor()
-                : Themes.getColorBackground(context);
+            Context context, @Nullable RemoteAnimationTarget target) {
+        final int fallbackColor = Themes.getColorBackground(context);
+        if (target == null) {
+            return fallbackColor;
+        }
+        final TaskInfo taskInfo = target.taskInfo;
+        if (taskInfo == null) {
+            return fallbackColor;
+        }
+        return taskInfo.taskDescription.getBackgroundColor();
     }
 
     private static void getRelativePosition(View descendant, View ancestor, RectF position) {

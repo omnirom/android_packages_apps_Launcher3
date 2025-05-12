@@ -18,15 +18,21 @@ package com.android.launcher3.taskbar;
 
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_TASKBAR_ALLAPPS_BUTTON_LONG_PRESS;
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_TASKBAR_ALLAPPS_BUTTON_TAP;
+import static com.android.launcher3.taskbar.TaskbarAutohideSuspendController.FLAG_AUTOHIDE_SUSPEND_TASKBAR_OVERFLOW;
 
+import android.annotation.SuppressLint;
+import android.content.Context;
+import android.view.GestureDetector;
 import android.view.InputDevice;
 import android.view.MotionEvent;
 import android.view.View;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.android.internal.jank.Cuj;
 import com.android.launcher3.taskbar.bubbles.BubbleBarViewController;
+import com.android.launcher3.util.DisplayController;
 import com.android.systemui.shared.system.InteractionJankMonitorWrapper;
 import com.android.wm.shell.Flags;
 import com.android.wm.shell.shared.bubbles.BubbleBarLocation;
@@ -39,12 +45,14 @@ public class TaskbarViewCallbacks {
     private final TaskbarActivityContext mActivity;
     private final TaskbarControllers mControllers;
     private final TaskbarView mTaskbarView;
+    private final GestureDetector mGestureDetector;
 
     public TaskbarViewCallbacks(TaskbarActivityContext activity, TaskbarControllers controllers,
             TaskbarView taskbarView) {
         mActivity = activity;
         mControllers = controllers;
         mTaskbarView = taskbarView;
+        mGestureDetector = new GestureDetector(activity, new TaskbarViewGestureListener());
     }
 
     public View.OnClickListener getIconOnClickListener() {
@@ -64,27 +72,29 @@ public class TaskbarViewCallbacks {
         mActivity.getStatsLogManager().logger().log(LAUNCHER_TASKBAR_ALLAPPS_BUTTON_LONG_PRESS);
     }
 
-    public boolean isAllAppsButtonHapticFeedbackEnabled() {
+    /** @return true if haptic feedback should occur when long pressing the all apps button. */
+    public boolean isAllAppsButtonHapticFeedbackEnabled(Context context) {
         return false;
+    }
+
+    @SuppressLint("ClickableViewAccessibility")
+    public View.OnTouchListener getTaskbarTouchListener() {
+        return (view, event) -> mGestureDetector.onTouchEvent(event);
     }
 
     public View.OnLongClickListener getTaskbarDividerLongClickListener() {
         return v -> {
-            mControllers.taskbarPinningController.showPinningView(v);
+            mControllers.taskbarPinningController.showPinningView(v, getDividerCenterX());
             return true;
         };
-    }
-
-    /** Check to see if we support long press on taskbar divider */
-    public boolean supportsDividerLongPress() {
-        return !mActivity.isThreeButtonNav();
     }
 
     public View.OnTouchListener getTaskbarDividerRightClickListener() {
         return (v, event) -> {
             if (event.isFromSource(InputDevice.SOURCE_MOUSE)
+                    && event.getAction() == MotionEvent.ACTION_DOWN
                     && event.getButtonState() == MotionEvent.BUTTON_SECONDARY) {
-                mControllers.taskbarPinningController.showPinningView(v);
+                mControllers.taskbarPinningController.showPinningView(v, getDividerCenterX());
                 return true;
             }
             return false;
@@ -129,6 +139,17 @@ public class TaskbarViewCallbacks {
         return null;
     }
 
+    /**
+     * Get the max bubble bar collapsed width for the current bubble bar visibility state. Used to
+     * reserve space for the bubble bar when transitioning taskbar view into overflow.
+     */
+    public float getBubbleBarMaxCollapsedWidthIfVisible() {
+        return mControllers.bubbleControllers
+                .filter(c -> !c.bubbleBarViewController.isHiddenForNoBubbles())
+                .map(c -> c.bubbleBarViewController.getCollapsedWidthWithMaxVisibleBubbles())
+                .orElse(0f);
+    }
+
     /** Returns true if bubble bar controllers present and enabled in persistent taskbar. */
     public boolean isBubbleBarEnabledInPersistentTaskbar() {
         return Flags.enableBubbleBarInPersistentTaskBar()
@@ -140,7 +161,7 @@ public class TaskbarViewCallbacks {
         return new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mControllers.keyboardQuickSwitchController.openQuickSwitchView();
+                toggleKeyboardQuickSwitchView();
             }
         };
     }
@@ -150,9 +171,67 @@ public class TaskbarViewCallbacks {
         return new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
-                mControllers.keyboardQuickSwitchController.openQuickSwitchView();
+                toggleKeyboardQuickSwitchView();
                 return true;
             }
         };
+    }
+
+    private void toggleKeyboardQuickSwitchView() {
+        if (mTaskbarView.getTaskbarOverflowView() != null) {
+            mTaskbarView.getTaskbarOverflowView().setIsActive(
+                    !mTaskbarView.getTaskbarOverflowView().getIsActive());
+            mControllers.taskbarAutohideSuspendController
+                    .updateFlag(FLAG_AUTOHIDE_SUSPEND_TASKBAR_OVERFLOW,
+                            mTaskbarView.getTaskbarOverflowView().getIsActive());
+        }
+        mControllers.keyboardQuickSwitchController.toggleQuickSwitchViewForTaskbar(
+                mControllers.taskbarViewController.getTaskIdsForPinnedApps(),
+                this::onKeyboardQuickSwitchViewClosed);
+    }
+
+    private void onKeyboardQuickSwitchViewClosed() {
+        if (mTaskbarView.getTaskbarOverflowView() != null) {
+            mTaskbarView.getTaskbarOverflowView().setIsActive(false);
+        }
+        mControllers.taskbarAutohideSuspendController.updateFlag(
+                FLAG_AUTOHIDE_SUSPEND_TASKBAR_OVERFLOW, false);
+    }
+
+    private float getDividerCenterX() {
+        View divider = mTaskbarView.getTaskbarDividerViewContainer();
+        if (divider == null) {
+            return 0.0f;
+        }
+        return divider.getX() + (float) divider.getWidth() / 2;
+    }
+
+    private class TaskbarViewGestureListener extends GestureDetector.SimpleOnGestureListener {
+        @Override
+        public boolean onDown(@NonNull MotionEvent event) {
+            if (event.isFromSource(InputDevice.SOURCE_MOUSE)
+                    && event.getButtonState() == MotionEvent.BUTTON_SECONDARY) {
+                maybeShowPinningView(event);
+            }
+            return true;
+        }
+
+        @Override
+        public boolean onSingleTapUp(@NonNull MotionEvent event) {
+            return true;
+        }
+
+        @Override
+        public void onLongPress(@NonNull MotionEvent event) {
+            maybeShowPinningView(event);
+        }
+
+        private void maybeShowPinningView(@NonNull MotionEvent event) {
+            if (!DisplayController.isPinnedTaskbar(mActivity) || mTaskbarView.isEventOverAnyItem(
+                    event)) {
+                return;
+            }
+            mControllers.taskbarPinningController.showPinningView(mTaskbarView, event.getRawX());
+        }
     }
 }

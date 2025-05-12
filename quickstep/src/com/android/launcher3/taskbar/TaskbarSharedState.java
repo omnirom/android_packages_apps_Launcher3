@@ -30,6 +30,10 @@ import android.os.IBinder;
 import android.view.InsetsFrameProvider;
 
 import com.android.systemui.shared.system.QuickStepContract.SystemUiStateFlags;
+import com.android.wm.shell.shared.bubbles.BubbleBarLocation;
+import com.android.wm.shell.shared.bubbles.BubbleInfo;
+
+import java.util.List;
 
 /**
  * State shared across different taskbar instance
@@ -68,6 +72,15 @@ public class TaskbarSharedState {
     public boolean wallpaperVisible = false;
 
     public boolean allAppsVisible = false;
+
+    public BubbleBarLocation bubbleBarLocation;
+
+    public List<BubbleInfo> bubbleInfoItems;
+
+    /** Returns whether there are a saved bubbles. */
+    public boolean hasSavedBubbles() {
+        return bubbleInfoItems != null && !bubbleInfoItems.isEmpty();
+    }
 
     // LauncherTaskbarUIController#mTaskbarInAppDisplayProgressMultiProp
     public float[] inAppDisplayProgressMultiPropValues = new float[DISPLAY_PROGRESS_COUNT];

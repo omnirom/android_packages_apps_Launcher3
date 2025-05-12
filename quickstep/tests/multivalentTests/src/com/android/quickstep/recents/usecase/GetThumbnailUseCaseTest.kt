@@ -71,7 +71,7 @@ class GetThumbnailUseCaseTest {
     fun taskVisible_returnsThumbnail() {
         tasksRepository.seedTasks(listOf(task))
         tasksRepository.seedThumbnailData(mapOf(TaskOverlayViewModelTest.TASK_ID to thumbnailData))
-        tasksRepository.setVisibleTasks(listOf(TaskOverlayViewModelTest.TASK_ID))
+        tasksRepository.setVisibleTasks(setOf(TaskOverlayViewModelTest.TASK_ID))
 
         assertThat(systemUnderTest.run(TASK_ID)).isEqualTo(thumbnailData.thumbnail)
     }

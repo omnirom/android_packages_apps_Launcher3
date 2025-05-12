@@ -65,6 +65,7 @@ class DropTargetHandler(launcher: Launcher) {
     }
 
     fun onDeleteComplete(item: ItemInfo) {
+        removeItemAndStripEmptyScreens(null /* view */, item)
         var pageItem: ItemInfo = item
         if (item.container <= 0) {
             val v = mLauncher.workspace.getHomescreenIconByItemId(item.container)
@@ -90,11 +91,7 @@ class DropTargetHandler(launcher: Launcher) {
     }
 
     fun onAccessibilityDelete(view: View?, item: ItemInfo, announcement: CharSequence) {
-        // Remove the item from launcher and the db, we can ignore the containerInfo in this call
-        // because we already remove the drag view from the folder (if the drag originated from
-        // a folder) in Folder.beginDrag()
-        mLauncher.removeItem(view, item, true /* deleteFromDb */, "removed by accessibility drop")
-        mLauncher.workspace.stripEmptyScreens()
+        removeItemAndStripEmptyScreens(view, item)
         mLauncher.dragLayer.announceForAccessibility(announcement)
     }
 
@@ -104,5 +101,13 @@ class DropTargetHandler(launcher: Launcher) {
 
     fun onClick(buttonDropTarget: ButtonDropTarget) {
         mLauncher.accessibilityDelegate.handleAccessibleDrop(buttonDropTarget, null, null)
+    }
+
+    private fun removeItemAndStripEmptyScreens(view: View?, item: ItemInfo) {
+        // Remove the item from launcher and the db, we can ignore the containerInfo in this call
+        // because we already remove the drag view from the folder (if the drag originated from
+        // a folder) in Folder.beginDrag()
+        mLauncher.removeItem(view, item, true /* deleteFromDb */, "removed by accessibility drop")
+        mLauncher.workspace.stripEmptyScreens()
     }
 }

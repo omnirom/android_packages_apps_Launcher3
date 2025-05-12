@@ -121,7 +121,7 @@ public class DragLayer extends BaseDragLayer<Launcher> implements LauncherOverla
 
     @Override
     public void recreateControllers() {
-        mControllers = mActivity.createTouchControllers();
+        mControllers = mContainer.createTouchControllers();
     }
 
     public ViewGroupFocusHelper getFocusIndicatorHelper() {
@@ -134,15 +134,15 @@ public class DragLayer extends BaseDragLayer<Launcher> implements LauncherOverla
     }
 
     private boolean isEventOverAccessibleDropTargetBar(MotionEvent ev) {
-        return isInAccessibleDrag() && isEventOverView(mActivity.getDropTargetBar(), ev);
+        return isInAccessibleDrag() && isEventOverView(mContainer.getDropTargetBar(), ev);
     }
 
     @Override
     public boolean onInterceptHoverEvent(MotionEvent ev) {
-        if (mActivity == null || mActivity.getWorkspace() == null) {
+        if (mContainer == null || mContainer.getWorkspace() == null) {
             return false;
         }
-        AbstractFloatingView topView = AbstractFloatingView.getTopOpenView(mActivity);
+        AbstractFloatingView topView = AbstractFloatingView.getTopOpenView(mContainer);
         if (!(topView instanceof Folder)) {
             return false;
         } else {
@@ -197,7 +197,7 @@ public class DragLayer extends BaseDragLayer<Launcher> implements LauncherOverla
 
 
     private boolean isInAccessibleDrag() {
-        return mActivity.getAccessibilityDelegate().isInAccessibleDrag();
+        return mContainer.getAccessibilityDelegate().isInAccessibleDrag();
     }
 
     @Override
@@ -210,12 +210,12 @@ public class DragLayer extends BaseDragLayer<Launcher> implements LauncherOverla
 
     @Override
     public void addChildrenForAccessibility(ArrayList<View> childrenForAccessibility) {
-        View topView = AbstractFloatingView.getTopOpenViewWithType(mActivity,
+        View topView = AbstractFloatingView.getTopOpenViewWithType(mContainer,
                 AbstractFloatingView.TYPE_ACCESSIBLE);
         if (topView != null) {
             addAccessibleChildToList(topView, childrenForAccessibility);
             if (isInAccessibleDrag()) {
-                addAccessibleChildToList(mActivity.getDropTargetBar(), childrenForAccessibility);
+                addAccessibleChildToList(mContainer.getDropTargetBar(), childrenForAccessibility);
             }
         } else {
             super.addChildrenForAccessibility(childrenForAccessibility);
@@ -420,14 +420,14 @@ public class DragLayer extends BaseDragLayer<Launcher> implements LauncherOverla
     public void onViewAdded(View child) {
         super.onViewAdded(child);
         updateChildIndices();
-        mActivity.onDragLayerHierarchyChanged();
+        mContainer.onDragLayerHierarchyChanged();
     }
 
     @Override
     public void onViewRemoved(View child) {
         super.onViewRemoved(child);
         updateChildIndices();
-        mActivity.onDragLayerHierarchyChanged();
+        mContainer.onDragLayerHierarchyChanged();
     }
 
     @Override

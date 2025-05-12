@@ -22,6 +22,7 @@
     <string name="recent_task_option_pin" msgid="7929860679018978258">"পিন করুন"</string>
     <string name="recent_task_option_freeform" msgid="48863056265284071">"ফ্রি-ফর্ম"</string>
     <string name="recent_task_option_desktop" msgid="8280879717125435668">"ডেস্কটপ"</string>
+    <string name="recent_task_option_external_display" msgid="4533840664313389484">"এক্সটার্নাল ডিসপ্লেতে সরিয়ে নিয়ে যান"</string>
     <string name="recent_task_desktop" msgid="8081113562549637334">"ডেস্কটপ"</string>
     <string name="recents_empty_message" msgid="7040467240571714191">"কোনও সাম্প্রতিক আইটেম নেই"</string>
     <string name="accessibility_app_usage_settings" msgid="6312864233673544149">"অ্যাপ ব্যবহারের সেটিংস"</string>
@@ -154,4 +155,5 @@
     <string name="bubble_bar_action_dismiss_all" msgid="3290722022983403060">"সব বাতিল করুন"</string>
     <string name="bubble_bar_accessibility_announce_expand" msgid="1503192695527477102">"<xliff:g id="BUBBLE_DESCRIPTION">%1$s</xliff:g> বড় করুন"</string>
     <string name="bubble_bar_accessibility_announce_collapse" msgid="928284600086798791">"<xliff:g id="BUBBLE_DESCRIPTION">%1$s</xliff:g> আড়াল করুন"</string>
+    <string name="search_gesture_feature_title" msgid="1294044108313175306">"খোঁজার জন্য সার্কেল বানান"</string>
 </resources>

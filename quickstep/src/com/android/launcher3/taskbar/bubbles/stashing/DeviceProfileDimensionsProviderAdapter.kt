@@ -27,13 +27,9 @@ import com.android.launcher3.taskbar.bubbles.stashing.BubbleStashController.Task
 class DeviceProfileDimensionsProviderAdapter(
     private val taskbarActivityContext: TaskbarActivityContext
 ) : TaskbarHotseatDimensionsProvider {
-    override fun getTaskbarBottomSpace(): Int = deviceProfile().taskbarBottomMargin
+    override fun getTaskbarBottomSpace(): Int = taskbarDp().taskbarBottomMargin
 
-    override fun getTaskbarHeight(): Int = deviceProfile().taskbarHeight
+    override fun getTaskbarHeight(): Int = taskbarDp().taskbarHeight
 
-    override fun getHotseatBottomSpace(): Int = deviceProfile().hotseatBarBottomSpacePx
-
-    override fun getHotseatHeight(): Int = deviceProfile().hotseatCellHeightPx
-
-    private fun deviceProfile(): DeviceProfile = taskbarActivityContext.deviceProfile
+    private fun taskbarDp(): DeviceProfile = taskbarActivityContext.deviceProfile
 }

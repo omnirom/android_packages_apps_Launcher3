@@ -16,14 +16,18 @@
 package com.android.launcher3.icons;
 
 import android.content.Context;
+import android.content.pm.ApplicationInfo;
 import android.content.res.Resources;
 import android.content.res.XmlResourceParser;
 import android.text.TextUtils;
 import android.util.ArrayMap;
 import android.util.Log;
 
+import androidx.annotation.NonNull;
+
 import com.android.launcher3.R;
 import com.android.launcher3.config.FeatureFlags;
+import com.android.launcher3.util.ApiWrapper;
 import com.android.launcher3.util.Themes;
 
 import org.xmlpull.v1.XmlPullParser;
@@ -68,6 +72,11 @@ public class LauncherIconProvider extends IconProvider {
     @Override
     public String getSystemIconState() {
         return super.getSystemIconState() + (mSupportsIconTheme ? ",with-theme" : ",no-theme");
+    }
+
+    @Override
+    protected String getApplicationInfoHash(@NonNull ApplicationInfo appInfo) {
+        return ApiWrapper.INSTANCE.get(mContext).getApplicationInfoHash(appInfo);
     }
 
     private Map<String, ThemeData> getThemedIconMap() {

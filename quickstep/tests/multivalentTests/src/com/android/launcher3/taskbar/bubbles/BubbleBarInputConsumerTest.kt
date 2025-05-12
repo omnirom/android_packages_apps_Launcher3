@@ -49,6 +49,7 @@ class BubbleBarInputConsumerTest {
     @Mock private lateinit var bubbleDismissController: BubbleDismissController
     @Mock private lateinit var bubbleBarPinController: BubbleBarPinController
     @Mock private lateinit var bubblePinController: BubblePinController
+    @Mock private lateinit var bubbleBarSwipeController: BubbleBarSwipeController
     @Mock private lateinit var bubbleCreator: BubbleCreator
 
     @Mock private lateinit var motionEvent: MotionEvent
@@ -67,7 +68,8 @@ class BubbleBarInputConsumerTest {
                 bubbleDismissController,
                 bubbleBarPinController,
                 bubblePinController,
-                bubbleCreator
+                Optional.of(bubbleBarSwipeController),
+                bubbleCreator,
             )
     }
 

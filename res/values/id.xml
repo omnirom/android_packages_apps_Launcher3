@@ -19,6 +19,7 @@
     <item type="id" name="view_type_widgets_space" />
     <item type="id" name="view_type_widgets_list" />
     <item type="id" name="view_type_widgets_header" />
+    <item type="id" name="view_type_widgets_list_expand" />
 
     <!-- Accessibility actions -->
     <item type="id" name="action_remove" />

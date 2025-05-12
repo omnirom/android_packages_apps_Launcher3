@@ -17,7 +17,6 @@
 package com.android.launcher3.taskbar
 
 import android.view.View
-import androidx.test.platform.app.InstrumentationRegistry.getInstrumentation
 import com.android.launcher3.taskbar.TaskbarViewController.DIVIDER_VIEW_POSITION_OFFSET
 import com.android.launcher3.taskbar.rules.TaskbarUnitTestRule
 import com.android.launcher3.taskbar.rules.TaskbarUnitTestRule.InjectController
@@ -33,19 +32,23 @@ import org.junit.runner.RunWith
 @EmulatedDevices(["pixelFoldable2023", "pixelTablet2023"])
 /**
  * Legend for the comments below:
+ * ```
  * A: All Apps Button
  * H: Hotseat item
  * |: Divider
  * R: Recent item
+ * ```
  *
  * The comments are formatted in two lines:
+ * ```
  * // Items in taskbar, e.g.               A  |  HHHHHH
  * // Index of items relative to Hotseat: -1 -.5 012345
+ * ```
  */
 class TaskbarViewControllerTest {
 
-    private val context = TaskbarWindowSandboxContext.create(getInstrumentation().targetContext)
-    @get:Rule val taskbarUnitTestRule = TaskbarUnitTestRule(this, context)
+    @get:Rule(order = 0) val context = TaskbarWindowSandboxContext.create()
+    @get:Rule(order = 1) val taskbarUnitTestRule = TaskbarUnitTestRule(this, context)
 
     @InjectController lateinit var taskbarViewController: TaskbarViewController
 
@@ -59,7 +62,7 @@ class TaskbarViewControllerTest {
                 /* isAllAppsButton = */ true,
                 /* isTaskbarDividerView = */ false,
                 /* isDividerForRecents = */ false,
-                /* recentTaskIndex = */ -1
+                /* recentTaskIndex = */ -1,
             )
         // [>A<] | [HHHHHH]
         //  -1 -.5  012345
@@ -77,7 +80,7 @@ class TaskbarViewControllerTest {
                 /* isAllAppsButton = */ true,
                 /* isTaskbarDividerView = */ false,
                 /* isDividerForRecents = */ false,
-                /* recentTaskIndex = */ -1
+                /* recentTaskIndex = */ -1,
             )
         // [HHHHHH] | [>A<]
         //  012345 5.5  6
@@ -94,7 +97,7 @@ class TaskbarViewControllerTest {
                 /* isAllAppsButton = */ false,
                 /* isTaskbarDividerView = */ true,
                 /* isDividerForRecents = */ false,
-                /* recentTaskIndex = */ -1
+                /* recentTaskIndex = */ -1,
             )
         // [A] >|< [HHHHHH]
         // -1  -.5  012345
@@ -112,7 +115,7 @@ class TaskbarViewControllerTest {
                 /* isAllAppsButton = */ false,
                 /* isTaskbarDividerView = */ true,
                 /* isDividerForRecents = */ true,
-                /* recentTaskIndex = */ -1
+                /* recentTaskIndex = */ -1,
             )
         // [A] [HHHHHH] >|< [RR]
         // -1   012345  5.5  67
@@ -130,7 +133,7 @@ class TaskbarViewControllerTest {
                 /* isAllAppsButton = */ false,
                 /* isTaskbarDividerView = */ true,
                 /* isDividerForRecents = */ false,
-                /* recentTaskIndex = */ -1
+                /* recentTaskIndex = */ -1,
             )
         // [HHHHHH] >|< [A]
         //  012345  5.5  6
@@ -148,7 +151,7 @@ class TaskbarViewControllerTest {
                 /* isAllAppsButton = */ false,
                 /* isTaskbarDividerView = */ true,
                 /* isDividerForRecents = */ true,
-                /* recentTaskIndex = */ -1
+                /* recentTaskIndex = */ -1,
             )
         // [HHHHHH][A] >|< [RR]
         //  012345  6  6.5  78
@@ -167,7 +170,7 @@ class TaskbarViewControllerTest {
                 /* isAllAppsButton = */ false,
                 /* isTaskbarDividerView = */ false,
                 /* isDividerForRecents = */ false,
-                /* recentTaskIndex = */ recentTaskIndex
+                /* recentTaskIndex = */ recentTaskIndex,
             )
         // [A][HHHHHH] | [>R<R]
         // -1  012345 5.5  6 7
@@ -186,7 +189,7 @@ class TaskbarViewControllerTest {
                 /* isAllAppsButton = */ false,
                 /* isTaskbarDividerView = */ false,
                 /* isDividerForRecents = */ false,
-                /* recentTaskIndex = */ recentTaskIndex
+                /* recentTaskIndex = */ recentTaskIndex,
             )
         // [A][HHHHHH] | [R>R<]
         // -1  012345 5.5 6 7
@@ -205,7 +208,7 @@ class TaskbarViewControllerTest {
                 /* isAllAppsButton = */ false,
                 /* isTaskbarDividerView = */ false,
                 /* isDividerForRecents = */ false,
-                /* recentTaskIndex = */ recentTaskIndex
+                /* recentTaskIndex = */ recentTaskIndex,
             )
         // [HHHHHH][A] | [>R<R]
         //  012345  6 6.5  7 8
@@ -224,7 +227,7 @@ class TaskbarViewControllerTest {
                 /* isAllAppsButton = */ false,
                 /* isTaskbarDividerView = */ false,
                 /* isDividerForRecents = */ false,
-                /* recentTaskIndex = */ recentTaskIndex
+                /* recentTaskIndex = */ recentTaskIndex,
             )
         // [HHHHHH][A] | [R>R<]
         //  012345  6 6.5 7 8

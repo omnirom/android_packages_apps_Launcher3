@@ -48,6 +48,8 @@
 
         <option name="run-command" value="settings put system pointer_location 1" />
         <option name="run-command" value="settings put system show_touches 1" />
+
+        <option name="run-command" value="setprop pixel_legal_joint_permission_v2 true" />
     </target_preparer>
 
     <target_preparer class="com.android.tradefed.targetprep.suite.SuiteApkInstaller">

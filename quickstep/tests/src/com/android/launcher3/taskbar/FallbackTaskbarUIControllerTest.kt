@@ -33,7 +33,7 @@ import org.mockito.kotlin.whenever
 @RunWith(AndroidJUnit4::class)
 class FallbackTaskbarUIControllerTest : TaskbarBaseTestCase() {
 
-    lateinit var fallbackTaskbarUIController: FallbackTaskbarUIController
+    lateinit var fallbackTaskbarUIController: FallbackTaskbarUIController<RecentsActivity>
     lateinit var stateListener: StateManager.StateListener<RecentsState>
 
     private val recentsActivity: RecentsActivity = mock()

@@ -118,8 +118,14 @@ public class AllAppsSearchBarController
     @Override
     public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
 
-        if (actionId == EditorInfo.IME_ACTION_SEARCH || actionId == EditorInfo.IME_ACTION_GO) {
-            Log.i(TAG, "User tapped ime search button");
+        if (actionId == EditorInfo.IME_ACTION_SEARCH || actionId == EditorInfo.IME_ACTION_GO || (
+                actionId == EditorInfo.IME_NULL && event != null
+                        && event.getAction() == KeyEvent.ACTION_DOWN)) {
+            if (actionId == EditorInfo.IME_NULL) {
+                Log.i(TAG, "User pressed ENTER key");
+            } else {
+                Log.i(TAG, "User tapped ime search button");
+            }
             // selectFocusedView should return SearchTargetEvent that is passed onto onClick
             return mLauncher.getAppsView().getMainAdapterProvider().launchHighlightedItem();
         }
@@ -144,6 +150,7 @@ public class AllAppsSearchBarController
         mCallback.clearSearchResult();
         mInput.reset();
         mInput.clearFocus();
+        mInput.hideKeyboard();
         mQuery = null;
     }
 

@@ -35,9 +35,6 @@ import android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS
 import android.provider.Settings.Secure
 import android.text.Html
 import android.util.AttributeSet
-import android.util.Base64
-import android.util.Base64.NO_PADDING
-import android.util.Base64.NO_WRAP
 import android.view.inputmethod.EditorInfo
 import android.widget.TextView
 import android.widget.Toast
@@ -57,9 +54,10 @@ import com.android.launcher3.LauncherSettings.Favorites.ITEM_TYPE_APPLICATION
 import com.android.launcher3.LauncherSettings.Favorites.ITEM_TYPE_APPWIDGET
 import com.android.launcher3.LauncherSettings.Favorites.ITEM_TYPE_DEEP_SHORTCUT
 import com.android.launcher3.LauncherSettings.Favorites.ITEM_TYPE_FOLDER
-import com.android.launcher3.LauncherSettings.Settings.LAYOUT_DIGEST_KEY
 import com.android.launcher3.LauncherSettings.Settings.LAYOUT_DIGEST_LABEL
 import com.android.launcher3.LauncherSettings.Settings.LAYOUT_DIGEST_TAG
+import com.android.launcher3.LauncherSettings.Settings.LAYOUT_PROVIDER_KEY
+import com.android.launcher3.LauncherSettings.Settings.createBlobProviderKey
 import com.android.launcher3.R
 import com.android.launcher3.model.data.FolderInfo
 import com.android.launcher3.model.data.ItemInfo
@@ -241,7 +239,7 @@ class DevOptionsUiHelper(c: Context, attr: AttributeSet?) : PreferenceGroup(c, a
     private fun DebugInfo<Boolean>.getBoolValue() =
         DeviceConfigHelper.prefs.getBoolean(
             this.key,
-            DeviceConfig.getBoolean(NAMESPACE_LAUNCHER, this.key, this.valueInCode)
+            DeviceConfig.getBoolean(NAMESPACE_LAUNCHER, this.key, this.valueInCode),
         )
 
     private fun DebugInfo<Int>.getIntValueAsString() =
@@ -265,7 +263,7 @@ class DevOptionsUiHelper(c: Context, attr: AttributeSet?) : PreferenceGroup(c, a
         val pluginPermissionApps =
             pm.getPackagesHoldingPermissions(
                     arrayOf(PLUGIN_PERMISSION),
-                    PackageManager.MATCH_DISABLED_COMPONENTS
+                    PackageManager.MATCH_DISABLED_COMPONENTS,
                 )
                 .map { it.packageName }
 
@@ -274,7 +272,7 @@ class DevOptionsUiHelper(c: Context, attr: AttributeSet?) : PreferenceGroup(c, a
                 pm.queryIntentServices(
                         Intent(action),
                         PackageManager.MATCH_DISABLED_COMPONENTS or
-                            PackageManager.GET_RESOLVED_FILTER
+                            PackageManager.GET_RESOLVED_FILTER,
                     )
                     .filter { pluginPermissionApps.contains(it.serviceInfo.packageName) }
             }
@@ -316,7 +314,7 @@ class DevOptionsUiHelper(c: Context, attr: AttributeSet?) : PreferenceGroup(c, a
                             infoList.forEach {
                                 manager.pluginEnabler.setDisabled(
                                     it.serviceInfo.componentName,
-                                    disabledState
+                                    disabledState,
                                 )
                             }
                             manager.notifyChange(Intent(Intent.ACTION_PACKAGE_CHANGED, pluginUri))
@@ -387,12 +385,12 @@ class DevOptionsUiHelper(c: Context, attr: AttributeSet?) : PreferenceGroup(c, a
             addOnboardPref(
                 "All Apps Bounce",
                 HOME_BOUNCE_SEEN.sharedPrefKey,
-                HOME_BOUNCE_COUNT.sharedPrefKey
+                HOME_BOUNCE_COUNT.sharedPrefKey,
             )
             addOnboardPref(
                 "Hybrid Hotseat Education",
                 HOTSEAT_DISCOVERY_TIP_COUNT.sharedPrefKey,
-                HOTSEAT_LONGPRESS_TIP_SEEN.sharedPrefKey
+                HOTSEAT_LONGPRESS_TIP_SEEN.sharedPrefKey,
             )
             addOnboardPref("Taskbar Education", TASKBAR_EDU_TOOLTIP_STEP.sharedPrefKey)
             addOnboardPref("Taskbar Search Education", TASKBAR_SEARCH_EDU_SEEN.sharedPrefKey)
@@ -470,13 +468,16 @@ class DevOptionsUiHelper(c: Context, attr: AttributeSet?) : PreferenceGroup(c, a
                         session.allowPublicAccess()
 
                         session.commit(ORDERED_BG_EXECUTOR) {
-                            val key = Base64.encodeToString(digest, NO_WRAP or NO_PADDING)
-                            Secure.putString(resolver, LAYOUT_DIGEST_KEY, key)
+                            Secure.putString(
+                                resolver,
+                                LAYOUT_PROVIDER_KEY,
+                                createBlobProviderKey(digest),
+                            )
 
                             MODEL_EXECUTOR.submit { model.modelDbController.createEmptyDB() }.get()
                             MAIN_EXECUTOR.submit { model.forceReload() }.get()
                             MODEL_EXECUTOR.submit {}.get()
-                            Secure.putString(resolver, LAYOUT_DIGEST_KEY, null)
+                            Secure.putString(resolver, LAYOUT_PROVIDER_KEY, null)
                         }
                     }
                 }
@@ -512,7 +513,7 @@ class DevOptionsUiHelper(c: Context, attr: AttributeSet?) : PreferenceGroup(c, a
                     info.providerName.className,
                     info.spanX,
                     info.spanY,
-                    userType
+                    userType,
                 )
         }
     }
@@ -520,7 +521,7 @@ class DevOptionsUiHelper(c: Context, attr: AttributeSet?) : PreferenceGroup(c, a
     private fun createUriPickerIntent(
         action: String,
         executor: Executor,
-        callback: (uri: Uri) -> Unit
+        callback: (uri: Uri) -> Unit,
     ): Intent {
         val pendingIntent =
             PendingIntent(
@@ -532,7 +533,7 @@ class DevOptionsUiHelper(c: Context, attr: AttributeSet?) : PreferenceGroup(c, a
                         allowlistToken: IBinder?,
                         finishedReceiver: IIntentReceiver?,
                         requiredPermission: String?,
-                        options: Bundle?
+                        options: Bundle?,
                     ) {
                         intent.data?.let { uri -> executor.execute { callback(uri) } }
                     }

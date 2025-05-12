@@ -22,7 +22,7 @@ import android.content.Intent;
 import android.platform.test.annotations.PlatinumTest;
 
 import com.android.launcher3.tapl.Overview;
-import com.android.launcher3.tapl.OverviewTask.OverviewSplitTask;
+import com.android.launcher3.tapl.OverviewTask.OverviewTaskContainer;
 import com.android.launcher3.tapl.OverviewTaskMenu;
 import com.android.launcher3.ui.AbstractLauncherUiTest;
 import com.android.launcher3.uioverrides.QuickstepLauncher;
@@ -76,7 +76,7 @@ public class TaplOverviewIconTest extends AbstractLauncherUiTest<QuickstepLaunch
         taskMenu.touchOutsideTaskMenuToDismiss();
 
         OverviewTaskMenu splitMenu = overview.getCurrentTask().tapMenu(
-                        OverviewSplitTask.SPLIT_BOTTOM_OR_RIGHT);
+                        OverviewTaskContainer.SPLIT_BOTTOM_OR_RIGHT);
         assertTrue("App info item not appearing in expanded split task's menu.",
                 splitMenu.hasMenuItem("App info"));
         splitMenu.touchOutsideTaskMenuToDismiss();

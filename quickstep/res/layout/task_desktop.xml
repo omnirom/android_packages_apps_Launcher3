@@ -19,25 +19,28 @@
     android:id="@+id/task_view_desktop"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:clipChildren="true"
-    android:clipToPadding="true"
     android:contentDescription="@string/recent_task_desktop"
     android:defaultFocusHighlightEnabled="false"
     android:focusable="true"
-    android:padding="0.1dp"
-    launcher:focusBorderColor="?attr/materialColorOutline"
-    launcher:hoverBorderColor="?attr/materialColorPrimary">
-    <!-- Setting a padding of 0.1 dp since android:clipToPadding needs a non-zero value for
-    padding to work-->
-    <View
-        android:id="@+id/background"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+    launcher:focusBorderColor="@color/materialColorOutline"
+    launcher:hoverBorderColor="@color/materialColorPrimary">
 
     <ViewStub
         android:id="@+id/icon"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:inflatedId="@id/icon" />
+
+    <com.android.quickstep.views.DesktopTaskContentView
+        android:id="@+id/desktop_content"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <View
+            android:id="@+id/background"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+    </com.android.quickstep.views.DesktopTaskContentView>
 
 </com.android.quickstep.views.DesktopTaskView>

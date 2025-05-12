@@ -20,6 +20,7 @@ import android.os.IBinder
 import android.os.RemoteException
 import android.util.Log
 import android.view.SurfaceControl
+import android.view.WindowManager.TRANSIT_TO_FRONT
 import android.window.IRemoteTransitionFinishedCallback
 import android.window.RemoteTransition
 import android.window.RemoteTransitionStub
@@ -30,6 +31,9 @@ import com.android.launcher3.util.Executors.MAIN_EXECUTOR
 import com.android.quickstep.SystemUiProxy
 import com.android.quickstep.TaskViewUtils
 import com.android.quickstep.views.DesktopTaskView
+import com.android.quickstep.views.TaskContainer
+import com.android.quickstep.views.TaskView
+import com.android.window.flags.Flags
 import com.android.wm.shell.shared.desktopmode.DesktopModeTransitionSource
 import java.util.function.Consumer
 
@@ -38,14 +42,14 @@ class DesktopRecentsTransitionController(
     private val stateManager: StateManager<*, *>,
     private val systemUiProxy: SystemUiProxy,
     private val appThread: IApplicationThread,
-    private val depthController: DepthController?
+    private val depthController: DepthController?,
 ) {
 
     /** Launch desktop tasks from recents view */
     fun launchDesktopFromRecents(
         desktopTaskView: DesktopTaskView,
         animated: Boolean,
-        callback: Consumer<Boolean>? = null
+        callback: Consumer<Boolean>? = null,
     ) {
         val animRunner =
             RemoteDesktopLaunchTransitionRunner(
@@ -53,30 +57,39 @@ class DesktopRecentsTransitionController(
                 animated,
                 stateManager,
                 depthController,
-                callback
+                callback,
             )
         val transition = RemoteTransition(animRunner, appThread, "RecentsToDesktop")
         systemUiProxy.showDesktopApps(desktopTaskView.display.displayId, transition)
     }
 
     /** Launch desktop tasks from recents view */
-    fun moveToDesktop(taskId: Int, transitionSource: DesktopModeTransitionSource) {
-        systemUiProxy.moveToDesktop(taskId, transitionSource)
+    fun moveToDesktop(taskContainer: TaskContainer, transitionSource: DesktopModeTransitionSource) {
+        systemUiProxy.moveToDesktop(
+            taskContainer.task.key.id,
+            transitionSource,
+            /* transition = */ null,
+        )
+    }
+
+    /** Move task to external display from recents view */
+    fun moveToExternalDisplay(taskId: Int) {
+        systemUiProxy.moveToExternalDisplay(taskId)
     }
 
     private class RemoteDesktopLaunchTransitionRunner(
-        private val desktopTaskView: DesktopTaskView,
+        private val taskView: TaskView,
         private val animated: Boolean,
         private val stateManager: StateManager<*, *>,
         private val depthController: DepthController?,
-        private val successCallback: Consumer<Boolean>?
+        private val successCallback: Consumer<Boolean>?,
     ) : RemoteTransitionStub() {
 
         override fun startAnimation(
             token: IBinder,
             info: TransitionInfo,
             t: SurfaceControl.Transaction,
-            finishCallback: IRemoteTransitionFinishedCallback
+            finishCallback: IRemoteTransitionFinishedCallback,
         ) {
             val errorHandlingFinishCallback = Runnable {
                 try {
@@ -86,14 +99,17 @@ class DesktopRecentsTransitionController(
                 }
             }
 
+            if (Flags.enableDesktopWindowingPersistence()) {
+                handleAnimationAfterReboot(info)
+            }
             MAIN_EXECUTOR.execute {
                 val animator =
                     TaskViewUtils.composeRecentsDesktopLaunchAnimator(
-                        desktopTaskView,
+                        taskView,
                         stateManager,
                         depthController,
                         info,
-                        t
+                        t,
                     ) {
                         errorHandlingFinishCallback.run()
                         successCallback?.accept(true)
@@ -102,6 +118,26 @@ class DesktopRecentsTransitionController(
                     animator.setDuration(0)
                 }
                 animator.start()
+            }
+        }
+
+        /**
+         * Upon reboot the start bounds of a task is set to fullscreen with the recents transition.
+         * Check this case and set the start bounds to the end bounds so that the window doesn't
+         * jump from start bounds to end bounds during the animation. Tasks in desktop cannot
+         * normally have top bound as 0 due to status bar so this is a good indicator to identify
+         * reboot case.
+         */
+        private fun handleAnimationAfterReboot(info: TransitionInfo) {
+            info.changes.forEach { change ->
+                if (
+                    change.mode == TRANSIT_TO_FRONT &&
+                        change.taskInfo?.isFreeform == true &&
+                        change.startAbsBounds.top == 0 &&
+                        change.startAbsBounds.left == 0
+                ) {
+                    change.setStartAbsBounds(change.endAbsBounds)
+                }
             }
         }
     }

@@ -18,7 +18,10 @@ package com.android.quickstep.dagger;
 
 import com.android.launcher3.dagger.LauncherAppComponent;
 import com.android.launcher3.dagger.LauncherBaseAppComponent;
-import com.android.quickstep.logging.SettingsChangeLogger;
+import com.android.launcher3.model.WellbeingModel;
+import com.android.quickstep.OverviewComponentObserver;
+import com.android.quickstep.SystemUiProxy;
+import com.android.quickstep.util.AsyncClockEventDelegate;
 
 /**
  * Launcher Quickstep base component for Dagger injection.
@@ -29,5 +32,12 @@ import com.android.quickstep.logging.SettingsChangeLogger;
  * See {@link LauncherAppComponent} for the one actually used.
  */
 public interface QuickstepBaseAppComponent extends LauncherBaseAppComponent {
-    SettingsChangeLogger getSettingsChangeLogger();
+
+    WellbeingModel getWellbeingModel();
+
+    AsyncClockEventDelegate getAsyncClockEventDelegate();
+
+    SystemUiProxy getSystemUiProxy();
+
+    OverviewComponentObserver getOverviewComponentObserver();
 }

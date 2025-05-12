@@ -22,7 +22,8 @@
     <string name="recent_task_option_pin" msgid="7929860679018978258">"固定"</string>
     <string name="recent_task_option_freeform" msgid="48863056265284071">"フリーフォーム"</string>
     <string name="recent_task_option_desktop" msgid="8280879717125435668">"デスクトップ"</string>
-    <string name="recent_task_desktop" msgid="8081113562549637334">"パソコン"</string>
+    <string name="recent_task_option_external_display" msgid="4533840664313389484">"外部ディスプレイに移動する"</string>
+    <string name="recent_task_desktop" msgid="8081113562549637334">"デスクトップ"</string>
     <string name="recents_empty_message" msgid="7040467240571714191">"最近のアイテムはありません"</string>
     <string name="accessibility_app_usage_settings" msgid="6312864233673544149">"アプリの使用状況の設定"</string>
     <string name="recents_clear_all" msgid="5328176793634888831">"すべてクリア"</string>
@@ -52,7 +53,7 @@
     <string name="back_gesture_feedback_cancelled" msgid="762621530959111290">"画面の右端または左端から中央に向かってスワイプし、指を離してください"</string>
     <string name="back_gesture_feedback_complete_with_overview_follow_up" msgid="9176400654037014471">"右側からスワイプして前の画面に戻る方法を学習しました。次は、アプリを切り替える方法を覚えましょう。"</string>
     <string name="back_gesture_feedback_complete_with_follow_up" msgid="8653374779579748392">"「戻る」操作を完了しました。次は、アプリを切り替える方法を覚えましょう。"</string>
-    <string name="back_gesture_feedback_complete_without_follow_up" msgid="197189945858268342">"「戻る」操作を学習しました"</string>
+    <string name="back_gesture_feedback_complete_without_follow_up" msgid="197189945858268342">"「戻る」ジェスチャーを学習しました"</string>
     <string name="back_gesture_feedback_swipe_in_nav_bar" msgid="9157480023651452969">"スワイプする際は画面の下部に近づきすぎないようにしましょう"</string>
     <string name="back_gesture_tutorial_confirm_subtitle" msgid="5181305411668713250">"「戻る」操作の感度を変更するには [設定] に移動します"</string>
     <string name="back_gesture_intro_title" msgid="19551256430224428">"スワイプで戻る"</string>
@@ -64,7 +65,7 @@
     <string name="home_gesture_feedback_overview_detected" msgid="5177627157303895077">"指を離す前にいったん止めないでください"</string>
     <string name="home_gesture_feedback_wrong_swipe_direction" msgid="8328465201424027148">"まっすぐ上にスワイプしてください"</string>
     <string name="home_gesture_feedback_complete_with_follow_up" msgid="8766981412895888417">"「ホームに移動」操作を学習しました。次は、前の画面に戻る方法を覚えましょう。"</string>
-    <string name="home_gesture_feedback_complete_without_follow_up" msgid="2978063221383413443">"「ホームに移動」操作を学習しました"</string>
+    <string name="home_gesture_feedback_complete_without_follow_up" msgid="2978063221383413443">"「ホームに移動」ジェスチャーを学習しました"</string>
     <string name="home_gesture_intro_title" msgid="836590312858441830">"スワイプでホームに戻る"</string>
     <string name="home_gesture_intro_subtitle" msgid="2632238748497975326">"画面を下から上にスワイプします。この操作でいつでもホーム画面に戻れます。"</string>
     <string name="home_gesture_spoken_intro_subtitle" msgid="1030987707382031750">"2 本の指で画面下部から上にスワイプします。この操作で常にホーム画面に戻ります。"</string>
@@ -143,7 +144,7 @@
     <string name="move_drop_target_top_or_left" msgid="2988702185049595807">"上 / 左に移動"</string>
     <string name="move_drop_target_bottom_or_right" msgid="5431393418797620162">"下 / 右に移動"</string>
     <string name="quick_switch_overflow" msgid="3679780650881041632">"{count,plural, =1{個のその他のアプリ}other{個のその他のアプリ}}"</string>
-    <string name="quick_switch_desktop" msgid="8393802056024499749">"パソコン"</string>
+    <string name="quick_switch_desktop" msgid="8393802056024499749">"デスクトップ"</string>
     <string name="quick_switch_split_task" msgid="5598194724255333896">"<xliff:g id="APP_NAME_1">%1$s</xliff:g> と <xliff:g id="APP_NAME_2">%2$s</xliff:g>"</string>
     <string name="bubble_bar_bubble_fallback_description" msgid="7811684548953452009">"ふきだし"</string>
     <string name="bubble_bar_overflow_description" msgid="8617628132733151708">"オーバーフロー"</string>
@@ -154,4 +155,5 @@
     <string name="bubble_bar_action_dismiss_all" msgid="3290722022983403060">"すべて解除"</string>
     <string name="bubble_bar_accessibility_announce_expand" msgid="1503192695527477102">"<xliff:g id="BUBBLE_DESCRIPTION">%1$s</xliff:g>を開きます"</string>
     <string name="bubble_bar_accessibility_announce_collapse" msgid="928284600086798791">"<xliff:g id="BUBBLE_DESCRIPTION">%1$s</xliff:g>を閉じます"</string>
+    <string name="search_gesture_feature_title" msgid="1294044108313175306">"かこって検索"</string>
 </resources>

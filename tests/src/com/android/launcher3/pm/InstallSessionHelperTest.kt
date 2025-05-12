@@ -18,6 +18,7 @@ package com.android.launcher3.pm
 
 import android.content.pm.ApplicationInfo
 import android.content.pm.ApplicationInfo.FLAG_INSTALLED
+import android.content.pm.ApplicationInfo.FLAG_SYSTEM
 import android.content.pm.LauncherApps
 import android.content.pm.PackageInstaller
 import android.content.pm.PackageManager
@@ -35,7 +36,9 @@ import com.google.common.truth.Truth.assertThat
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.spy
 import org.mockito.kotlin.whenever
@@ -126,13 +129,10 @@ class InstallSessionHelperTest {
     fun `isTrustedPackage returns true if LauncherApps finds ApplicationInfo`() {
         // Given
         val expectedApplicationInfo =
-            ApplicationInfo().apply {
-                flags = flags or FLAG_INSTALLED
-                enabled = true
-            }
+            ApplicationInfo().apply { flags = FLAG_SYSTEM or FLAG_INSTALLED }
         doReturn(expectedApplicationInfo)
             .whenever(launcherApps)
-            .getApplicationInfo(expectedAppPackage, ApplicationInfo.FLAG_SYSTEM, UserHandle(0))
+            .getApplicationInfo(eq(expectedAppPackage), any(), eq(UserHandle(0)))
         // When
         val actualResult = installSessionHelper.isTrustedPackage(expectedAppPackage, UserHandle(0))
         // Then

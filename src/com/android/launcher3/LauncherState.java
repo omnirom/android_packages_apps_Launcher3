@@ -375,8 +375,14 @@ public abstract class LauncherState implements BaseState<LauncherState> {
     }
 
     public PageAlphaProvider getWorkspacePageAlphaProvider(Launcher launcher) {
-        if ((this != NORMAL && this != HINT_STATE)
-                || !launcher.getDeviceProfile().shouldFadeAdjacentWorkspaceScreens()) {
+        DeviceProfile dp = launcher.getDeviceProfile();
+        boolean shouldFadeAdjacentScreens = (this == NORMAL || this == HINT_STATE)
+                && dp.shouldFadeAdjacentWorkspaceScreens();
+        // Avoid showing adjacent screens behind handheld All Apps sheet.
+        if (Flags.allAppsSheetForHandheld() && dp.isPhone && this == ALL_APPS) {
+            shouldFadeAdjacentScreens = true;
+        }
+        if (!shouldFadeAdjacentScreens) {
             return DEFAULT_ALPHA_PROVIDER;
         }
         final int centerPage = launcher.getWorkspace().getNextPage();

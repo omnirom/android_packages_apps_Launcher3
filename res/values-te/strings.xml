@@ -32,6 +32,7 @@
     <string name="split_app_info_accessibility" msgid="5475288491241414932">"%1$s కోసం యాప్ సమాచారం"</string>
     <string name="split_app_usage_settings" msgid="7214375263347964093">"%1$sకు సంబంధించిన వినియోగ సెట్టింగ్‌లు"</string>
     <string name="new_window_option_taskbar" msgid="6448780542727767211">"కొత్త విండో"</string>
+    <string name="manage_windows_option_taskbar" msgid="2294109489960654212">"విండోలను మేనేజ్ చేయండి"</string>
     <string name="save_app_pair" msgid="5647523853662686243">"యాప్ పెయిర్‌ను సేవ్ చేయండి"</string>
     <string name="app_pair_default_title" msgid="4045241727446873529">"<xliff:g id="APP1">%1$s</xliff:g> | <xliff:g id="APP2">%2$s</xliff:g>"</string>
     <string name="app_pair_unlaunchable_at_screen_size" msgid="3446551575502685376">"ఈ పరికరంలో ఈ యాప్ పెయిర్ సపోర్ట్ చేయదు"</string>
@@ -67,8 +68,13 @@
     <string name="widgets_full_sheet_work_tab" msgid="3767150027110633765">"ఆఫీస్"</string>
     <string name="widget_category_conversations" msgid="8894438636213590446">"సంభాషణలు"</string>
     <string name="widget_category_note_taking" msgid="3469689394504266039">"నోట్-టేకింగ్"</string>
+    <string name="widget_cell_tap_to_show_add_button_label" msgid="4354194214317043581">"యాడ్‌ చేసే (జోడించే) బటన్‌ను చూపండి"</string>
+    <string name="widget_cell_tap_to_hide_add_button_label" msgid="6117805205101555997">"యాడ్‌ చేసే (జోడించే) బటన్‌ను దాచండి"</string>
     <string name="widget_add_button_label" msgid="2761267068711937179">"జోడించండి"</string>
     <string name="widget_add_button_content_description" msgid="1810530016360039643">"<xliff:g id="WIDGET_NAME">%1$s</xliff:g> విడ్జెట్‌ను జోడించండి"</string>
+    <string name="widgets_list_expand_button_label" msgid="7912016136574932622">"అన్నీ చూడండి"</string>
+    <string name="widgets_list_expand_button_content_description" msgid="4600513860973450888">"అన్ని విడ్జెట్‌లను చూపండి"</string>
+    <string name="widgets_list_expanded" msgid="7374857868788557730">"అన్ని విడ్జెట్‌లు చూపబడుతున్నాయి"</string>
     <string name="reconfigurable_widget_education_tip" msgid="6336962690888067057">"విడ్జెట్ సెట్టింగ్‌లను మార్చడానికి ట్యాప్ చేయండి"</string>
     <string name="widget_reconfigure_button_content_description" msgid="8811472721881205250">"విడ్జెట్ సెట్టింగ్‌లను మార్చండి"</string>
     <string name="all_apps_search_bar_hint" msgid="1390553134053255246">"యాప్‌ల కోసం సెర్చ్ చేయండి"</string>
@@ -124,6 +130,8 @@
     <string name="msg_disabled_by_admin" msgid="6898038085516271325">"మీ నిర్వాహకులు నిలిపివేసారు"</string>
     <string name="allow_rotation_title" msgid="7222049633713050106">"మొదటి స్క్రీన్ రొటేషన్‌ను అనుమతించండి"</string>
     <string name="allow_rotation_desc" msgid="8662546029078692509">"ఫోన్‌‌ను తిప్పినప్పుడు"</string>
+    <string name="landscape_mode_title" msgid="5138814555934843926">"ల్యాండ్‌స్కేప్ మోడ్"</string>
+    <string name="landscape_mode_desc" msgid="7372569859592816793">"ఫోన్‌ను ల్యాండ్‌స్కేప్ మోడ్‌కు సెట్ చేయండి"</string>
     <string name="notification_dots_title" msgid="9062440428204120317">"నోటిఫికేషన్ డాట్‌లు"</string>
     <string name="notification_dots_desc_on" msgid="1679848116452218908">"ఆన్"</string>
     <string name="notification_dots_desc_off" msgid="1760796511504341095">"ఆఫ్"</string>
@@ -142,7 +150,8 @@
     <string name="app_installing_title" msgid="5864044122733792085">"<xliff:g id="NAME">%1$s</xliff:g>‌ను ఇన్‌స్టాల్ చేయడం, <xliff:g id="PROGRESS">%2$s</xliff:g> పూర్తయింది"</string>
     <string name="app_downloading_title" msgid="8336702962104482644">"<xliff:g id="NAME">%1$s</xliff:g> డౌన్‌లోడ్ అవుతోంది, <xliff:g id="PROGRESS">%2$s</xliff:g> పూర్తయింది"</string>
     <string name="app_waiting_download_title" msgid="7053938513995617849">"<xliff:g id="NAME">%1$s</xliff:g> ఇన్‌స్టాల్ కావడానికి వేచి ఉంది"</string>
-    <string name="app_archived_title" msgid="7717956158562544081">"<xliff:g id="NAME">%1$s</xliff:g> ఆర్కైవ్ చేయబడింది. డౌన్‌లోడ్ చేయడానికి, రీస్టోర్ చేయడానికి ట్యాప్ చేయండి."</string>
+    <string name="app_archived_title" msgid="4548283110222420708">"<xliff:g id="NAME">%1$s</xliff:g> ఆర్కైవ్ చేయబడింది."</string>
+    <string name="app_unarchiving_action" msgid="5736107006413929484">"డౌన్‌లోడ్ చేసి, రీస్టోర్ చేయండి"</string>
     <string name="dialog_update_title" msgid="114234265740994042">"యాప్‌ను అప్‌డేట్ చేయడం అవసరం"</string>
     <string name="dialog_update_message" msgid="4176784553982226114">"ఈ చిహ్నం కోసం యాప్ అప్‌డేట్ చేయబడలేదు. మీరు ఈ షార్ట్‌కట్‌ను మళ్లీ ఎనేబుల్ చేయడానికి మాన్యువల్‌గా అప్‌డేట్ చేయవచ్చు లేదా చిహ్నాన్ని తీసివేయవచ్చు."</string>
     <string name="dialog_update" msgid="2178028071796141234">"అప్‌డేట్ చేయండి"</string>
@@ -171,7 +180,7 @@
     <string name="action_decrease_width" msgid="1374549771083094654">"వెడల్పును తగ్గించు"</string>
     <string name="action_decrease_height" msgid="282377193880900022">"ఎత్తును తగ్గించు"</string>
     <string name="widget_resized" msgid="9130327887929620">"విడ్జెట్ సైజ్‌ వెడల్పు <xliff:g id="NUMBER_0">%1$s</xliff:g>కి, ఎత్తు <xliff:g id="NUMBER_1">%2$s</xliff:g>కి మార్చబడింది"</string>
-    <string name="action_deep_shortcut" msgid="2864038805849372848">"షార్ట్‌కట్స్"</string>
+    <string name="action_deep_shortcut" msgid="4766835855579976045">"షార్ట్‌కట్ మెనూ"</string>
     <string name="action_dismiss_notification" msgid="5909461085055959187">"తీసివేయండి"</string>
     <string name="accessibility_close" msgid="2277148124685870734">"మూసివేస్తుంది"</string>
     <string name="all_apps_personal_tab" msgid="4190252696685155002">"వ్యక్తిగతం"</string>
@@ -187,6 +196,7 @@
     <string name="work_apps_paused_edu_accept" msgid="6377476824357318532">"అర్థమైంది"</string>
     <string name="work_apps_pause_btn_text" msgid="4669288269140620646">"వర్క్ యాప్‌లను పాజ్ చేయండి"</string>
     <string name="work_apps_enable_btn_text" msgid="1736198302467317371">"పాజ్ నుండి తీసివేయండి"</string>
+    <string name="work_scheduler_button_content_description" msgid="917340740986764967">"వర్క్ యాప్‌ల షెడ్యూల్"</string>
     <string name="developer_options_filter_hint" msgid="5896817443635989056">"ఫిల్టర్ చేయి"</string>
     <string name="remote_action_failed" msgid="1383965239183576790">"విఫలమైంది: <xliff:g id="WHAT">%1$s</xliff:g>"</string>
     <string name="private_space_label" msgid="2359721649407947001">"ప్రైవేట్ స్పేస్"</string>

@@ -63,12 +63,11 @@ public class SplitWithKeyboardShortcutController {
 
     public SplitWithKeyboardShortcutController(QuickstepLauncher launcher,
             SplitSelectStateController controller,
-            OverviewComponentObserver overviewComponentObserver,
             RecentsAnimationDeviceState deviceState) {
         mLauncher = launcher;
         mController = controller;
         mDeviceState = deviceState;
-        mOverviewComponentObserver = overviewComponentObserver;
+        mOverviewComponentObserver = OverviewComponentObserver.INSTANCE.get(launcher);
 
         mSplitPlaceholderSize = mLauncher.getResources().getDimensionPixelSize(
                 R.dimen.split_placeholder_size);
@@ -99,13 +98,13 @@ public class SplitWithKeyboardShortcutController {
                 options.setTransientLaunch();
                 SystemUiProxy.INSTANCE.get(mLauncher.getApplicationContext())
                         .startRecentsActivity(mOverviewComponentObserver.getOverviewIntent(),
-                                ActivityOptions.makeBasic(), callbacks);
+                                ActivityOptions.makeBasic(), callbacks,
+                                false /* useSyntheticRecentsTransition */);
             });
         });
     }
 
     public void onDestroy() {
-        mOverviewComponentObserver.onDestroy();
         mDeviceState.destroy();
     }
 

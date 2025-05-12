@@ -72,6 +72,13 @@ public interface BaseState<T extends BaseState> {
     }
 
     /**
+     * For this state, whether fullscreen and desktop quickswitch carousel are detached.
+     */
+    default boolean detachDesktopCarousel() {
+        return true;
+    }
+
+    /**
      * For this state, whether member variables and other forms of data state should be preserved
      * or wiped when the state is reapplied. (See {@link StateManager#reapplyState()})
      */

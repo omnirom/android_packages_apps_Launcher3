@@ -33,6 +33,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.spy;
 
 import android.app.prediction.AppTarget;
 import android.app.prediction.AppTargetId;
@@ -42,6 +43,8 @@ import android.content.ComponentName;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.LauncherApps;
 import android.os.UserHandle;
+import android.platform.test.annotations.DisableFlags;
+import android.platform.test.annotations.EnableFlags;
 import android.platform.test.flag.junit.SetFlagsRule;
 import android.text.TextUtils;
 
@@ -62,14 +65,21 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 @SmallTest
 @RunWith(AndroidJUnit4.class)
 public final class WidgetsPredicationUpdateTaskTest {
+
+    @Rule
+    public final MockitoRule mocks = MockitoJUnit.rule();
 
     @Rule
     public final SetFlagsRule mSetFlagsRule = new SetFlagsRule();
@@ -145,6 +155,7 @@ public final class WidgetsPredicationUpdateTaskTest {
     }
 
     @Test
+    @DisableFlags(Flags.FLAG_ENABLE_TIERED_WIDGETS_BY_DEFAULT_IN_PICKER) // Flag off
     public void widgetsRecommendationRan_shouldOnlyReturnNotAddedWidgetsInAppPredictionOrder() {
         // Run on model executor so that no other task runs in the middle.
         runOnExecutorSync(MODEL_EXECUTOR, () -> {
@@ -184,6 +195,7 @@ public final class WidgetsPredicationUpdateTaskTest {
     }
 
     @Test
+    @DisableFlags(Flags.FLAG_ENABLE_TIERED_WIDGETS_BY_DEFAULT_IN_PICKER) // Flag off
     public void widgetsRecommendationRan_shouldReturnEmptyWidgetsWhenEmpty() {
         runOnExecutorSync(MODEL_EXECUTOR, () -> {
 
@@ -210,6 +222,50 @@ public final class WidgetsPredicationUpdateTaskTest {
                     .map(itemInfo -> (PendingAddWidgetInfo) itemInfo)
                     .collect(Collectors.toList());
             assertThat(recommendedWidgets).hasSize(0);
+        });
+    }
+
+    @Test
+    @EnableFlags(Flags.FLAG_ENABLE_TIERED_WIDGETS_BY_DEFAULT_IN_PICKER)
+    public void widgetsRecommendationRan_keepsWidgetsNotOnWorkspace_addsWidgetsFromEligibleApps() {
+        runOnExecutorSync(MODEL_EXECUTOR, () -> {
+            WidgetsFilterDataProvider spiedFilterProvider = spy(
+                    mModelHelper.getModel().getWidgetsFilterDataProvider());
+            doAnswer(i -> new Predicate<WidgetItem>() {
+                @Override
+                public boolean test(WidgetItem widgetItem) {
+                    // app5's widget is already on workspace, but, app2 is not.
+                    // And app4's second widget is also not on workspace.
+                    return Set.of("app5", "app2", "app4").contains(
+                            widgetItem.componentName.getPackageName());
+                }
+            }).when(spiedFilterProvider).getPredictedWidgetsFilter();
+            mModelHelper.getBgDataModel().widgetsModel.updateWidgetFilters(spiedFilterProvider);
+            // App5's widget that's already on workspace.
+            AppTarget widget1 = new AppTarget(new AppTargetId("app5"), "app5", "provider1",
+                    mUserHandle);
+            // App4's widget eligible and not on workspace.
+            AppTarget widget2 = new AppTarget(new AppTargetId("app4"), "app4", "provider2",
+                    mUserHandle);
+
+            mCallback.mRecommendedWidgets = null;
+            mModelHelper.getModel().enqueueModelUpdateTask(
+                    newWidgetsPredicationTask(List.of(widget1, widget2)));
+            runOnExecutorSync(MAIN_EXECUTOR, () -> {
+            });
+
+            List<PendingAddWidgetInfo> recommendedWidgets = mCallback.mRecommendedWidgets.items
+                    .stream()
+                    .map(itemInfo -> (PendingAddWidgetInfo) itemInfo)
+                    .collect(Collectors.toList());
+            assertThat(recommendedWidgets).hasSize(2);
+            List<ComponentName> componentNames = recommendedWidgets.stream().map(
+                    w -> w.componentName).toList();
+            assertThat(componentNames).containsExactly(
+                    // Locally added, not on workspace, eligible app per filter
+                    mApp2Provider1.provider,
+                    // From prediction service, not on workspace, eligible app per filter
+                    mApp4Provider2.provider);
         });
     }
 

@@ -31,12 +31,12 @@ import android.view.View;
 import android.view.accessibility.AccessibilityManager;
 
 import androidx.annotation.ColorInt;
+import androidx.annotation.VisibleForTesting;
 
 import com.android.launcher3.R;
 import com.android.launcher3.Utilities;
 import com.android.launcher3.allapps.FloatingHeaderRow;
 import com.android.launcher3.allapps.FloatingHeaderView;
-import com.android.launcher3.util.Themes;
 
 /**
  * A view which shows a horizontal divider
@@ -84,9 +84,9 @@ public class AppsDividerView extends View implements FloatingHeaderRow {
                 getResources().getDimensionPixelSize(R.dimen.all_apps_divider_height)
         };
 
-        mStrokeColor = Themes.getAttrColor(context, R.attr.materialColorOutlineVariant);
+        mStrokeColor = context.getColor(R.color.materialColorOutlineVariant);
 
-        mAllAppsLabelTextColor = Themes.getAttrColor(context, R.attr.materialColorOnSurfaceVariant);
+        mAllAppsLabelTextColor = context.getColor(R.color.materialColorOnSurfaceVariant);
 
         mAccessibilityManager = AccessibilityManager.getInstance(context);
         setShowAllAppsLabel(!ALL_APPS_VISITED_COUNT.hasReachedMax(context));
@@ -252,5 +252,10 @@ public class AppsDividerView extends View implements FloatingHeaderRow {
     @Override
     public View getFocusedChild() {
         return null;
+    }
+
+    @VisibleForTesting
+    public DividerType getDividerType() {
+        return mDividerType;
     }
 }

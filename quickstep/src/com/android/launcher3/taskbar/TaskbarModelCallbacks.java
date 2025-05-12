@@ -42,7 +42,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.function.Predicate;
 
 /**
@@ -196,26 +195,21 @@ public class TaskbarModelCallbacks implements
         final TaskbarRecentAppsController recentAppsController =
                 mControllers.taskbarRecentAppsController;
         hotseatItemInfos = recentAppsController.updateHotseatItemInfos(hotseatItemInfos);
-        Set<Integer> runningTaskIds = recentAppsController.getRunningTaskIds();
-        Set<Integer> minimizedTaskIds = recentAppsController.getMinimizedTaskIds();
 
         if (mDeferUpdatesForSUW) {
             ItemInfo[] finalHotseatItemInfos = hotseatItemInfos;
             mDeferredUpdates = () ->
                     commitHotseatItemUpdates(finalHotseatItemInfos,
-                            recentAppsController.getShownTasks(), runningTaskIds,
-                            minimizedTaskIds);
+                            recentAppsController.getShownTasks());
         } else {
-            commitHotseatItemUpdates(hotseatItemInfos,
-                    recentAppsController.getShownTasks(), runningTaskIds, minimizedTaskIds);
+            commitHotseatItemUpdates(hotseatItemInfos, recentAppsController.getShownTasks());
         }
     }
 
-    private void commitHotseatItemUpdates(ItemInfo[] hotseatItemInfos, List<GroupTask> recentTasks,
-            Set<Integer> runningTaskIds, Set<Integer> minimizedTaskIds) {
-        mContainer.updateHotseatItems(hotseatItemInfos, recentTasks);
-        mControllers.taskbarViewController.updateIconViewsRunningStates(
-                runningTaskIds, minimizedTaskIds);
+    private void commitHotseatItemUpdates(
+            ItemInfo[] hotseatItemInfos, List<GroupTask> recentTasks) {
+        mContainer.updateItems(hotseatItemInfos, recentTasks);
+        mControllers.taskbarViewController.updateIconViewsRunningStates();
     }
 
     /**

@@ -21,8 +21,8 @@ import android.os.VibrationEffect
 import android.os.VibrationEffect.Composition.PRIMITIVE_LOW_TICK
 import android.os.VibrationEffect.Composition.PRIMITIVE_TICK
 import android.os.Vibrator
-import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.SmallTest
+import com.android.launcher3.util.LauncherModelHelper.SandboxModelContext
 import com.android.launcher3.util.VibratorWrapper.HAPTIC_FEEDBACK_URI
 import com.android.launcher3.util.VibratorWrapper.OVERVIEW_HAPTIC
 import com.android.launcher3.util.VibratorWrapper.VIBRATION_ATTRS
@@ -41,37 +41,33 @@ import org.mockito.kotlin.never
 import org.mockito.kotlin.same
 
 @SmallTest
-@RunWith(AndroidJUnit4::class)
+@RunWith(LauncherMultivalentJUnit::class)
 class VibratorWrapperTest {
 
     @Mock private lateinit var settingsCache: SettingsCache
-    @Mock private lateinit var vibrator: Vibrator
+    private lateinit var vibrator: Vibrator
+    private val context: SandboxModelContext = SandboxModelContext()
     @Captor private lateinit var vibrationEffectCaptor: ArgumentCaptor<VibrationEffect>
-
+    @Mock private lateinit var tracker: DaggerSingletonTracker
     private lateinit var underTest: VibratorWrapper
 
     @Before
     fun setup() {
         MockitoAnnotations.initMocks(this)
+        vibrator = context.spyService(Vibrator::class.java)
         `when`(settingsCache.getValue(HAPTIC_FEEDBACK_URI, 0)).thenReturn(true)
         `when`(vibrator.hasVibrator()).thenReturn(true)
         `when`(vibrator.areAllPrimitivesSupported(PRIMITIVE_TICK)).thenReturn(true)
         `when`(vibrator.areAllPrimitivesSupported(PRIMITIVE_LOW_TICK)).thenReturn(true)
         `when`(vibrator.getPrimitiveDurations(PRIMITIVE_LOW_TICK)).thenReturn(intArrayOf(10))
 
-        underTest = VibratorWrapper(vibrator, settingsCache)
+        underTest = VibratorWrapper(context, settingsCache, tracker)
     }
 
     @Test
     fun init_register_onChangeListener() {
+        TestUtil.runOnExecutorSync(Executors.MAIN_EXECUTOR) {}
         verify(settingsCache).register(HAPTIC_FEEDBACK_URI, underTest.mHapticChangeListener)
-    }
-
-    @Test
-    fun close_unregister_onChangeListener() {
-        underTest.close()
-
-        verify(settingsCache).unregister(HAPTIC_FEEDBACK_URI, underTest.mHapticChangeListener)
     }
 
     @Test
@@ -117,7 +113,7 @@ class VibratorWrapperTest {
     @Test
     fun haptic_feedback_disabled_no_vibrate() {
         `when`(vibrator.hasVibrator()).thenReturn(false)
-        underTest = VibratorWrapper(vibrator, settingsCache)
+        underTest = VibratorWrapper(context, settingsCache, tracker)
 
         underTest.vibrate(OVERVIEW_HAPTIC)
 

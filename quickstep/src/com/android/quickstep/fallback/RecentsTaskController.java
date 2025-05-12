@@ -15,18 +15,22 @@
  */
 package com.android.quickstep.fallback;
 
+import android.content.Context;
+
+import com.android.launcher3.statemanager.StatefulContainer;
 import com.android.launcher3.uioverrides.touchcontrollers.TaskViewTouchController;
-import com.android.quickstep.RecentsActivity;
+import com.android.quickstep.views.RecentsViewContainer;
 
-public class RecentsTaskController extends TaskViewTouchController<RecentsActivity> {
-
-    public RecentsTaskController(RecentsActivity activity) {
-        super(activity);
+public class RecentsTaskController<T extends Context & RecentsViewContainer &
+        StatefulContainer<RecentsState>> extends TaskViewTouchController<T> {
+    public RecentsTaskController(T container) {
+        super(container);
     }
 
     @Override
     protected boolean isRecentsInteractive() {
-        return mContainer.hasWindowFocus() || mContainer.getStateManager().getState().hasLiveTile();
+        return mContainer.getRootView().hasWindowFocus()
+                || mContainer.getStateManager().getState().hasLiveTile();
     }
 
     @Override

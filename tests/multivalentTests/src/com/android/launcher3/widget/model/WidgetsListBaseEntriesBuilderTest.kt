@@ -26,8 +26,8 @@ import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.android.launcher3.InvariantDeviceProfile
 import com.android.launcher3.LauncherAppState
-import com.android.launcher3.icons.ComponentWithLabel
 import com.android.launcher3.icons.IconCache
+import com.android.launcher3.icons.cache.CachedObject
 import com.android.launcher3.model.WidgetItem
 import com.android.launcher3.model.data.PackageItemInfo
 import com.android.launcher3.util.ActivityContextWrapper
@@ -66,11 +66,11 @@ class WidgetsListBaseEntriesBuilderTest {
         testInvariantProfile = LauncherAppState.getIDP(context)
 
         doAnswer { invocation: InvocationOnMock ->
-                val componentWithLabel = invocation.getArgument<Any>(0) as ComponentWithLabel
+                val componentWithLabel = invocation.getArgument<Any>(0) as CachedObject
                 componentWithLabel.getComponent().shortClassName
             }
             .`when`(iconCache)
-            .getTitleNoCache(any<ComponentWithLabel>())
+            .getTitleNoCache(any<CachedObject>())
         underTest = WidgetsListBaseEntriesBuilder(context)
 
         allWidgets =
@@ -79,14 +79,14 @@ class WidgetsListBaseEntriesBuilderTest {
                 packageItemInfoWithTitle(APP_1_PACKAGE_NAME, APP_1_PACKAGE_TITLE) to
                     listOf(
                         createWidgetItem(APP_1_PACKAGE_NAME, APP_1_PROVIDER_1_CLASS_NAME),
-                        createWidgetItem(APP_1_PACKAGE_NAME, APP_1_PROVIDER_2_CLASS_NAME)
+                        createWidgetItem(APP_1_PACKAGE_NAME, APP_1_PROVIDER_2_CLASS_NAME),
                     ),
                 // app 2
                 packageItemInfoWithTitle(APP_2_PACKAGE_NAME, APP_2_PACKAGE_TITLE) to
                     listOf(createWidgetItem(APP_2_PACKAGE_NAME, APP_2_PROVIDER_1_CLASS_NAME)),
                 // app 3
                 packageItemInfoWithTitle(APP_3_PACKAGE_NAME, APP_3_PACKAGE_TITLE) to
-                    listOf(createWidgetItem(APP_3_PACKAGE_NAME, APP_3_PROVIDER_1_CLASS_NAME))
+                    listOf(createWidgetItem(APP_3_PACKAGE_NAME, APP_3_PROVIDER_1_CLASS_NAME)),
             )
     }
 
@@ -96,7 +96,7 @@ class WidgetsListBaseEntriesBuilderTest {
             listOf(
                 APP_1_EXPECTED_SECTION_NAME to 2,
                 APP_2_EXPECTED_SECTION_NAME to 1,
-                APP_3_EXPECTED_SECTION_NAME to 1
+                APP_3_EXPECTED_SECTION_NAME to 1,
             )
 
         val entries = underTest.build(allWidgets)
@@ -122,7 +122,7 @@ class WidgetsListBaseEntriesBuilderTest {
         val expectedWidgetsCountBySection =
             listOf(
                 APP_1_EXPECTED_SECTION_NAME to 1, // one widget filtered out
-                APP_3_EXPECTED_SECTION_NAME to 1
+                APP_3_EXPECTED_SECTION_NAME to 1,
             )
 
         val entries =

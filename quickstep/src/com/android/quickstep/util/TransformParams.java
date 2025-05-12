@@ -143,18 +143,15 @@ public class TransformParams {
         for (int i = 0; i < targets.unfilteredApps.length; i++) {
             RemoteAnimationTarget app = targets.unfilteredApps[i];
             SurfaceProperties builder = transaction.forSurface(app.leash);
+            BuilderProxy targetProxy =
+                    app.windowConfiguration.getActivityType() == ACTIVITY_TYPE_HOME
+                            ? mHomeBuilderProxy
+                            : (app.mode == targets.targetMode ? proxy : mBaseBuilderProxy);
 
             if (app.mode == targets.targetMode) {
-                int activityType = app.windowConfiguration.getActivityType();
-                if (activityType == ACTIVITY_TYPE_HOME) {
-                    mHomeBuilderProxy.onBuildTargetParams(builder, app, this);
-                } else {
-                    builder.setAlpha(getTargetAlpha());
-                    proxy.onBuildTargetParams(builder, app, this);
-                }
-            } else {
-                mBaseBuilderProxy.onBuildTargetParams(builder, app, this);
+                builder.setAlpha(getTargetAlpha());
             }
+            targetProxy.onBuildTargetParams(builder, app, this);
         }
 
         // always put wallpaper layer to bottom.

@@ -25,7 +25,6 @@ import android.view.Surface
 import android.view.Surface.ROTATION_90
 import com.android.quickstep.recents.data.FakeRecentsRotationStateRepository
 import com.android.quickstep.recents.data.FakeTasksRepository
-import com.android.quickstep.recents.data.TaskIconQueryResponse
 import com.android.quickstep.recents.viewmodel.RecentsViewData
 import com.android.quickstep.task.viewmodel.TaskContainerData
 import com.android.systemui.shared.recents.model.Task
@@ -49,7 +48,7 @@ class SplashAlphaUseCaseTest {
             taskContainerData,
             taskThumbnailViewData,
             recentTasksRepository,
-            recentsRotationStateRepository
+            recentsRotationStateRepository,
         )
 
     @Test
@@ -117,16 +116,16 @@ class SplashAlphaUseCaseTest {
 
     private fun setupTask(taskId: Int, thumbnailData: ThumbnailData = createThumbnailData()) {
         recentTasksRepository.seedThumbnailData(mapOf(taskId to thumbnailData))
-        val expectedIconData = createIconData("Task $taskId")
-        recentTasksRepository.seedIconData(mapOf(taskId to expectedIconData))
+        val expectedIconData = mock<Drawable>()
+        recentTasksRepository.seedIconData(taskId, "Task $taskId", "", expectedIconData)
         recentTasksRepository.seedTasks(tasks)
-        recentTasksRepository.setVisibleTasks(listOf(taskId))
+        recentTasksRepository.setVisibleTasks(setOf(taskId))
     }
 
     private fun createThumbnailData(
         rotation: Int = Surface.ROTATION_0,
         width: Int = THUMBNAIL_WIDTH,
-        height: Int = THUMBNAIL_HEIGHT
+        height: Int = THUMBNAIL_HEIGHT,
     ): ThumbnailData {
         val bitmap = mock<Bitmap>()
         whenever(bitmap.width).thenReturn(width)
@@ -134,8 +133,6 @@ class SplashAlphaUseCaseTest {
 
         return ThumbnailData(thumbnail = bitmap, rotation = rotation)
     }
-
-    private fun createIconData(title: String) = TaskIconQueryResponse(mock<Drawable>(), "", title)
 
     private fun createTaskWithId(taskId: Int) =
         Task(Task.TaskKey(taskId, 0, Intent(), ComponentName("", ""), 0, 2000)).apply {

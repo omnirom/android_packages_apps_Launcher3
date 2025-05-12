@@ -64,11 +64,7 @@ import java.util.List;
 @RunWith(AndroidJUnit4.class)
 public class CacheDataUpdatedTaskTest {
 
-    @Rule(order = 0)
-    public TestRule testStabilityRule = new TestStabilityRule();
-
-    @Rule(order = 1)
-    public ModelTestRule mModelTestRule = new ModelTestRule();
+    @Rule public TestRule testStabilityRule = new TestStabilityRule();
 
     private static final String PENDING_APP_1 = TEST_PACKAGE + ".pending1";
     private static final String PENDING_APP_2 = TEST_PACKAGE + ".pending2";

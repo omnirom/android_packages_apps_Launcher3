@@ -138,7 +138,7 @@ public abstract class ArrowPopup<T extends Context & ActivityContext>
 
         // Initialize arrow view
         final Resources resources = getResources();
-        mArrowColor = Themes.getAttrColor(getContext(), R.attr.materialColorSurfaceContainer);
+        mArrowColor = getContext().getColor(R.color.materialColorSurfaceContainer);
         mChildContainerMargin = resources.getDimensionPixelSize(R.dimen.popup_margin);
         mArrowWidth = resources.getDimensionPixelSize(R.dimen.popup_arrow_width);
         mArrowHeight = resources.getDimensionPixelSize(R.dimen.popup_arrow_height);
@@ -170,8 +170,7 @@ public abstract class ArrowPopup<T extends Context & ActivityContext>
                     getContext().getColor(R.color.popup_shade_third)
             };
         } else {
-            mColors = new int[]{Themes.getAttrColor(getContext(),
-                    R.attr.materialColorSurfaceContainer)};
+            mColors = new int[]{getContext().getColor(R.color.materialColorSurfaceContainer)};
         }
     }
 

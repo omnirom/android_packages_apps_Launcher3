@@ -207,4 +207,21 @@ class DisplayControllerTest {
             .onDisplayInfoChanged(any(), any(), eq(CHANGE_TASKBAR_PINNING))
         assertFalse(displayController.getInfo().isTransientTaskbar())
     }
+
+    @Test
+    @UiThreadTest
+    fun testLockedTaskbarChangeOnConfigurationChanged() {
+        whenever(windowManagerProxy.showLockedTaskbarOnHome(any())).thenReturn(true)
+        whenever(windowManagerProxy.isHomeVisible(any())).thenReturn(true)
+        whenever(windowManagerProxy.isInDesktopMode()).thenReturn(false)
+        whenever(launcherPrefs.get(TASKBAR_PINNING)).thenReturn(false)
+        DisplayController.enableTaskbarModePreferenceForTests(true)
+        assertTrue(displayController.getInfo().isTransientTaskbar())
+
+        displayController.onConfigurationChanged(configuration)
+
+        verify(displayInfoChangeListener)
+            .onDisplayInfoChanged(any(), any(), eq(CHANGE_TASKBAR_PINNING))
+        assertFalse(displayController.getInfo().isTransientTaskbar())
+    }
 }

@@ -19,6 +19,7 @@ import static android.os.VibrationEffect.Composition.PRIMITIVE_LOW_TICK;
 import static android.os.VibrationEffect.createPredefined;
 import static android.provider.Settings.System.HAPTIC_FEEDBACK_ENABLED;
 
+import static com.android.launcher3.util.Executors.MAIN_EXECUTOR;
 import static com.android.launcher3.util.Executors.UI_HELPER_EXECUTOR;
 
 import android.annotation.SuppressLint;
@@ -31,13 +32,20 @@ import android.provider.Settings;
 
 import androidx.annotation.VisibleForTesting;
 
+import com.android.launcher3.dagger.ApplicationContext;
+import com.android.launcher3.dagger.LauncherAppSingleton;
+import com.android.launcher3.dagger.LauncherBaseAppComponent;
+
+import javax.inject.Inject;
+
 /**
  * Wrapper around {@link Vibrator} to easily perform haptic feedback where necessary.
  */
-public class VibratorWrapper implements SafeCloseable {
+@LauncherAppSingleton
+public class VibratorWrapper {
 
-    public static final MainThreadInitializedObject<VibratorWrapper> INSTANCE =
-            new MainThreadInitializedObject<>(VibratorWrapper::new);
+    public static final DaggerSingletonObject<VibratorWrapper> INSTANCE =
+            new DaggerSingletonObject<>(LauncherBaseAppComponent::getVibratorWrapper);
 
     public static final AudioAttributes VIBRATION_ATTRS = new AudioAttributes.Builder()
             .setUsage(AudioAttributes.USAGE_ASSISTANCE_SONIFICATION)
@@ -59,35 +67,26 @@ public class VibratorWrapper implements SafeCloseable {
     private final Vibrator mVibrator;
     private final boolean mHasVibrator;
 
-    private final SettingsCache mSettingsCache;
-
     @VisibleForTesting
     final SettingsCache.OnChangeListener mHapticChangeListener =
             isEnabled -> mIsHapticFeedbackEnabled = isEnabled;
 
     private boolean mIsHapticFeedbackEnabled;
 
-    private VibratorWrapper(Context context) {
-        this(context.getSystemService(Vibrator.class), SettingsCache.INSTANCE.get(context));
-    }
+    @Inject
+    public VibratorWrapper(@ApplicationContext Context context, SettingsCache settingsCache,
+            DaggerSingletonTracker tracker) {
 
-    @VisibleForTesting
-    VibratorWrapper(Vibrator vibrator, SettingsCache settingsCache) {
-        mVibrator = vibrator;
+        mVibrator = context.getSystemService(Vibrator.class);
         mHasVibrator = mVibrator.hasVibrator();
-        mSettingsCache = settingsCache;
         if (mHasVibrator) {
-            mSettingsCache.register(HAPTIC_FEEDBACK_URI, mHapticChangeListener);
-            mIsHapticFeedbackEnabled = mSettingsCache.getValue(HAPTIC_FEEDBACK_URI, 0);
+            MAIN_EXECUTOR.execute(
+                    () -> settingsCache.register(HAPTIC_FEEDBACK_URI, mHapticChangeListener));
+            mIsHapticFeedbackEnabled = settingsCache.getValue(HAPTIC_FEEDBACK_URI, 0);
+            tracker.addCloseable(
+                    () -> settingsCache.unregister(HAPTIC_FEEDBACK_URI, mHapticChangeListener));
         } else {
             mIsHapticFeedbackEnabled = false;
-        }
-    }
-
-    @Override
-    public void close() {
-        if (mHasVibrator) {
-            mSettingsCache.unregister(HAPTIC_FEEDBACK_URI, mHapticChangeListener);
         }
     }
 

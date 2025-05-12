@@ -18,7 +18,6 @@ package com.android.launcher3.widget.custom;
 
 import android.content.ComponentName;
 import android.content.Context;
-import android.content.pm.PackageManager;
 import android.os.Parcel;
 import android.os.Parcelable;
 
@@ -64,7 +63,7 @@ public class CustomAppWidgetProviderInfo extends LauncherAppWidgetProviderInfo
     }
 
     @Override
-    public String getLabel(PackageManager packageManager) {
+    public CharSequence getLabel() {
         return Utilities.trim(label);
     }
 

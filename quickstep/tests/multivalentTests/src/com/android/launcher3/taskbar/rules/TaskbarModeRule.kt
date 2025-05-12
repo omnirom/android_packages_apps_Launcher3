@@ -61,7 +61,7 @@ class TaskbarModeRule(private val context: TaskbarWindowSandboxContext) : TestRu
                 val mode = taskbarMode.mode
 
                 getInstrumentation().runOnMainSync {
-                    context.applicationContext.putObject(
+                    context.putObject(
                         DisplayController.INSTANCE,
                         object : DisplayController(context) {
                             override fun getInfo(): Info {

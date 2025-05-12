@@ -32,6 +32,7 @@
     <string name="split_app_info_accessibility" msgid="5475288491241414932">"Infos sur l\'appli pour %1$s"</string>
     <string name="split_app_usage_settings" msgid="7214375263347964093">"Paramètres d\'utilisation pour %1$s"</string>
     <string name="new_window_option_taskbar" msgid="6448780542727767211">"Nouvelle fenêtre"</string>
+    <string name="manage_windows_option_taskbar" msgid="2294109489960654212">"Gérer les fenêtres"</string>
     <string name="save_app_pair" msgid="5647523853662686243">"Enregistrer une paire d\'applis"</string>
     <string name="app_pair_default_title" msgid="4045241727446873529">"<xliff:g id="APP1">%1$s</xliff:g> | <xliff:g id="APP2">%2$s</xliff:g>"</string>
     <string name="app_pair_unlaunchable_at_screen_size" msgid="3446551575502685376">"Cette paire d\'applications n\'est pas prise en charge sur cet appareil"</string>
@@ -67,8 +68,13 @@
     <string name="widgets_full_sheet_work_tab" msgid="3767150027110633765">"Professionnels"</string>
     <string name="widget_category_conversations" msgid="8894438636213590446">"Conversations"</string>
     <string name="widget_category_note_taking" msgid="3469689394504266039">"Prise de notes"</string>
+    <string name="widget_cell_tap_to_show_add_button_label" msgid="4354194214317043581">"Afficher le bouton \"Ajouter\""</string>
+    <string name="widget_cell_tap_to_hide_add_button_label" msgid="6117805205101555997">"Masquer le bouton \"Ajouter\""</string>
     <string name="widget_add_button_label" msgid="2761267068711937179">"Ajouter"</string>
     <string name="widget_add_button_content_description" msgid="1810530016360039643">"Ajoutez un widget <xliff:g id="WIDGET_NAME">%1$s</xliff:g>"</string>
+    <string name="widgets_list_expand_button_label" msgid="7912016136574932622">"Tout afficher"</string>
+    <string name="widgets_list_expand_button_content_description" msgid="4600513860973450888">"Afficher tous les widgets"</string>
+    <string name="widgets_list_expanded" msgid="7374857868788557730">"Afficher tous les widgets"</string>
     <string name="reconfigurable_widget_education_tip" msgid="6336962690888067057">"Appuyez pour modifier les paramètres du widget"</string>
     <string name="widget_reconfigure_button_content_description" msgid="8811472721881205250">"Modifier les paramètres du widget"</string>
     <string name="all_apps_search_bar_hint" msgid="1390553134053255246">"Rechercher dans les applications"</string>
@@ -124,6 +130,8 @@
     <string name="msg_disabled_by_admin" msgid="6898038085516271325">"Désactivé par votre administrateur"</string>
     <string name="allow_rotation_title" msgid="7222049633713050106">"Autoriser la rotation de l\'écran d\'accueil"</string>
     <string name="allow_rotation_desc" msgid="8662546029078692509">"Lorsque vous faites pivoter le téléphone"</string>
+    <string name="landscape_mode_title" msgid="5138814555934843926">"Mode Paysage"</string>
+    <string name="landscape_mode_desc" msgid="7372569859592816793">"Placez le téléphone en mode Paysage"</string>
     <string name="notification_dots_title" msgid="9062440428204120317">"Pastilles de notification"</string>
     <string name="notification_dots_desc_on" msgid="1679848116452218908">"Activées"</string>
     <string name="notification_dots_desc_off" msgid="1760796511504341095">"Désactivées"</string>
@@ -142,7 +150,8 @@
     <string name="app_installing_title" msgid="5864044122733792085">"Installation de <xliff:g id="NAME">%1$s</xliff:g>… (<xliff:g id="PROGRESS">%2$s</xliff:g> terminés)"</string>
     <string name="app_downloading_title" msgid="8336702962104482644">"<xliff:g id="NAME">%1$s</xliff:g> en cours de téléchargement, <xliff:g id="PROGRESS">%2$s</xliff:g> effectué(s)"</string>
     <string name="app_waiting_download_title" msgid="7053938513995617849">"<xliff:g id="NAME">%1$s</xliff:g> en attente d\'installation"</string>
-    <string name="app_archived_title" msgid="7717956158562544081">"L\'application <xliff:g id="NAME">%1$s</xliff:g> est archivée. Appuyez pour la télécharger et la restaurer."</string>
+    <string name="app_archived_title" msgid="4548283110222420708">"L\'application <xliff:g id="NAME">%1$s</xliff:g> est archivée."</string>
+    <string name="app_unarchiving_action" msgid="5736107006413929484">"télécharger et restaurer"</string>
     <string name="dialog_update_title" msgid="114234265740994042">"Mise à jour de l\'appli requise"</string>
     <string name="dialog_update_message" msgid="4176784553982226114">"L\'appli correspondant à cette icône n\'est pas mise à jour. Vous pouvez la mettre à jour manuellement pour réactiver le raccourci ou supprimer l\'icône."</string>
     <string name="dialog_update" msgid="2178028071796141234">"Modifier"</string>
@@ -171,7 +180,7 @@
     <string name="action_decrease_width" msgid="1374549771083094654">"Diminuer la largeur"</string>
     <string name="action_decrease_height" msgid="282377193880900022">"Diminuer la hauteur"</string>
     <string name="widget_resized" msgid="9130327887929620">"Le widget a bien été redimensionné (largeur : <xliff:g id="NUMBER_0">%1$s</xliff:g>, hauteur : <xliff:g id="NUMBER_1">%2$s</xliff:g>)."</string>
-    <string name="action_deep_shortcut" msgid="2864038805849372848">"Raccourcis"</string>
+    <string name="action_deep_shortcut" msgid="4766835855579976045">"Menu de raccourci"</string>
     <string name="action_dismiss_notification" msgid="5909461085055959187">"Ignorer"</string>
     <string name="accessibility_close" msgid="2277148124685870734">"Fermer"</string>
     <string name="all_apps_personal_tab" msgid="4190252696685155002">"Personnel"</string>
@@ -187,6 +196,7 @@
     <string name="work_apps_paused_edu_accept" msgid="6377476824357318532">"OK"</string>
     <string name="work_apps_pause_btn_text" msgid="4669288269140620646">"Mettre en pause les applis professionnelles"</string>
     <string name="work_apps_enable_btn_text" msgid="1736198302467317371">"Réactiver"</string>
+    <string name="work_scheduler_button_content_description" msgid="917340740986764967">"Planifier l\'activation des applis pros"</string>
     <string name="developer_options_filter_hint" msgid="5896817443635989056">"Filtre"</string>
     <string name="remote_action_failed" msgid="1383965239183576790">"Échec : <xliff:g id="WHAT">%1$s</xliff:g>"</string>
     <string name="private_space_label" msgid="2359721649407947001">"Espace privé"</string>

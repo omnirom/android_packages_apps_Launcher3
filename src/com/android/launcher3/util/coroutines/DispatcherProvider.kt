@@ -17,18 +17,44 @@
 package com.android.launcher3.util.coroutines
 
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.newFixedThreadPoolContext
 
 interface DispatcherProvider {
     val default: CoroutineDispatcher
-    val io: CoroutineDispatcher
+    val background: CoroutineDispatcher
     val main: CoroutineDispatcher
     val unconfined: CoroutineDispatcher
 }
 
 object ProductionDispatchers : DispatcherProvider {
+    private val bgDispatcher = CoroutinesHelper.bgDispatcher()
+
     override val default: CoroutineDispatcher = Dispatchers.Default
-    override val io: CoroutineDispatcher = Dispatchers.IO
+    override val background: CoroutineDispatcher = bgDispatcher
     override val main: CoroutineDispatcher = Dispatchers.Main
     override val unconfined: CoroutineDispatcher = Dispatchers.Unconfined
+}
+
+private object CoroutinesHelper {
+    /**
+     * Default Coroutine dispatcher for background operations.
+     *
+     * Note that this is explicitly limiting the number of threads. In the past, we used
+     * [Dispatchers.IO]. This caused >40 threads to be spawned, and a lot of thread list lock
+     * contention between then, eventually causing jank.
+     */
+    @OptIn(DelicateCoroutinesApi::class)
+    fun bgDispatcher(): CoroutineDispatcher {
+        // Why a new ThreadPool instead of just using Dispatchers.IO with
+        // CoroutineDispatcher.limitedParallelism? Because, if we were to use Dispatchers.IO, we
+        // would share those threads with other dependencies using Dispatchers.IO.
+        // Using a dedicated thread pool we have guarantees only Launcher is able to schedule
+        // code on those.
+        return newFixedThreadPoolContext(
+            nThreads = Runtime.getRuntime().availableProcessors(),
+            name = "LauncherBg",
+        )
+    }
 }

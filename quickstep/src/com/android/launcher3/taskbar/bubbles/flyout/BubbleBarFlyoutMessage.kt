@@ -18,9 +18,4 @@ package com.android.launcher3.taskbar.bubbles.flyout
 
 import android.graphics.drawable.Drawable
 
-data class BubbleBarFlyoutMessage(
-    val senderAvatar: Drawable?,
-    val senderName: CharSequence,
-    val message: CharSequence,
-    val isGroupChat: Boolean,
-)
+data class BubbleBarFlyoutMessage(val icon: Drawable?, val title: String, val message: String)

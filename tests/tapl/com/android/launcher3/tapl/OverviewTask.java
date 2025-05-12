@@ -16,9 +16,10 @@
 
 package com.android.launcher3.tapl;
 
-import static com.android.launcher3.tapl.OverviewTask.OverviewSplitTask.DEFAULT;
-import static com.android.launcher3.tapl.OverviewTask.OverviewSplitTask.SPLIT_BOTTOM_OR_RIGHT;
-import static com.android.launcher3.tapl.OverviewTask.OverviewSplitTask.SPLIT_TOP_OR_LEFT;
+import static com.android.launcher3.tapl.OverviewTask.OverviewTaskContainer.DEFAULT;
+import static com.android.launcher3.tapl.OverviewTask.OverviewTaskContainer.DESKTOP;
+import static com.android.launcher3.tapl.OverviewTask.OverviewTaskContainer.SPLIT_BOTTOM_OR_RIGHT;
+import static com.android.launcher3.tapl.OverviewTask.OverviewTaskContainer.SPLIT_TOP_OR_LEFT;
 
 import android.graphics.Rect;
 
@@ -56,7 +57,7 @@ public final class OverviewTask {
         mLauncher.assertNotNull("task must not be null", task);
         mTask = task;
         mOverview = overview;
-        mType = getType();
+        mType = getType(task);
         verifyActiveContainer();
     }
 
@@ -69,11 +70,11 @@ public final class OverviewTask {
      * divider between.
      */
     int getVisibleHeight() {
-        if (isTaskSplit()) {
+        if (isGrouped()) {
             return getCombinedSplitTaskHeight();
         }
 
-        UiObject2 taskSnapshot1 = findObjectInTask(DEFAULT.snapshotRes);
+        UiObject2 taskSnapshot1 = findObjectInTask((isDesktop() ? DESKTOP : DEFAULT).snapshotRes);
         return taskSnapshot1.getVisibleBounds().height();
     }
 
@@ -102,7 +103,7 @@ public final class OverviewTask {
      * divider between.
      */
     int getVisibleWidth() {
-        if (isTaskSplit()) {
+        if (isGrouped()) {
             return getCombinedSplitTaskWidth();
         }
 
@@ -164,8 +165,11 @@ public final class OverviewTask {
 
             dismissBySwipingUp();
 
+            long numNonDesktopTasks = mOverview.getCurrentTasksForTablet()
+                    .stream().filter(t -> !t.isDesktop()).count();
+
             try (LauncherInstrumentation.Closable c2 = mLauncher.addContextLayer("dismissed")) {
-                if (taskWasFocused) {
+                if (taskWasFocused && numNonDesktopTasks > 0) {
                     mLauncher.assertNotNull("No task became focused",
                             mOverview.getFocusedTaskForTablet());
                 }
@@ -256,7 +260,7 @@ public final class OverviewTask {
 
     /** Taps the task menu of the split task. Returns the split task's menu object. */
     @NonNull
-    public OverviewTaskMenu tapMenu(OverviewSplitTask task) {
+    public OverviewTaskMenu tapMenu(OverviewTaskContainer task) {
         try (LauncherInstrumentation.Closable e = mLauncher.eventsCheck();
              LauncherInstrumentation.Closable c = mLauncher.addContextLayer(
                      "want to tap the task menu")) {
@@ -270,10 +274,6 @@ public final class OverviewTask {
         }
     }
 
-    boolean isTaskSplit() {
-        return findObjectInTask(SPLIT_BOTTOM_OR_RIGHT.snapshotRes) != null;
-    }
-
     private UiObject2 findObjectInTask(String resName) {
         return mTask.findObject(mLauncher.getOverviewObjectSelector(resName));
     }
@@ -285,8 +285,8 @@ public final class OverviewTask {
      * TODO(b/342627272): remove Nullable support once the bug causing it to be null is fixed.
      */
     public boolean containsContentDescription(@Nullable String expected,
-            OverviewSplitTask overviewSplitTask) {
-        String actual = findObjectInTask(overviewSplitTask.snapshotRes).getContentDescription();
+            OverviewTaskContainer overviewTaskContainer) {
+        String actual = findObjectInTask(overviewTaskContainer.snapshotRes).getContentDescription();
         if (actual == null && expected == null) {
             return true;
         }
@@ -304,8 +304,12 @@ public final class OverviewTask {
         return containsContentDescription(expected, DEFAULT);
     }
 
-    private TaskViewType getType() {
-        String resourceName = mTask.getResourceName();
+    /**
+     * Returns the TaskView type of the task. It will return whether the task is a single TaskView,
+     * a GroupedTaskView or a DesktopTaskView.
+     */
+    static TaskViewType getType(UiObject2 task) {
+        String resourceName = task.getResourceName();
         if (resourceName.endsWith("task_view_grouped")) {
             return TaskViewType.GROUPED;
         } else if (resourceName.endsWith("task_view_desktop")) {
@@ -315,27 +319,37 @@ public final class OverviewTask {
         }
     }
 
+    boolean isGrouped() {
+        return mType == TaskViewType.GROUPED;
+    }
+
+    public boolean isDesktop() {
+        return mType == TaskViewType.DESKTOP;
+    }
+
     /**
-     * Enum used to specify  which task is retrieved when it is a split task.
+     * Enum used to specify which resource name should be used depending on the type of the task.
      */
-    public enum OverviewSplitTask {
+    public enum OverviewTaskContainer {
         // The main task when the task is not split.
         DEFAULT("snapshot", "icon"),
         // The first task in split task.
         SPLIT_TOP_OR_LEFT("snapshot", "icon"),
         // The second task in split task.
-        SPLIT_BOTTOM_OR_RIGHT("bottomright_snapshot", "bottomRight_icon");
+        SPLIT_BOTTOM_OR_RIGHT("bottomright_snapshot", "bottomRight_icon"),
+        // The desktop task.
+        DESKTOP("background", "icon");
 
         public final String snapshotRes;
         public final String iconAppRes;
 
-        OverviewSplitTask(String snapshotRes, String iconAppRes) {
+        OverviewTaskContainer(String snapshotRes, String iconAppRes) {
             this.snapshotRes = snapshotRes;
             this.iconAppRes = iconAppRes;
         }
     }
 
-    private enum TaskViewType {
+    enum TaskViewType {
         SINGLE,
         GROUPED,
         DESKTOP

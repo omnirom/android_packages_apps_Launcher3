@@ -40,6 +40,7 @@ import com.android.launcher3.model.data.ItemInfo;
 import com.android.launcher3.pm.PackageInstallInfo;
 import com.android.launcher3.pm.UserCache;
 import com.android.launcher3.util.ApiWrapper;
+import com.android.launcher3.util.ApplicationInfoWrapper;
 import com.android.launcher3.util.FlagOp;
 import com.android.launcher3.util.PackageManagerHelper;
 import com.android.launcher3.util.SafeCloseable;
@@ -169,8 +170,8 @@ public class AllAppsList {
     public AppInfo addPromiseApp(
             Context context, PackageInstallInfo installInfo, boolean loadIcon) {
         // only if not yet installed
-        if (PackageManagerHelper.INSTANCE.get(context)
-                .isAppInstalled(installInfo.packageName, installInfo.user)) {
+        if (new ApplicationInfoWrapper(context, installInfo.packageName, installInfo.user)
+                .isInstalled()) {
             return null;
         }
         AppInfo promiseAppInfo = new AppInfo(installInfo);

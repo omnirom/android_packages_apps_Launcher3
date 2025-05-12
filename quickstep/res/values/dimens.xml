@@ -111,12 +111,14 @@
     <dimen name="motion_pause_detector_speed_very_slow">0.0285dp</dimen>
     <dimen name="motion_pause_detector_speed_slow">0.15dp</dimen>
     <dimen name="motion_pause_detector_speed_somewhat_fast">0.285dp</dimen>
+    <dimen name="motion_pause_detector_speed_trackpad_somewhat_fast">0.7dp</dimen>
     <dimen name="motion_pause_detector_speed_fast">1.4dp</dimen>
     <dimen name="motion_pause_detector_min_displacement_from_app">36dp</dimen>
     <dimen name="quickstep_fling_threshold_speed">0.5dp</dimen>
 
     <!-- Launcher app transition -->
     <dimen name="closing_window_trans_y">115dp</dimen>
+    <dimen name="closing_freeform_window_trans_y">36dp</dimen>
 
     <dimen name="quick_switch_scaling_scroll_threshold">100dp</dimen>
 
@@ -356,12 +358,10 @@
     <dimen name="taskbar_back_button_suw_start_margin">48dp</dimen>
     <dimen name="taskbar_back_button_suw_bottom_margin">1dp</dimen>
     <dimen name="taskbar_back_button_suw_height">72dp</dimen>
-    <dimen name="taskbar_running_app_indicator_height">4dp</dimen>
-    <dimen name="taskbar_running_app_indicator_width">14dp</dimen>
-    <dimen name="taskbar_running_app_indicator_top_margin">2dp</dimen>
-    <dimen name="taskbar_minimized_app_indicator_height">2dp</dimen>
-    <dimen name="taskbar_minimized_app_indicator_width">12dp</dimen>
-    <dimen name="taskbar_minimized_app_indicator_top_margin">2dp</dimen>
+    <dimen name="taskbar_running_app_indicator_height">2dp</dimen>
+    <dimen name="taskbar_running_app_indicator_width">12dp</dimen>
+    <dimen name="taskbar_running_app_indicator_top_margin">4dp</dimen>
+    <dimen name="taskbar_minimized_app_indicator_width">6dp</dimen>
 
     <!-- Transient taskbar -->
     <dimen name="transient_taskbar_padding">12dp</dimen>
@@ -424,6 +424,10 @@
     <!--- Taskbar Pinning -->
     <dimen name="taskbar_pinning_popup_menu_width">300dp</dimen>
     <dimen name="taskbar_pinning_popup_menu_vertical_margin">16dp</dimen>
+    <dimen name="taskbar_pinning_popup_menu_min_padding_from_screen_edge">16dp</dimen>
+
+    <!-- Taskbar Multi Instance Menu -->
+    <dimen name="taskbar_multi_instance_menu_min_padding_from_screen_edge">8dp</dimen>
 
     <!--- Floating Ime Inset height-->
     <dimen name="floating_ime_inset_height">60dp</dimen>
@@ -503,6 +507,7 @@
     <dimen name="keyboard_quick_switch_recents_icon_size">20dp</dimen>
     <dimen name="keyboard_quick_switch_desktop_icon_size">32dp</dimen>
     <dimen name="keyboard_quick_switch_margin_top">56dp</dimen>
+    <dimen name="keyboard_quick_switch_margin_bottom">24dp</dimen>
     <dimen name="keyboard_quick_switch_margin_ends">16dp</dimen>
     <dimen name="keyboard_quick_switch_view_spacing">16dp</dimen>
     <dimen name="keyboard_quick_switch_view_small_spacing">4dp</dimen>

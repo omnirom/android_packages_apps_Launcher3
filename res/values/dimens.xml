@@ -125,7 +125,10 @@
     <dimen name="all_apps_work_profile_tab_footer_top_padding">16dp</dimen>
     <dimen name="all_apps_work_profile_tab_footer_bottom_padding">20dp</dimen>
     <dimen name="all_apps_tabs_button_horizontal_padding">4dp</dimen>
-    <dimen name="all_apps_tabs_vertical_padding">6dp</dimen>
+    <dimen name="all_apps_tabs_focus_horizontal_inset">5dp</dimen>
+    <dimen name="all_apps_tabs_focus_vertical_inset">6dp</dimen>
+    <dimen name="all_apps_tabs_focus_border">3dp</dimen>
+    <dimen name="all_apps_tabs_focus_padding">2dp</dimen>
     <dimen name="all_apps_tabs_margin_top">8dp</dimen>
     <dimen name="all_apps_divider_height">2dp</dimen>
     <dimen name="all_apps_divider_width">128dp</dimen>
@@ -151,27 +154,35 @@
     <!-- Floating action button inside work tab to toggle work profile -->
     <dimen name="work_fab_height">56dp</dimen>
     <dimen name="work_fab_radius">16dp</dimen>
+    <dimen name="work_fab_elevation">6dp</dimen>
     <dimen name="work_fab_icon_size">24dp</dimen>
-    <dimen name="work_fab_icon_end_margin">12dp</dimen>
-    <dimen name="work_fab_text_end_margin">16dp</dimen>
+    <dimen name="work_fab_icon_vertical_margin">16dp</dimen>
+    <dimen name="work_fab_icon_start_margin_expanded">4dp</dimen>
+    <dimen name="work_fab_text_start_margin">8dp</dimen>
+    <dimen name="work_fab_text_end_margin">10dp</dimen>
     <dimen name="work_card_padding_horizontal">10dp</dimen>
     <dimen name="work_fab_width">214dp</dimen>
     <dimen name="work_card_button_height">52dp</dimen>
     <dimen name="work_fab_margin">16dp</dimen>
     <dimen name="work_fab_margin_bottom">20dp</dimen>
-    <dimen name="work_mode_fab_background_start_padding">16dp</dimen>
-    <dimen name="work_mode_fab_background_end_padding">4dp</dimen>
+    <dimen name="work_mode_fab_background_horizontal_padding">16dp</dimen>
+    <dimen name="work_scheduler_background_padding">16dp</dimen>
+    <dimen name="work_scheduler_bottom_margin">8dp</dimen>
+    <dimen name="work_scheduler_size">56dp</dimen>
     <dimen name="work_profile_footer_padding">20dp</dimen>
     <dimen name="work_edu_card_margin">16dp</dimen>
     <dimen name="work_edu_card_radius">16dp</dimen>
     <dimen name="work_edu_card_bottom_margin">26dp</dimen>
-    <dimen name="work_edu_card_text_end_margin">32dp</dimen>
+    <dimen name="work_edu_card_text_end_margin">12dp</dimen>
     <dimen name="work_apps_paused_button_stroke">1dp</dimen>
+    <dimen name="work_edu_card_button_margin_top">12dp</dimen>
 
     <dimen name="work_card_margin">24dp</dimen>
+    <dimen name="work_card_margin_end">12dp</dimen>
     <!-- (x) icon button inside work edu card -->
-    <dimen name="rounded_button_width">24dp</dimen>
+    <dimen name="rounded_button_width">48dp</dimen>
     <dimen name="x_icon_size">16dp</dimen>
+    <dimen name="inset_rounded_action_button">12dp</dimen>
 
     <!-- rounded button shown inside card views, and snack bars  -->
     <dimen name="padded_rounded_button_height">48dp</dimen>
@@ -220,8 +231,18 @@
     <!-- Bottom margin for the search and recommended widgets container with work profile -->
     <dimen name="search_and_recommended_widgets_container_small_bottom_margin">10dp</dimen>
 
+    <dimen name="widget_header_focus_ring_width">3dp</dimen>
+    <dimen name="widget_focus_ring_corner_radius">28dp</dimen>
+    <dimen name="widget_header_background_border">5dp</dimen>
+
     <dimen name="widget_list_top_bottom_corner_radius">28dp</dimen>
     <dimen name="widget_list_content_corner_radius">4dp</dimen>
+    <!-- Button that expands the widget apps list in the widget picker. -->
+    <dimen name="widgets_list_expand_button_drawable_padding">8dp</dimen>
+    <dimen name="widgets_list_expand_button_start_padding">16dp</dimen>
+    <dimen name="widgets_list_expand_button_end_padding">24dp</dimen>
+    <dimen name="widgets_list_expand_button_vertical_padding">16dp</dimen>
+    <dimen name="widgets_list_expand_button_top_margin">14dp</dimen>
 
     <dimen name="widget_list_header_view_vertical_padding">20dp</dimen>
     <dimen name="widget_list_entry_spacing">2dp</dimen>
@@ -278,10 +299,6 @@
 
     <!-- the distance an icon must be dragged before button drop targets accept it -->
     <dimen name="drag_distanceThreshold">30dp</dimen>
-
-    <!-- Elevation for the drag view. It should be larger than elevation of all other drag sources
-         and drop targets like all-apps and folders -->
-    <dimen name="drag_elevation">30dp</dimen>
 
     <dimen name="drag_flingToDeleteMinVelocity">-1500dp</dimen>
 
@@ -422,9 +439,7 @@
     <dimen name="taskbar_running_app_indicator_height">0dp</dimen>
     <dimen name="taskbar_running_app_indicator_width">0dp</dimen>
     <dimen name="taskbar_running_app_indicator_top_margin">0dp</dimen>
-    <dimen name="taskbar_minimized_app_indicator_height">0dp</dimen>
     <dimen name="taskbar_minimized_app_indicator_width">0dp</dimen>
-    <dimen name="taskbar_minimized_app_indicator_top_margin">0dp</dimen>
 
     <!-- Transient taskbar (placeholders to compile in Launcher3 without Quickstep) -->
     <dimen name="transient_taskbar_padding">0dp</dimen>
@@ -552,4 +567,8 @@
 
     <!-- WindowManagerProxy -->
     <dimen name="max_width_and_height_of_small_display_cutout">136px</dimen>
+
+    <!-- App Title Pill -->
+    <dimen name="app_title_pill_horizontal_padding">4dp</dimen>
+    <dimen name="app_title_pill_round_rect_padding">2dp</dimen>
 </resources>

@@ -30,7 +30,6 @@ import static com.android.quickstep.BaseActivityInterface.getTaskDimension;
 import static java.lang.annotation.RetentionPolicy.SOURCE;
 
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.graphics.Matrix;
 import android.graphics.Point;
 import android.graphics.PointF;
@@ -45,6 +44,7 @@ import androidx.annotation.NonNull;
 
 import com.android.launcher3.DeviceProfile;
 import com.android.launcher3.InvariantDeviceProfile;
+import com.android.launcher3.LauncherPrefChangeListener;
 import com.android.launcher3.LauncherPrefs;
 import com.android.launcher3.testing.shared.TestProtocol;
 import com.android.launcher3.touch.PagedOrientationHandler;
@@ -66,8 +66,7 @@ import java.util.function.IntConsumer;
  * This class has initial default state assuming the device and foreground app have
  * no ({@link Surface#ROTATION_0} rotation.
  */
-public class RecentsOrientedState implements
-        SharedPreferences.OnSharedPreferenceChangeListener {
+public class RecentsOrientedState implements LauncherPrefChangeListener {
 
     private static final String TAG = "RecentsOrientedState";
     private static final boolean DEBUG = false;
@@ -283,7 +282,7 @@ public class RecentsOrientedState implements
     }
 
     @Override
-    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String s) {
+    public void onPrefChanged(String s) {
         if (LauncherPrefs.ALLOW_ROTATION.getSharedPrefKey().equals(s)) {
             updateHomeRotationSetting();
         }

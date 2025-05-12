@@ -22,6 +22,7 @@
     <string name="recent_task_option_pin" msgid="7929860679018978258">"Semat"</string>
     <string name="recent_task_option_freeform" msgid="48863056265284071">"Bentuk bebas"</string>
     <string name="recent_task_option_desktop" msgid="8280879717125435668">"Desktop"</string>
+    <string name="recent_task_option_external_display" msgid="4533840664313389484">"Alihkan kepada paparan luaran"</string>
     <string name="recent_task_desktop" msgid="8081113562549637334">"Desktop"</string>
     <string name="recents_empty_message" msgid="7040467240571714191">"Tiada item terbaharu"</string>
     <string name="accessibility_app_usage_settings" msgid="6312864233673544149">"Tetapan penggunaan apl"</string>
@@ -154,4 +155,5 @@
     <string name="bubble_bar_action_dismiss_all" msgid="3290722022983403060">"Ketepikan semua"</string>
     <string name="bubble_bar_accessibility_announce_expand" msgid="1503192695527477102">"kembangkan <xliff:g id="BUBBLE_DESCRIPTION">%1$s</xliff:g>"</string>
     <string name="bubble_bar_accessibility_announce_collapse" msgid="928284600086798791">"kuncupkan <xliff:g id="BUBBLE_DESCRIPTION">%1$s</xliff:g>"</string>
+    <string name="search_gesture_feature_title" msgid="1294044108313175306">"Bulatkan untuk Membuat Carian"</string>
 </resources>

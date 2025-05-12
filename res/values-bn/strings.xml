@@ -32,6 +32,7 @@
     <string name="split_app_info_accessibility" msgid="5475288491241414932">"%1$s-এর জন্য অ্যাপ সম্পর্কিত তথ্য"</string>
     <string name="split_app_usage_settings" msgid="7214375263347964093">"%1$s-এর জন্য ব্যবহারের সেটিংস"</string>
     <string name="new_window_option_taskbar" msgid="6448780542727767211">"নতুন উইন্ডো"</string>
+    <string name="manage_windows_option_taskbar" msgid="2294109489960654212">"উইন্ডো ম্যানেজ করুন"</string>
     <string name="save_app_pair" msgid="5647523853662686243">"অ্যাপ পেয়ার সেভ করুন"</string>
     <string name="app_pair_default_title" msgid="4045241727446873529">"<xliff:g id="APP1">%1$s</xliff:g> | <xliff:g id="APP2">%2$s</xliff:g>"</string>
     <string name="app_pair_unlaunchable_at_screen_size" msgid="3446551575502685376">"এই ডিভাইসে এই অ্যাপ পেয়ারটি কাজ করে না"</string>
@@ -67,8 +68,13 @@
     <string name="widgets_full_sheet_work_tab" msgid="3767150027110633765">"অফিস"</string>
     <string name="widget_category_conversations" msgid="8894438636213590446">"কথোপকথন"</string>
     <string name="widget_category_note_taking" msgid="3469689394504266039">"নোট নেওয়া"</string>
+    <string name="widget_cell_tap_to_show_add_button_label" msgid="4354194214317043581">"যোগ করার বোতাম দেখুন"</string>
+    <string name="widget_cell_tap_to_hide_add_button_label" msgid="6117805205101555997">"যোগ করার বোতাম লুকান"</string>
     <string name="widget_add_button_label" msgid="2761267068711937179">"যোগ করুন"</string>
     <string name="widget_add_button_content_description" msgid="1810530016360039643">"<xliff:g id="WIDGET_NAME">%1$s</xliff:g> উইজেট যোগ করুন"</string>
+    <string name="widgets_list_expand_button_label" msgid="7912016136574932622">"সব দেখুন"</string>
+    <string name="widgets_list_expand_button_content_description" msgid="4600513860973450888">"সব উইজেট দেখুন"</string>
+    <string name="widgets_list_expanded" msgid="7374857868788557730">"সব উইজেট দেখানো হচ্ছে"</string>
     <string name="reconfigurable_widget_education_tip" msgid="6336962690888067057">"উইজেট সেটিংস পরিবর্তন করতে ট্যাপ করুন"</string>
     <string name="widget_reconfigure_button_content_description" msgid="8811472721881205250">"উইজেট সেটিংস পরিবর্তন করুন"</string>
     <string name="all_apps_search_bar_hint" msgid="1390553134053255246">"অ্যাপ খুঁজুন"</string>
@@ -124,6 +130,8 @@
     <string name="msg_disabled_by_admin" msgid="6898038085516271325">"আপনার প্রশাসক দ্বারা অক্ষম করা হয়েছে"</string>
     <string name="allow_rotation_title" msgid="7222049633713050106">"হোম স্ক্রিন রোটেট করার অনুমতি দিন"</string>
     <string name="allow_rotation_desc" msgid="8662546029078692509">"যখন ফোনটি ঘোরানো হয়"</string>
+    <string name="landscape_mode_title" msgid="5138814555934843926">"ভূদৃশ্য মোড"</string>
+    <string name="landscape_mode_desc" msgid="7372569859592816793">"ভূদৃশ্য মোডে ফোন সেট করুন"</string>
     <string name="notification_dots_title" msgid="9062440428204120317">"বিজ্ঞপ্তি ডট"</string>
     <string name="notification_dots_desc_on" msgid="1679848116452218908">"চালু করা আছে"</string>
     <string name="notification_dots_desc_off" msgid="1760796511504341095">"বন্ধ"</string>
@@ -142,7 +150,8 @@
     <string name="app_installing_title" msgid="5864044122733792085">"<xliff:g id="NAME">%1$s</xliff:g> ইনস্টল করা হচ্ছে, <xliff:g id="PROGRESS">%2$s</xliff:g> সম্পূর্ণ হয়েছে"</string>
     <string name="app_downloading_title" msgid="8336702962104482644">"<xliff:g id="NAME">%1$s</xliff:g> ডাউনলোড হচ্ছে <xliff:g id="PROGRESS">%2$s</xliff:g> সম্পন্ন হয়েছে"</string>
     <string name="app_waiting_download_title" msgid="7053938513995617849">"<xliff:g id="NAME">%1$s</xliff:g> ইনস্টলের অপেক্ষায় রয়েছে"</string>
-    <string name="app_archived_title" msgid="7717956158562544081">"<xliff:g id="NAME">%1$s</xliff:g> আর্কাইভ করা হয়েছে। ডাউনলোড করতে এবং ফিরিয়ে আনতে ট্যাপ করুন।"</string>
+    <string name="app_archived_title" msgid="4548283110222420708">"<xliff:g id="NAME">%1$s</xliff:g> আর্কাইভ করা হয়েছে।"</string>
+    <string name="app_unarchiving_action" msgid="5736107006413929484">"ডাউনলোড করুন ও ফিরিয়ে আনুন"</string>
     <string name="dialog_update_title" msgid="114234265740994042">"অ্যাপটি আপডেট করা প্রয়োজন"</string>
     <string name="dialog_update_message" msgid="4176784553982226114">"এই আইকনের জন্য অ্যাপটি আপডেট করা নেই। এই শর্টকার্ট আবার চালু করতে, আপনি ম্যানুয়ালি আপডেট করতে বা সরিয়ে দিতে পারবেন।"</string>
     <string name="dialog_update" msgid="2178028071796141234">"আপডেট করুন"</string>
@@ -171,7 +180,7 @@
     <string name="action_decrease_width" msgid="1374549771083094654">"প্রস্থ কমান"</string>
     <string name="action_decrease_height" msgid="282377193880900022">"উচ্চতা কমান"</string>
     <string name="widget_resized" msgid="9130327887929620">"উইজেটের আকার প্রস্থ <xliff:g id="NUMBER_0">%1$s</xliff:g> উচ্চতা <xliff:g id="NUMBER_1">%2$s</xliff:g> তে পরিবর্তন করা হয়েছে"</string>
-    <string name="action_deep_shortcut" msgid="2864038805849372848">"শর্টকাট"</string>
+    <string name="action_deep_shortcut" msgid="4766835855579976045">"শর্টকাট মেনু"</string>
     <string name="action_dismiss_notification" msgid="5909461085055959187">"খারিজ করুন"</string>
     <string name="accessibility_close" msgid="2277148124685870734">"বন্ধ করুন"</string>
     <string name="all_apps_personal_tab" msgid="4190252696685155002">"ব্যক্তিগত"</string>
@@ -187,11 +196,12 @@
     <string name="work_apps_paused_edu_accept" msgid="6377476824357318532">"বুঝেছি"</string>
     <string name="work_apps_pause_btn_text" msgid="4669288269140620646">"অফিসের অ্যাপ পজ করুন"</string>
     <string name="work_apps_enable_btn_text" msgid="1736198302467317371">"আনপজ করুন"</string>
+    <string name="work_scheduler_button_content_description" msgid="917340740986764967">"অফিসের অ্যাপের শিডিউল"</string>
     <string name="developer_options_filter_hint" msgid="5896817443635989056">"ফিল্টার"</string>
     <string name="remote_action_failed" msgid="1383965239183576790">"কাজটি করা যায়নি: <xliff:g id="WHAT">%1$s</xliff:g>"</string>
     <string name="private_space_label" msgid="2359721649407947001">"ব্যক্তিগত স্পেস"</string>
     <string name="private_space_secondary_label" msgid="9203933341714508907">"সেট-আপ করতে বা খুলতে ট্যাপ করুন"</string>
-    <string name="ps_container_title" msgid="4391796149519594205">"ব্যক্তিগত"</string>
+    <string name="ps_container_title" msgid="4391796149519594205">"প্রাইভেট"</string>
     <string name="ps_container_settings" msgid="6059734123353320479">"ব্যক্তিগত স্পেসের সেটিংস"</string>
     <string name="ps_container_unlock_button_content_description" msgid="9181551784092204234">"ব্যক্তিগত, আনলক করা আছে।"</string>
     <string name="ps_container_lock_button_content_description" msgid="5961993384382649530">"ব্যক্তিগত, লক করা আছে।"</string>

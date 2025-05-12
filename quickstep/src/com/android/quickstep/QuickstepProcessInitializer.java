@@ -25,6 +25,7 @@ import android.view.ThreadedRenderer;
 
 import com.android.launcher3.BuildConfig;
 import com.android.launcher3.MainProcessInitializer;
+import com.android.quickstep.util.QuickstepProtoLogGroup;
 import com.android.systemui.shared.system.InteractionJankMonitorWrapper;
 
 @SuppressWarnings("unused")
@@ -69,5 +70,7 @@ public class QuickstepProcessInitializer extends MainProcessInitializer {
                     call.descriptor + " called on main thread under " + call.activeTrace
                             + " stackTrace: " + call.stackTrace));
         }
+
+        QuickstepProtoLogGroup.initProtoLog();
     }
 }

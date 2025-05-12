@@ -498,7 +498,7 @@ public class LoaderCursor extends CursorWrapper {
                 mRestoreEventLogger.logSingleFavoritesItemRestored(itemType);
             }
         } else {
-            markDeleted("Item position overlap", RestoreError.INVALID_LOCATION);
+            markDeleted("Item position overlap", RestoreError.OVERLAPPING_ITEM);
         }
     }
 

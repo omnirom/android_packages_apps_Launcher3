@@ -116,6 +116,7 @@ public class TaskOverlayFactory implements ResourceBasedOverride {
             TaskShortcutFactory.INSTALL,
             TaskShortcutFactory.FREE_FORM,
             DesktopSystemShortcut.Companion.createFactory(),
+            ExternalDisplaySystemShortcut.Companion.createFactory(),
             TaskShortcutFactory.WELLBEING,
             TaskShortcutFactory.SAVE_APP_PAIR,
             TaskShortcutFactory.SCREENSHOT,
@@ -175,9 +176,8 @@ public class TaskOverlayFactory implements ResourceBasedOverride {
 
         protected T getActionsView() {
             if (mActionsView == null) {
-                mActionsView = BaseActivity.fromContext(
-                        mTaskContainer.getTaskView().getContext()).findViewById(
-                        R.id.overview_actions_view);
+                mActionsView = (T) RecentsViewContainer.containerFromContext(
+                        mTaskContainer.getTaskView().getContext()).getActionsView();
             }
             return mActionsView;
         }
@@ -356,10 +356,13 @@ public class TaskOverlayFactory implements ResourceBasedOverride {
         }
 
         /** Called when the snapshot has updated its full screen drawing parameters. */
-        public void setFullscreenParams(TaskView.FullscreenDrawParams fullscreenParams) {}
+        public void setFullscreenParams(FullscreenDrawParams fullscreenParams) {}
 
         /** Sets visibility for the overlay associated elements. */
         public void setVisibility(int visibility) {}
+
+        /** See {@link View#addChildrenForAccessibility(ArrayList)} */
+        public void addChildForAccessibility(ArrayList<View> outChildren) {}
 
         private class ScreenshotSystemShortcut extends SystemShortcut {
 

@@ -21,6 +21,7 @@ import static com.android.launcher3.tapl.TestHelpers.getLauncherInMyProcess;
 
 import android.content.ComponentName;
 import android.content.pm.ActivityInfo;
+import android.os.Process;
 
 import androidx.annotation.Nullable;
 import androidx.test.InstrumentationRegistry;
@@ -109,8 +110,9 @@ public class ShellCommandRule implements TestRule {
     }
 
     public static String getLauncherCommand(ActivityInfo launcher) {
-        return "cmd package set-home-activity " +
-                new ComponentName(launcher.packageName, launcher.name).flattenToString();
+        return String.format("cmd package set-home-activity --user %d %s",
+                Process.myUserHandle().getIdentifier(),
+                new ComponentName(launcher.packageName, launcher.name).flattenToString());
     }
 
     /**

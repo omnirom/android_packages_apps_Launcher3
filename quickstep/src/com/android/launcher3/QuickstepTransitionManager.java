@@ -19,6 +19,7 @@ package com.android.launcher3;
 import static android.app.WindowConfiguration.ACTIVITY_TYPE_HOME;
 import static android.app.WindowConfiguration.ACTIVITY_TYPE_STANDARD;
 import static android.app.WindowConfiguration.WINDOWING_MODE_MULTI_WINDOW;
+import static android.app.role.RoleManager.ROLE_HOME;
 import static android.provider.Settings.Secure.LAUNCHER_TASKBAR_EDUCATION_SHOWING;
 import static android.view.RemoteAnimationTarget.MODE_CLOSING;
 import static android.view.RemoteAnimationTarget.MODE_OPENING;
@@ -74,6 +75,7 @@ import android.animation.ObjectAnimator;
 import android.animation.ValueAnimator;
 import android.app.ActivityOptions;
 import android.app.WindowConfiguration;
+import android.app.role.RoleManager;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.res.Resources;
@@ -108,6 +110,7 @@ import android.view.WindowManager;
 import android.view.animation.AnimationUtils;
 import android.view.animation.Interpolator;
 import android.view.animation.PathInterpolator;
+import android.window.DesktopModeFlags;
 import android.window.RemoteTransition;
 import android.window.TransitionFilter;
 import android.window.WindowAnimationState;
@@ -116,6 +119,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.graphics.ColorUtils;
 
+import com.android.app.animation.Animations;
 import com.android.internal.jank.Cuj;
 import com.android.launcher3.DeviceProfile.OnDeviceProfileChangeListener;
 import com.android.launcher3.LauncherAnimationRunner.RemoteAnimationFactory;
@@ -165,11 +169,13 @@ import com.android.systemui.animation.RemoteAnimationRunnerCompat;
 import com.android.systemui.shared.system.BlurUtils;
 import com.android.systemui.shared.system.InteractionJankMonitorWrapper;
 import com.android.systemui.shared.system.QuickStepContract;
+import com.android.wm.shell.shared.desktopmode.DesktopModeStatus;
 import com.android.wm.shell.startingsurface.IStartingWindowListener;
 
 import java.io.PrintWriter;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -213,6 +219,7 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
 
     public static final int CONTENT_ALPHA_DURATION = 217;
     public static final int TRANSIENT_TASKBAR_TRANSITION_DURATION = 417;
+    public static final int PINNED_TASKBAR_TRANSITION_DURATION = 600;
     public static final int TASKBAR_TO_APP_DURATION = 600;
     // TODO(b/236145847): Tune TASKBAR_TO_HOME_DURATION to 383 after conflict with unlock animation
     // is solved.
@@ -232,6 +239,7 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
     protected final Handler mHandler;
 
     private final float mClosingWindowTransY;
+    private final float mClosingFreeformWindowTransY;
     private final float mMaxShadowRadius;
 
     private final StartingWindowListener mStartingWindowListener =
@@ -289,6 +297,8 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
 
         Resources res = mLauncher.getResources();
         mClosingWindowTransY = res.getDimensionPixelSize(R.dimen.closing_window_trans_y);
+        mClosingFreeformWindowTransY =
+                res.getDimensionPixelSize(R.dimen.closing_freeform_window_trans_y);
         mMaxShadowRadius = res.getDimensionPixelSize(R.dimen.max_shadow_radius);
 
         mLauncher.addOnDeviceProfileChangeListener(this);
@@ -574,23 +584,45 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
         } else {
             List<View> viewsToAnimate = new ArrayList<>();
             Workspace<?> workspace = mLauncher.getWorkspace();
-            workspace.forEachVisiblePage(
-                    view -> viewsToAnimate.add(((CellLayout) view).getShortcutsAndWidgets()));
+            if (Flags.coordinateWorkspaceScale()) {
+                viewsToAnimate.add(workspace);
+            } else {
+                workspace.forEachVisiblePage(
+                        view -> viewsToAnimate.add(((CellLayout) view).getShortcutsAndWidgets()));
+            }
 
+            Hotseat hotseat = mLauncher.getHotseat();
             // Do not scale hotseat as a whole when taskbar is present, and scale QSB only if it's
             // not inline.
             if (mDeviceProfile.isTaskbarPresent) {
                 if (!mDeviceProfile.isQsbInline) {
-                    viewsToAnimate.add(mLauncher.getHotseat().getQsb());
+                    viewsToAnimate.add(hotseat.getQsb());
                 }
             } else {
-                viewsToAnimate.add(mLauncher.getHotseat());
+                viewsToAnimate.add(hotseat);
             }
 
             viewsToAnimate.forEach(view -> {
                 view.setLayerType(View.LAYER_TYPE_HARDWARE, null);
 
-                ObjectAnimator scaleAnim = ObjectAnimator.ofFloat(view, SCALE_PROPERTY, scales)
+                float[] scale = scales;
+                if (Flags.coordinateWorkspaceScale()) {
+                    // Start the animation from the current value, instead of assuming the views are
+                    // in their resting state, so interrupted animations merge seamlessly.
+                    // TODO(b/367591368): ideally these animations would be refactored to be
+                    //  controlled centrally so each instances doesn't need to care about this
+                    //  coordination.
+                    scale = new float[]{view.getScaleX(), scales[1]};
+
+                    // Cancel any ongoing animations. This is necessary to avoid a conflict between
+                    // e.g. the unfinished animation triggered when closing an app back to Home and
+                    // this animation caused by a launch.
+                    Animations.Companion.cancelOngoingAnimation(view);
+                    // Make sure to cache the current animation, so it can be properly interrupted.
+                    Animations.Companion.setOngoingAnimation(view, launcherAnimator);
+                }
+
+                ObjectAnimator scaleAnim = ObjectAnimator.ofFloat(view, SCALE_PROPERTY, scale)
                         .setDuration(CONTENT_SCALE_DURATION);
                 scaleAnim.setInterpolator(DECELERATE_1_5);
                 launcherAnimator.play(scaleAnim);
@@ -600,6 +632,11 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
                 viewsToAnimate.forEach(view -> {
                     SCALE_PROPERTY.set(view, 1f);
                     view.setLayerType(View.LAYER_TYPE_NONE, null);
+
+                    if (Flags.coordinateWorkspaceScale()) {
+                        // Reset the cached animation.
+                        Animations.Companion.setOngoingAnimation(view, null /* animation */);
+                    }
                 });
                 mLauncher.resumeExpensiveViewUpdates();
             };
@@ -1159,7 +1196,9 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
                 .registerRemoteTransition(mLauncherOpenTransition, homeCheck);
         if (mBackAnimationController != null) {
             mBackAnimationController.registerComponentCallbacks();
-            mBackAnimationController.registerBackCallbacks(mHandler);
+            if (isHomeRoleHeld()) {
+                mBackAnimationController.registerBackCallbacks(mHandler);
+            }
         }
     }
 
@@ -1170,6 +1209,22 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
         SystemUiProxy.INSTANCE.get(mLauncher).setStartingWindowListener(null);
         ORDERED_BG_EXECUTOR.execute(() -> mLauncher.getContentResolver()
                 .unregisterContentObserver(mAnimationRemovalObserver));
+    }
+
+    /**
+     * Called when the overview-target changes. Updates the back callback registration state.
+     */
+    public void onOverviewTargetChange() {
+        if (isHomeRoleHeld()) {
+            mBackAnimationController.registerBackCallbacks(mHandler);
+        } else {
+            mBackAnimationController.unregisterBackCallbacks();
+        }
+    }
+
+    private boolean isHomeRoleHeld() {
+        RoleManager roleManager = mLauncher.getSystemService(RoleManager.class);
+        return roleManager == null || roleManager.isRoleHeld(ROLE_HOME);
     }
 
     private void unregisterRemoteAnimations() {
@@ -1353,8 +1408,13 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
                             ? null
                             : mLauncher.getTaskbarUIController().findMatchingView(launcherView),
                     true /* hideOriginal */, targetRect, false /* isOpening */);
-            isInHotseat = launcherView.getTag() instanceof ItemInfo
-                    && ((ItemInfo) launcherView.getTag()).isInHotseat();
+            if (launcherView.getTag() instanceof ItemInfo itemInfo) {
+                isInHotseat = itemInfo.isInHotseat();
+                if (isInHotseat) {
+                    int dx = mLauncher.getHotseatItemTranslationX(itemInfo);
+                    targetRect.offset(dx, 0);
+                }
+            }
         } else {
             targetRect.set(getDefaultWindowTargetRect());
         }
@@ -1447,10 +1507,16 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
                 ? 0 : getWindowCornerRadius(mLauncher);
         float startShadowRadius = areAllTargetsTranslucent(appTargets) ? 0 : mMaxShadowRadius;
         closingAnimator.setDuration(duration);
+        boolean isFreeform = isFreeformAnimation(appTargets);
+        float translateY = isFreeform ? mClosingFreeformWindowTransY : mClosingWindowTransY;
+        float endScale = isFreeform ? 0.95f : 1f;
+        Interpolator alphaInterpolator = isFreeform
+                ? clampToDuration(LINEAR, 0, 100, duration)
+                : clampToDuration(LINEAR, 25, 125, duration);
         closingAnimator.addUpdateListener(new MultiValueUpdateListener() {
-            FloatProp mDy = new FloatProp(0, mClosingWindowTransY, DECELERATE_1_7);
-            FloatProp mScale = new FloatProp(1f, 1f, DECELERATE_1_7);
-            FloatProp mAlpha = new FloatProp(1f, 0f, clampToDuration(LINEAR, 25, 125, duration));
+            FloatProp mDy = new FloatProp(0, translateY, DECELERATE_1_7);
+            FloatProp mScale = new FloatProp(1f, endScale, DECELERATE_1_7);
+            FloatProp mAlpha = new FloatProp(1f, 0f, alphaInterpolator);
             FloatProp mShadowRadius = new FloatProp(startShadowRadius, 0, DECELERATE_1_7);
 
             @Override
@@ -1497,6 +1563,14 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
         });
 
         return closingAnimator;
+    }
+
+    private boolean isFreeformAnimation(RemoteAnimationTarget[] appTargets) {
+        return DesktopModeStatus.canEnterDesktopMode(mLauncher.getApplicationContext())
+                && (DesktopModeFlags.ENABLE_DESKTOP_WINDOWING_EXIT_TRANSITIONS.isTrue()
+                    || DesktopModeFlags.ENABLE_DESKTOP_WINDOWING_EXIT_TRANSITIONS_BUGFIX.isTrue())
+                && Arrays.stream(appTargets)
+                        .anyMatch(app -> app.taskInfo != null && app.taskInfo.isFreeform());
     }
 
     private void addCujInstrumentation(Animator anim, int cuj) {
@@ -1693,8 +1767,21 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
         return new AnimatorBackState(rectFSpringAnim, anim);
     }
 
-    public static int getTaskbarToHomeDuration() {
-        if (enableScalingRevealHomeAnimation()) {
+    /** Get animation duration for taskbar for going to home. */
+    public static int getTaskbarToHomeDuration(boolean isPinnedTaskbar) {
+        return getTaskbarToHomeDuration(false, isPinnedTaskbar);
+    }
+
+    /**
+     * Get animation duration for taskbar for going to home.
+     *
+     * @param shouldOverrideToFastAnimation should overwrite scaling reveal home animation duration
+     */
+    public static int getTaskbarToHomeDuration(boolean shouldOverrideToFastAnimation,
+            boolean isPinnedTaskbar) {
+        if (isPinnedTaskbar) {
+            return PINNED_TASKBAR_TRANSITION_DURATION;
+        } else if (enableScalingRevealHomeAnimation() && !shouldOverrideToFastAnimation) {
             return TASKBAR_TO_HOME_DURATION_SLOW;
         } else {
             return TASKBAR_TO_HOME_DURATION_FAST;

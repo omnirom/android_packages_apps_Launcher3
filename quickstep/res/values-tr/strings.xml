@@ -22,6 +22,7 @@
     <string name="recent_task_option_pin" msgid="7929860679018978258">"Sabitle"</string>
     <string name="recent_task_option_freeform" msgid="48863056265284071">"Serbest çalışma"</string>
     <string name="recent_task_option_desktop" msgid="8280879717125435668">"Masaüstü"</string>
+    <string name="recent_task_option_external_display" msgid="4533840664313389484">"Harici ekrana taşı"</string>
     <string name="recent_task_desktop" msgid="8081113562549637334">"Masaüstü"</string>
     <string name="recents_empty_message" msgid="7040467240571714191">"Yeni öğe yok"</string>
     <string name="accessibility_app_usage_settings" msgid="6312864233673544149">"Uygulama kullanım ayarları"</string>
@@ -88,7 +89,7 @@
     <string name="gesture_tutorial_try_again" msgid="65962545858556697">"Tekrar deneyin"</string>
     <string name="gesture_tutorial_nice" msgid="2936275692616928280">"Güzel!"</string>
     <string name="gesture_tutorial_step" msgid="1279786122817620968">"Eğitim <xliff:g id="CURRENT">%1$d</xliff:g>/<xliff:g id="TOTAL">%2$d</xliff:g>"</string>
-    <string name="allset_title" msgid="5021126669778966707">"İşlem tamam!"</string>
+    <string name="allset_title" msgid="5021126669778966707">"Kurulum tamamlandı"</string>
     <string name="allset_hint" msgid="459504134589971527">"Ana ekrana gitmek için yukarı kaydırın"</string>
     <string name="allset_button_hint" msgid="2395219947744706291">"Ana ekranınıza gitmek için ana sayfa düğmesine dokunun"</string>
     <string name="allset_description_generic" msgid="5385500062202019855">"<xliff:g id="DEVICE">%1$s</xliff:g> adlı cihazınızı kullanmaya hazırsınız"</string>
@@ -154,4 +155,5 @@
     <string name="bubble_bar_action_dismiss_all" msgid="3290722022983403060">"Tümünü kapat"</string>
     <string name="bubble_bar_accessibility_announce_expand" msgid="1503192695527477102">"genişlet: <xliff:g id="BUBBLE_DESCRIPTION">%1$s</xliff:g>"</string>
     <string name="bubble_bar_accessibility_announce_collapse" msgid="928284600086798791">"daralt: <xliff:g id="BUBBLE_DESCRIPTION">%1$s</xliff:g>"</string>
+    <string name="search_gesture_feature_title" msgid="1294044108313175306">"Seçerek Arat"</string>
 </resources>

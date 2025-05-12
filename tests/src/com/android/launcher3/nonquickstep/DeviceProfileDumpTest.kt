@@ -20,6 +20,7 @@ import com.android.launcher3.AbstractDeviceProfileTest
 import com.android.launcher3.DeviceProfile
 import com.android.launcher3.Flags
 import com.android.launcher3.InvariantDeviceProfile
+import com.android.launcher3.util.rule.setFlags
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -35,11 +36,11 @@ class DeviceProfileDumpTest : AbstractDeviceProfileTest() {
 
     @Before
     fun setUp() {
-        if (instance.decoupleDepth) {
-            setFlagsRule.enableFlags(Flags.FLAG_ENABLE_SCALING_REVEAL_HOME_ANIMATION)
-        } else {
-            setFlagsRule.disableFlags(Flags.FLAG_ENABLE_SCALING_REVEAL_HOME_ANIMATION)
-        }
+        setFlagsRule.setFlags(
+            instance.decoupleDepth,
+            Flags.FLAG_ENABLE_SCALING_REVEAL_HOME_ANIMATION,
+        )
+        setFlagsRule.setFlags(false, Flags.FLAG_ONE_GRID_SPECS)
     }
 
     @Test
@@ -105,13 +106,13 @@ class DeviceProfileDumpTest : AbstractDeviceProfileTest() {
                 initializeVarsForTablet(
                     deviceSpec = deviceSpec,
                     isLandscape = isLandscape,
-                    isGestureMode = isGestureMode
+                    isGestureMode = isGestureMode,
                 )
             else ->
                 initializeVarsForPhone(
                     deviceSpec = deviceSpec,
                     isVerticalBar = isLandscape,
-                    isGestureMode = isGestureMode
+                    isGestureMode = isGestureMode,
                 )
         }
     }
@@ -136,7 +137,7 @@ class DeviceProfileDumpTest : AbstractDeviceProfileTest() {
                     "twopanel-tablet",
                     gridName = "4_by_4",
                     isTaskbarPresentInApps = true,
-                    decoupleDepth = true
+                    decoupleDepth = true,
                 ),
             )
         }
@@ -145,7 +146,7 @@ class DeviceProfileDumpTest : AbstractDeviceProfileTest() {
             val deviceName: String,
             val gridName: String,
             val isTaskbarPresentInApps: Boolean = false,
-            val decoupleDepth: Boolean = false
+            val decoupleDepth: Boolean = false,
         ) {
             fun filename(testName: String = ""): String {
                 val device =

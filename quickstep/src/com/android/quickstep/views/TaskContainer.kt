@@ -16,19 +16,14 @@
 
 package com.android.quickstep.views
 
-import android.content.Intent
 import android.graphics.Bitmap
 import android.view.View
 import com.android.launcher3.Flags.enableRefactorTaskThumbnail
-import com.android.launcher3.Flags.privateSpaceRestrictAccessibilityDrag
-import com.android.launcher3.LauncherSettings
-import com.android.launcher3.model.data.ItemInfoWithIcon
-import com.android.launcher3.model.data.WorkspaceItemInfo
-import com.android.launcher3.pm.UserCache
+import com.android.launcher3.model.data.TaskViewItemInfo
 import com.android.launcher3.util.SplitConfigurationOptions
 import com.android.launcher3.util.TransformingTouchDelegate
 import com.android.quickstep.TaskOverlayFactory
-import com.android.quickstep.TaskUtils
+import com.android.quickstep.ViewUtils.addAccessibleChildToList
 import com.android.quickstep.recents.di.RecentsDependencies
 import com.android.quickstep.recents.di.get
 import com.android.quickstep.recents.di.getScope
@@ -56,7 +51,7 @@ class TaskContainer(
     @SplitConfigurationOptions.StagePosition val stagePosition: Int,
     val digitalWellBeingToast: DigitalWellBeingToast?,
     val showWindowsView: View?,
-    taskOverlayFactory: TaskOverlayFactory
+    taskOverlayFactory: TaskOverlayFactory,
 ) {
     val overlay: TaskOverlayFactory.TaskOverlay<*> = taskOverlayFactory.createOverlay(this)
     lateinit var taskContainerData: TaskContainerData
@@ -109,7 +104,6 @@ class TaskContainer(
             return snapshotView as TaskThumbnailViewDeprecated
         }
 
-    // TODO(b/334826842): Support shouldShowSplashView for new TTV.
     val shouldShowSplashView: Boolean
         get() =
             if (enableRefactorTaskThumbnail())
@@ -123,46 +117,28 @@ class TaskContainer(
             else thumbnailViewDeprecated.sysUiStatusNavFlags
 
     /** Builds proto for logging */
-    val itemInfo: WorkspaceItemInfo
-        get() =
-            WorkspaceItemInfo().apply {
-                itemType = LauncherSettings.Favorites.ITEM_TYPE_TASK
-                container = LauncherSettings.Favorites.CONTAINER_TASKSWITCHER
-                val componentKey = TaskUtils.getLaunchComponentKeyForTask(task.key)
-                user = componentKey.user
-                intent = Intent().setComponent(componentKey.componentName)
-                title = task.title
-                taskView.recentsView?.let { screenId = it.indexOfChild(taskView) }
-                if (privateSpaceRestrictAccessibilityDrag()) {
-                    if (
-                        UserCache.getInstance(taskView.context)
-                            .getUserInfo(componentKey.user)
-                            .isPrivate
-                    ) {
-                        runtimeStatusFlags =
-                            runtimeStatusFlags or ItemInfoWithIcon.FLAG_NOT_PINNABLE
-                    }
-                }
-            }
+    val itemInfo: TaskViewItemInfo
+        get() = TaskViewItemInfo(this)
 
     fun bind() {
         digitalWellBeingToast?.bind(task, taskView, snapshotView, stagePosition)
         if (enableRefactorTaskThumbnail()) {
             bindThumbnailView()
         } else {
-            thumbnailViewDeprecated.bind(task, overlay)
+            thumbnailViewDeprecated.bind(task, overlay, taskView)
         }
         overlay.init()
     }
 
     fun destroy() {
         digitalWellBeingToast?.destroy()
-        if (enableRefactorTaskThumbnail()) {
-            taskView.removeView(thumbnailView)
-        }
         snapshotView.scaleX = 1f
         snapshotView.scaleY = 1f
         overlay.destroy()
+        if (enableRefactorTaskThumbnail()) {
+            RecentsDependencies.getInstance().removeScope(snapshotView)
+            RecentsDependencies.getInstance().removeScope(this)
+        }
     }
 
     fun bindThumbnailView() {
@@ -180,13 +156,6 @@ class TaskContainer(
         addAccessibleChildToList(snapshotView, outChildren)
         showWindowsView?.let { addAccessibleChildToList(it, outChildren) }
         digitalWellBeingToast?.let { addAccessibleChildToList(it, outChildren) }
-    }
-
-    private fun addAccessibleChildToList(view: View, outChildren: ArrayList<View>) {
-        if (view.includeForAccessibility()) {
-            outChildren.add(view)
-        } else {
-            view.addChildrenForAccessibility(outChildren)
-        }
+        overlay.addChildForAccessibility(outChildren)
     }
 }

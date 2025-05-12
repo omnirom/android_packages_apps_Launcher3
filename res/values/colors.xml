@@ -90,6 +90,7 @@
     <color name="drop_target_hover_button_color_dark">#0842A0</color>
 
     <color name="taskbar_running_app_indicator_color">#000000</color>
+    <color name="taskbar_minimized_app_indicator_color">#000000</color>
 
     <color name="preload_icon_accent_color_light">#00668B</color>
     <color name="preload_icon_background_color_light">#B5CAD7</color>
@@ -97,8 +98,6 @@
     <color name="preload_icon_background_color_dark">#40484D</color>
 
     <color name="work_turn_on_stroke">?android:attr/colorAccent</color>
-    <color name="work_fab_bg_color">#A8C7FA</color>
-    <color name="work_fab_icon_color">#041E49</color>
 
     <color name="widget_picker_primary_surface_color_light">#EFEDED</color>
     <color name="widget_picker_secondary_surface_color_light">#FAF9F8</color>
@@ -115,9 +114,15 @@
     <color name="widget_picker_tab_background_unselected_light">#E3E3E3</color>
     <color name="widget_picker_selected_tab_text_color_light">#FFFFFF</color>
     <color name="widget_picker_unselected_tab_text_color_light">#444746</color>
-    <color name="widget_picker_collapse_handle_color_light">#C4C7C5</color>
+    <color name="widget_picker_collapse_handle_color_light">#747775</color>
     <color name="widget_picker_add_button_background_color_light">#0B57D0</color>
     <color name="widget_picker_add_button_text_color_light">#0B57D0</color>
+    <color name="widget_picker_expand_button_background_color_light">
+        @color/widget_picker_secondary_surface_color_light
+    </color>
+    <color name="widget_picker_expand_button_text_color_light">
+        @color/widget_picker_header_app_title_color_light
+    </color>
     <color name="widget_cell_title_color_light">@color/system_on_surface_light</color>
     <color name="widget_cell_subtitle_color_light">@color/system_on_surface_variant_light</color>
 
@@ -136,9 +141,15 @@
     <color name="widget_picker_tab_background_unselected_dark">#343535</color>
     <color name="widget_picker_selected_tab_text_color_dark">#2D312F</color>
     <color name="widget_picker_unselected_tab_text_color_dark">#C4C7C5</color>
-    <color name="widget_picker_collapse_handle_color_dark">#444746</color>
+    <color name="widget_picker_collapse_handle_color_dark">#8e918f</color>
     <color name="widget_picker_add_button_background_color_dark">#062E6F</color>
     <color name="widget_picker_add_button_text_color_dark">#FFFFFF</color>
+    <color name="widget_picker_expand_button_background_color_dark">
+        @color/widget_picker_secondary_surface_color_dark
+    </color>
+    <color name="widget_picker_expand_button_text_color_dark">
+        @color/widget_picker_header_app_title_color_dark
+    </color>
     <color name="widget_cell_title_color_dark">@color/system_on_surface_dark</color>
     <color name="widget_cell_subtitle_color_dark">@color/system_on_surface_variant_dark</color>
 
@@ -245,4 +256,50 @@
     <color name="system_tertiary_fixed_dim">#E0BBDD</color>
     <color name="system_on_tertiary_fixed">#2A122C</color>
     <color name="system_on_tertiary_fixed_variant">#593D59</color>
+
+    <color name="materialColorOnSecondaryFixedVariant">@color/system_on_secondary_fixed_variant</color>
+    <color name="materialColorOnTertiaryFixedVariant">@color/system_on_tertiary_fixed_variant</color>
+    <color name="materialColorSurfaceContainerLowest">@color/system_surface_container_lowest_light</color>
+    <color name="materialColorOnPrimaryFixedVariant">@color/system_on_primary_fixed_variant</color>
+    <color name="materialColorOnSecondaryContainer">@color/system_on_secondary_container_light</color>
+    <color name="materialColorOnTertiaryContainer">@color/system_on_tertiary_container_light</color>
+    <color name="materialColorSurfaceContainerLow">@color/system_surface_container_low_light</color>
+    <color name="materialColorOnPrimaryContainer">@color/system_on_primary_container_light</color>
+    <color name="materialColorSecondaryFixedDim">@color/system_secondary_fixed_dim</color>
+    <color name="materialColorOnErrorContainer">@color/system_on_error_container_light</color>
+    <color name="materialColorOnSecondaryFixed">@color/system_on_secondary_fixed</color>
+    <color name="materialColorInverseOnSurface">@color/system_on_surface_dark</color>
+    <color name="materialColorTertiaryFixedDim">@color/system_tertiary_fixed_dim</color>
+    <color name="materialColorOnTertiaryFixed">@color/system_on_tertiary_fixed</color>
+    <color name="materialColorPrimaryFixedDim">@color/system_primary_fixed_dim</color>
+    <color name="materialColorSecondaryContainer">@color/system_secondary_container_light</color>
+    <color name="materialColorErrorContainer">@color/system_error_container_light</color>
+    <color name="materialColorOnPrimaryFixed">@color/system_on_primary_fixed</color>
+    <color name="materialColorInversePrimary">@color/system_primary_dark</color>
+    <color name="materialColorSecondaryFixed">@color/system_secondary_fixed</color>
+    <color name="materialColorInverseSurface">@color/system_surface_dark</color>
+    <color name="materialColorSurfaceVariant">@color/system_surface_variant_light</color>
+    <color name="materialColorTertiaryContainer">@color/system_tertiary_container_light</color>
+    <color name="materialColorTertiaryFixed">@color/system_tertiary_fixed</color>
+    <color name="materialColorPrimaryContainer">@color/system_primary_container_light</color>
+    <color name="materialColorOnBackground">@color/system_on_background_light</color>
+    <color name="materialColorPrimaryFixed">@color/system_primary_fixed</color>
+    <color name="materialColorOnSecondary">@color/system_on_secondary_light</color>
+    <color name="materialColorOnTertiary">@color/system_on_tertiary_light</color>
+    <color name="materialColorSurfaceDim">@color/system_surface_dim_light</color>
+    <color name="materialColorSurfaceBright">@color/system_surface_bright_light</color>
+    <color name="materialColorOnError">@color/system_on_error_light</color>
+    <color name="materialColorSurface">@color/system_surface_light</color>
+    <color name="materialColorSurfaceContainerHigh">@color/system_surface_container_high_light</color>
+    <color name="materialColorSurfaceContainerHighest">@color/system_surface_container_highest_light</color>
+    <color name="materialColorOnSurfaceVariant">@color/system_on_surface_variant_light</color>
+    <color name="materialColorOutline">@color/system_outline_light</color>
+    <color name="materialColorOutlineVariant">@color/system_outline_variant_light</color>
+    <color name="materialColorOnPrimary">@color/system_on_primary_light</color>
+    <color name="materialColorOnSurface">@color/system_on_surface_light</color>
+    <color name="materialColorSurfaceContainer">@color/system_surface_container_light</color>
+    <color name="materialColorPrimary">@color/system_primary_light</color>
+    <color name="materialColorSecondary">@color/system_secondary_light</color>
+    <color name="materialColorTertiary">@color/system_tertiary_light</color>
+    <color name="materialColorError">@color/system_error_light</color>
 </resources>

@@ -42,8 +42,8 @@ import androidx.test.filters.SmallTest;
 import com.android.launcher3.InvariantDeviceProfile;
 import com.android.launcher3.R;
 import com.android.launcher3.icons.BitmapInfo;
-import com.android.launcher3.icons.ComponentWithLabel;
 import com.android.launcher3.icons.IconCache;
+import com.android.launcher3.icons.cache.CachedObject;
 import com.android.launcher3.model.WidgetItem;
 import com.android.launcher3.model.data.PackageItemInfo;
 import com.android.launcher3.util.ActivityContextWrapper;
@@ -87,7 +87,7 @@ public final class WidgetsListHeaderViewHolderBinderTest {
         mTestProfile.numColumns = 5;
 
         doAnswer(invocation -> {
-            ComponentWithLabel componentWithLabel = (ComponentWithLabel) invocation.getArgument(0);
+            CachedObject componentWithLabel = invocation.getArgument(0);
             return componentWithLabel.getComponent().getShortClassName();
         }).when(mIconCache).getTitleNoCache(any());
         mViewHolderBinder = new WidgetsListHeaderViewHolderBinder(

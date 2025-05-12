@@ -22,6 +22,7 @@
     <string name="recent_task_option_pin" msgid="7929860679018978258">"पिन गर्नुहोस्"</string>
     <string name="recent_task_option_freeform" msgid="48863056265284071">"फ्रिफर्म"</string>
     <string name="recent_task_option_desktop" msgid="8280879717125435668">"डेस्कटप"</string>
+    <string name="recent_task_option_external_display" msgid="4533840664313389484">"सारेर बाह्य डिस्प्लेमा लैजानुहोस्"</string>
     <string name="recent_task_desktop" msgid="8081113562549637334">"डेस्कटप"</string>
     <string name="recents_empty_message" msgid="7040467240571714191">"हालसालैको कुनै पनि वस्तु छैन"</string>
     <string name="accessibility_app_usage_settings" msgid="6312864233673544149">"एपको उपयोगका सेटिङहरू"</string>
@@ -51,8 +52,8 @@
     <string name="back_gesture_feedback_swipe_too_far_from_edge" msgid="4175100312909721217">"स्क्रिनको सबैभन्दा दायाँ किनारा वा सबैभन्दा बायाँ किनाराबाट स्वाइप गर्नुहोस्"</string>
     <string name="back_gesture_feedback_cancelled" msgid="762621530959111290">"स्क्रिनको दायाँ वा बायाँ किनाराबाट मध्य भागसम्म स्वाइप गर्नुहोस् अनि औँला उठाउनुहोस्"</string>
     <string name="back_gesture_feedback_complete_with_overview_follow_up" msgid="9176400654037014471">"तपाईंले स्क्रिनको दायाँ किनाराबाट स्वाइप गरेर अघिल्लो स्क्रिनमा फर्कने तरिका सिक्नुभयो। अब एउटा एपबाट अर्को एपमा जाने तरिका सिक्नुहोस्।"</string>
-    <string name="back_gesture_feedback_complete_with_follow_up" msgid="8653374779579748392">"तपाईंले \'पछाडि जानुहोस्\' नामक इसारा प्रयोग गर्ने तरिका सिक्नुभयो। अब एउटा एपबाट अर्को एपमा जाने तरिका सिक्नुहोस्।"</string>
-    <string name="back_gesture_feedback_complete_without_follow_up" msgid="197189945858268342">"तपाईंले \"पछाडि जानुहोस्\" नामक इसारा प्रयोग गर्ने तरिका सिक्नुभयो"</string>
+    <string name="back_gesture_feedback_complete_with_follow_up" msgid="8653374779579748392">"तपाईंले जेस्चर प्रयोग गरी पछाडि जाने तरिका सिक्नुभएको छ। अब एउटा एपबाट अर्को एपमा जाने तरिका सिक्नुहोस्।"</string>
+    <string name="back_gesture_feedback_complete_without_follow_up" msgid="197189945858268342">"तपाईंले जेस्चर प्रयोग गरी पछाडि जाने तरिका सिक्नुभएको छ"</string>
     <string name="back_gesture_feedback_swipe_in_nav_bar" msgid="9157480023651452969">"स्क्रिनको फेदको धेरै नजिकसम्म स्वाइप नगर्नुहोस्"</string>
     <string name="back_gesture_tutorial_confirm_subtitle" msgid="5181305411668713250">"\'पछाडि\' नामक इसाराको संवेदनशीलता बदल्न सेटिङमा जानुहोस्"</string>
     <string name="back_gesture_intro_title" msgid="19551256430224428">"पछाडि जान स्वाइप गर्नुहोस्"</string>
@@ -63,7 +64,7 @@
     <string name="home_gesture_feedback_swipe_too_far_from_edge" msgid="4816365433160895458">"स्क्रिनको फेदबाट माथितिर स्वाइप गर्नुहोस्"</string>
     <string name="home_gesture_feedback_overview_detected" msgid="5177627157303895077">"औँला उठाउनुअघि नरोकिनुहोस्"</string>
     <string name="home_gesture_feedback_wrong_swipe_direction" msgid="8328465201424027148">"सीधै माथितिर स्वाइप गर्नुहोस्"</string>
-    <string name="home_gesture_feedback_complete_with_follow_up" msgid="8766981412895888417">"तपाईंले \"होम स्क्रिनमा जानुहोस्\" नामक इसारा प्रयोग गर्ने तरिका सिक्नुभयो। अब पछाडि जाने तरिका सिक्नुहोस्।"</string>
+    <string name="home_gesture_feedback_complete_with_follow_up" msgid="8766981412895888417">"तपाईंले जेस्चर प्रयोग गरी होम स्क्रिनमा जाने तरिका सिक्नुभएको छ। अब पछाडि जाने तरिका सिक्नुहोस्।"</string>
     <string name="home_gesture_feedback_complete_without_follow_up" msgid="2978063221383413443">"तपाईंले \"होम स्क्रिनमा जानुहोस्\" नामक इसारा प्रयोग गर्ने तरिका सिक्नुभयो"</string>
     <string name="home_gesture_intro_title" msgid="836590312858441830">"होम स्क्रिनमा जान स्वाइप गर्नुहोस्"</string>
     <string name="home_gesture_intro_subtitle" msgid="2632238748497975326">"स्क्रिनको फेदबाट माथितिर स्वाइप गर्नुहोस्। यो इसारा प्रयोग गर्दा सधैँ होम स्क्रिन खुल्छ।"</string>
@@ -154,4 +155,5 @@
     <string name="bubble_bar_action_dismiss_all" msgid="3290722022983403060">"सबै हटाउनुहोस्"</string>
     <string name="bubble_bar_accessibility_announce_expand" msgid="1503192695527477102">"<xliff:g id="BUBBLE_DESCRIPTION">%1$s</xliff:g> एक्स्पान्ड गर्नुहोस्"</string>
     <string name="bubble_bar_accessibility_announce_collapse" msgid="928284600086798791">"<xliff:g id="BUBBLE_DESCRIPTION">%1$s</xliff:g> कोल्याप्स गर्नुहोस्"</string>
+    <string name="search_gesture_feature_title" msgid="1294044108313175306">"खोज्न सर्कल बनाउनुहोस्"</string>
 </resources>

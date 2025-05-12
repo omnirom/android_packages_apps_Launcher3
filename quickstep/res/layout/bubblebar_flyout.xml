@@ -19,7 +19,7 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <ImageView
-        android:id="@+id/bubble_flyout_avatar"
+        android:id="@+id/bubble_flyout_icon"
         android:layout_width="50dp"
         android:layout_height="36dp"
         android:paddingEnd="@dimen/bubblebar_flyout_avatar_message_space"
@@ -30,14 +30,14 @@
         tools:src="#ff0000"/>
 
     <TextView
-        android:id="@+id/bubble_flyout_name"
+        android:id="@+id/bubble_flyout_title"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:fontFamily="@*android:string/config_bodyFontFamilyMedium"
         android:maxLines="1"
         android:ellipsize="end"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toEndOf="@id/bubble_flyout_avatar"
+        app:layout_constraintStart_toEndOf="@id/bubble_flyout_icon"
         tools:text="Sender"/>
 
     <TextView
@@ -47,8 +47,8 @@
         android:fontFamily="@*android:string/config_bodyFontFamily"
         android:maxLines="2"
         android:ellipsize="end"
-        app:layout_constraintTop_toBottomOf="@id/bubble_flyout_name"
-        app:layout_constraintStart_toEndOf="@id/bubble_flyout_avatar"
+        app:layout_constraintTop_toBottomOf="@id/bubble_flyout_title"
+        app:layout_constraintStart_toEndOf="@id/bubble_flyout_icon"
         tools:text="This is a message"/>
 
 </merge>

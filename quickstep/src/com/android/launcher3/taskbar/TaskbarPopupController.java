@@ -15,6 +15,7 @@
  */
 package com.android.launcher3.taskbar;
 
+import static com.android.launcher3.LauncherSettings.Favorites.CONTAINER_ALL_APPS;
 import static com.android.launcher3.model.data.AppInfo.COMPONENT_KEY_COMPARATOR;
 import static com.android.launcher3.util.SplitConfigurationOptions.getLogEventForPosition;
 
@@ -201,8 +202,10 @@ public class TaskbarPopupController implements TaskbarControllers.LoggableTaskba
         if (com.android.wm.shell.Flags.enableBubbleAnything()) {
             shortcuts.add(BUBBLE);
         }
+
         if (Flags.enableMultiInstanceMenuTaskbar()
-                && DesktopModeStatus.canEnterDesktopMode(mContext)) {
+                && DesktopModeStatus.canEnterDesktopMode(mContext)
+                && !mControllers.taskbarStashController.isInOverview()) {
             shortcuts.addAll(getMultiInstanceMenuOptions().toList());
         }
         return shortcuts.stream();
@@ -295,9 +298,9 @@ public class TaskbarPopupController implements TaskbarControllers.LoggableTaskba
      * Returns a stream of Multi Instance menu options if an app supports it.
      */
     Stream<SystemShortcut.Factory<BaseTaskbarContext>> getMultiInstanceMenuOptions() {
-        SystemShortcut.Factory<BaseTaskbarContext> factory = createNewWindowShortcutFactory();
-        return factory != null ? Stream.of(factory) : Stream.empty();
-
+        SystemShortcut.Factory<BaseTaskbarContext> f1 = createNewWindowShortcutFactory();
+        SystemShortcut.Factory<BaseTaskbarContext> f2 = createManageWindowsShortcutFactory();
+        return f1 != null ? Stream.of(f1, f2) : Stream.empty();
     }
 
     /**
@@ -307,13 +310,36 @@ public class TaskbarPopupController implements TaskbarControllers.LoggableTaskba
      */
     SystemShortcut.Factory<BaseTaskbarContext> createNewWindowShortcutFactory() {
         return (context, itemInfo, originalView) -> {
-            ComponentKey key = itemInfo.getComponentKey();
-            AppInfo app = getApp(key);
-            if (app != null && app.supportsMultiInstance()) {
+            if (shouldShowMultiInstanceOptions(itemInfo)) {
                 return new NewWindowTaskbarShortcut<>(context, itemInfo, originalView);
             }
             return null;
         };
+    }
+
+    /**
+     * Creates a factory function representing a "Manage Windows" menu item only if the calling app
+     * supports multi-instance. This menu item shows the open instances of the calling app.
+     * @return A factory function to be used in populating the long-press menu.
+     */
+    public SystemShortcut.Factory<BaseTaskbarContext> createManageWindowsShortcutFactory() {
+        return (context, itemInfo, originalView) -> {
+            if (shouldShowMultiInstanceOptions(itemInfo)) {
+                return new ManageWindowsTaskbarShortcut<>(context, itemInfo, originalView,
+                        mControllers);
+            }
+            return null;
+        };
+    }
+
+    /**
+     * Determines whether to show multi-instance options for a given item.
+     */
+    private boolean shouldShowMultiInstanceOptions(ItemInfo itemInfo) {
+        ComponentKey key = itemInfo.getComponentKey();
+        AppInfo app = getApp(key);
+        return app != null && app.supportsMultiInstance()
+                && itemInfo.container != CONTAINER_ALL_APPS;
     }
 
     /**

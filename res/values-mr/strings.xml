@@ -32,6 +32,7 @@
     <string name="split_app_info_accessibility" msgid="5475288491241414932">"%1$s साठी ॲपशी संबंधित माहिती"</string>
     <string name="split_app_usage_settings" msgid="7214375263347964093">"%1$s साठी वापरासंबंधित सेटिंग्ज"</string>
     <string name="new_window_option_taskbar" msgid="6448780542727767211">"नवीन विंडो"</string>
+    <string name="manage_windows_option_taskbar" msgid="2294109489960654212">"विंडो व्यवस्थापित करा"</string>
     <string name="save_app_pair" msgid="5647523853662686243">"ॲपची जोडी सेव्ह करा"</string>
     <string name="app_pair_default_title" msgid="4045241727446873529">"<xliff:g id="APP1">%1$s</xliff:g> | <xliff:g id="APP2">%2$s</xliff:g>"</string>
     <string name="app_pair_unlaunchable_at_screen_size" msgid="3446551575502685376">"या ॲपची जोडीला या डिव्हाइसवर सपोर्ट नाही"</string>
@@ -67,8 +68,13 @@
     <string name="widgets_full_sheet_work_tab" msgid="3767150027110633765">"ऑफिस"</string>
     <string name="widget_category_conversations" msgid="8894438636213590446">"संभाषणे"</string>
     <string name="widget_category_note_taking" msgid="3469689394504266039">"टिपा घेणे"</string>
+    <string name="widget_cell_tap_to_show_add_button_label" msgid="4354194214317043581">"जोडा बटण दाखवा"</string>
+    <string name="widget_cell_tap_to_hide_add_button_label" msgid="6117805205101555997">"जोडा बटण लपवा"</string>
     <string name="widget_add_button_label" msgid="2761267068711937179">"जोडा"</string>
     <string name="widget_add_button_content_description" msgid="1810530016360039643">"<xliff:g id="WIDGET_NAME">%1$s</xliff:g> विजेट जोडा"</string>
+    <string name="widgets_list_expand_button_label" msgid="7912016136574932622">"सर्व दाखवा"</string>
+    <string name="widgets_list_expand_button_content_description" msgid="4600513860973450888">"सर्व विजेट दाखवा"</string>
+    <string name="widgets_list_expanded" msgid="7374857868788557730">"सर्व विजेट दाखवत आहे"</string>
     <string name="reconfigurable_widget_education_tip" msgid="6336962690888067057">"विजेट सेटिंग्ज बदलण्यासाठी टॅप करा"</string>
     <string name="widget_reconfigure_button_content_description" msgid="8811472721881205250">"विजेट सेटिंग्ज बदला"</string>
     <string name="all_apps_search_bar_hint" msgid="1390553134053255246">"अ‍ॅप्स शोधा"</string>
@@ -124,6 +130,8 @@
     <string name="msg_disabled_by_admin" msgid="6898038085516271325">"आपल्या प्रशासकाने अक्षम केले"</string>
     <string name="allow_rotation_title" msgid="7222049633713050106">"होम स्क्रीन फिरवण्‍याची अनुमती द्या"</string>
     <string name="allow_rotation_desc" msgid="8662546029078692509">"फोन फिरवला जातो तेव्हा"</string>
+    <string name="landscape_mode_title" msgid="5138814555934843926">"लँडस्केप मोड"</string>
+    <string name="landscape_mode_desc" msgid="7372569859592816793">"फोन लँडस्केप मोडमध्ये सेट करा"</string>
     <string name="notification_dots_title" msgid="9062440428204120317">"नोटिफिकेशन डॉट"</string>
     <string name="notification_dots_desc_on" msgid="1679848116452218908">"सुरू"</string>
     <string name="notification_dots_desc_off" msgid="1760796511504341095">"बंद"</string>
@@ -142,7 +150,8 @@
     <string name="app_installing_title" msgid="5864044122733792085">"<xliff:g id="NAME">%1$s</xliff:g> इंस्टॉल करत आहे, <xliff:g id="PROGRESS">%2$s</xliff:g> पूर्ण झाले"</string>
     <string name="app_downloading_title" msgid="8336702962104482644">"<xliff:g id="NAME">%1$s</xliff:g> डाउनलोड होत आहे , <xliff:g id="PROGRESS">%2$s</xliff:g> पूर्ण झाले"</string>
     <string name="app_waiting_download_title" msgid="7053938513995617849">"<xliff:g id="NAME">%1$s</xliff:g> इंस्टॉल करण्याची प्रतिक्षा करत आहे"</string>
-    <string name="app_archived_title" msgid="7717956158562544081">"<xliff:g id="NAME">%1$s</xliff:g> संग्रहित केले आहे. डाउनलोड करून रिस्टोअर करण्यासाठी टॅप करा."</string>
+    <string name="app_archived_title" msgid="4548283110222420708">"<xliff:g id="NAME">%1$s</xliff:g> संग्रहित केले आहे."</string>
+    <string name="app_unarchiving_action" msgid="5736107006413929484">"डाउनलोड करून रिस्टोअर करा"</string>
     <string name="dialog_update_title" msgid="114234265740994042">"अ‍ॅप अपडेट करणे आवश्‍यक आहे"</string>
     <string name="dialog_update_message" msgid="4176784553982226114">"या आयकनसाठी अ‍ॅप अपडेट केलेले नाही. हा शॉटकर्ट पुन्हा सुरू करण्यासाठी तुम्ही मॅन्युअली अपडेट करू शकता किंवा आयकन काढून टाका."</string>
     <string name="dialog_update" msgid="2178028071796141234">"अपडेट करा"</string>
@@ -171,7 +180,7 @@
     <string name="action_decrease_width" msgid="1374549771083094654">"रुंदी कमी करा"</string>
     <string name="action_decrease_height" msgid="282377193880900022">"उंची कमी करा"</string>
     <string name="widget_resized" msgid="9130327887929620">"विजेटचा आकार रुंदी <xliff:g id="NUMBER_0">%1$s</xliff:g> उंची <xliff:g id="NUMBER_1">%2$s</xliff:g> मध्ये बदलला"</string>
-    <string name="action_deep_shortcut" msgid="2864038805849372848">"शॉर्टकट"</string>
+    <string name="action_deep_shortcut" msgid="4766835855579976045">"शॉर्टकट मेनू"</string>
     <string name="action_dismiss_notification" msgid="5909461085055959187">"डिसमिस करा"</string>
     <string name="accessibility_close" msgid="2277148124685870734">"बंद करा"</string>
     <string name="all_apps_personal_tab" msgid="4190252696685155002">"वैयक्तिक"</string>
@@ -187,6 +196,7 @@
     <string name="work_apps_paused_edu_accept" msgid="6377476824357318532">"समजले"</string>
     <string name="work_apps_pause_btn_text" msgid="4669288269140620646">"कार्य ॲप्स थांबवा"</string>
     <string name="work_apps_enable_btn_text" msgid="1736198302467317371">"अनपॉझ करा"</string>
+    <string name="work_scheduler_button_content_description" msgid="917340740986764967">"Work apps साठी शेड्यूल"</string>
     <string name="developer_options_filter_hint" msgid="5896817443635989056">"फिल्टर"</string>
     <string name="remote_action_failed" msgid="1383965239183576790">"हे करता आले नाही: <xliff:g id="WHAT">%1$s</xliff:g>"</string>
     <string name="private_space_label" msgid="2359721649407947001">"खाजगी स्पेस"</string>

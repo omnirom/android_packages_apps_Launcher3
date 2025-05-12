@@ -161,7 +161,8 @@ public class BubbleDragController {
 
             @Override
             void onDragEnd() {
-                mBubbleBarController.updateBubbleBarLocation(mReleasedLocation);
+                mBubbleBarController.updateBubbleBarLocation(mReleasedLocation,
+                        BubbleBarLocation.UpdateSource.DRAG_BUBBLE);
                 mBubbleBarViewController.onBubbleDragEnd();
                 mBubblePinController.setListener(null);
             }
@@ -226,7 +227,8 @@ public class BubbleDragController {
             @Override
             void onDragEnd() {
                 // Make sure to update location as the first thing. Pivot update causes a relayout
-                mBubbleBarController.updateBubbleBarLocation(mReleasedLocation);
+                mBubbleBarController.updateBubbleBarLocation(mReleasedLocation,
+                        BubbleBarLocation.UpdateSource.DRAG_BAR);
                 bubbleBarView.setIsDragging(false);
                 // Restoring the initial pivot for the bubble bar view
                 bubbleBarView.setRelativePivot(initialRelativePivot.x, initialRelativePivot.y);

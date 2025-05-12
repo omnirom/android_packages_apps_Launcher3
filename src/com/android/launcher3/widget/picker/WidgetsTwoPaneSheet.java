@@ -16,6 +16,7 @@
 package com.android.launcher3.widget.picker;
 
 import static com.android.launcher3.Flags.enableCategorizedWidgetSuggestions;
+import static com.android.launcher3.Flags.enableTieredWidgetsByDefaultInPicker;
 import static com.android.launcher3.Flags.enableUnfoldedTwoPanePicker;
 import static com.android.launcher3.UtilitiesKt.CLIP_CHILDREN_FALSE_MODIFIER;
 import static com.android.launcher3.UtilitiesKt.CLIP_TO_PADDING_FALSE_MODIFIER;
@@ -147,7 +148,9 @@ public class WidgetsTwoPaneSheet extends WidgetsFullSheet {
         mHeaderDescription = mContent.findViewById(R.id.widget_picker_description);
 
         mWidgetOptionsMenu = mContent.findViewById(R.id.widget_picker_widget_options_menu);
-        setupWidgetOptionsMenu();
+        if (!enableTieredWidgetsByDefaultInPicker()) {
+            setupWidgetOptionsMenu();
+        }
 
         mRightPane = mContent.findViewById(R.id.right_pane);
         mRightPaneScrollView = mContent.findViewById(R.id.right_pane_scroll_view);
@@ -286,6 +289,9 @@ public class WidgetsTwoPaneSheet extends WidgetsFullSheet {
         }
     }
 
+    // Used by the two pane sheet to show 3-dot menu to toggle between default lists and all lists
+    // when enableTieredWidgetsByDefaultInPicker is OFF. This code path and the 3-dot menu can be
+    // safely deleted when it's alternative "enableTieredWidgetsByDefaultInPicker" flag is inlined.
     @Override
     protected List<WidgetsListBaseEntry> getWidgetsToDisplay() {
         List<WidgetsListBaseEntry> allWidgets =
@@ -315,6 +321,15 @@ public class WidgetsTwoPaneSheet extends WidgetsFullSheet {
         if (mRecommendedWidgetsCount == 0 && mSelectedHeader == null) {
             mAdapters.get(mActivePage).mWidgetsListAdapter.selectFirstHeaderEntry();
             mAdapters.get(mActivePage).mWidgetsRecyclerView.scrollToTop();
+        }
+    }
+
+    @Override
+    public void onWidgetsListExpandButtonClick(View v) {
+        super.onWidgetsListExpandButtonClick(v);
+        // Refresh right pane with updated data for the selected header.
+        if (mSelectedHeader != null && mSelectedHeader != mSuggestedWidgetsPackageUserKey) {
+            getHeaderChangeListener().onHeaderChanged(mSelectedHeader);
         }
     }
 
@@ -511,11 +526,20 @@ public class WidgetsTwoPaneSheet extends WidgetsFullSheet {
                         && !mOpenCloseAnimation.getAnimationPlayer().isRunning()
                         && !getAccessibilityInitialFocusView().isAccessibilityFocused();
                 mSelectedHeader = selectedHeader;
-                final boolean showDefaultWidgets = mWidgetOptionsMenuState != null
-                        && !mWidgetOptionsMenuState.showAllWidgets;
-                WidgetsListContentEntry contentEntry = findContentEntryForPackageUser(
-                        mActivityContext.getWidgetPickerDataProvider().get(),
-                        selectedHeader, showDefaultWidgets);
+
+                WidgetsListContentEntry contentEntry;
+                if (enableTieredWidgetsByDefaultInPicker()) {
+                    contentEntry = mAdapters.get(
+                            getCurrentAdapterHolderType()).mWidgetsListAdapter.getContentEntry(
+                            selectedHeader);
+                } else { // Can be deleted when inlining the "enableTieredWidgetsByDefaultInPicker"
+                    // flag
+                    final boolean showDefaultWidgets = mWidgetOptionsMenuState != null
+                            && !mWidgetOptionsMenuState.showAllWidgets;
+                    contentEntry = findContentEntryForPackageUser(
+                            mActivityContext.getWidgetPickerDataProvider().get(),
+                            selectedHeader, showDefaultWidgets);
+                }
 
                 if (contentEntry == null || mRightPane == null) {
                     return;

@@ -70,6 +70,8 @@ import com.android.launcher3.anim.AnimatorPlaybackController;
 import com.android.launcher3.taskbar.TaskbarManager;
 import com.android.launcher3.util.Executors;
 import com.android.quickstep.GestureState;
+import com.android.quickstep.OverviewComponentObserver;
+import com.android.quickstep.OverviewComponentObserver.OverviewChangeListener;
 import com.android.quickstep.TouchInteractionService.TISBinder;
 import com.android.quickstep.util.LottieAnimationColorUtils;
 import com.android.quickstep.util.TISBindHelper;
@@ -120,6 +122,8 @@ public class AllSetActivity extends Activity {
     private AnimatorPlaybackController mLauncherStartAnim = null;
 
     private TextView mHintView;
+
+    private final OverviewChangeListener mOverviewChangeListener = this::onOverviewTargetChange;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -193,8 +197,11 @@ public class AllSetActivity extends Activity {
                         LOTTIE_TERTIARY_COLOR_TOKEN, R.color.all_set_bg_tertiary),
                 getTheme());
 
-        startBackgroundAnimation(getDP().isTablet);
+        setUpBackgroundAnimation(getDP().isTablet);
         getIDP().addOnChangeListener(mOnIDPChangeListener);
+
+        OverviewComponentObserver.INSTANCE.get(this)
+                .addOverviewChangeListener(mOverviewChangeListener);
     }
 
     private InvariantDeviceProfile getIDP() {
@@ -218,7 +225,7 @@ public class AllSetActivity extends Activity {
         Executors.UI_HELPER_EXECUTOR.execute(runnable);
     }
 
-    private void startBackgroundAnimation(boolean forTablet) {
+    private void setUpBackgroundAnimation(boolean forTablet) {
         if (mVibrator == null) {
             return;
         }
@@ -262,7 +269,6 @@ public class AllSetActivity extends Activity {
                     };
         }
         mAnimatedBackground.addAnimatorListener(mBackgroundAnimatorListener);
-        mAnimatedBackground.playAnimation();
     }
 
     private void setSetupUIVisible(boolean visible) {
@@ -285,11 +291,17 @@ public class AllSetActivity extends Activity {
     private void onTISConnected(TISBinder binder) {
         setSetupUIVisible(isResumed());
         binder.setSwipeUpProxy(isResumed() ? this::createSwipeUpProxy : null);
-        binder.setOverviewTargetChangeListener(binder::preloadOverviewForSUWAllSet);
         binder.preloadOverviewForSUWAllSet();
         TaskbarManager taskbarManager = binder.getTaskbarManager();
         if (taskbarManager != null) {
             mLauncherStartAnim = taskbarManager.createLauncherStartFromSuwAnim(MAX_SWIPE_DURATION);
+        }
+    }
+
+    private void onOverviewTargetChange(boolean isHomeAndOverviewSame) {
+        TISBinder binder = mTISBindHelper.getBinder();
+        if (binder != null) {
+            binder.preloadOverviewForSUWAllSet();
         }
     }
 
@@ -309,7 +321,6 @@ public class AllSetActivity extends Activity {
         if (binder != null) {
             setSetupUIVisible(false);
             binder.setSwipeUpProxy(null);
-            binder.setOverviewTargetChangeListener(null);
         }
     }
 
@@ -337,6 +348,8 @@ public class AllSetActivity extends Activity {
         if (!isChangingConfigurations()) {
             dispatchLauncherAnimStartEnd();
         }
+        OverviewComponentObserver.INSTANCE.get(this)
+                .removeOverviewChangeListener(mOverviewChangeListener);
     }
 
     private AnimatedFloat createSwipeUpProxy(GestureState state) {

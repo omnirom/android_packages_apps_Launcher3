@@ -16,6 +16,8 @@
 
 package com.android.quickstep;
 
+import android.util.Log;
+
 import androidx.test.filters.LargeTest;
 import androidx.test.runner.AndroidJUnit4;
 
@@ -28,6 +30,8 @@ import org.junit.runner.RunWith;
 @LargeTest
 @RunWith(AndroidJUnit4.class)
 public class TaplStartLauncherViaGestureTests extends AbstractQuickStepTest {
+
+    public static final String TAG = "TaplStartLauncherViaGestureTests";
 
     static final int STRESS_REPEAT_COUNT = 10;
 
@@ -69,7 +73,9 @@ public class TaplStartLauncherViaGestureTests extends AbstractQuickStepTest {
     }
 
     private void runTest(TestCase testCase) {
+        long testStartTime = System.currentTimeMillis();
         for (int i = 0; i < STRESS_REPEAT_COUNT; ++i) {
+            long loopStartTime = System.currentTimeMillis();
             // Destroy Launcher activity.
             closeLauncherActivity();
 
@@ -84,7 +90,10 @@ public class TaplStartLauncherViaGestureTests extends AbstractQuickStepTest {
                 default:
                     throw new IllegalStateException("Cannot run test case: " + testCase);
             }
+            Log.d(TAG, "Loop " + (i + 1) + " runtime="
+                    + (System.currentTimeMillis() - loopStartTime) + "ms");
         }
+        Log.d(TAG, "Test runtime=" + (System.currentTimeMillis() - testStartTime) + "ms");
         switch (testCase) {
             case TO_OVERVIEW:
                 closeLauncherActivity();

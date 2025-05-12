@@ -15,7 +15,7 @@
   -->
 <shape xmlns:android="http://schemas.android.com/apk/res/android"
     android:shape="oval">
-    <solid android:color="?attr/materialColorSurfaceContainer" />
+    <solid android:color="@color/materialColorSurface" />
     <corners android:radius="100dp"/>
     <size
         android:width="@dimen/bg_letter_list_text_size"

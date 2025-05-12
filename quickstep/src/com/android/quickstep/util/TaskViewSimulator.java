@@ -50,9 +50,10 @@ import com.android.launcher3.util.SplitConfigurationOptions.SplitBounds;
 import com.android.launcher3.util.TraceHelper;
 import com.android.quickstep.BaseActivityInterface;
 import com.android.quickstep.BaseContainerInterface;
+import com.android.quickstep.DesktopFullscreenDrawParams;
+import com.android.quickstep.FullscreenDrawParams;
 import com.android.quickstep.TaskAnimationManager;
 import com.android.quickstep.util.SurfaceTransaction.SurfaceProperties;
-import com.android.quickstep.views.TaskView.FullscreenDrawParams;
 import com.android.systemui.shared.recents.model.ThumbnailData;
 import com.android.systemui.shared.recents.utilities.PreviewPositionHelper;
 
@@ -116,19 +117,25 @@ public class TaskViewSimulator implements TransformParams.BuilderProxy {
     private SplitBounds mSplitBounds;
     private Boolean mDrawsBelowRecents = null;
     private boolean mIsGridTask;
-    private boolean mIsDesktopTask;
+    private final boolean mIsDesktopTask;
     private boolean mScaleToCarouselTaskSize = false;
     private int mTaskRectTranslationX;
     private int mTaskRectTranslationY;
+    private int mDesktopTaskIndex = 0;
 
-    public TaskViewSimulator(Context context, BaseContainerInterface sizeStrategy) {
+    public TaskViewSimulator(Context context, BaseContainerInterface sizeStrategy,
+            boolean isDesktop, int desktopTaskIndex) {
         mContext = context;
         mSizeStrategy = sizeStrategy;
+        mIsDesktopTask = isDesktop;
+        mDesktopTaskIndex = desktopTaskIndex;
 
         mOrientationState = TraceHelper.allowIpcs("TaskViewSimulator.init",
                 () -> new RecentsOrientedState(context, sizeStrategy, i -> { }));
         mOrientationState.setGestureActive(true);
-        mCurrentFullscreenParams = new FullscreenDrawParams(context);
+        mCurrentFullscreenParams = mIsDesktopTask
+                ? new DesktopFullscreenDrawParams(context)
+                : new FullscreenDrawParams(context);
         mOrientationStateId = mOrientationState.getStateId();
         Resources resources = context.getResources();
         mIsRecentsRtl = mOrientationState.getOrientationHandler().getRecentsRtlSetting(resources);
@@ -288,13 +295,6 @@ public class TaskViewSimulator implements TransformParams.BuilderProxy {
     }
 
     /**
-     * Sets whether this task is part of desktop tasks in overview.
-     */
-    public void setIsDesktopTask(boolean desktop) {
-        mIsDesktopTask = desktop;
-    }
-
-    /**
      * Apply translations on TaskRect's starting location.
      */
     public void setTaskRectTranslation(int taskRectTranslationX, int taskRectTranslationY) {
@@ -302,6 +302,14 @@ public class TaskViewSimulator implements TransformParams.BuilderProxy {
         mTaskRectTranslationY = taskRectTranslationY;
         // Re-calculate task size after changing translation
         calculateTaskSize();
+    }
+
+    /**
+     * Override the pivot used to apply scale changes.
+     */
+    public void setPivotOverride(PointF pivotOverride) {
+        mPivotOverride = pivotOverride;
+        getFullScreenScale();
     }
 
     /**
@@ -537,9 +545,9 @@ public class TaskViewSimulator implements TransformParams.BuilderProxy {
             // In shell transitions, the animation leashes are reparented to an animation container
             // so we can bump layers as needed.
             builder.setLayer(mDrawsBelowRecents
-                    ? Integer.MIN_VALUE + app.prefixOrderIndex
                     // 1000 is an arbitrary number to give room for multiple layers.
-                    : Integer.MAX_VALUE - 1000 + app.prefixOrderIndex);
+                    ? Integer.MIN_VALUE + 1000 + app.prefixOrderIndex - mDesktopTaskIndex
+                    : Integer.MAX_VALUE - 1000 + app.prefixOrderIndex - mDesktopTaskIndex);
         }
     }
 
@@ -548,7 +556,7 @@ public class TaskViewSimulator implements TransformParams.BuilderProxy {
      * TaskView
      */
     public float getCurrentCornerRadius() {
-        float visibleRadius = mCurrentFullscreenParams.getCurrentDrawnCornerRadius();
+        float visibleRadius = mCurrentFullscreenParams.getCurrentCornerRadius();
         mTempPoint[0] = visibleRadius;
         mTempPoint[1] = 0;
         mInversePositionMatrix.mapVectors(mTempPoint);

@@ -52,7 +52,6 @@ import androidx.annotation.Nullable;
 import androidx.annotation.StringRes;
 import androidx.annotation.StyleRes;
 import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.content.res.AppCompatResources;
 
 import com.android.launcher3.DeviceProfile;
 import com.android.launcher3.R;
@@ -610,8 +609,8 @@ abstract class TutorialController implements BackGestureAttemptCallback,
 
     private void updateDrawables() {
         if (mContext != null) {
-            mTutorialFragment.getRootView().setBackground(AppCompatResources.getDrawable(
-                    mContext, getMockWallpaperResId()));
+            mTutorialFragment.getRootView()
+                    .setBackground(mContext.getDrawable(getMockWallpaperResId()));
             mTutorialFragment.updateFeedbackAnimation();
             mFakeLauncherView.setBackgroundColor(getFakeLauncherColor());
             updateFakeViewLayout(mFakeHotseatView, getMockHotseatResId());
@@ -619,9 +618,7 @@ abstract class TutorialController implements BackGestureAttemptCallback,
             mFakeTaskView.animate().alpha(1).setListener(
                     AnimatorListeners.forSuccessCallback(() -> mFakeTaskView.animate().cancel()));
             mFakePreviousTaskView.setFakeTaskViewFillColor(getMockPreviousAppTaskThumbnailColor());
-            mFakeIconView.setBackground(AppCompatResources.getDrawable(
-                    mContext, getMockAppIconResId()));
-
+            mFakeIconView.setBackground(mContext.getDrawable(getMockAppIconResId()));
             mExitingAppView.setBackgroundColor(getExitingAppColor());
             mFakeTaskView.setBackgroundColor(getFakeTaskViewColor());
             updateHotseatChildViewColor(mHotseatIconView);

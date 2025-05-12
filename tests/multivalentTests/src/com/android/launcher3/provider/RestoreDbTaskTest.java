@@ -92,6 +92,7 @@ public class RestoreDbTaskTest {
     private Cursor mMockCursor;
     private LauncherPrefs mPrefs;
     private LauncherRestoreEventLogger mMockRestoreEventLogger;
+    private SQLiteDatabase mDb;
 
     @Before
     public void setup() {
@@ -101,63 +102,66 @@ public class RestoreDbTaskTest {
         mMockController = Mockito.mock(ModelDbController.class);
         mMockDb = mock(SQLiteDatabase.class);
         mMockCursor = mock(Cursor.class);
-        mPrefs = new LauncherPrefs(mContext);
+        mPrefs = LauncherPrefs.get(mContext);
         mMockRestoreEventLogger = mock(LauncherRestoreEventLogger.class);
     }
 
     @After
     public void teardown() {
+        if (mDb != null) {
+            mDb.close();
+        }
         mModelHelper.destroy();
         LauncherPrefs.get(mContext).removeSync(RESTORE_DEVICE);
     }
 
     @Test
     public void testGetProfileId() throws Exception {
-        SQLiteDatabase db = new MyModelDbController(23).getDb();
-        assertEquals(23, new RestoreDbTask().getDefaultProfileId(db));
+        mDb = new MyModelDbController(23).getDb();
+        assertEquals(23, new RestoreDbTask().getDefaultProfileId(mDb));
     }
 
     @Test
     public void testMigrateProfileId() throws Exception {
-        SQLiteDatabase db = new MyModelDbController(42).getDb();
+        mDb = new MyModelDbController(42).getDb();
         // Add some mock data
         for (int i = 0; i < 5; i++) {
             ContentValues values = new ContentValues();
             values.put(Favorites._ID, i);
             values.put(Favorites.TITLE, "item " + i);
-            db.insert(Favorites.TABLE_NAME, null, values);
+            mDb.insert(Favorites.TABLE_NAME, null, values);
         }
         // Verify item add
-        assertEquals(5, getCount(db, "select * from favorites where profileId = 42"));
+        assertEquals(5, getCount(mDb, "select * from favorites where profileId = 42"));
 
-        new RestoreDbTask().migrateProfileId(db, 42, 33);
+        new RestoreDbTask().migrateProfileId(mDb, 42, 33);
 
         // verify data migrated
-        assertEquals(0, getCount(db, "select * from favorites where profileId = 42"));
-        assertEquals(5, getCount(db, "select * from favorites where profileId = 33"));
+        assertEquals(0, getCount(mDb, "select * from favorites where profileId = 42"));
+        assertEquals(5, getCount(mDb, "select * from favorites where profileId = 33"));
     }
 
     @Test
     public void testChangeDefaultColumn() throws Exception {
-        SQLiteDatabase db = new MyModelDbController(42).getDb();
+        mDb = new MyModelDbController(42).getDb();
         // Add some mock data
         for (int i = 0; i < 5; i++) {
             ContentValues values = new ContentValues();
             values.put(Favorites._ID, i);
             values.put(Favorites.TITLE, "item " + i);
-            db.insert(Favorites.TABLE_NAME, null, values);
+            mDb.insert(Favorites.TABLE_NAME, null, values);
         }
         // Verify default column is 42
-        assertEquals(5, getCount(db, "select * from favorites where profileId = 42"));
+        assertEquals(5, getCount(mDb, "select * from favorites where profileId = 42"));
 
-        new RestoreDbTask().changeDefaultColumn(db, 33);
+        new RestoreDbTask().changeDefaultColumn(mDb, 33);
 
         // Verify default value changed
         ContentValues values = new ContentValues();
         values.put(Favorites._ID, 100);
         values.put(Favorites.TITLE, "item 100");
-        db.insert(Favorites.TABLE_NAME, null, values);
-        assertEquals(1, getCount(db, "select * from favorites where profileId = 33"));
+        mDb.insert(Favorites.TABLE_NAME, null, values);
+        assertEquals(1, getCount(mDb, "select * from favorites where profileId = 33"));
     }
 
     @Test
@@ -170,7 +174,7 @@ public class RestoreDbTaskTest {
         long workProfileId_old = myProfileId + 3;
 
         MyModelDbController controller = new MyModelDbController(myProfileId);
-        SQLiteDatabase db = controller.getDb();
+        mDb = controller.getDb();
         BackupManager bm = spy(new BackupManager(mContext));
         doReturn(myUserHandle()).when(bm).getUserForAncestralSerialNumber(eq(myProfileId_old));
         doReturn(mWorkUser).when(bm).getUserForAncestralSerialNumber(eq(workProfileId_old));
@@ -178,16 +182,16 @@ public class RestoreDbTaskTest {
 
         addIconsBulk(controller, 10, 1, myProfileId_old);
         addIconsBulk(controller, 6, 2, workProfileId_old);
-        assertEquals(10, getItemCountForProfile(db, myProfileId_old));
-        assertEquals(6, getItemCountForProfile(db, workProfileId_old));
+        assertEquals(10, getItemCountForProfile(mDb, myProfileId_old));
+        assertEquals(6, getItemCountForProfile(mDb, workProfileId_old));
 
         mTask.sanitizeDB(mContext, controller, controller.getDb(), bm, mMockRestoreEventLogger);
 
         // All the data has been migrated to the new user ids
-        assertEquals(0, getItemCountForProfile(db, myProfileId_old));
-        assertEquals(0, getItemCountForProfile(db, workProfileId_old));
-        assertEquals(10, getItemCountForProfile(db, myProfileId));
-        assertEquals(6, getItemCountForProfile(db, workProfileId));
+        assertEquals(0, getItemCountForProfile(mDb, myProfileId_old));
+        assertEquals(0, getItemCountForProfile(mDb, workProfileId_old));
+        assertEquals(10, getItemCountForProfile(mDb, myProfileId));
+        assertEquals(6, getItemCountForProfile(mDb, workProfileId));
     }
 
     @Test
@@ -199,7 +203,7 @@ public class RestoreDbTaskTest {
         long workProfileId_old = myProfileId + 3;
 
         MyModelDbController controller = new MyModelDbController(myProfileId);
-        SQLiteDatabase db = controller.getDb();
+        mDb = controller.getDb();
         BackupManager bm = spy(new BackupManager(mContext));
         doReturn(myUserHandle()).when(bm).getUserForAncestralSerialNumber(eq(myProfileId_old));
         // Work profile is not migrated
@@ -207,16 +211,16 @@ public class RestoreDbTaskTest {
 
         addIconsBulk(controller, 10, 1, myProfileId_old);
         addIconsBulk(controller, 6, 2, workProfileId_old);
-        assertEquals(10, getItemCountForProfile(db, myProfileId_old));
-        assertEquals(6, getItemCountForProfile(db, workProfileId_old));
+        assertEquals(10, getItemCountForProfile(mDb, myProfileId_old));
+        assertEquals(6, getItemCountForProfile(mDb, workProfileId_old));
 
         mTask.sanitizeDB(mContext, controller, controller.getDb(), bm, mMockRestoreEventLogger);
 
         // All the data has been migrated to the new user ids
-        assertEquals(0, getItemCountForProfile(db, myProfileId_old));
-        assertEquals(0, getItemCountForProfile(db, workProfileId_old));
-        assertEquals(10, getItemCountForProfile(db, myProfileId));
-        assertEquals(10, getCount(db, "select * from favorites"));
+        assertEquals(0, getItemCountForProfile(mDb, myProfileId_old));
+        assertEquals(0, getItemCountForProfile(mDb, workProfileId_old));
+        assertEquals(10, getItemCountForProfile(mDb, myProfileId));
+        assertEquals(10, getCount(mDb, "select * from favorites"));
     }
 
     @Test
@@ -342,24 +346,24 @@ public class RestoreDbTaskTest {
     }
 
     private void runRemoveScreenIdGapsTest(int[] screenIds, int[] expectedScreenIds) {
-        SQLiteDatabase db = new MyModelDbController(42).getDb();
+        mDb = new MyModelDbController(42).getDb();
         // Add some mock data
         for (int i = 0; i < screenIds.length; i++) {
             ContentValues values = new ContentValues();
             values.put(Favorites._ID, i);
             values.put(Favorites.SCREEN, screenIds[i]);
             values.put(Favorites.CONTAINER, CONTAINER_DESKTOP);
-            db.insert(Favorites.TABLE_NAME, null, values);
+            mDb.insert(Favorites.TABLE_NAME, null, values);
         }
         // Verify items are added
         assertEquals(screenIds.length,
-                getCount(db, "select * from favorites where container = -100"));
+                getCount(mDb, "select * from favorites where container = -100"));
 
-        new RestoreDbTask().removeScreenIdGaps(db);
+        new RestoreDbTask().removeScreenIdGaps(mDb);
 
         // verify screenId gaps removed
         int[] resultScreenIds = new int[screenIds.length];
-        try (Cursor c = db.rawQuery(
+        try (Cursor c = mDb.rawQuery(
                 "select screen from favorites where container = -100 order by screen", null)) {
             int i = 0;
             while (c.moveToNext()) {

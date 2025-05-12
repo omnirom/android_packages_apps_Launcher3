@@ -16,6 +16,8 @@
 
 package com.android.launcher3.graphics;
 
+import static android.content.res.Configuration.UI_MODE_NIGHT_NO;
+import static android.content.res.Configuration.UI_MODE_NIGHT_YES;
 import static android.view.Display.DEFAULT_DISPLAY;
 
 import static com.android.launcher3.LauncherSettings.Favorites.TABLE_NAME;
@@ -25,6 +27,7 @@ import static com.android.launcher3.util.Executors.MODEL_EXECUTOR;
 import android.app.WallpaperColors;
 import android.appwidget.AppWidgetProviderInfo;
 import android.content.Context;
+import android.content.res.Configuration;
 import android.database.Cursor;
 import android.hardware.display.DisplayManager;
 import android.os.Bundle;
@@ -32,6 +35,7 @@ import android.os.IBinder;
 import android.util.Log;
 import android.util.Size;
 import android.util.SparseArray;
+import android.util.SparseIntArray;
 import android.view.ContextThemeWrapper;
 import android.view.Display;
 import android.view.SurfaceControlViewHost;
@@ -54,7 +58,7 @@ import com.android.launcher3.graphics.LauncherPreviewRenderer.PreviewContext;
 import com.android.launcher3.model.BaseLauncherBinder;
 import com.android.launcher3.model.BgDataModel;
 import com.android.launcher3.model.BgDataModel.Callbacks;
-import com.android.launcher3.model.GridSizeMigrationUtil;
+import com.android.launcher3.model.GridSizeMigrationDBController;
 import com.android.launcher3.model.LoaderTask;
 import com.android.launcher3.model.ModelDbController;
 import com.android.launcher3.provider.LauncherDbUtils;
@@ -81,6 +85,9 @@ public class PreviewSurfaceRenderer {
     private static final String KEY_VIEW_HEIGHT = "height";
     private static final String KEY_DISPLAY_ID = "display_id";
     private static final String KEY_COLORS = "wallpaper_colors";
+    private static final String KEY_COLOR_RESOURCE_IDS = "color_resource_ids";
+    private static final String KEY_COLOR_VALUES = "color_values";
+    private static final String KEY_DARK_MODE = "use_dark_mode";
 
     private Context mContext;
     private final IBinder mHostToken;
@@ -91,12 +98,13 @@ public class PreviewSurfaceRenderer {
     private final int mDisplayId;
     private final Display mDisplay;
     private final WallpaperColors mWallpaperColors;
+    private SparseIntArray mPreviewColorOverride;
+    @Nullable private Boolean mDarkMode;
     private final RunnableList mLifeCycleTracker;
 
     private final SurfaceControlViewHost mSurfaceControlViewHost;
 
     private boolean mDestroyed = false;
-    private LauncherPreviewRenderer mRenderer;
     private boolean mHideQsb;
     @Nullable private FrameLayout mViewRoot = null;
 
@@ -110,6 +118,9 @@ public class PreviewSurfaceRenderer {
             mGridName = InvariantDeviceProfile.getCurrentGridName(context);
         }
         mWallpaperColors = bundle.getParcelable(KEY_COLORS);
+        if (Flags.newCustomizationPickerUi()) {
+            updateColorOverrides(bundle);
+        }
         mHideQsb = bundle.getBoolean(GridCustomizationsProvider.KEY_HIDE_BOTTOM_ROW);
 
         mHostToken = bundle.getBinder(KEY_HOST_TOKEN);
@@ -212,8 +223,32 @@ public class PreviewSurfaceRenderer {
      * @param hide True to hide and false to show.
      */
     public void hideBottomRow(boolean hide) {
-        if (mRenderer != null) {
-            mRenderer.hideBottomRow(hide);
+        mHideQsb = hide;
+        loadAsync();
+    }
+
+    /**
+     * Updates the colors of the preview.
+     *
+     * @param bundle Bundle with an int array of color ids and an int array of overriding colors.
+     */
+    public void previewColor(Bundle bundle) {
+        updateColorOverrides(bundle);
+        loadAsync();
+    }
+
+    private void updateColorOverrides(Bundle bundle) {
+        mDarkMode =
+                bundle.containsKey(KEY_DARK_MODE) ? bundle.getBoolean(KEY_DARK_MODE) : null;
+        int[] ids = bundle.getIntArray(KEY_COLOR_RESOURCE_IDS);
+        int[] colors = bundle.getIntArray(KEY_COLOR_VALUES);
+        if (ids != null && colors != null) {
+            mPreviewColorOverride = new SparseIntArray();
+            for (int i = 0; i < ids.length; i++) {
+                mPreviewColorOverride.put(ids[i], colors[i]);
+            }
+        } else {
+            mPreviewColorOverride = null;
         }
     }
 
@@ -223,21 +258,50 @@ public class PreviewSurfaceRenderer {
      */
     private Context getPreviewContext() {
         Context context = mContext.createDisplayContext(mDisplay);
-        if (mWallpaperColors == null) {
-            return new ContextThemeWrapper(context,
-                    Themes.getActivityThemeRes(context));
+        if (mDarkMode != null) {
+            Configuration configuration = new Configuration(
+                    context.getResources().getConfiguration());
+            if (mDarkMode) {
+                configuration.uiMode &= ~UI_MODE_NIGHT_NO;
+                configuration.uiMode |= UI_MODE_NIGHT_YES;
+            } else {
+                configuration.uiMode &= ~UI_MODE_NIGHT_YES;
+                configuration.uiMode |= UI_MODE_NIGHT_NO;
+            }
+            context = context.createConfigurationContext(configuration);
         }
-        LocalColorExtractor.newInstance(context)
-                .applyColorsOverride(context, mWallpaperColors);
-        return new ContextThemeWrapper(context,
-                Themes.getActivityThemeRes(context, mWallpaperColors.getColorHints()));
+        if (Flags.newCustomizationPickerUi()) {
+            if (mPreviewColorOverride != null) {
+                LocalColorExtractor.newInstance(context)
+                        .applyColorsOverride(context, mPreviewColorOverride);
+            } else if (mWallpaperColors != null) {
+                LocalColorExtractor.newInstance(context)
+                        .applyColorsOverride(context, mWallpaperColors);
+            }
+            if (mWallpaperColors != null) {
+                return new ContextThemeWrapper(context,
+                        Themes.getActivityThemeRes(context, mWallpaperColors.getColorHints()));
+            } else {
+                return new ContextThemeWrapper(context,
+                        Themes.getActivityThemeRes(context));
+            }
+        } else {
+            if (mWallpaperColors == null) {
+                return new ContextThemeWrapper(context,
+                        Themes.getActivityThemeRes(context));
+            }
+            LocalColorExtractor.newInstance(context)
+                    .applyColorsOverride(context, mWallpaperColors);
+            return new ContextThemeWrapper(context,
+                    Themes.getActivityThemeRes(context, mWallpaperColors.getColorHints()));
+        }
     }
 
     @WorkerThread
     private void loadModelData() {
         final Context inflationContext = getPreviewContext();
         final InvariantDeviceProfile idp = new InvariantDeviceProfile(inflationContext, mGridName);
-        if (GridSizeMigrationUtil.needsToMigrate(inflationContext, idp)) {
+        if (GridSizeMigrationDBController.needsToMigrate(inflationContext, idp)) {
             // Start the migration
             PreviewContext previewContext = new PreviewContext(inflationContext, idp);
             // Copy existing data to preview DB
@@ -258,7 +322,9 @@ public class PreviewSurfaceRenderer {
                     bgModel,
                     LauncherAppState.getInstance(previewContext).getModel().getModelDelegate(),
                     new BaseLauncherBinder(LauncherAppState.getInstance(previewContext), bgModel,
-                            /* bgAllAppsList= */ null, new Callbacks[0])) {
+                            /* bgAllAppsList= */ null, new Callbacks[0]),
+                    LauncherAppState.getInstance(
+                            previewContext).getModel().getWidgetsFilterDataProvider()) {
 
                 @Override
                 public void run() {
@@ -300,10 +366,16 @@ public class PreviewSurfaceRenderer {
         if (mDestroyed) {
             return;
         }
-        mRenderer = new LauncherPreviewRenderer(inflationContext, idp,
-                mWallpaperColors, launcherWidgetSpanInfo);
-        mRenderer.hideBottomRow(mHideQsb);
-        View view = mRenderer.getRenderedView(dataModel, widgetProviderInfoMap);
+        LauncherPreviewRenderer renderer;
+        if (Flags.newCustomizationPickerUi()) {
+            renderer = new LauncherPreviewRenderer(inflationContext, idp, mPreviewColorOverride,
+                    mWallpaperColors, launcherWidgetSpanInfo);
+        } else {
+            renderer = new LauncherPreviewRenderer(inflationContext, idp,
+                    mWallpaperColors, launcherWidgetSpanInfo);
+        }
+        renderer.hideBottomRow(mHideQsb);
+        View view = renderer.getRenderedView(dataModel, widgetProviderInfoMap);
         // This aspect scales the view to fit in the surface and centers it
         final float scale = Math.min(mWidth / (float) view.getMeasuredWidth(),
                 mHeight / (float) view.getMeasuredHeight());

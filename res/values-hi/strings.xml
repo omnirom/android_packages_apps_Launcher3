@@ -32,6 +32,7 @@
     <string name="split_app_info_accessibility" msgid="5475288491241414932">"%1$s के लिए ऐप्लिकेशन की जानकारी"</string>
     <string name="split_app_usage_settings" msgid="7214375263347964093">"%1$s के लिए खर्च की सेटिंग"</string>
     <string name="new_window_option_taskbar" msgid="6448780542727767211">"नई विंडो"</string>
+    <string name="manage_windows_option_taskbar" msgid="2294109489960654212">"विंडो मैनेज करें"</string>
     <string name="save_app_pair" msgid="5647523853662686243">"ऐप पेयर सेव करें"</string>
     <string name="app_pair_default_title" msgid="4045241727446873529">"<xliff:g id="APP1">%1$s</xliff:g> | <xliff:g id="APP2">%2$s</xliff:g>"</string>
     <string name="app_pair_unlaunchable_at_screen_size" msgid="3446551575502685376">"साथ में इस्तेमाल किए जा सकने वाले ये ऐप्लिकेशन, इस डिवाइस पर काम नहीं कर सकते"</string>
@@ -67,8 +68,13 @@
     <string name="widgets_full_sheet_work_tab" msgid="3767150027110633765">"वर्क विजेट"</string>
     <string name="widget_category_conversations" msgid="8894438636213590446">"बातचीत"</string>
     <string name="widget_category_note_taking" msgid="3469689394504266039">"नोट बनाने से जुड़े विजेट"</string>
+    <string name="widget_cell_tap_to_show_add_button_label" msgid="4354194214317043581">"\'जोड़ें\' बटन दिखाएं"</string>
+    <string name="widget_cell_tap_to_hide_add_button_label" msgid="6117805205101555997">"\'जोड़ें\' बटन छिपाएं"</string>
     <string name="widget_add_button_label" msgid="2761267068711937179">"जोड़ें"</string>
     <string name="widget_add_button_content_description" msgid="1810530016360039643">"<xliff:g id="WIDGET_NAME">%1$s</xliff:g> विजेट जोड़ें"</string>
+    <string name="widgets_list_expand_button_label" msgid="7912016136574932622">"सभी दिखाएं"</string>
+    <string name="widgets_list_expand_button_content_description" msgid="4600513860973450888">"सभी विजेट दिखाएं"</string>
+    <string name="widgets_list_expanded" msgid="7374857868788557730">"सभी विजेट दिखाए जा रहे हैं"</string>
     <string name="reconfigurable_widget_education_tip" msgid="6336962690888067057">"विजेट की सेटिंग में बदलाव करने के लिए टैप करें"</string>
     <string name="widget_reconfigure_button_content_description" msgid="8811472721881205250">"विजेट की सेटिंग में बदलाव करें"</string>
     <string name="all_apps_search_bar_hint" msgid="1390553134053255246">"ऐप्लिकेशन खोजें"</string>
@@ -124,6 +130,8 @@
     <string name="msg_disabled_by_admin" msgid="6898038085516271325">"आपके एडमिन ने बंद किया हुआ है"</string>
     <string name="allow_rotation_title" msgid="7222049633713050106">"होम स्क्रीन घुमाने की अनुमति दें"</string>
     <string name="allow_rotation_desc" msgid="8662546029078692509">"फ़ोन घुुमाए जाने पर"</string>
+    <string name="landscape_mode_title" msgid="5138814555934843926">"लैंडस्केप मोड"</string>
+    <string name="landscape_mode_desc" msgid="7372569859592816793">"फ़ोन को लैंडस्केप मोड में सेट करें"</string>
     <string name="notification_dots_title" msgid="9062440428204120317">"सूचनाएं बताने वाला डॉट"</string>
     <string name="notification_dots_desc_on" msgid="1679848116452218908">"चालू है"</string>
     <string name="notification_dots_desc_off" msgid="1760796511504341095">"चालू"</string>
@@ -142,7 +150,8 @@
     <string name="app_installing_title" msgid="5864044122733792085">"<xliff:g id="NAME">%1$s</xliff:g> इंस्टॉल किया जा रहा है, <xliff:g id="PROGRESS">%2$s</xliff:g> पूरा हो गया"</string>
     <string name="app_downloading_title" msgid="8336702962104482644">"<xliff:g id="NAME">%1$s</xliff:g> डाउनलोड हो रहा है, <xliff:g id="PROGRESS">%2$s</xliff:g> पूरी हुई"</string>
     <string name="app_waiting_download_title" msgid="7053938513995617849">"<xliff:g id="NAME">%1$s</xliff:g> के इंस्टॉल होने की प्रतीक्षा की जा रही है"</string>
-    <string name="app_archived_title" msgid="7717956158562544081">"<xliff:g id="NAME">%1$s</xliff:g> को संग्रहित किया गया. ऐप्लिकेशन को वापस लाने और डाउनलोड करने के लिए टैप करें."</string>
+    <string name="app_archived_title" msgid="4548283110222420708">"<xliff:g id="NAME">%1$s</xliff:g> को संग्रहित किया गया."</string>
+    <string name="app_unarchiving_action" msgid="5736107006413929484">"डाउनलोड करें और वापस लाएं"</string>
     <string name="dialog_update_title" msgid="114234265740994042">"ऐप्लिकेशन को अपडेट करना ज़रूरी है"</string>
     <string name="dialog_update_message" msgid="4176784553982226114">"इस आइकॉन का ऐप्लिकेशन अपडेट नहीं है. इस शॉर्टकट को फिर से चालू करने या आइकॉन को हटाने के लिए, ऐप्लिकेशन को मैन्युअल रूप से अपडेट किया जा सकता है."</string>
     <string name="dialog_update" msgid="2178028071796141234">"अपडेट करें"</string>
@@ -171,7 +180,7 @@
     <string name="action_decrease_width" msgid="1374549771083094654">"चौड़ाई घटाएं"</string>
     <string name="action_decrease_height" msgid="282377193880900022">"ऊंचाई घटाएं"</string>
     <string name="widget_resized" msgid="9130327887929620">"विजेट का आकार बदलकर उसकी चौड़ाई <xliff:g id="NUMBER_0">%1$s</xliff:g> और ऊंचाई <xliff:g id="NUMBER_1">%2$s</xliff:g> कर दी गई"</string>
-    <string name="action_deep_shortcut" msgid="2864038805849372848">"शॉर्टकट"</string>
+    <string name="action_deep_shortcut" msgid="4766835855579976045">"शॉर्टकट मेन्यू"</string>
     <string name="action_dismiss_notification" msgid="5909461085055959187">"खारिज करें"</string>
     <string name="accessibility_close" msgid="2277148124685870734">"बंद करें"</string>
     <string name="all_apps_personal_tab" msgid="4190252696685155002">"निजी ऐप्लिकेशन"</string>
@@ -187,11 +196,12 @@
     <string name="work_apps_paused_edu_accept" msgid="6377476824357318532">"ठीक है"</string>
     <string name="work_apps_pause_btn_text" msgid="4669288269140620646">"वर्क ऐप्लिकेशन रोकें"</string>
     <string name="work_apps_enable_btn_text" msgid="1736198302467317371">"चालू करें"</string>
+    <string name="work_scheduler_button_content_description" msgid="917340740986764967">"वर्क ऐप्लिकेशन के लिए शेड्यूल"</string>
     <string name="developer_options_filter_hint" msgid="5896817443635989056">"फ़िल्टर"</string>
     <string name="remote_action_failed" msgid="1383965239183576790">"पूरा नहीं हुआ: <xliff:g id="WHAT">%1$s</xliff:g>"</string>
     <string name="private_space_label" msgid="2359721649407947001">"प्राइवेट स्पेस"</string>
     <string name="private_space_secondary_label" msgid="9203933341714508907">"सेट अप करने या खोलने के लिए टैप करें"</string>
-    <string name="ps_container_title" msgid="4391796149519594205">"निजी"</string>
+    <string name="ps_container_title" msgid="4391796149519594205">"प्राइवेट"</string>
     <string name="ps_container_settings" msgid="6059734123353320479">"प्राइवेट स्पेस सेटिंग"</string>
     <string name="ps_container_unlock_button_content_description" msgid="9181551784092204234">"प्राइवेट स्पेस को अनलॉक किया गया."</string>
     <string name="ps_container_lock_button_content_description" msgid="5961993384382649530">"प्राइवेट स्पेस को लॉक किया गया."</string>

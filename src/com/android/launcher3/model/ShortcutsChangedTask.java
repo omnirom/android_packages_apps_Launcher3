@@ -24,11 +24,12 @@ import androidx.annotation.NonNull;
 import com.android.launcher3.LauncherAppState;
 import com.android.launcher3.LauncherModel.ModelUpdateTask;
 import com.android.launcher3.LauncherSettings;
+import com.android.launcher3.icons.CacheableShortcutInfo;
 import com.android.launcher3.model.data.WorkspaceItemInfo;
 import com.android.launcher3.shortcuts.ShortcutKey;
 import com.android.launcher3.shortcuts.ShortcutRequest;
+import com.android.launcher3.util.ApplicationInfoWrapper;
 import com.android.launcher3.util.ItemInfoMatcher;
-import com.android.launcher3.util.PackageManagerHelper;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -79,12 +80,11 @@ public class ShortcutsChangedTask implements ModelUpdateTask {
         }
 
         if (!matchingWorkspaceItems.isEmpty()) {
+            ApplicationInfoWrapper infoWrapper =
+                    new ApplicationInfoWrapper(context, mPackageName, mUser);
             if (mShortcuts.isEmpty()) {
-                PackageManagerHelper packageManagerHelper =
-                        PackageManagerHelper.INSTANCE.get(context);
                 // Verify that the app is indeed installed.
-                if (!packageManagerHelper.isAppInstalled(mPackageName, mUser)
-                        && !packageManagerHelper.isAppArchivedForUser(mPackageName, mUser)) {
+                if (!infoWrapper.isInstalled() && !infoWrapper.isArchived()) {
                     // App is not installed or archived, ignoring package events
                     return;
                 }
@@ -104,7 +104,6 @@ public class ShortcutsChangedTask implements ModelUpdateTask {
                 if (!fullDetails.isPinned()) {
                     continue;
                 }
-
                 String sid = fullDetails.getId();
                 nonPinnedIds.remove(sid);
                 matchingWorkspaceItems
@@ -112,7 +111,8 @@ public class ShortcutsChangedTask implements ModelUpdateTask {
                         .filter(itemInfo -> sid.equals(itemInfo.getDeepShortcutId()))
                         .forEach(workspaceItemInfo -> {
                             workspaceItemInfo.updateFromDeepShortcutInfo(fullDetails, context);
-                            app.getIconCache().getShortcutIcon(workspaceItemInfo, fullDetails);
+                            app.getIconCache().getShortcutIcon(workspaceItemInfo,
+                                    new CacheableShortcutInfo(fullDetails, infoWrapper));
                             updatedWorkspaceItemInfos.add(workspaceItemInfo);
                         });
             }

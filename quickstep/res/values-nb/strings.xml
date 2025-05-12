@@ -22,6 +22,7 @@
     <string name="recent_task_option_pin" msgid="7929860679018978258">"Fest"</string>
     <string name="recent_task_option_freeform" msgid="48863056265284071">"Fritt format"</string>
     <string name="recent_task_option_desktop" msgid="8280879717125435668">"Skrivebord"</string>
+    <string name="recent_task_option_external_display" msgid="4533840664313389484">"Flytt til ekstern skjerm"</string>
     <string name="recent_task_desktop" msgid="8081113562549637334">"Skrivebord"</string>
     <string name="recents_empty_message" msgid="7040467240571714191">"Ingen nylige elementer"</string>
     <string name="accessibility_app_usage_settings" msgid="6312864233673544149">"Innstillinger for appbruk"</string>
@@ -143,7 +144,7 @@
     <string name="move_drop_target_top_or_left" msgid="2988702185049595807">"Flytt til øverst/venstre"</string>
     <string name="move_drop_target_bottom_or_right" msgid="5431393418797620162">"Flytt til nederst/høyre"</string>
     <string name="quick_switch_overflow" msgid="3679780650881041632">"{count,plural, =1{app til}other{apper til}}"</string>
-    <string name="quick_switch_desktop" msgid="8393802056024499749">"Datamaskin"</string>
+    <string name="quick_switch_desktop" msgid="8393802056024499749">"Skrivebord"</string>
     <string name="quick_switch_split_task" msgid="5598194724255333896">"<xliff:g id="APP_NAME_1">%1$s</xliff:g> og <xliff:g id="APP_NAME_2">%2$s</xliff:g>"</string>
     <string name="bubble_bar_bubble_fallback_description" msgid="7811684548953452009">"Boble"</string>
     <string name="bubble_bar_overflow_description" msgid="8617628132733151708">"Overflyt"</string>
@@ -154,4 +155,5 @@
     <string name="bubble_bar_action_dismiss_all" msgid="3290722022983403060">"Lukk alle"</string>
     <string name="bubble_bar_accessibility_announce_expand" msgid="1503192695527477102">"vis <xliff:g id="BUBBLE_DESCRIPTION">%1$s</xliff:g>"</string>
     <string name="bubble_bar_accessibility_announce_collapse" msgid="928284600086798791">"skjul <xliff:g id="BUBBLE_DESCRIPTION">%1$s</xliff:g>"</string>
+    <string name="search_gesture_feature_title" msgid="1294044108313175306">"Circle to Search"</string>
 </resources>

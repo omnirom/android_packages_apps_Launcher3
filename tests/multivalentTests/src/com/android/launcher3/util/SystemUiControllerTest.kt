@@ -52,7 +52,7 @@ class SystemUiControllerTest {
     fun setup() {
         MockitoAnnotations.initMocks(this)
         `when`(window.decorView).thenReturn(decorView)
-        underTest = SystemUiController(window)
+        underTest = SystemUiController(window.decorView)
     }
 
     @Test

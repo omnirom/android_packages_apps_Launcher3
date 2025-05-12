@@ -16,6 +16,7 @@
 
 package com.android.quickstep.recents.data
 
+import android.graphics.drawable.Drawable
 import com.android.systemui.shared.recents.model.Task
 import com.android.systemui.shared.recents.model.ThumbnailData
 import kotlinx.coroutines.flow.Flow
@@ -25,9 +26,9 @@ import kotlinx.coroutines.flow.map
 
 class FakeTasksRepository : RecentTasksRepository {
     private var thumbnailDataMap: Map<Int, ThumbnailData> = emptyMap()
-    private var taskIconDataMap: Map<Int, TaskIconQueryResponse> = emptyMap()
+    private var taskIconDataMap: Map<Int, FakeIconData> = emptyMap()
     private var tasks: MutableStateFlow<List<Task>> = MutableStateFlow(emptyList())
-    private var visibleTasks: MutableStateFlow<List<Int>> = MutableStateFlow(emptyList())
+    private var visibleTasks: MutableStateFlow<Set<Int>> = MutableStateFlow(emptySet())
 
     override fun getAllTaskData(forceRefresh: Boolean): Flow<List<Task>> = tasks
 
@@ -48,16 +49,16 @@ class FakeTasksRepository : RecentTasksRepository {
     override fun getThumbnailById(taskId: Int): Flow<ThumbnailData?> =
         getTaskDataById(taskId).map { it?.thumbnail }
 
-    override fun setVisibleTasks(visibleTaskIdList: List<Int>) {
+    override fun setVisibleTasks(visibleTaskIdList: Set<Int>) {
         visibleTasks.value = visibleTaskIdList
         tasks.value =
             tasks.value.map {
                 it.apply {
                     thumbnail = thumbnailDataMap[it.key.id]
-                    taskIconDataMap[it.key.id].let { taskIconData ->
-                        icon = taskIconData?.icon
-                        titleDescription = taskIconData?.contentDescription
-                        title = taskIconData?.title
+                    taskIconDataMap[it.key.id].let { data ->
+                        title = data?.title
+                        titleDescription = data?.titleDescription
+                        icon = data?.icon
                     }
                 }
             }
@@ -71,7 +72,14 @@ class FakeTasksRepository : RecentTasksRepository {
         this.thumbnailDataMap = thumbnailDataMap
     }
 
-    fun seedIconData(iconDataMap: Map<Int, TaskIconQueryResponse>) {
-        this.taskIconDataMap = iconDataMap
+    fun seedIconData(id: Int, title: String, contentDescription: String, icon: Drawable) {
+        val iconData = FakeIconData(icon, contentDescription, title)
+        this.taskIconDataMap = mapOf(id to iconData)
     }
+
+    private data class FakeIconData(
+        val icon: Drawable,
+        val titleDescription: String,
+        val title: String,
+    )
 }

@@ -108,8 +108,10 @@ public class TaskbarForceVisibleImmersiveController implements TouchController {
     /** Clean up animations. */
     public void onDestroy() {
         startIconUndimming();
-        mControllers.navbarButtonsViewController.setHomeButtonAccessibilityDelegate(null);
-        mControllers.navbarButtonsViewController.setBackButtonAccessibilityDelegate(null);
+        if (mControllers != null) {
+            mControllers.navbarButtonsViewController.setHomeButtonAccessibilityDelegate(null);
+            mControllers.navbarButtonsViewController.setBackButtonAccessibilityDelegate(null);
+        }
     }
 
     private void startIconUndimming() {

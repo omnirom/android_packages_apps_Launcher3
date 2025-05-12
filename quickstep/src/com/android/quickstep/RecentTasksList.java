@@ -20,9 +20,9 @@ import static android.content.Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS;
 
 import static com.android.launcher3.util.Executors.UI_HELPER_EXECUTOR;
 import static com.android.quickstep.util.SplitScreenUtils.convertShellSplitBoundsToLauncher;
-import static com.android.wm.shell.shared.GroupedRecentTaskInfo.TYPE_FREEFORM;
+import static com.android.wm.shell.shared.GroupedTaskInfo.TYPE_FREEFORM;
 
-import android.app.ActivityManager;
+import android.app.ActivityManager.RunningTaskInfo;
 import android.app.KeyguardManager;
 import android.app.TaskInfo;
 import android.content.ComponentName;
@@ -40,7 +40,7 @@ import com.android.quickstep.util.DesktopTask;
 import com.android.quickstep.util.GroupTask;
 import com.android.systemui.shared.recents.model.Task;
 import com.android.wm.shell.recents.IRecentTasksListener;
-import com.android.wm.shell.shared.GroupedRecentTaskInfo;
+import com.android.wm.shell.shared.GroupedTaskInfo;
 import com.android.wm.shell.shared.desktopmode.DesktopModeStatus;
 
 import java.io.PrintWriter;
@@ -76,7 +76,7 @@ public class RecentTasksList {
     private @Nullable RecentsModel.RunningTasksListener mRunningTasksListener;
     private @Nullable RecentsModel.RecentTasksChangedListener mRecentTasksChangedListener;
     // Tasks are stored in order of least recently launched to most recently launched.
-    private ArrayList<ActivityManager.RunningTaskInfo> mRunningTasks;
+    private ArrayList<RunningTaskInfo> mRunningTasks;
 
     public RecentTasksList(Context context, LooperExecutor mainThreadExecutor,
             KeyguardManager keyguardManager, SystemUiProxy sysUiProxy,
@@ -93,30 +93,42 @@ public class RecentTasksList {
             }
 
             @Override
-            public void onRunningTaskAppeared(ActivityManager.RunningTaskInfo taskInfo) {
+            public void onRunningTaskAppeared(RunningTaskInfo taskInfo) {
                 mMainThreadExecutor.execute(() -> {
                     RecentTasksList.this.onRunningTaskAppeared(taskInfo);
                 });
             }
 
             @Override
-            public void onRunningTaskVanished(ActivityManager.RunningTaskInfo taskInfo) {
+            public void onRunningTaskVanished(RunningTaskInfo taskInfo) {
                 mMainThreadExecutor.execute(() -> {
                     RecentTasksList.this.onRunningTaskVanished(taskInfo);
                 });
             }
 
             @Override
-            public void onRunningTaskChanged(ActivityManager.RunningTaskInfo taskInfo) {
+            public void onRunningTaskChanged(RunningTaskInfo taskInfo) {
                 mMainThreadExecutor.execute(() -> {
                     RecentTasksList.this.onRunningTaskChanged(taskInfo);
                 });
             }
 
             @Override
-            public void onTaskMovedToFront(ActivityManager.RunningTaskInfo taskInfo) {
+            public void onTaskMovedToFront(GroupedTaskInfo taskToFront) {
                 mMainThreadExecutor.execute(() -> {
-                    topTaskTracker.onTaskMovedToFront(taskInfo);
+                    topTaskTracker.handleTaskMovedToFront(taskToFront.getTaskInfo1());
+                });
+            }
+
+            @Override
+            public void onTaskInfoChanged(RunningTaskInfo taskInfo) {
+                mMainThreadExecutor.execute(() -> topTaskTracker.onTaskChanged(taskInfo));
+            }
+
+            @Override
+            public void onVisibleTasksChanged(GroupedTaskInfo[] visibleTasks) {
+                mMainThreadExecutor.execute(() -> {
+                    topTaskTracker.onVisibleTasksChanged(visibleTasks);
                 });
             }
         });
@@ -245,7 +257,7 @@ public class RecentTasksList {
         mRecentTasksChangedListener = null;
     }
 
-    private void initRunningTasks(ArrayList<ActivityManager.RunningTaskInfo> runningTasks) {
+    private void initRunningTasks(ArrayList<RunningTaskInfo> runningTasks) {
         // Tasks are retrieved in order of most recently launched/used to least recently launched.
         mRunningTasks = new ArrayList<>(runningTasks);
         Collections.reverse(mRunningTasks);
@@ -254,13 +266,13 @@ public class RecentTasksList {
     /**
      * Gets the set of running tasks.
      */
-    public ArrayList<ActivityManager.RunningTaskInfo> getRunningTasks() {
+    public ArrayList<RunningTaskInfo> getRunningTasks() {
         return mRunningTasks;
     }
 
-    private void onRunningTaskAppeared(ActivityManager.RunningTaskInfo taskInfo) {
+    private void onRunningTaskAppeared(RunningTaskInfo taskInfo) {
         // Make sure this task is not already in the list
-        for (ActivityManager.RunningTaskInfo existingTask : mRunningTasks) {
+        for (RunningTaskInfo existingTask : mRunningTasks) {
             if (taskInfo.taskId == existingTask.taskId) {
                 return;
             }
@@ -271,9 +283,9 @@ public class RecentTasksList {
         }
     }
 
-    private void onRunningTaskVanished(ActivityManager.RunningTaskInfo taskInfo) {
+    private void onRunningTaskVanished(RunningTaskInfo taskInfo) {
         // Find the task from the list of running tasks, if it exists
-        for (ActivityManager.RunningTaskInfo existingTask : mRunningTasks) {
+        for (RunningTaskInfo existingTask : mRunningTasks) {
             if (existingTask.taskId != taskInfo.taskId) continue;
 
             mRunningTasks.remove(existingTask);
@@ -284,9 +296,9 @@ public class RecentTasksList {
         }
     }
 
-    private void onRunningTaskChanged(ActivityManager.RunningTaskInfo taskInfo) {
+    private void onRunningTaskChanged(RunningTaskInfo taskInfo) {
         // Find the task from the list of running tasks, if it exists
-        for (ActivityManager.RunningTaskInfo existingTask : mRunningTasks) {
+        for (RunningTaskInfo existingTask : mRunningTasks) {
             if (existingTask.taskId != taskInfo.taskId) continue;
 
             mRunningTasks.remove(existingTask);
@@ -304,7 +316,7 @@ public class RecentTasksList {
     @VisibleForTesting
     TaskLoadResult loadTasksInBackground(int numTasks, int requestId, boolean loadKeysOnly) {
         int currentUserId = Process.myUserHandle().getIdentifier();
-        ArrayList<GroupedRecentTaskInfo> rawTasks;
+        ArrayList<GroupedTaskInfo> rawTasks;
         try {
             rawTasks = mSysUiProxy.getRecentTasks(numTasks, currentUserId);
         } catch (SystemUiProxy.GetRecentTasksException e) {
@@ -327,7 +339,7 @@ public class RecentTasksList {
         TaskLoadResult allTasks = new TaskLoadResult(requestId, loadKeysOnly, rawTasks.size());
 
         int numVisibleTasks = 0;
-        for (GroupedRecentTaskInfo rawTask : rawTasks) {
+        for (GroupedTaskInfo rawTask : rawTasks) {
             if (rawTask.getType() == TYPE_FREEFORM) {
                 // TYPE_FREEFORM tasks is only created when desktop mode can be entered,
                 // leftover TYPE_FREEFORM tasks created when flag was on should be ignored.
@@ -339,14 +351,13 @@ public class RecentTasksList {
                 }
                 continue;
             }
-            ActivityManager.RecentTaskInfo taskInfo1 = rawTask.getTaskInfo1();
-            ActivityManager.RecentTaskInfo taskInfo2 = rawTask.getTaskInfo2();
+            TaskInfo taskInfo1 = rawTask.getTaskInfo1();
+            TaskInfo taskInfo2 = rawTask.getTaskInfo2();
             Task.TaskKey task1Key = new Task.TaskKey(taskInfo1);
             Task task1 = loadKeysOnly
                     ? new Task(task1Key)
                     : Task.from(task1Key, taskInfo1,
                             tmpLockedUsers.get(task1Key.userId) /* isLocked */);
-            task1.setLastSnapshotData(taskInfo1);
             Task task2 = null;
             if (taskInfo2 != null) {
                 // Is split task
@@ -355,7 +366,6 @@ public class RecentTasksList {
                         ? new Task(task2Key)
                         : Task.from(task2Key, taskInfo2,
                                 tmpLockedUsers.get(task2Key.userId) /* isLocked */);
-                task2.setLastSnapshotData(taskInfo2);
             } else {
                 // Is fullscreen task
                 if (numVisibleTasks > 0) {
@@ -379,17 +389,16 @@ public class RecentTasksList {
         return allTasks;
     }
 
-    private @Nullable DesktopTask createDesktopTask(GroupedRecentTaskInfo recentTaskInfo) {
+    private @Nullable DesktopTask createDesktopTask(GroupedTaskInfo recentTaskInfo) {
         ArrayList<Task> tasks = new ArrayList<>(recentTaskInfo.getTaskInfoList().size());
         int[] minimizedTaskIds = recentTaskInfo.getMinimizedTaskIds();
         if (minimizedTaskIds.length == recentTaskInfo.getTaskInfoList().size()) {
             // All Tasks are minimized -> don't create a DesktopTask
             return null;
         }
-        for (ActivityManager.RecentTaskInfo taskInfo : recentTaskInfo.getTaskInfoList()) {
+        for (TaskInfo taskInfo : recentTaskInfo.getTaskInfoList()) {
             Task.TaskKey key = new Task.TaskKey(taskInfo);
             Task task = Task.from(key, taskInfo, false);
-            task.setLastSnapshotData(taskInfo);
             task.positionInParent = taskInfo.positionInParent;
             task.appBounds = taskInfo.configuration.windowConfiguration.getAppBounds();
             task.isVisible = taskInfo.isVisible;
@@ -424,14 +433,14 @@ public class RecentTasksList {
         }
         writer.println(prefix + "  ]");
         int currentUserId = Process.myUserHandle().getIdentifier();
-        ArrayList<GroupedRecentTaskInfo> rawTasks;
+        ArrayList<GroupedTaskInfo> rawTasks;
         try {
             rawTasks = mSysUiProxy.getRecentTasks(Integer.MAX_VALUE, currentUserId);
         } catch (SystemUiProxy.GetRecentTasksException e) {
             rawTasks = new ArrayList<>();
         }
         writer.println(prefix + "  rawTasks=[");
-        for (GroupedRecentTaskInfo task : rawTasks) {
+        for (GroupedTaskInfo task : rawTasks) {
             TaskInfo taskInfo1 = task.getTaskInfo1();
             TaskInfo taskInfo2 = task.getTaskInfo2();
             ComponentName cn1 = taskInfo1.topActivity;

@@ -21,8 +21,6 @@
     android:layout_width="match_parent"
     android:layout_height="@dimen/all_apps_header_pill_height"
     android:layout_gravity="center_horizontal"
-    android:paddingTop="@dimen/all_apps_tabs_vertical_padding"
-    android:paddingBottom="@dimen/all_apps_tabs_vertical_padding"
     android:layout_marginTop="@dimen/all_apps_tabs_margin_top"
     android:orientation="horizontal"
     style="@style/TextHeadline"

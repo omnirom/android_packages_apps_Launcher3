@@ -86,10 +86,8 @@ abstract class SwipeUpGestureTutorialController extends TutorialController {
     SwipeUpGestureTutorialController(TutorialFragment tutorialFragment, TutorialType tutorialType) {
         super(tutorialFragment, tutorialType);
         RecentsAnimationDeviceState deviceState = new RecentsAnimationDeviceState(mContext);
-        OverviewComponentObserver observer = new OverviewComponentObserver(mContext, deviceState);
         mTaskViewSwipeUpAnimation = new ViewSwipeUpAnimation(mContext, deviceState,
-                new GestureState(observer, -1));
-        observer.onDestroy();
+                new GestureState(OverviewComponentObserver.INSTANCE.get(mContext), -1));
         deviceState.destroy();
 
         DeviceProfile dp = InvariantDeviceProfile.INSTANCE.get(mContext)

@@ -19,6 +19,7 @@ package com.android.quickstep;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
 
+import androidx.annotation.NonNull;
 import androidx.test.filters.SmallTest;
 
 import com.android.launcher3.Hotseat;
@@ -38,12 +39,11 @@ import org.mockito.Mock;
 @SmallTest
 @RunWith(LauncherMultivalentJUnit.class)
 public class LauncherSwipeHandlerV2TestCase extends AbsSwipeUpHandlerTestCase<
-        QuickstepLauncher,
         LauncherState,
-        RecentsView<QuickstepLauncher, LauncherState>,
         QuickstepLauncher,
-        LauncherActivityInterface,
-        LauncherSwipeHandlerV2> {
+        RecentsView<QuickstepLauncher, LauncherState>,
+        LauncherSwipeHandlerV2,
+        LauncherActivityInterface> {
 
     @Mock private QuickstepLauncher mQuickstepLauncher;
     @Mock private RecentsView<QuickstepLauncher, LauncherState> mRecentsView;
@@ -67,6 +67,7 @@ public class LauncherSwipeHandlerV2TestCase extends AbsSwipeUpHandlerTestCase<
         when(mWorkspace.getStateTransitionAnimation()).thenReturn(mTransitionAnimation);
     }
 
+    @NonNull
     @Override
     protected LauncherSwipeHandlerV2 createSwipeHandler(
             long touchTimeMs, boolean continuingLastGesture) {
@@ -80,11 +81,13 @@ public class LauncherSwipeHandlerV2TestCase extends AbsSwipeUpHandlerTestCase<
                 mInputConsumerController);
     }
 
+    @NonNull
     @Override
     protected QuickstepLauncher getRecentsContainer() {
         return mQuickstepLauncher;
     }
 
+    @NonNull
     @Override
     protected RecentsView<QuickstepLauncher, LauncherState> getRecentsView() {
         return mRecentsView;

@@ -32,6 +32,7 @@
     <string name="split_app_info_accessibility" msgid="5475288491241414932">"%1$s: informācija par lietotni"</string>
     <string name="split_app_usage_settings" msgid="7214375263347964093">"Lietojuma iestatījumi: %1$s"</string>
     <string name="new_window_option_taskbar" msgid="6448780542727767211">"Jauns logs"</string>
+    <string name="manage_windows_option_taskbar" msgid="2294109489960654212">"Pārvaldīt logus"</string>
     <string name="save_app_pair" msgid="5647523853662686243">"Saglabāt lietotņu pāri"</string>
     <string name="app_pair_default_title" msgid="4045241727446873529">"<xliff:g id="APP1">%1$s</xliff:g> | <xliff:g id="APP2">%2$s</xliff:g>"</string>
     <string name="app_pair_unlaunchable_at_screen_size" msgid="3446551575502685376">"Šis lietotņu pāris netiek atbalstīts šajā ierīcē"</string>
@@ -67,8 +68,13 @@
     <string name="widgets_full_sheet_work_tab" msgid="3767150027110633765">"Darba"</string>
     <string name="widget_category_conversations" msgid="8894438636213590446">"Sarunas"</string>
     <string name="widget_category_note_taking" msgid="3469689394504266039">"Piezīmju pierakstīšana"</string>
+    <string name="widget_cell_tap_to_show_add_button_label" msgid="4354194214317043581">"Rādīt pogu Pievienot"</string>
+    <string name="widget_cell_tap_to_hide_add_button_label" msgid="6117805205101555997">"Paslēpt pogu Pievienot"</string>
     <string name="widget_add_button_label" msgid="2761267068711937179">"Pievienot"</string>
     <string name="widget_add_button_content_description" msgid="1810530016360039643">"Pievienot logrīku <xliff:g id="WIDGET_NAME">%1$s</xliff:g>"</string>
+    <string name="widgets_list_expand_button_label" msgid="7912016136574932622">"Rādīt visus"</string>
+    <string name="widgets_list_expand_button_content_description" msgid="4600513860973450888">"Rādīt visus logrīkus"</string>
+    <string name="widgets_list_expanded" msgid="7374857868788557730">"Tiek rādīti visi logrīki"</string>
     <string name="reconfigurable_widget_education_tip" msgid="6336962690888067057">"Pieskarieties, lai mainītu logrīka iestatījumus."</string>
     <string name="widget_reconfigure_button_content_description" msgid="8811472721881205250">"Mainīt logrīka iestatījumus"</string>
     <string name="all_apps_search_bar_hint" msgid="1390553134053255246">"Meklēt lietotnes"</string>
@@ -124,6 +130,8 @@
     <string name="msg_disabled_by_admin" msgid="6898038085516271325">"Atspējojis administrators"</string>
     <string name="allow_rotation_title" msgid="7222049633713050106">"Atļaut sākuma ekrāna pagriešanu"</string>
     <string name="allow_rotation_desc" msgid="8662546029078692509">"Pagriežot tālruni"</string>
+    <string name="landscape_mode_title" msgid="5138814555934843926">"Ainavas režīms"</string>
+    <string name="landscape_mode_desc" msgid="7372569859592816793">"Iestatīt tālrunī ainavas režīmu"</string>
     <string name="notification_dots_title" msgid="9062440428204120317">"Paziņojumu punkti"</string>
     <string name="notification_dots_desc_on" msgid="1679848116452218908">"Ieslēgti"</string>
     <string name="notification_dots_desc_off" msgid="1760796511504341095">"Izslēgts"</string>
@@ -142,7 +150,8 @@
     <string name="app_installing_title" msgid="5864044122733792085">"Notiek lietotnes “<xliff:g id="NAME">%1$s</xliff:g>” instalēšana. Norise: <xliff:g id="PROGRESS">%2$s</xliff:g>."</string>
     <string name="app_downloading_title" msgid="8336702962104482644">"Lietotnes <xliff:g id="NAME">%1$s</xliff:g> lejupielāde (<xliff:g id="PROGRESS">%2$s</xliff:g> pabeigti)"</string>
     <string name="app_waiting_download_title" msgid="7053938513995617849">"Notiek <xliff:g id="NAME">%1$s</xliff:g> instalēšana"</string>
-    <string name="app_archived_title" msgid="7717956158562544081">"Lietotne <xliff:g id="NAME">%1$s</xliff:g> ir arhivēta; lai lejupielādētu un atjaunotu, pieskarieties"</string>
+    <string name="app_archived_title" msgid="4548283110222420708">"Lietotne <xliff:g id="NAME">%1$s</xliff:g> ir arhivēta."</string>
+    <string name="app_unarchiving_action" msgid="5736107006413929484">"lejupielādēt un atjaunot"</string>
     <string name="dialog_update_title" msgid="114234265740994042">"Lietotne ir jāatjaunina"</string>
     <string name="dialog_update_message" msgid="4176784553982226114">"Šai ikonai paredzētā lietotne nav atjaunināta. Varat to atjaunināt manuāli, lai atkārtoti iespējotu šo saīsni, vai noņemt ikonu."</string>
     <string name="dialog_update" msgid="2178028071796141234">"Atjaunināt"</string>
@@ -171,7 +180,7 @@
     <string name="action_decrease_width" msgid="1374549771083094654">"Samazināt platumu"</string>
     <string name="action_decrease_height" msgid="282377193880900022">"Samazināt augstumu"</string>
     <string name="widget_resized" msgid="9130327887929620">"Logrīka lielums mainīts — platums: <xliff:g id="NUMBER_0">%1$s</xliff:g>, augstums: <xliff:g id="NUMBER_1">%2$s</xliff:g>."</string>
-    <string name="action_deep_shortcut" msgid="2864038805849372848">"Saīsnes"</string>
+    <string name="action_deep_shortcut" msgid="4766835855579976045">"Saīsnes izvēlne"</string>
     <string name="action_dismiss_notification" msgid="5909461085055959187">"Nerādīt"</string>
     <string name="accessibility_close" msgid="2277148124685870734">"Aizvērt"</string>
     <string name="all_apps_personal_tab" msgid="4190252696685155002">"Personīgās lietotnes"</string>
@@ -187,11 +196,12 @@
     <string name="work_apps_paused_edu_accept" msgid="6377476824357318532">"Labi"</string>
     <string name="work_apps_pause_btn_text" msgid="4669288269140620646">"Pārtraukt darba lietotņu darbību"</string>
     <string name="work_apps_enable_btn_text" msgid="1736198302467317371">"Atsākt"</string>
+    <string name="work_scheduler_button_content_description" msgid="917340740986764967">"Darba lietotņu grafiks"</string>
     <string name="developer_options_filter_hint" msgid="5896817443635989056">"Filtrs"</string>
     <string name="remote_action_failed" msgid="1383965239183576790">"Neizdevās: <xliff:g id="WHAT">%1$s</xliff:g>"</string>
     <string name="private_space_label" msgid="2359721649407947001">"Privātā telpa"</string>
     <string name="private_space_secondary_label" msgid="9203933341714508907">"Pieskarieties, lai iestatītu vai atvērtu"</string>
-    <string name="ps_container_title" msgid="4391796149519594205">"Privātā mape"</string>
+    <string name="ps_container_title" msgid="4391796149519594205">"Privātā telpa"</string>
     <string name="ps_container_settings" msgid="6059734123353320479">"Privātās mapes iestatījumi"</string>
     <string name="ps_container_unlock_button_content_description" msgid="9181551784092204234">"Privāta un nav bloķēta."</string>
     <string name="ps_container_lock_button_content_description" msgid="5961993384382649530">"Privāta un bloķēta."</string>

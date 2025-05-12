@@ -28,7 +28,9 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import android.app.ActivityManager;
+import android.app.ActivityManager.RecentTaskInfo;
 import android.app.KeyguardManager;
+import android.app.TaskInfo;
 import android.content.Context;
 import android.content.res.Resources;
 
@@ -39,7 +41,7 @@ import com.android.launcher3.util.LooperExecutor;
 import com.android.quickstep.util.GroupTask;
 import com.android.quickstep.views.TaskViewType;
 import com.android.systemui.shared.recents.model.Task;
-import com.android.wm.shell.shared.GroupedRecentTaskInfo;
+import com.android.wm.shell.shared.GroupedTaskInfo;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -91,8 +93,8 @@ public class RecentTasksListTest {
 
     @Test
     public void loadTasksInBackground_onlyKeys_noValidTaskDescription() throws Exception  {
-        GroupedRecentTaskInfo recentTaskInfos = GroupedRecentTaskInfo.forSplitTasks(
-                new ActivityManager.RecentTaskInfo(), new ActivityManager.RecentTaskInfo(), null);
+        GroupedTaskInfo recentTaskInfos = GroupedTaskInfo.forSplitTasks(
+                new RecentTaskInfo(), new RecentTaskInfo(), null);
         when(mSystemUiProxy.getRecentTasks(anyInt(), anyInt()))
                 .thenReturn(new ArrayList<>(Collections.singletonList(recentTaskInfos)));
 
@@ -119,12 +121,11 @@ public class RecentTasksListTest {
     @Test
     public void loadTasksInBackground_moreThanKeys_hasValidTaskDescription() throws Exception  {
         String taskDescription = "Wheeee!";
-        ActivityManager.RecentTaskInfo task1 = new ActivityManager.RecentTaskInfo();
+        RecentTaskInfo task1 = new RecentTaskInfo();
         task1.taskDescription = new ActivityManager.TaskDescription(taskDescription);
-        ActivityManager.RecentTaskInfo task2 = new ActivityManager.RecentTaskInfo();
+        RecentTaskInfo task2 = new RecentTaskInfo();
         task2.taskDescription = new ActivityManager.TaskDescription();
-        GroupedRecentTaskInfo recentTaskInfos = GroupedRecentTaskInfo.forSplitTasks(task1, task2,
-                null);
+        GroupedTaskInfo recentTaskInfos = GroupedTaskInfo.forSplitTasks(task1, task2, null);
         when(mSystemUiProxy.getRecentTasks(anyInt(), anyInt()))
                 .thenReturn(new ArrayList<>(Collections.singletonList(recentTaskInfos)));
 
@@ -138,11 +139,11 @@ public class RecentTasksListTest {
 
     @Test
     public void loadTasksInBackground_freeformTask_createsDesktopTask() throws Exception  {
-        ActivityManager.RecentTaskInfo[] tasks = {
+        List<TaskInfo> tasks = Arrays.asList(
                 createRecentTaskInfo(1 /* taskId */),
                 createRecentTaskInfo(4 /* taskId */),
-                createRecentTaskInfo(5 /* taskId */)};
-        GroupedRecentTaskInfo recentTaskInfos = GroupedRecentTaskInfo.forFreeformTasks(
+                createRecentTaskInfo(5 /* taskId */));
+        GroupedTaskInfo recentTaskInfos = GroupedTaskInfo.forFreeformTasks(
                 tasks, Collections.emptySet() /* minimizedTaskIds */);
         when(mSystemUiProxy.getRecentTasks(anyInt(), anyInt()))
                 .thenReturn(new ArrayList<>(Collections.singletonList(recentTaskInfos)));
@@ -162,14 +163,13 @@ public class RecentTasksListTest {
     @Test
     public void loadTasksInBackground_freeformTask_onlyMinimizedTasks_doesNotCreateDesktopTask()
             throws Exception {
-        ActivityManager.RecentTaskInfo[] tasks = {
+        List<TaskInfo> tasks = Arrays.asList(
                 createRecentTaskInfo(1 /* taskId */),
                 createRecentTaskInfo(4 /* taskId */),
-                createRecentTaskInfo(5 /* taskId */)};
+                createRecentTaskInfo(5 /* taskId */));
         Set<Integer> minimizedTaskIds =
                 Arrays.stream(new Integer[]{1, 4, 5}).collect(Collectors.toSet());
-        GroupedRecentTaskInfo recentTaskInfos =
-                GroupedRecentTaskInfo.forFreeformTasks(tasks, minimizedTaskIds);
+        GroupedTaskInfo recentTaskInfos = GroupedTaskInfo.forFreeformTasks(tasks, minimizedTaskIds);
         when(mSystemUiProxy.getRecentTasks(anyInt(), anyInt()))
                 .thenReturn(new ArrayList<>(Collections.singletonList(recentTaskInfos)));
 
@@ -179,8 +179,8 @@ public class RecentTasksListTest {
         assertEquals(0, taskList.size());
     }
 
-    private ActivityManager.RecentTaskInfo createRecentTaskInfo(int taskId) {
-        ActivityManager.RecentTaskInfo recentTaskInfo = new ActivityManager.RecentTaskInfo();
+    private TaskInfo createRecentTaskInfo(int taskId) {
+        RecentTaskInfo recentTaskInfo = new RecentTaskInfo();
         recentTaskInfo.taskId = taskId;
         return recentTaskInfo;
     }

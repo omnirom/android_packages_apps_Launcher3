@@ -24,11 +24,11 @@ import static com.android.launcher3.logging.StatsLogManager.LAUNCHER_STATE_BACKG
 import static com.android.launcher3.logging.StatsLogManager.LAUNCHER_STATE_HOME;
 import static com.android.launcher3.logging.StatsLogManager.LAUNCHER_STATE_OVERVIEW;
 import static com.android.quickstep.MultiStateCallback.DEBUG_STATES;
-import static com.android.quickstep.util.ActiveGestureErrorDetector.GestureEvent.SET_END_TARGET;
 import static com.android.quickstep.util.ActiveGestureErrorDetector.GestureEvent.SET_END_TARGET_ALL_APPS;
 import static com.android.quickstep.util.ActiveGestureErrorDetector.GestureEvent.SET_END_TARGET_HOME;
 import static com.android.quickstep.util.ActiveGestureErrorDetector.GestureEvent.SET_END_TARGET_NEW_TASK;
 
+import android.app.TaskInfo;
 import android.content.Intent;
 import android.os.SystemClock;
 import android.view.MotionEvent;
@@ -37,12 +37,16 @@ import android.view.RemoteAnimationTarget;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import com.android.launcher3.Flags;
 import com.android.launcher3.statemanager.BaseState;
+import com.android.launcher3.statemanager.StatefulContainer;
 import com.android.quickstep.TopTaskTracker.CachedTaskInfo;
 import com.android.quickstep.util.ActiveGestureErrorDetector;
 import com.android.quickstep.util.ActiveGestureLog;
+import com.android.quickstep.util.ActiveGestureProtoLogProxy;
 import com.android.quickstep.views.RecentsViewContainer;
 import com.android.systemui.shared.recents.model.ThumbnailData;
+import com.android.wm.shell.shared.GroupedTaskInfo;
 
 import java.io.PrintWriter;
 import java.util.ArrayList;
@@ -190,7 +194,7 @@ public class GestureState implements RecentsAnimationCallbacks.RecentsAnimationL
     public GestureState(OverviewComponentObserver componentObserver, int gestureId) {
         mHomeIntent = componentObserver.getHomeIntent();
         mOverviewIntent = componentObserver.getOverviewIntent();
-        mContainerInterface = componentObserver.getActivityInterface();
+        mContainerInterface = componentObserver.getContainerInterface();
         mStateCallback = new MultiStateCallback(
                 STATE_NAMES.toArray(new String[0]), GestureState::getTrackedEventForState);
         mGestureId = gestureId;
@@ -269,7 +273,7 @@ public class GestureState implements RecentsAnimationCallbacks.RecentsAnimationL
     /**
      * @return the interface to the activity handing the UI updates for this gesture.
      */
-    public <S extends BaseState<S>, T extends RecentsViewContainer>
+    public <S extends BaseState<S>, T extends RecentsViewContainer & StatefulContainer<S>>
             BaseContainerInterface<S, T> getContainerInterface() {
         return mContainerInterface;
     }
@@ -301,6 +305,18 @@ public class GestureState implements RecentsAnimationCallbacks.RecentsAnimationL
     }
 
     /**
+     * Requests that handling for this gesture should use a synthetic transition, as in that it
+     * will need to start a recents transition that is not backed by a system transition.  This is
+     * generally only needed in scenarios where a system transition can not be created due to no
+     * changes in the WM hierarchy (ie. starting recents transition when you are already over home).
+     */
+    public boolean useSyntheticRecentsTransition() {
+        return mRunningTask.isHomeTask()
+                && (Flags.enableFallbackOverviewInWindow()
+                        || Flags.enableLauncherOverviewInWindow());
+    }
+
+    /**
      * @return the running task for this gesture.
      */
     @Nullable
@@ -316,13 +332,23 @@ public class GestureState implements RecentsAnimationCallbacks.RecentsAnimationL
         if (mRunningTask == null) {
             return new int[]{INVALID_TASK_ID, INVALID_TASK_ID};
         } else {
-            int cachedTasksSize = mRunningTask.mAllCachedTasks.size();
-            int count = Math.min(cachedTasksSize, getMultipleTasks ? 2 : 1);
-            int[] runningTaskIds = new int[count];
-            for (int i = 0; i < count; i++) {
-                runningTaskIds[i] = mRunningTask.mAllCachedTasks.get(i).taskId;
+            if (com.android.wm.shell.Flags.enableShellTopTaskTracking()) {
+                if (mRunningTask.getVisibleTasks().isEmpty()) {
+                    return new int[0];
+                }
+                GroupedTaskInfo topRunningTask = mRunningTask.getVisibleTasks().getFirst();
+                List<TaskInfo> groupedTasks = topRunningTask.getTaskInfoList();
+                return groupedTasks.stream().mapToInt(
+                        groupedTask -> groupedTask.taskId).toArray();
+            } else {
+                int cachedTasksSize = mRunningTask.mAllCachedTasks.size();
+                int count = Math.min(cachedTasksSize, getMultipleTasks ? 2 : 1);
+                int[] runningTaskIds = new int[count];
+                for (int i = 0; i < count; i++) {
+                    runningTaskIds[i] = mRunningTask.mAllCachedTasks.get(i).taskId;
+                }
+                return runningTaskIds;
             }
-            return runningTaskIds;
         }
     }
 
@@ -410,10 +436,7 @@ public class GestureState implements RecentsAnimationCallbacks.RecentsAnimationL
     public void setEndTarget(GestureEndTarget target, boolean isAtomic) {
         mEndTarget = target;
         mStateCallback.setState(STATE_END_TARGET_SET);
-        ActiveGestureLog.INSTANCE.addLog(
-                new ActiveGestureLog.CompoundString("setEndTarget ")
-                        .append(mEndTarget.name()),
-                /* gestureEvent= */ SET_END_TARGET);
+        ActiveGestureProtoLogProxy.logSetEndTarget(mEndTarget.name());
         switch (mEndTarget) {
             case HOME:
                 ActiveGestureLog.INSTANCE.trackEvent(SET_END_TARGET_HOME);

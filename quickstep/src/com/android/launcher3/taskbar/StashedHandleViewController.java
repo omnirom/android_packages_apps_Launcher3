@@ -192,7 +192,9 @@ public class StashedHandleViewController implements TaskbarControllers.LoggableT
 
 
     public void onDestroy() {
-        mRegionSamplingHelper.stopAndDestroy();
+        if (mRegionSamplingHelper != null) {
+            mRegionSamplingHelper.stopAndDestroy();
+        }
         mRegionSamplingHelper = null;
     }
 
@@ -210,7 +212,8 @@ public class StashedHandleViewController implements TaskbarControllers.LoggableT
      * morphs into the size of where the taskbar icons will be.
      */
     public Animator createRevealAnimToIsStashed(boolean isStashed) {
-        Rect visualBounds = mControllers.taskbarViewController.getIconLayoutVisualBounds();
+        Rect visualBounds = mControllers.taskbarViewController
+                .getTransientTaskbarIconLayoutBounds();
         float startRadius = mStashedHandleRadius;
 
         if (DisplayController.isTransientTaskbar(mActivity)) {

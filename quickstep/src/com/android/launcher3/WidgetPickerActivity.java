@@ -23,6 +23,8 @@ import static android.view.WindowInsets.Type.statusBars;
 import static com.android.launcher3.util.Executors.MAIN_EXECUTOR;
 import static com.android.launcher3.util.Executors.MODEL_EXECUTOR;
 
+import static java.util.Collections.emptyList;
+
 import android.appwidget.AppWidgetManager;
 import android.appwidget.AppWidgetProviderInfo;
 import android.content.ClipData;
@@ -44,6 +46,7 @@ import com.android.launcher3.dragndrop.SimpleDragLayer;
 import com.android.launcher3.model.StringCache;
 import com.android.launcher3.model.WidgetItem;
 import com.android.launcher3.model.WidgetPredictionsRequester;
+import com.android.launcher3.model.WidgetsFilterDataProvider;
 import com.android.launcher3.model.WidgetsModel;
 import com.android.launcher3.model.data.ItemInfo;
 import com.android.launcher3.model.data.PackageItemInfo;
@@ -52,6 +55,7 @@ import com.android.launcher3.widget.model.WidgetsListBaseEntriesBuilder;
 import com.android.launcher3.widget.model.WidgetsListBaseEntry;
 import com.android.launcher3.widget.picker.WidgetsFullSheet;
 import com.android.launcher3.widget.picker.model.WidgetPickerDataProvider;
+import com.android.systemui.animation.back.FlingOnBackAnimationCallback;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -112,6 +116,7 @@ public class WidgetPickerActivity extends BaseActivity {
     private WidgetPredictionsRequester mWidgetPredictionsRequester;
     private final WidgetPickerDataProvider mWidgetPickerDataProvider =
             new WidgetPickerDataProvider();
+    private WidgetsFilterDataProvider mWidgetsFilterDataProvider;
 
     private int mDesiredWidgetWidth;
     private int mDesiredWidgetHeight;
@@ -133,13 +138,13 @@ public class WidgetPickerActivity extends BaseActivity {
     @Nullable
     private WidgetsFullSheet mWidgetSheet;
 
-    private final Predicate<WidgetItem> mWidgetsFilter = widget -> {
+    private final Predicate<WidgetItem> mNoShortcutsFilter = widget -> {
         final WidgetAcceptabilityVerdict verdict =
                 isWidgetAcceptable(widget, /* applySizeFilter=*/ false);
         verdict.maybeLogVerdict();
         return verdict.isAcceptable;
     };
-    private final Predicate<WidgetItem> mDefaultWidgetsFilter = widget -> {
+    private final Predicate<WidgetItem> mHostSizeAndNoShortcutsFilter = widget -> {
         final WidgetAcceptabilityVerdict verdict =
                 isWidgetAcceptable(widget, /* applySizeFilter=*/ true);
         verdict.maybeLogVerdict();
@@ -157,6 +162,7 @@ public class WidgetPickerActivity extends BaseActivity {
         InvariantDeviceProfile idp = mApp.getInvariantDeviceProfile();
         mDeviceProfile = idp.getDeviceProfile(this);
         mModel = new WidgetsModel();
+        mWidgetsFilterDataProvider = WidgetsFilterDataProvider.Companion.newInstance(this);
 
         setContentView(R.layout.widget_picker_activity);
         mDragLayer = findViewById(R.id.drag_layer);
@@ -288,13 +294,16 @@ public class WidgetPickerActivity extends BaseActivity {
     private void refreshAndBindWidgets() {
         MODEL_EXECUTOR.execute(() -> {
             LauncherAppState app = LauncherAppState.getInstance(this);
+            // Don't have to setup filters - its setup when launcher loads
+            // Just refresh filters with available cached info.
+            mModel.updateWidgetFilters(mWidgetsFilterDataProvider);
             mModel.update(app, null);
 
             StringCache stringCache = new StringCache();
             stringCache.loadStrings(this);
 
             bindStringCache(stringCache);
-            bindWidgets(mModel.getWidgetsByPackageItem());
+            bindWidgets(mModel.getWidgetsByPackageItem(), mModel.getDefaultWidgetsFilter());
             // Open sheet once widgets are available, so that it doesn't interrupt the open
             // animation.
             openWidgetsSheet();
@@ -310,14 +319,23 @@ public class WidgetPickerActivity extends BaseActivity {
         MAIN_EXECUTOR.execute(() -> mStringCache = stringCache);
     }
 
-    private void bindWidgets(Map<PackageItemInfo, List<WidgetItem>> widgets) {
+    private void bindWidgets(Map<PackageItemInfo, List<WidgetItem>> widgets,
+            @Nullable Predicate<WidgetItem> defaultWidgetsFilter) {
         WidgetsListBaseEntriesBuilder builder = new WidgetsListBaseEntriesBuilder(
                 mApp.getContext());
 
-        final List<WidgetsListBaseEntry> allWidgets = builder.build(widgets, mWidgetsFilter);
-        final List<WidgetsListBaseEntry> defaultWidgets =
-                shouldShowDefaultWidgets() ? builder.build(widgets,
-                        mDefaultWidgetsFilter) : List.of();
+        final List<WidgetsListBaseEntry> allWidgets = builder.build(widgets, mNoShortcutsFilter);
+
+        // Default list is shown if either defaultWidgetsFilter exists or host has additionally
+        // enforced size filtering.
+        @Nullable Predicate<WidgetItem> defaultListFilter =
+                hasHostSizeFilters() ? mHostSizeAndNoShortcutsFilter : null;
+        if (defaultWidgetsFilter != null) {
+            defaultListFilter = defaultListFilter != null ? defaultListFilter.and(
+                    defaultWidgetsFilter) : defaultWidgetsFilter;
+        }
+        final List<WidgetsListBaseEntry> defaultWidgets = defaultListFilter != null ? builder.build(
+                widgets, defaultListFilter) : emptyList();
 
         MAIN_EXECUTOR.execute(
                 () -> mWidgetPickerDataProvider.setWidgets(allWidgets, defaultWidgets));
@@ -342,6 +360,7 @@ public class WidgetPickerActivity extends BaseActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        MODEL_EXECUTOR.execute(() -> mWidgetsFilterDataProvider.destroy());
         if (mWidgetPredictionsRequester != null) {
             mWidgetPredictionsRequester.clear();
         }
@@ -356,12 +375,12 @@ public class WidgetPickerActivity extends BaseActivity {
     /**
      * Animation callback for different predictive back animation states for the widget picker.
      */
-    private class BackAnimationCallback implements OnBackAnimationCallback {
+    private class BackAnimationCallback extends FlingOnBackAnimationCallback {
         @Nullable
         OnBackAnimationCallback mActiveOnBackAnimationCallback;
 
         @Override
-        public void onBackStarted(@NonNull BackEvent backEvent) {
+        public void onBackStartedCompat(@NonNull BackEvent backEvent) {
             if (mActiveOnBackAnimationCallback != null) {
                 mActiveOnBackAnimationCallback.onBackCancelled();
             }
@@ -372,7 +391,7 @@ public class WidgetPickerActivity extends BaseActivity {
         }
 
         @Override
-        public void onBackInvoked() {
+        public void onBackInvokedCompat() {
             if (mActiveOnBackAnimationCallback == null) {
                 return;
             }
@@ -381,7 +400,7 @@ public class WidgetPickerActivity extends BaseActivity {
         }
 
         @Override
-        public void onBackProgressed(@NonNull BackEvent backEvent) {
+        public void onBackProgressedCompat(@NonNull BackEvent backEvent) {
             if (mActiveOnBackAnimationCallback == null) {
                 return;
             }
@@ -389,7 +408,7 @@ public class WidgetPickerActivity extends BaseActivity {
         }
 
         @Override
-        public void onBackCancelled() {
+        public void onBackCancelledCompat() {
             if (mActiveOnBackAnimationCallback == null) {
                 return;
             }
@@ -398,7 +417,7 @@ public class WidgetPickerActivity extends BaseActivity {
         }
     }
 
-    private boolean shouldShowDefaultWidgets() {
+    private boolean hasHostSizeFilters() {
         // If optional filters such as size filter are present, we display them as default widgets.
         return mDesiredWidgetWidth != 0 || mDesiredWidgetHeight != 0;
     }

@@ -63,7 +63,6 @@ filegroup {
         "src/com/android/launcher3/dragging/TaplDragTest.java",
         "src/com/android/launcher3/dragging/TaplUninstallRemoveTest.java",
         "src/com/android/launcher3/ui/TaplTestsLauncher3Test.java",
-        "src/com/android/launcher3/ui/widget/TaplWidgetPickerTest.java",
         "src/com/android/launcher3/ui/workspace/TaplWorkspaceTest.java",
     ],
 }
@@ -98,6 +97,8 @@ android_library {
         "com_android_launcher3_flags_lib",
         "com_android_wm_shell_flags_lib",
         "android.appwidget.flags-aconfig-java",
+        "platform-parametric-runner-lib",
+        "kotlin-reflect",
     ],
     manifest: "AndroidManifest-common.xml",
     platform_apis: true,
@@ -111,6 +112,9 @@ android_library {
     asset_dirs: ["assets"],
     // TODO(b/319712088): re-enable use_resource_processor
     use_resource_processor: false,
+    static_libs: [
+        "kotlin-reflect",
+    ],
 }
 
 android_test {
@@ -143,6 +147,7 @@ android_test {
     platform_apis: true,
     test_config: "Launcher3Tests.xml",
     data: [":Launcher3"],
+    plugins: ["dagger2-compiler"],
     test_suites: ["general-tests"],
 }
 
@@ -167,6 +172,7 @@ filegroup {
         "multivalentTests/src/**/*.java",
         "multivalentTests/src/**/*.kt",
         "src/com/android/launcher3/ui/AbstractLauncherUiTest.java",
+        "src/com/android/launcher3/ui/BaseLauncherTaplTest.java",
         "tapl/com/android/launcher3/tapl/*.java",
         "tapl/com/android/launcher3/tapl/*.kt",
     ],
@@ -193,10 +199,7 @@ android_robolectric_test {
     name: "Launcher3RoboTests",
     srcs: [
         ":launcher3-robo-src",
-
-        // Test util classes
         ":launcher-testing-helpers-robo",
-        ":launcher-testing-shared",
     ],
     exclude_srcs: [
         //"src/com/android/launcher3/util/CellContentDimensionsTest.kt", // Failing - b/316553889
@@ -235,6 +238,7 @@ android_robolectric_test {
         "truth",
     ],
     instrumentation_for: "Launcher3",
+    plugins: ["dagger2-compiler"],
     upstream: true,
     strict_mode: false,
 }

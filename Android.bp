@@ -64,9 +64,74 @@ filegroup {
 filegroup {
     name: "launcher-quickstep-src",
     srcs: [
-        "quickstep/src/**/*.java",
         "quickstep/src/**/*.kt",
+        "quickstep/src/**/*.java",
     ],
+    device_common_srcs: [
+        ":launcher-quickstep-processed-protolog-src",
+    ],
+}
+
+// Launcher ProtoLog support
+filegroup {
+    name: "launcher-quickstep-unprocessed-protolog-src",
+    srcs: [
+        "quickstep/src_protolog/**/*.java",
+    ],
+}
+
+java_library {
+    name: "launcher-quickstep_protolog-groups",
+    srcs: [
+        "quickstep/src_protolog/**/*.java",
+    ],
+    static_libs: [
+        "protolog-group",
+        "androidx.annotation_annotation",
+        "com_android_launcher3_flags_lib",
+    ],
+}
+
+java_genrule {
+    name: "launcher-quickstep-processed-protolog-src",
+    srcs: [
+        ":protolog-impl",
+        ":launcher-quickstep-unprocessed-protolog-src",
+        ":launcher-quickstep_protolog-groups",
+    ],
+    tools: ["protologtool"],
+    cmd: "$(location protologtool) transform-protolog-calls " +
+        "--protolog-class com.android.internal.protolog.common.ProtoLog " +
+        "--loggroups-class com.android.quickstep.util.QuickstepProtoLogGroup " +
+        "--loggroups-jar $(location :launcher-quickstep_protolog-groups) " +
+        "--viewer-config-file-path /system_ext/etc/launcher.quickstep.protolog.pb " +
+        "--output-srcjar $(out) " +
+        "$(locations :launcher-quickstep-unprocessed-protolog-src)",
+    out: ["launcher.quickstep.protolog.srcjar"],
+}
+
+java_genrule {
+    name: "gen-launcher.quickstep.protolog.pb",
+    srcs: [
+        ":launcher-quickstep-unprocessed-protolog-src",
+        ":launcher-quickstep_protolog-groups",
+    ],
+    tools: ["protologtool"],
+    cmd: "$(location protologtool) generate-viewer-config " +
+        "--protolog-class com.android.internal.protolog.common.ProtoLog " +
+        "--loggroups-class com.android.quickstep.util.QuickstepProtoLogGroup " +
+        "--loggroups-jar $(location :launcher-quickstep_protolog-groups) " +
+        "--viewer-config-type proto " +
+        "--viewer-config $(out) " +
+        "$(locations :launcher-quickstep-unprocessed-protolog-src)",
+    out: ["launcher.quickstep.protolog.pb"],
+}
+
+prebuilt_etc {
+    name: "launcher.quickstep.protolog.pb",
+    system_ext_specific: true,
+    src: ":gen-launcher.quickstep.protolog.pb",
+    filename_from_src: true,
 }
 
 // Source code for quickstep dagger
@@ -322,6 +387,7 @@ android_library {
         "//frameworks/libs/systemui:view_capture",
         "//frameworks/libs/systemui:animationlib",
         "//frameworks/libs/systemui:contextualeducationlib",
+        "//frameworks/libs/systemui:msdl",
         "SystemUI-statsd",
         "launcher-testing-shared",
         "androidx.lifecycle_lifecycle-common-java8",
@@ -406,6 +472,7 @@ android_library {
         "SystemUISharedLib",
         "SettingsLibSettingsTheme",
         "dagger2",
+        "protolog-group",
     ],
     manifest: "quickstep/AndroidManifest.xml",
     min_sdk_version: "current",
@@ -542,7 +609,10 @@ android_app {
         "Launcher2",
         "Launcher3",
     ],
-    required: ["privapp_whitelist_com.android.launcher3"],
+    required: [
+        "privapp_whitelist_com.android.launcher3",
+        "launcher.quickstep.protolog.pb",
+    ],
 
     resource_dirs: ["quickstep/res"],
 

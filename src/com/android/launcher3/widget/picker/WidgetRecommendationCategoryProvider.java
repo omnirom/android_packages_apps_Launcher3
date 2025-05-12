@@ -24,7 +24,7 @@ import androidx.annotation.WorkerThread;
 
 import com.android.launcher3.R;
 import com.android.launcher3.model.WidgetItem;
-import com.android.launcher3.util.PackageManagerHelper;
+import com.android.launcher3.util.ApplicationInfoWrapper;
 import com.android.launcher3.util.Preconditions;
 import com.android.launcher3.util.ResourceBasedOverride;
 
@@ -62,14 +62,14 @@ public class WidgetRecommendationCategoryProvider implements ResourceBasedOverri
         // via the overridden WidgetRecommendationCategoryProvider resource.
 
         Preconditions.assertWorkerThread();
-        try (PackageManagerHelper pmHelper = new PackageManagerHelper(context)) {
-            if (item.widgetInfo != null && item.widgetInfo.getComponent() != null) {
-                ApplicationInfo applicationInfo = pmHelper.getApplicationInfo(
-                        item.widgetInfo.getComponent().getPackageName(), item.widgetInfo.getUser(),
-                        0 /* flags */);
-                if (applicationInfo != null) {
-                    return getCategoryFromApplicationCategory(applicationInfo.category);
-                }
+        if (item.widgetInfo != null && item.widgetInfo.getComponent() != null) {
+            ApplicationInfo applicationInfo = new ApplicationInfoWrapper(
+                    context,
+                    item.widgetInfo.getComponent().getPackageName(),
+                    item.widgetInfo.getUser())
+                    .getInfo();
+            if (applicationInfo != null) {
+                return getCategoryFromApplicationCategory(applicationInfo.category);
             }
         }
         return null;

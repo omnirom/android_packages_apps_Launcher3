@@ -76,16 +76,16 @@
     <string name="taskbar_view_callbacks_factory_class" translatable="false"></string>
     <string name="launcher_restore_event_logger_class" translatable="false"></string>
     <string name="taskbar_edu_tooltip_controller_class" translatable="false"></string>
-    <string name="contextual_edu_manager_class" translatable="false"></string>
     <!--  Used for determining category of a widget presented in widget recommendations. -->
     <string name="widget_recommendation_category_provider_class" translatable="false"></string>
-    <string name="api_wrapper_class" translatable="false"></string>
 
     <!-- Default packages -->
     <string name="wallpaper_picker_package" translatable="false"></string>
     <string name="local_colors_extraction_class" translatable="false"></string>
     <string name="search_session_manager_class" translatable="false"></string>
-    <string name="plugin_manager_wrapper_class" translatable="false"></string>
+
+    <!-- Filters for widgets displayed in the widget picker  -->
+    <string name="widgets_filter_data_provider_class" translatable="false"></string>
 
     <!-- Scalable Grid configuration -->
     <!-- This is a float because it is converted to dp later in DeviceProfile -->

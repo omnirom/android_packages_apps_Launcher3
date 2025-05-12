@@ -23,21 +23,13 @@ class ImmediateAction : BubbleStashController.ControllersAfterInitAction {
 class DefaultDimensionsProvider(
     private val taskBarBottomSpace: Int = TASKBAR_BOTTOM_SPACE,
     private val taskBarHeight: Int = TASKBAR_HEIGHT,
-    private val hotseatBottomSpace: Int = HOTSEAT_BOTTOM_SPACE,
-    private val hotseatHeight: Int = HOTSEAT_HEIGHT
 ) : BubbleStashController.TaskbarHotseatDimensionsProvider {
     override fun getTaskbarBottomSpace(): Int = taskBarBottomSpace
 
     override fun getTaskbarHeight(): Int = taskBarHeight
 
-    override fun getHotseatBottomSpace(): Int = hotseatBottomSpace
-
-    override fun getHotseatHeight(): Int = hotseatHeight
-
     companion object {
         const val TASKBAR_BOTTOM_SPACE = 0
         const val TASKBAR_HEIGHT = 110
-        const val HOTSEAT_BOTTOM_SPACE = 20
-        const val HOTSEAT_HEIGHT = 150
     }
 }

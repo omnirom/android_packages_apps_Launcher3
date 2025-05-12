@@ -97,6 +97,8 @@ class BubbleBarViewScreenshotTest(emulationSpec: DeviceEmulationSpec) {
     fun bubbleBarView_expanded_threeBubbles() {
         // if we're still expanding, wait with taking a screenshot
         val shouldWait: (ComponentActivity, View) -> Boolean = { _, _ -> bubbleBarView.isExpanding }
+        // increase the frame limit to allow the animation to end before taking the screenshot
+        screenshotRule.frameLimit = 500
         screenshotRule.screenshotTest(
             "bubbleBarView_expanded_threeBubbles",
             checkView = shouldWait,

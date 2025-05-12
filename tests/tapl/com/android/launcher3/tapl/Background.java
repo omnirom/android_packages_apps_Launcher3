@@ -29,6 +29,7 @@ import androidx.test.uiautomator.UiObject2;
 
 import com.android.launcher3.tapl.LauncherInstrumentation.NavigationModel;
 import com.android.launcher3.tapl.LauncherInstrumentation.TrackpadGestureType;
+import com.android.launcher3.tapl.OverviewTask.TaskViewType;
 import com.android.launcher3.testing.shared.TestProtocol;
 
 import java.util.List;
@@ -121,12 +122,31 @@ public abstract class Background extends LauncherInstrumentation.VisibleContaine
                         if (mLauncher.isTablet()) {
                             List<UiObject2> tasks = mLauncher.getDevice().findObjects(
                                     TASK_SELECTOR);
+
                             final int centerX = mLauncher.getDevice().getDisplayWidth() / 2;
-                            mLauncher.assertTrue(
-                                    "All tasks not to the left of the swiped task",
-                                    tasks.stream()
-                                            .allMatch(
-                                                    t -> t.getVisibleBounds().right < centerX));
+                            UiObject2 centerTask = tasks.stream()
+                                    .filter(t -> t.getVisibleCenter().x == centerX)
+                                    .findFirst()
+                                    .orElse(null);
+
+                            if (centerTask != null) {
+                                mLauncher.assertTrue(
+                                        "Task(s) found to the right of the swiped task",
+                                        tasks.stream()
+                                                .filter(t -> t != centerTask
+                                                        && OverviewTask.getType(t)
+                                                        != TaskViewType.DESKTOP)
+                                                .allMatch(t -> t.getVisibleBounds().right
+                                                        < centerTask.getVisibleBounds().left));
+                                mLauncher.assertTrue(
+                                        "DesktopTask(s) found to the left of the swiped task",
+                                        tasks.stream()
+                                                .filter(t -> t != centerTask
+                                                        && OverviewTask.getType(t)
+                                                        == TaskViewType.DESKTOP)
+                                                .allMatch(t -> t.getVisibleBounds().left
+                                                        > centerTask.getVisibleBounds().right));
+                            }
                         }
 
                     }

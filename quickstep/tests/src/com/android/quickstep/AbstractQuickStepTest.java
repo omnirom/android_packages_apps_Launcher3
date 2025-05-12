@@ -26,6 +26,7 @@ import androidx.test.uiautomator.Until;
 import com.android.launcher3.tapl.LaunchedAppState;
 import com.android.launcher3.ui.AbstractLauncherUiTest;
 import com.android.launcher3.uioverrides.QuickstepLauncher;
+import com.android.launcher3.util.TestUtil;
 import com.android.quickstep.views.RecentsView;
 
 import org.junit.rules.RuleChain;
@@ -56,7 +57,7 @@ public abstract class AbstractQuickStepTest extends AbstractLauncherUiTest<Quick
     protected void assertTestActivityIsRunning(int activityNumber, String message) {
         assertTrue(message, mDevice.wait(
                 Until.hasObject(By.pkg(getAppPackageName()).text("TestActivity" + activityNumber)),
-                DEFAULT_UI_TIMEOUT));
+                TestUtil.DEFAULT_UI_TIMEOUT));
     }
 
     protected LaunchedAppState getAndAssertLaunchedApp() {

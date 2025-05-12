@@ -62,6 +62,8 @@ import androidx.test.platform.app.InstrumentationRegistry;
 import com.android.launcher3.AbstractFloatingView;
 import com.android.launcher3.R;
 import com.android.launcher3.allapps.PrivateProfileManager;
+import com.android.launcher3.dagger.LauncherAppComponent;
+import com.android.launcher3.dagger.LauncherAppSingleton;
 import com.android.launcher3.logging.StatsLogManager;
 import com.android.launcher3.logging.StatsLogManager.StatsLogger;
 import com.android.launcher3.model.data.AppInfo;
@@ -78,6 +80,9 @@ import com.android.launcher3.util.UserIconInfo;
 import com.android.launcher3.views.Snackbar;
 import com.android.launcher3.widget.picker.model.WidgetPickerDataProvider;
 import com.android.launcher3.widget.picker.model.data.WidgetPickerData;
+
+import dagger.BindsInstance;
+import dagger.Component;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -115,8 +120,10 @@ public class SystemShortcutTest {
     @Before
     public void setUp() {
         MockitoAnnotations.initMocks(this);
+        mSandboxContext.initDaggerComponent(
+                DaggerSystemShortcutTest_TestComponent.builder().bindApiWrapper(
+                        ApiWrapper.INSTANCE.get(mSandboxContext)));
         mSandboxContext.putObject(UserCache.INSTANCE, mUserCache);
-        mSandboxContext.putObject(ApiWrapper.INSTANCE, mApiWrapper);
         mTestContext = new TestSandboxModelContextWrapper(mSandboxContext) {
             @Override
             public StatsLogManager getStatsLogManager() {
@@ -404,5 +411,17 @@ public class SystemShortcutTest {
 
         systemShortcut.onClick(mView);
         verify(mSandboxContext).startActivity(any());
+    }
+
+    @LauncherAppSingleton
+    @Component
+    interface TestComponent extends LauncherAppComponent {
+        @Component.Builder
+        interface Builder extends LauncherAppComponent.Builder {
+            @BindsInstance Builder bindApiWrapper(ApiWrapper wrapper);
+
+            @Override
+            TestComponent build();
+        }
     }
 }

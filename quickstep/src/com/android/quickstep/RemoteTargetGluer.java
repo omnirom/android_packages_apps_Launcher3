@@ -93,8 +93,7 @@ public class RemoteTargetGluer {
             BaseContainerInterface sizingStrategy, int numHandles, boolean forDesktop) {
         RemoteTargetHandle[] handles = new RemoteTargetHandle[numHandles];
         for (int i = 0; i < numHandles; i++) {
-            TaskViewSimulator tvs = new TaskViewSimulator(context, sizingStrategy);
-            tvs.setIsDesktopTask(forDesktop);
+            TaskViewSimulator tvs = new TaskViewSimulator(context, sizingStrategy, forDesktop , i);
             TransformParams transformParams = new TransformParams();
             handles[i] = new RemoteTargetHandle(tvs, transformParams);
         }

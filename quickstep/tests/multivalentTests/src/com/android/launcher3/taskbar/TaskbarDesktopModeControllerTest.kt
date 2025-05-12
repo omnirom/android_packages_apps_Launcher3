@@ -16,7 +16,6 @@
 
 package com.android.launcher3.taskbar
 
-import androidx.test.platform.app.InstrumentationRegistry
 import com.android.launcher3.taskbar.TaskbarBackgroundRenderer.Companion.MAX_ROUNDNESS
 import com.android.launcher3.taskbar.rules.TaskbarUnitTestRule
 import com.android.launcher3.taskbar.rules.TaskbarWindowSandboxContext
@@ -30,12 +29,8 @@ import org.junit.runner.RunWith
 @LauncherMultivalentJUnit.EmulatedDevices(["pixelFoldable2023", "pixelTablet2023"])
 class TaskbarDesktopModeControllerTest {
 
-    private val context =
-        TaskbarWindowSandboxContext.create(
-            InstrumentationRegistry.getInstrumentation().targetContext
-        )
-
-    @get:Rule(order = 0) val taskbarUnitTestRule = TaskbarUnitTestRule(this, context)
+    @get:Rule(order = 0) val context = TaskbarWindowSandboxContext.create()
+    @get:Rule(order = 1) val taskbarUnitTestRule = TaskbarUnitTestRule(this, context)
 
     @TaskbarUnitTestRule.InjectController
     lateinit var taskbarDesktopModeController: TaskbarDesktopModeController

@@ -18,15 +18,16 @@ package com.android.launcher3
 import android.content.Context
 import android.content.Context.MODE_PRIVATE
 import android.content.SharedPreferences
-import android.content.SharedPreferences.OnSharedPreferenceChangeListener
 import androidx.annotation.VisibleForTesting
 import com.android.launcher3.BuildConfig.WIDGET_ON_FIRST_SCREEN
+import com.android.launcher3.InvariantDeviceProfile.GRID_NAME_PREFS_KEY
 import com.android.launcher3.LauncherFiles.DEVICE_PREFERENCES_KEY
 import com.android.launcher3.LauncherFiles.SHARED_PREFERENCES_KEY
 import com.android.launcher3.model.DeviceGridState
 import com.android.launcher3.pm.InstallSessionHelper
 import com.android.launcher3.provider.RestoreDbTask
 import com.android.launcher3.provider.RestoreDbTask.FIRST_LOAD_AFTER_RESTORE_KEY
+import com.android.launcher3.settings.SettingsActivity
 import com.android.launcher3.states.RotationHelper
 import com.android.launcher3.util.DisplayController
 import com.android.launcher3.util.MainThreadInitializedObject
@@ -34,11 +35,184 @@ import com.android.launcher3.util.SafeCloseable
 import com.android.launcher3.util.Themes
 
 /**
- * Use same context for shared preferences, so that we use a single cached instance
+ * Manages Launcher [SharedPreferences] through [Item] instances.
  *
  * TODO(b/262721340): Replace all direct SharedPreference refs with LauncherPrefs / Item methods.
  */
-class LauncherPrefs(private val encryptedContext: Context) : SafeCloseable {
+abstract class LauncherPrefs : SafeCloseable {
+
+    /** Returns the value with type [T] for [item]. */
+    abstract fun <T> get(item: ContextualItem<T>): T
+
+    /** Returns the value with type [T] for [item]. */
+    abstract fun <T> get(item: ConstantItem<T>): T
+
+    /** Stores the values for each item in preferences. */
+    abstract fun put(vararg itemsToValues: Pair<Item, Any>)
+
+    /** Stores the [value] with type [T] for [item] in preferences. */
+    abstract fun <T : Any> put(item: Item, value: T)
+
+    /** Synchronous version of [put]. */
+    abstract fun putSync(vararg itemsToValues: Pair<Item, Any>)
+
+    /** Registers [listener] for [items]. */
+    abstract fun addListener(listener: LauncherPrefChangeListener, vararg items: Item)
+
+    /** Unregisters [listener] for [items]. */
+    abstract fun removeListener(listener: LauncherPrefChangeListener, vararg items: Item)
+
+    /** Returns `true` iff all [items] have a value. */
+    abstract fun has(vararg items: Item): Boolean
+
+    /** Removes the value for each item in [items]. */
+    abstract fun remove(vararg items: Item)
+
+    /** Synchronous version of [remove]. */
+    abstract fun removeSync(vararg items: Item)
+
+    companion object {
+        @VisibleForTesting const val BOOT_AWARE_PREFS_KEY = "boot_aware_prefs"
+
+        @JvmField
+        var INSTANCE = MainThreadInitializedObject<LauncherPrefs> { LauncherPrefsImpl(it) }
+
+        @JvmStatic fun get(context: Context): LauncherPrefs = INSTANCE.get(context)
+
+        const val TASKBAR_PINNING_KEY = "TASKBAR_PINNING_KEY"
+        const val TASKBAR_PINNING_DESKTOP_MODE_KEY = "TASKBAR_PINNING_DESKTOP_MODE_KEY"
+        const val SHOULD_SHOW_SMARTSPACE_KEY = "SHOULD_SHOW_SMARTSPACE_KEY"
+        @JvmField
+        val ICON_STATE = nonRestorableItem("pref_icon_shape_path", "", EncryptionType.ENCRYPTED)
+
+        @JvmField
+        val ENABLE_TWOLINE_ALLAPPS_TOGGLE = backedUpItem("pref_enable_two_line_toggle", false)
+        @JvmField
+        val THEMED_ICONS = backedUpItem(Themes.KEY_THEMED_ICONS, false, EncryptionType.ENCRYPTED)
+        @JvmField val PROMISE_ICON_IDS = backedUpItem(InstallSessionHelper.PROMISE_ICON_IDS, "")
+        @JvmField val WORK_EDU_STEP = backedUpItem("showed_work_profile_edu", 0)
+        @JvmField
+        val WORKSPACE_SIZE =
+            backedUpItem(DeviceGridState.KEY_WORKSPACE_SIZE, "", EncryptionType.ENCRYPTED)
+        @JvmField
+        val HOTSEAT_COUNT =
+            backedUpItem(DeviceGridState.KEY_HOTSEAT_COUNT, -1, EncryptionType.ENCRYPTED)
+        @JvmField
+        val TASKBAR_PINNING =
+            backedUpItem(TASKBAR_PINNING_KEY, false, EncryptionType.DEVICE_PROTECTED)
+        @JvmField
+        val TASKBAR_PINNING_IN_DESKTOP_MODE =
+            backedUpItem(TASKBAR_PINNING_DESKTOP_MODE_KEY, true, EncryptionType.DEVICE_PROTECTED)
+
+        @JvmField
+        val DEVICE_TYPE =
+            backedUpItem(
+                DeviceGridState.KEY_DEVICE_TYPE,
+                InvariantDeviceProfile.TYPE_PHONE,
+                EncryptionType.ENCRYPTED,
+            )
+        @JvmField
+        val DB_FILE = backedUpItem(DeviceGridState.KEY_DB_FILE, "", EncryptionType.ENCRYPTED)
+        @JvmField
+        val SHOULD_SHOW_SMARTSPACE =
+            backedUpItem(
+                SHOULD_SHOW_SMARTSPACE_KEY,
+                WIDGET_ON_FIRST_SCREEN,
+                EncryptionType.DEVICE_PROTECTED,
+            )
+        @JvmField
+        val RESTORE_DEVICE =
+            backedUpItem(
+                RestoreDbTask.RESTORED_DEVICE_TYPE,
+                InvariantDeviceProfile.TYPE_PHONE,
+                EncryptionType.ENCRYPTED,
+            )
+        @JvmField
+        val NO_DB_FILES_RESTORED =
+            nonRestorableItem("no_db_files_restored", false, EncryptionType.DEVICE_PROTECTED)
+        @JvmField
+        val IS_FIRST_LOAD_AFTER_RESTORE =
+            nonRestorableItem(FIRST_LOAD_AFTER_RESTORE_KEY, false, EncryptionType.ENCRYPTED)
+        @JvmField val APP_WIDGET_IDS = backedUpItem(RestoreDbTask.APPWIDGET_IDS, "")
+        @JvmField val OLD_APP_WIDGET_IDS = backedUpItem(RestoreDbTask.APPWIDGET_OLD_IDS, "")
+
+        @JvmField
+        val GRID_NAME =
+            ConstantItem(
+                GRID_NAME_PREFS_KEY,
+                isBackedUp = true,
+                defaultValue = null,
+                encryptionType = EncryptionType.ENCRYPTED,
+                type = String::class.java,
+            )
+        @JvmField
+        val ALLOW_ROTATION =
+            backedUpItem(RotationHelper.ALLOW_ROTATION_PREFERENCE_KEY, Boolean::class.java) {
+                RotationHelper.getAllowRotationDefaultValue(DisplayController.INSTANCE.get(it).info)
+            }
+
+        @JvmField
+        val FIXED_LANDSCAPE_MODE = backedUpItem(SettingsActivity.FIXED_LANDSCAPE_MODE, false)
+
+        // Preferences for widget configurations
+        @JvmField
+        val RECONFIGURABLE_WIDGET_EDUCATION_TIP_SEEN =
+            backedUpItem("launcher.reconfigurable_widget_education_tip_seen", false)
+
+        @JvmStatic
+        fun <T> backedUpItem(
+            sharedPrefKey: String,
+            defaultValue: T,
+            encryptionType: EncryptionType = EncryptionType.ENCRYPTED,
+        ): ConstantItem<T> =
+            ConstantItem(sharedPrefKey, isBackedUp = true, defaultValue, encryptionType)
+
+        @JvmStatic
+        fun <T> backedUpItem(
+            sharedPrefKey: String,
+            type: Class<out T>,
+            encryptionType: EncryptionType = EncryptionType.ENCRYPTED,
+            defaultValueFromContext: (c: Context) -> T,
+        ): ContextualItem<T> =
+            ContextualItem(
+                sharedPrefKey,
+                isBackedUp = true,
+                defaultValueFromContext,
+                encryptionType,
+                type,
+            )
+
+        @JvmStatic
+        fun <T> nonRestorableItem(
+            sharedPrefKey: String,
+            defaultValue: T,
+            encryptionType: EncryptionType = EncryptionType.ENCRYPTED,
+        ): ConstantItem<T> =
+            ConstantItem(sharedPrefKey, isBackedUp = false, defaultValue, encryptionType)
+
+        @Deprecated("Don't use shared preferences directly. Use other LauncherPref methods.")
+        @JvmStatic
+        fun getPrefs(context: Context): SharedPreferences {
+            // Use application context for shared preferences, so we use single cached instance
+            return context.applicationContext.getSharedPreferences(
+                SHARED_PREFERENCES_KEY,
+                MODE_PRIVATE,
+            )
+        }
+
+        @Deprecated("Don't use shared preferences directly. Use other LauncherPref methods.")
+        @JvmStatic
+        fun getDevicePrefs(context: Context): SharedPreferences {
+            // Use application context for shared preferences, so we use a single cached instance
+            return context.applicationContext.getSharedPreferences(
+                DEVICE_PREFERENCES_KEY,
+                MODE_PRIVATE,
+            )
+        }
+    }
+}
+
+private class LauncherPrefsImpl(private val encryptedContext: Context) : LauncherPrefs() {
     private val deviceProtectedStorageContext =
         encryptedContext.createDeviceProtectedStorageContext()
 
@@ -54,11 +228,11 @@ class LauncherPrefs(private val encryptedContext: Context) : SafeCloseable {
         else item.encryptedPrefs
 
     /** Wrapper around `getInner` for a `ContextualItem` */
-    fun <T> get(item: ContextualItem<T>): T =
+    override fun <T> get(item: ContextualItem<T>): T =
         getInner(item, item.defaultValueFromContext(encryptedContext))
 
     /** Wrapper around `getInner` for an `Item` */
-    fun <T> get(item: ConstantItem<T>): T = getInner(item, item.defaultValue)
+    override fun <T> get(item: ConstantItem<T>): T = getInner(item, item.defaultValue)
 
     /**
      * Retrieves the value for an [Item] from [SharedPreferences]. It handles method typing via the
@@ -97,17 +271,17 @@ class LauncherPrefs(private val encryptedContext: Context) : SafeCloseable {
      * prepareToPutValue(itemsToValues) for every distinct `SharedPreferences` file present in the
      * provided item configurations.
      */
-    fun put(vararg itemsToValues: Pair<Item, Any>): Unit =
+    override fun put(vararg itemsToValues: Pair<Item, Any>): Unit =
         prepareToPutValues(itemsToValues).forEach { it.apply() }
 
     /** See referenced `put` method above. */
-    fun <T : Any> put(item: Item, value: T): Unit = put(item.to(value))
+    override fun <T : Any> put(item: Item, value: T): Unit = put(item.to(value))
 
     /**
      * Synchronously stores all the values provided according to their associated Item
      * configuration.
      */
-    fun putSync(vararg itemsToValues: Pair<Item, Any>): Unit =
+    override fun putSync(vararg itemsToValues: Pair<Item, Any>): Unit =
         prepareToPutValues(itemsToValues).forEach { it.commit() }
 
     /**
@@ -152,7 +326,7 @@ class LauncherPrefs(private val encryptedContext: Context) : SafeCloseable {
     @Suppress("UNCHECKED_CAST")
     private fun SharedPreferences.Editor.putValue(
         item: Item,
-        value: Any?
+        value: Any?,
     ): SharedPreferences.Editor =
         when (item.type) {
             String::class.java -> putString(item.sharedPrefKey, value as? String)
@@ -176,7 +350,7 @@ class LauncherPrefs(private val encryptedContext: Context) : SafeCloseable {
      * `SharedPreferences` files associated with the provided list of items. The listener will need
      * to filter update notifications so they don't activate for non-relevant updates.
      */
-    fun addListener(listener: OnSharedPreferenceChangeListener, vararg items: Item) {
+    override fun addListener(listener: LauncherPrefChangeListener, vararg items: Item) {
         items
             .map { chooseSharedPreferences(it) }
             .distinct()
@@ -187,7 +361,7 @@ class LauncherPrefs(private val encryptedContext: Context) : SafeCloseable {
      * Stops the listener from getting notified of any more updates to any of the
      * `SharedPreferences` files associated with any of the provided list of [Item].
      */
-    fun removeListener(listener: OnSharedPreferenceChangeListener, vararg items: Item) {
+    override fun removeListener(listener: LauncherPrefChangeListener, vararg items: Item) {
         // If a listener is not registered to a SharedPreference, unregistering it does nothing
         items
             .map { chooseSharedPreferences(it) }
@@ -199,7 +373,7 @@ class LauncherPrefs(private val encryptedContext: Context) : SafeCloseable {
      * Checks if all the provided [Item] have values stored in their corresponding
      * `SharedPreferences` files.
      */
-    fun has(vararg items: Item): Boolean {
+    override fun has(vararg items: Item): Boolean {
         items
             .groupBy { chooseSharedPreferences(it) }
             .forEach { (prefs, itemsSublist) ->
@@ -211,10 +385,10 @@ class LauncherPrefs(private val encryptedContext: Context) : SafeCloseable {
     /**
      * Asynchronously removes the [Item]'s value from its corresponding `SharedPreferences` file.
      */
-    fun remove(vararg items: Item) = prepareToRemove(items).forEach { it.apply() }
+    override fun remove(vararg items: Item) = prepareToRemove(items).forEach { it.apply() }
 
     /** Synchronously removes the [Item]'s value from its corresponding `SharedPreferences` file. */
-    fun removeSync(vararg items: Item) = prepareToRemove(items).forEach { it.commit() }
+    override fun removeSync(vararg items: Item) = prepareToRemove(items).forEach { it.commit() }
 
     /**
      * Removes the key value pairs stored in `SharedPreferences` for each corresponding Item. If the
@@ -244,138 +418,6 @@ class LauncherPrefs(private val encryptedContext: Context) : SafeCloseable {
     }
 
     override fun close() {}
-
-    companion object {
-        @VisibleForTesting const val BOOT_AWARE_PREFS_KEY = "boot_aware_prefs"
-
-        @JvmField var INSTANCE = MainThreadInitializedObject { LauncherPrefs(it) }
-
-        @JvmStatic fun get(context: Context): LauncherPrefs = INSTANCE.get(context)
-
-        const val TASKBAR_PINNING_KEY = "TASKBAR_PINNING_KEY"
-        const val TASKBAR_PINNING_DESKTOP_MODE_KEY = "TASKBAR_PINNING_DESKTOP_MODE_KEY"
-        const val SHOULD_SHOW_SMARTSPACE_KEY = "SHOULD_SHOW_SMARTSPACE_KEY"
-        @JvmField
-        val ICON_STATE = nonRestorableItem("pref_icon_shape_path", "", EncryptionType.ENCRYPTED)
-
-        @JvmField
-        val ENABLE_TWOLINE_ALLAPPS_TOGGLE = backedUpItem("pref_enable_two_line_toggle", false)
-        @JvmField
-        val THEMED_ICONS = backedUpItem(Themes.KEY_THEMED_ICONS, false, EncryptionType.ENCRYPTED)
-        @JvmField val PROMISE_ICON_IDS = backedUpItem(InstallSessionHelper.PROMISE_ICON_IDS, "")
-        @JvmField val WORK_EDU_STEP = backedUpItem("showed_work_profile_edu", 0)
-        @JvmField
-        val WORKSPACE_SIZE =
-            backedUpItem(DeviceGridState.KEY_WORKSPACE_SIZE, "", EncryptionType.ENCRYPTED)
-        @JvmField
-        val HOTSEAT_COUNT =
-            backedUpItem(DeviceGridState.KEY_HOTSEAT_COUNT, -1, EncryptionType.ENCRYPTED)
-        @JvmField
-        val TASKBAR_PINNING =
-            backedUpItem(TASKBAR_PINNING_KEY, false, EncryptionType.DEVICE_PROTECTED)
-        @JvmField
-        val TASKBAR_PINNING_IN_DESKTOP_MODE =
-            backedUpItem(TASKBAR_PINNING_DESKTOP_MODE_KEY, true, EncryptionType.DEVICE_PROTECTED)
-
-        @JvmField
-        val DEVICE_TYPE =
-            backedUpItem(
-                DeviceGridState.KEY_DEVICE_TYPE,
-                InvariantDeviceProfile.TYPE_PHONE,
-                EncryptionType.ENCRYPTED
-            )
-        @JvmField
-        val DB_FILE = backedUpItem(DeviceGridState.KEY_DB_FILE, "", EncryptionType.ENCRYPTED)
-        @JvmField
-        val SHOULD_SHOW_SMARTSPACE =
-            backedUpItem(
-                SHOULD_SHOW_SMARTSPACE_KEY,
-                WIDGET_ON_FIRST_SCREEN,
-                EncryptionType.DEVICE_PROTECTED
-            )
-        @JvmField
-        val RESTORE_DEVICE =
-            backedUpItem(
-                RestoreDbTask.RESTORED_DEVICE_TYPE,
-                InvariantDeviceProfile.TYPE_PHONE,
-                EncryptionType.ENCRYPTED
-            )
-        @JvmField
-        val IS_FIRST_LOAD_AFTER_RESTORE =
-            nonRestorableItem(FIRST_LOAD_AFTER_RESTORE_KEY, false, EncryptionType.ENCRYPTED)
-        @JvmField val APP_WIDGET_IDS = backedUpItem(RestoreDbTask.APPWIDGET_IDS, "")
-        @JvmField val OLD_APP_WIDGET_IDS = backedUpItem(RestoreDbTask.APPWIDGET_OLD_IDS, "")
-        @JvmField
-        val GRID_NAME =
-            ConstantItem(
-                "idp_grid_name",
-                isBackedUp = true,
-                defaultValue = null,
-                encryptionType = EncryptionType.ENCRYPTED,
-                type = String::class.java
-            )
-        @JvmField
-        val ALLOW_ROTATION =
-            backedUpItem(RotationHelper.ALLOW_ROTATION_PREFERENCE_KEY, Boolean::class.java) {
-                RotationHelper.getAllowRotationDefaultValue(DisplayController.INSTANCE.get(it).info)
-            }
-
-        // Preferences for widget configurations
-        @JvmField
-        val RECONFIGURABLE_WIDGET_EDUCATION_TIP_SEEN =
-            backedUpItem("launcher.reconfigurable_widget_education_tip_seen", false)
-
-        @JvmStatic
-        fun <T> backedUpItem(
-            sharedPrefKey: String,
-            defaultValue: T,
-            encryptionType: EncryptionType = EncryptionType.ENCRYPTED
-        ): ConstantItem<T> =
-            ConstantItem(sharedPrefKey, isBackedUp = true, defaultValue, encryptionType)
-
-        @JvmStatic
-        fun <T> backedUpItem(
-            sharedPrefKey: String,
-            type: Class<out T>,
-            encryptionType: EncryptionType = EncryptionType.ENCRYPTED,
-            defaultValueFromContext: (c: Context) -> T
-        ): ContextualItem<T> =
-            ContextualItem(
-                sharedPrefKey,
-                isBackedUp = true,
-                defaultValueFromContext,
-                encryptionType,
-                type
-            )
-
-        @JvmStatic
-        fun <T> nonRestorableItem(
-            sharedPrefKey: String,
-            defaultValue: T,
-            encryptionType: EncryptionType = EncryptionType.ENCRYPTED
-        ): ConstantItem<T> =
-            ConstantItem(sharedPrefKey, isBackedUp = false, defaultValue, encryptionType)
-
-        @Deprecated("Don't use shared preferences directly. Use other LauncherPref methods.")
-        @JvmStatic
-        fun getPrefs(context: Context): SharedPreferences {
-            // Use application context for shared preferences, so we use single cached instance
-            return context.applicationContext.getSharedPreferences(
-                SHARED_PREFERENCES_KEY,
-                MODE_PRIVATE
-            )
-        }
-
-        @Deprecated("Don't use shared preferences directly. Use other LauncherPref methods.")
-        @JvmStatic
-        fun getDevicePrefs(context: Context): SharedPreferences {
-            // Use application context for shared preferences, so we use a single cached instance
-            return context.applicationContext.getSharedPreferences(
-                DEVICE_PREFERENCES_KEY,
-                MODE_PRIVATE
-            )
-        }
-    }
 }
 
 abstract class Item {
@@ -395,7 +437,7 @@ data class ConstantItem<T>(
     val defaultValue: T,
     override val encryptionType: EncryptionType,
     // The default value can be null. If so, the type needs to be explicitly stated, or else NPE
-    override val type: Class<out T> = defaultValue!!::class.java
+    override val type: Class<out T> = defaultValue!!::class.java,
 ) : Item() {
 
     fun get(c: Context): T = LauncherPrefs.get(c).get(this)
@@ -406,7 +448,7 @@ data class ContextualItem<T>(
     override val isBackedUp: Boolean,
     private val defaultSupplier: (c: Context) -> T,
     override val encryptionType: EncryptionType,
-    override val type: Class<out T>
+    override val type: Class<out T>,
 ) : Item() {
     private var default: T? = null
 

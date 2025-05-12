@@ -79,7 +79,6 @@ public class WorkPausedCard extends LinearLayout implements View.OnClickListener
 
     @Override
     public void onClick(View view) {
-        setEnabled(false);
         mActivityContext.getAppsView().getWorkManager().setWorkProfileEnabled(true);
         mActivityContext.getStatsLogManager().logger().log(LAUNCHER_TURN_ON_WORK_APPS_TAP);
     }

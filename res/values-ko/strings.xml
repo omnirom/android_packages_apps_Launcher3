@@ -32,6 +32,7 @@
     <string name="split_app_info_accessibility" msgid="5475288491241414932">"%1$s 앱 정보"</string>
     <string name="split_app_usage_settings" msgid="7214375263347964093">"%1$s의 사용량 설정"</string>
     <string name="new_window_option_taskbar" msgid="6448780542727767211">"새 창"</string>
+    <string name="manage_windows_option_taskbar" msgid="2294109489960654212">"창 관리"</string>
     <string name="save_app_pair" msgid="5647523853662686243">"앱 페어링 저장"</string>
     <string name="app_pair_default_title" msgid="4045241727446873529">"<xliff:g id="APP1">%1$s</xliff:g> | <xliff:g id="APP2">%2$s</xliff:g>"</string>
     <string name="app_pair_unlaunchable_at_screen_size" msgid="3446551575502685376">"이 앱 페어링은 이 기기에서 지원되지 않습니다"</string>
@@ -67,8 +68,13 @@
     <string name="widgets_full_sheet_work_tab" msgid="3767150027110633765">"직장 위젯"</string>
     <string name="widget_category_conversations" msgid="8894438636213590446">"대화"</string>
     <string name="widget_category_note_taking" msgid="3469689394504266039">"메모"</string>
+    <string name="widget_cell_tap_to_show_add_button_label" msgid="4354194214317043581">"추가 버튼 표시"</string>
+    <string name="widget_cell_tap_to_hide_add_button_label" msgid="6117805205101555997">"추가 버튼 숨기기"</string>
     <string name="widget_add_button_label" msgid="2761267068711937179">"추가"</string>
     <string name="widget_add_button_content_description" msgid="1810530016360039643">"<xliff:g id="WIDGET_NAME">%1$s</xliff:g> 위젯 추가"</string>
+    <string name="widgets_list_expand_button_label" msgid="7912016136574932622">"모두 표시"</string>
+    <string name="widgets_list_expand_button_content_description" msgid="4600513860973450888">"모든 위젯 표시"</string>
+    <string name="widgets_list_expanded" msgid="7374857868788557730">"모든 위젯 표시"</string>
     <string name="reconfigurable_widget_education_tip" msgid="6336962690888067057">"탭하여 위젯 설정 변경"</string>
     <string name="widget_reconfigure_button_content_description" msgid="8811472721881205250">"위젯 설정 변경"</string>
     <string name="all_apps_search_bar_hint" msgid="1390553134053255246">"앱 검색"</string>
@@ -124,6 +130,8 @@
     <string name="msg_disabled_by_admin" msgid="6898038085516271325">"관리자가 사용 중지함"</string>
     <string name="allow_rotation_title" msgid="7222049633713050106">"홈 화면 회전 허용"</string>
     <string name="allow_rotation_desc" msgid="8662546029078692509">"휴대전화 회전 시"</string>
+    <string name="landscape_mode_title" msgid="5138814555934843926">"가로 모드"</string>
+    <string name="landscape_mode_desc" msgid="7372569859592816793">"휴대전화를 가로 모드로 설정"</string>
     <string name="notification_dots_title" msgid="9062440428204120317">"알림 표시 점"</string>
     <string name="notification_dots_desc_on" msgid="1679848116452218908">"사용"</string>
     <string name="notification_dots_desc_off" msgid="1760796511504341095">"사용 안함"</string>
@@ -142,7 +150,8 @@
     <string name="app_installing_title" msgid="5864044122733792085">"<xliff:g id="NAME">%1$s</xliff:g> 설치 중, <xliff:g id="PROGRESS">%2$s</xliff:g> 완료"</string>
     <string name="app_downloading_title" msgid="8336702962104482644">"<xliff:g id="NAME">%1$s</xliff:g> 다운로드 중, <xliff:g id="PROGRESS">%2$s</xliff:g> 완료"</string>
     <string name="app_waiting_download_title" msgid="7053938513995617849">"<xliff:g id="NAME">%1$s</xliff:g> 설치 대기 중"</string>
-    <string name="app_archived_title" msgid="7717956158562544081">"<xliff:g id="NAME">%1$s</xliff:g> 앱이 보관처리되었습니다. 탭하여 다운로드하고 복원하세요"</string>
+    <string name="app_archived_title" msgid="4548283110222420708">"<xliff:g id="NAME">%1$s</xliff:g> 앱이 보관처리되었습니다"</string>
+    <string name="app_unarchiving_action" msgid="5736107006413929484">"다운로드 및 복원"</string>
     <string name="dialog_update_title" msgid="114234265740994042">"앱 업데이트 필요"</string>
     <string name="dialog_update_message" msgid="4176784553982226114">"바로가기 아이콘의 앱이 업데이트되지 않았습니다. 직접 업데이트하여 앱 바로가기를 다시 사용할 수 있도록 하거나 아이콘을 삭제하세요."</string>
     <string name="dialog_update" msgid="2178028071796141234">"업데이트"</string>
@@ -171,7 +180,7 @@
     <string name="action_decrease_width" msgid="1374549771083094654">"폭 줄이기"</string>
     <string name="action_decrease_height" msgid="282377193880900022">"높이 줄이기"</string>
     <string name="widget_resized" msgid="9130327887929620">"폭 <xliff:g id="NUMBER_0">%1$s</xliff:g>, 높이 <xliff:g id="NUMBER_1">%2$s</xliff:g>로 위젯 크기 조정됨"</string>
-    <string name="action_deep_shortcut" msgid="2864038805849372848">"바로가기"</string>
+    <string name="action_deep_shortcut" msgid="4766835855579976045">"바로가기 메뉴"</string>
     <string name="action_dismiss_notification" msgid="5909461085055959187">"닫기"</string>
     <string name="accessibility_close" msgid="2277148124685870734">"닫기"</string>
     <string name="all_apps_personal_tab" msgid="4190252696685155002">"개인"</string>
@@ -187,6 +196,7 @@
     <string name="work_apps_paused_edu_accept" msgid="6377476824357318532">"확인"</string>
     <string name="work_apps_pause_btn_text" msgid="4669288269140620646">"직장 앱 일시중지"</string>
     <string name="work_apps_enable_btn_text" msgid="1736198302467317371">"일시중지 해제"</string>
+    <string name="work_scheduler_button_content_description" msgid="917340740986764967">"직장 앱 일정"</string>
     <string name="developer_options_filter_hint" msgid="5896817443635989056">"필터"</string>
     <string name="remote_action_failed" msgid="1383965239183576790">"실패: <xliff:g id="WHAT">%1$s</xliff:g>"</string>
     <string name="private_space_label" msgid="2359721649407947001">"비공개 스페이스"</string>

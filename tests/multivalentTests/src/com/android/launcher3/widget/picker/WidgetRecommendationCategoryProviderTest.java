@@ -30,14 +30,16 @@ import static androidx.test.platform.app.InstrumentationRegistry.getInstrumentat
 import static com.google.common.truth.Truth.assertThat;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
 import android.appwidget.AppWidgetProviderInfo;
 import android.content.ComponentName;
 import android.content.Context;
-import android.content.ContextWrapper;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.LauncherApps;
 import android.os.Process;
@@ -102,13 +104,8 @@ public class WidgetRecommendationCategoryProviderTest {
     @Before
     public void setUp() {
         MockitoAnnotations.initMocks(this);
-        mContext = new ContextWrapper(getInstrumentation().getTargetContext()) {
-            @Override
-            public Object getSystemService(String name) {
-                return LAUNCHER_APPS_SERVICE.equals(name) ? mLauncherApps : super.getSystemService(
-                        name);
-            }
-        };
+        mContext = spy(getInstrumentation().getTargetContext());
+        doReturn(mLauncherApps).when(mContext).getSystemService(LauncherApps.class);
         mTestAppInfo.flags = FLAG_INSTALLED;
         mTestProfile = new InvariantDeviceProfile();
         mTestProfile.numRows = 5;
@@ -132,7 +129,7 @@ public class WidgetRecommendationCategoryProviderTest {
 
             mTestAppInfo.category = testCategory.getKey();
             when(mLauncherApps.getApplicationInfo(/*packageName=*/ eq(TEST_PACKAGE),
-                    /*flags=*/ eq(0),
+                    /*flags=*/ anyInt(),
                     /*user=*/ eq(Process.myUserHandle())))
                     .thenReturn(mTestAppInfo);
 

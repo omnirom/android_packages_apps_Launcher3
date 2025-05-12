@@ -20,7 +20,7 @@ import android.app.PendingIntent
 import android.content.ComponentName
 import android.content.Intent
 import android.content.pm.PackageInstaller.SessionInfo
-import android.os.UserHandle
+import android.os.Process.myUserHandle
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.android.launcher3.LauncherSettings.Favorites.CONTAINER_DESKTOP
@@ -34,7 +34,6 @@ import com.android.launcher3.model.data.WorkspaceItemInfo
 import com.android.launcher3.util.PackageManagerHelper
 import com.android.launcher3.util.PackageUserKey
 import junit.framework.Assert.assertEquals
-import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.ArgumentCaptor
@@ -45,8 +44,6 @@ import org.mockito.kotlin.whenever
 
 @RunWith(AndroidJUnit4::class)
 class FirstScreenBroadcastHelperTest {
-
-    @get:Rule val modelTestRule = ModelTestRule()
 
     private val context = spy(InstrumentationRegistry.getInstrumentation().targetContext)
     private val mockPmHelper = mock<PackageManagerHelper>()
@@ -70,7 +67,7 @@ class FirstScreenBroadcastHelperTest {
                 container = CONTAINER_HOTSEAT
                 intent = expectedIntent
             },
-            LauncherAppWidgetInfo().apply { providerName = expectedComponentName }
+            LauncherAppWidgetInfo().apply { providerName = expectedComponentName },
         )
 
     @Test
@@ -80,16 +77,18 @@ class FirstScreenBroadcastHelperTest {
             SessionInfo().apply {
                 installerPackageName = expectedInstallerPackage
                 appPackageName = expectedAppPackage
+                userId = myUserHandle().identifier
             }
         val sessionInfoUnexpected =
             SessionInfo().apply {
                 installerPackageName = expectedInstallerPackage
                 appPackageName = unexpectedAppPackage
+                userId = myUserHandle().identifier
             }
         val sessionInfoMap: HashMap<PackageUserKey, SessionInfo> =
             hashMapOf(
-                PackageUserKey(unexpectedAppPackage, UserHandle(0)) to sessionInfoExpected,
-                PackageUserKey(expectedAppPackage, UserHandle(0)) to sessionInfoUnexpected
+                PackageUserKey(unexpectedAppPackage, myUserHandle()) to sessionInfoExpected,
+                PackageUserKey(expectedAppPackage, myUserHandle()) to sessionInfoUnexpected,
             )
 
         // When
@@ -98,7 +97,7 @@ class FirstScreenBroadcastHelperTest {
                 packageManagerHelper = mockPmHelper,
                 firstScreenItems = firstScreenItems,
                 userKeyToSessionMap = sessionInfoMap,
-                allWidgets = listOf()
+                allWidgets = listOf(),
             )
 
         // Then
@@ -108,7 +107,7 @@ class FirstScreenBroadcastHelperTest {
                     installerPackage = expectedInstallerPackage,
                     pendingWorkspaceItems = mutableSetOf(expectedAppPackage),
                     pendingHotseatItems = mutableSetOf(expectedAppPackage),
-                    pendingWidgetItems = mutableSetOf(expectedAppPackage)
+                    pendingWidgetItems = mutableSetOf(expectedAppPackage),
                 )
             )
 
@@ -133,7 +132,7 @@ class FirstScreenBroadcastHelperTest {
                             providerName = expectedComponentName
                             screenId = 0
                         }
-                    )
+                    ),
             )
 
         // Then
@@ -143,7 +142,7 @@ class FirstScreenBroadcastHelperTest {
                     installerPackage = expectedInstallerPackage,
                     installedHotseatItems = mutableSetOf(expectedAppPackage),
                     installedWorkspaceItems = mutableSetOf(expectedAppPackage),
-                    firstScreenInstalledWidgets = mutableSetOf(expectedAppPackage)
+                    firstScreenInstalledWidgets = mutableSetOf(expectedAppPackage),
                 )
             )
         assertEquals(expectedResult, actualResult)
@@ -178,8 +177,8 @@ class FirstScreenBroadcastHelperTest {
                         LauncherAppWidgetInfo().apply {
                             providerName = unexpectedComponentName
                             screenId = 0
-                        }
-                    )
+                        },
+                    ),
             )
 
         // Then
@@ -190,7 +189,7 @@ class FirstScreenBroadcastHelperTest {
                     installedHotseatItems = mutableSetOf(),
                     installedWorkspaceItems = mutableSetOf(),
                     firstScreenInstalledWidgets = mutableSetOf(expectedAppPackage),
-                    secondaryScreenInstalledWidgets = mutableSetOf(expectedAppPackage2)
+                    secondaryScreenInstalledWidgets = mutableSetOf(expectedAppPackage2),
                 )
             )
         assertEquals(expectedResult, actualResult)
@@ -203,16 +202,18 @@ class FirstScreenBroadcastHelperTest {
             SessionInfo().apply {
                 installerPackageName = expectedInstallerPackage
                 appPackageName = expectedAppPackage
+                userId = myUserHandle().identifier
             }
         val sessionInfoUnexpected =
             SessionInfo().apply {
                 installerPackageName = expectedInstallerPackage
                 appPackageName = unexpectedAppPackage
+                userId = myUserHandle().identifier
             }
         val sessionInfoMap: HashMap<PackageUserKey, SessionInfo> =
             hashMapOf(
-                PackageUserKey(unexpectedAppPackage, UserHandle(0)) to sessionInfoExpected,
-                PackageUserKey(expectedAppPackage, UserHandle(0)) to sessionInfoUnexpected,
+                PackageUserKey(unexpectedAppPackage, myUserHandle()) to sessionInfoExpected,
+                PackageUserKey(expectedAppPackage, myUserHandle()) to sessionInfoUnexpected,
             )
         val expectedItemInfo = WorkspaceItemInfo().apply { intent = expectedIntent }
         val expectedFolderInfo = FolderInfo().apply { add(expectedItemInfo) }
@@ -224,7 +225,7 @@ class FirstScreenBroadcastHelperTest {
                 packageManagerHelper = mockPmHelper,
                 firstScreenItems = firstScreenItems,
                 userKeyToSessionMap = sessionInfoMap,
-                allWidgets = listOf()
+                allWidgets = listOf(),
             )
 
         // Then
@@ -232,7 +233,7 @@ class FirstScreenBroadcastHelperTest {
             listOf(
                 FirstScreenBroadcastModel(
                     installerPackage = expectedInstallerPackage,
-                    pendingCollectionItems = mutableSetOf(expectedAppPackage)
+                    pendingCollectionItems = mutableSetOf(expectedAppPackage),
                 )
             )
         assertEquals(expectedResult, actualResult)
@@ -259,7 +260,7 @@ class FirstScreenBroadcastHelperTest {
                 firstScreenInstalledWidgets =
                     mutableSetOf<String>().apply { repeat(20) { add(it.toString()) } },
                 secondaryScreenInstalledWidgets =
-                    mutableSetOf<String>().apply { repeat(20) { add(it.toString()) } }
+                    mutableSetOf<String>().apply { repeat(20) { add(it.toString()) } },
             )
 
         // When
@@ -334,7 +335,7 @@ class FirstScreenBroadcastHelperTest {
                     installedWorkspaceItems = mutableSetOf("installedWorkspaceItems"),
                     installedHotseatItems = mutableSetOf("installedHotseatItems"),
                     firstScreenInstalledWidgets = mutableSetOf("firstScreenInstalledWidgetItems"),
-                    secondaryScreenInstalledWidgets = mutableSetOf("secondaryInstalledWidgetItems")
+                    secondaryScreenInstalledWidgets = mutableSetOf("secondaryInstalledWidgetItems"),
                 )
             )
         val expectedPendingIntent =
@@ -342,7 +343,7 @@ class FirstScreenBroadcastHelperTest {
                 context,
                 0 /* requestCode */,
                 Intent(),
-                PendingIntent.FLAG_ONE_SHOT or PendingIntent.FLAG_IMMUTABLE
+                PendingIntent.FLAG_ONE_SHOT or PendingIntent.FLAG_IMMUTABLE,
             )
 
         // When
@@ -354,40 +355,40 @@ class FirstScreenBroadcastHelperTest {
 
         assertEquals(
             "com.android.launcher3.action.FIRST_SCREEN_ACTIVE_INSTALLS",
-            argumentCaptor.value.action
+            argumentCaptor.value.action,
         )
         assertEquals(expectedInstallerPackage, argumentCaptor.value.`package`)
         assertEquals(
             expectedPendingIntent,
-            argumentCaptor.value.getParcelableExtra("verificationToken")
+            argumentCaptor.value.getParcelableExtra("verificationToken"),
         )
         assertEquals(
             arrayListOf("pendingCollectionItem"),
-            argumentCaptor.value.getStringArrayListExtra("folderItem")
+            argumentCaptor.value.getStringArrayListExtra("folderItem"),
         )
         assertEquals(
             arrayListOf("pendingWorkspaceItem"),
-            argumentCaptor.value.getStringArrayListExtra("workspaceItem")
+            argumentCaptor.value.getStringArrayListExtra("workspaceItem"),
         )
         assertEquals(
             arrayListOf("pendingHotseatItems"),
-            argumentCaptor.value.getStringArrayListExtra("hotseatItem")
+            argumentCaptor.value.getStringArrayListExtra("hotseatItem"),
         )
         assertEquals(
             arrayListOf("pendingWidgetItems"),
-            argumentCaptor.value.getStringArrayListExtra("widgetItem")
+            argumentCaptor.value.getStringArrayListExtra("widgetItem"),
         )
         assertEquals(
             arrayListOf("installedWorkspaceItems"),
-            argumentCaptor.value.getStringArrayListExtra("workspaceInstalledItems")
+            argumentCaptor.value.getStringArrayListExtra("workspaceInstalledItems"),
         )
         assertEquals(
             arrayListOf("installedHotseatItems"),
-            argumentCaptor.value.getStringArrayListExtra("hotseatInstalledItems")
+            argumentCaptor.value.getStringArrayListExtra("hotseatInstalledItems"),
         )
         assertEquals(
             arrayListOf("firstScreenInstalledWidgetItems", "secondaryInstalledWidgetItems"),
-            argumentCaptor.value.getStringArrayListExtra("widgetInstalledItems")
+            argumentCaptor.value.getStringArrayListExtra("widgetInstalledItems"),
         )
     }
 }

@@ -317,10 +317,7 @@ public class Folder extends AbstractFloatingView implements ClipPathView, DragSo
                 | InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS
                 | InputType.TYPE_TEXT_FLAG_CAP_WORDS);
         mFolderName.forceDisableSuggestions(true);
-        mFolderName.setPadding(mFolderName.getPaddingLeft(),
-                (getFooterHeight() - mFolderName.getLineHeight()) / 2,
-                mFolderName.getPaddingRight(),
-                (getFooterHeight() - mFolderName.getLineHeight()) / 2);
+
 
         mKeyboardInsetAnimationCallback = new KeyboardInsetAnimationCallback(this);
         setWindowInsetsAnimationCallback(mKeyboardInsetAnimationCallback);

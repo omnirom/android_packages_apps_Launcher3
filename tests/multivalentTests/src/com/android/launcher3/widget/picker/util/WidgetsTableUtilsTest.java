@@ -28,7 +28,6 @@ import static org.mockito.Mockito.when;
 import android.appwidget.AppWidgetProviderInfo;
 import android.content.ComponentName;
 import android.content.Context;
-import android.content.pm.PackageManager;
 import android.graphics.Point;
 import android.graphics.drawable.Drawable;
 import android.os.UserHandle;
@@ -39,8 +38,9 @@ import androidx.test.filters.SmallTest;
 import com.android.launcher3.DeviceProfile;
 import com.android.launcher3.InvariantDeviceProfile;
 import com.android.launcher3.LauncherAppState;
-import com.android.launcher3.icons.ComponentWithLabel;
 import com.android.launcher3.icons.IconCache;
+import com.android.launcher3.icons.cache.BaseIconCache;
+import com.android.launcher3.icons.cache.CachedObject;
 import com.android.launcher3.model.WidgetItem;
 import com.android.launcher3.pm.ShortcutConfigActivityInfo;
 import com.android.launcher3.util.ActivityContextWrapper;
@@ -99,7 +99,7 @@ public final class WidgetsTableUtilsTest {
         initTestWidgets();
         initTestShortcuts();
 
-        doAnswer(invocation -> ((ComponentWithLabel) invocation.getArgument(0))
+        doAnswer(invocation -> ((CachedObject) invocation.getArgument(0))
                 .getComponent().getPackageName())
                 .when(mIconCache).getTitleNoCache(any());
     }
@@ -280,32 +280,31 @@ public final class WidgetsTableUtilsTest {
     }
 
     private void initTestShortcuts() {
-        PackageManager packageManager = mContext.getPackageManager();
         mShortcut1 = new WidgetItem(new TestShortcutConfigActivityInfo(
                 ComponentName.createRelative(TEST_PACKAGE, ".shortcut1"), UserHandle.CURRENT),
-                mIconCache, packageManager);
+                mIconCache);
         mShortcut2 = new WidgetItem(new TestShortcutConfigActivityInfo(
                 ComponentName.createRelative(TEST_PACKAGE, ".shortcut2"), UserHandle.CURRENT),
-                mIconCache, packageManager);
+                mIconCache);
         mShortcut3 = new WidgetItem(new TestShortcutConfigActivityInfo(
                 ComponentName.createRelative(TEST_PACKAGE, ".shortcut3"), UserHandle.CURRENT),
-                mIconCache, packageManager);
+                mIconCache);
 
     }
 
     private final class TestShortcutConfigActivityInfo extends ShortcutConfigActivityInfo {
 
         TestShortcutConfigActivityInfo(ComponentName componentName, UserHandle user) {
-            super(componentName, user);
+            super(componentName, user, mContext);
         }
 
         @Override
-        public Drawable getFullResIcon(IconCache cache) {
+        public Drawable getFullResIcon(BaseIconCache cache) {
             return null;
         }
 
         @Override
-        public CharSequence getLabel(PackageManager pm) {
+        public CharSequence getLabel() {
             return null;
         }
     }

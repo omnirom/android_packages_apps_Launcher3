@@ -32,6 +32,7 @@
     <string name="split_app_info_accessibility" msgid="5475288491241414932">"Upplýsingar um forrit fyrir %1$s"</string>
     <string name="split_app_usage_settings" msgid="7214375263347964093">"Notkunarstillingar fyrir %1$s"</string>
     <string name="new_window_option_taskbar" msgid="6448780542727767211">"Nýr gluggi"</string>
+    <string name="manage_windows_option_taskbar" msgid="2294109489960654212">"Stjórna gluggum"</string>
     <string name="save_app_pair" msgid="5647523853662686243">"Vista forritapar"</string>
     <string name="app_pair_default_title" msgid="4045241727446873529">"<xliff:g id="APP1">%1$s</xliff:g> | <xliff:g id="APP2">%2$s</xliff:g>"</string>
     <string name="app_pair_unlaunchable_at_screen_size" msgid="3446551575502685376">"Þetta forritapar er ekki stutt í þessu tæki"</string>
@@ -67,8 +68,13 @@
     <string name="widgets_full_sheet_work_tab" msgid="3767150027110633765">"Vinna"</string>
     <string name="widget_category_conversations" msgid="8894438636213590446">"Samtöl"</string>
     <string name="widget_category_note_taking" msgid="3469689394504266039">"Glósugerð"</string>
+    <string name="widget_cell_tap_to_show_add_button_label" msgid="4354194214317043581">"Sýna hnapp til að bæta við"</string>
+    <string name="widget_cell_tap_to_hide_add_button_label" msgid="6117805205101555997">"Fela hnapp til að bæta við"</string>
     <string name="widget_add_button_label" msgid="2761267068711937179">"Bæta við"</string>
     <string name="widget_add_button_content_description" msgid="1810530016360039643">"Bæta græjunni <xliff:g id="WIDGET_NAME">%1$s</xliff:g> við"</string>
+    <string name="widgets_list_expand_button_label" msgid="7912016136574932622">"Sýna allt"</string>
+    <string name="widgets_list_expand_button_content_description" msgid="4600513860973450888">"Sýna allar græjur"</string>
+    <string name="widgets_list_expanded" msgid="7374857868788557730">"Sýnir allar græjur"</string>
     <string name="reconfigurable_widget_education_tip" msgid="6336962690888067057">"Ýttu til að breyta græjustillingum"</string>
     <string name="widget_reconfigure_button_content_description" msgid="8811472721881205250">"Breyta græjustillingum"</string>
     <string name="all_apps_search_bar_hint" msgid="1390553134053255246">"Leita í forritum"</string>
@@ -124,6 +130,8 @@
     <string name="msg_disabled_by_admin" msgid="6898038085516271325">"Gert óvirkt af kerfisstjóra"</string>
     <string name="allow_rotation_title" msgid="7222049633713050106">"Leyfa snúning á heimaskjá"</string>
     <string name="allow_rotation_desc" msgid="8662546029078692509">"Þegar símanum er snúið"</string>
+    <string name="landscape_mode_title" msgid="5138814555934843926">"Langsnið"</string>
+    <string name="landscape_mode_desc" msgid="7372569859592816793">"Stilla síma á langsnið"</string>
     <string name="notification_dots_title" msgid="9062440428204120317">"Tilkynningapunktar"</string>
     <string name="notification_dots_desc_on" msgid="1679848116452218908">"Kveikt"</string>
     <string name="notification_dots_desc_off" msgid="1760796511504341095">"Slökkt"</string>
@@ -142,7 +150,8 @@
     <string name="app_installing_title" msgid="5864044122733792085">"Setur upp <xliff:g id="NAME">%1$s</xliff:g>, <xliff:g id="PROGRESS">%2$s</xliff:g> lokið"</string>
     <string name="app_downloading_title" msgid="8336702962104482644">"<xliff:g id="NAME">%1$s</xliff:g> í niðurhali, <xliff:g id="PROGRESS">%2$s</xliff:g> lokið"</string>
     <string name="app_waiting_download_title" msgid="7053938513995617849">"<xliff:g id="NAME">%1$s</xliff:g> bíður uppsetningar"</string>
-    <string name="app_archived_title" msgid="7717956158562544081">"<xliff:g id="NAME">%1$s</xliff:g> er í geymslu. Ýttu til að sækja og endurheimta."</string>
+    <string name="app_archived_title" msgid="4548283110222420708">"<xliff:g id="NAME">%1$s</xliff:g> er í geymslu."</string>
+    <string name="app_unarchiving_action" msgid="5736107006413929484">"sækja og endurheimta"</string>
     <string name="dialog_update_title" msgid="114234265740994042">"Uppfæra þarf forritið"</string>
     <string name="dialog_update_message" msgid="4176784553982226114">"Forritið fyrir þetta tákn er ekki uppfært. Þú getur uppfært það handvirkt til að kveikja aftur á þessari flýtileið eða fjarlægt táknið."</string>
     <string name="dialog_update" msgid="2178028071796141234">"Uppfæra"</string>
@@ -171,7 +180,7 @@
     <string name="action_decrease_width" msgid="1374549771083094654">"Minnka breidd"</string>
     <string name="action_decrease_height" msgid="282377193880900022">"Minnka hæð"</string>
     <string name="widget_resized" msgid="9130327887929620">"Stærð græju breytt í <xliff:g id="NUMBER_0">%1$s</xliff:g> á breidd og <xliff:g id="NUMBER_1">%2$s</xliff:g> á hæð"</string>
-    <string name="action_deep_shortcut" msgid="2864038805849372848">"Flýtileiðir"</string>
+    <string name="action_deep_shortcut" msgid="4766835855579976045">"Flýtileiðavalmynd"</string>
     <string name="action_dismiss_notification" msgid="5909461085055959187">"Hunsa"</string>
     <string name="accessibility_close" msgid="2277148124685870734">"Loka"</string>
     <string name="all_apps_personal_tab" msgid="4190252696685155002">"Persónulegt"</string>
@@ -187,11 +196,12 @@
     <string name="work_apps_paused_edu_accept" msgid="6377476824357318532">"Ég skil"</string>
     <string name="work_apps_pause_btn_text" msgid="4669288269140620646">"Setja vinnuforrit í bið"</string>
     <string name="work_apps_enable_btn_text" msgid="1736198302467317371">"Ljúka hléi"</string>
+    <string name="work_scheduler_button_content_description" msgid="917340740986764967">"Áætlun vinnuforrita"</string>
     <string name="developer_options_filter_hint" msgid="5896817443635989056">"Sía"</string>
     <string name="remote_action_failed" msgid="1383965239183576790">"Mistókst: <xliff:g id="WHAT">%1$s</xliff:g>"</string>
     <string name="private_space_label" msgid="2359721649407947001">"Leynirými"</string>
     <string name="private_space_secondary_label" msgid="9203933341714508907">"Ýttu til að setja upp eða opna"</string>
-    <string name="ps_container_title" msgid="4391796149519594205">"Lokað"</string>
+    <string name="ps_container_title" msgid="4391796149519594205">"Leynilegt"</string>
     <string name="ps_container_settings" msgid="6059734123353320479">"Stillingar einkarýmis"</string>
     <string name="ps_container_unlock_button_content_description" msgid="9181551784092204234">"Lokað, ólæst."</string>
     <string name="ps_container_lock_button_content_description" msgid="5961993384382649530">"Lokað, læst."</string>

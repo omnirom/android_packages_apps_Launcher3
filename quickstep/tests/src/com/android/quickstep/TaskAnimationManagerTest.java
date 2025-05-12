@@ -17,8 +17,8 @@
 package com.android.quickstep;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assume.assumeTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -28,6 +28,8 @@ import android.content.Context;
 import android.content.Intent;
 
 import androidx.test.filters.SmallTest;
+
+import com.android.quickstep.fallback.window.RecentsWindowManager;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -42,6 +44,9 @@ public class TaskAnimationManagerTest {
     private Context mContext;
 
     @Mock
+    private RecentsWindowManager mRecentsWindowManager;
+
+    @Mock
     private SystemUiProxy mSystemUiProxy;
 
     private TaskAnimationManager mTaskAnimationManager;
@@ -49,7 +54,7 @@ public class TaskAnimationManagerTest {
     @Before
     public void setUp() {
         MockitoAnnotations.initMocks(this);
-        mTaskAnimationManager = new TaskAnimationManager(mContext) {
+        mTaskAnimationManager = new TaskAnimationManager(mContext, mRecentsWindowManager) {
             @Override
             SystemUiProxy getSystemUiProxy() {
                 return mSystemUiProxy;
@@ -68,7 +73,8 @@ public class TaskAnimationManagerTest {
 
         final ArgumentCaptor<ActivityOptions> optionsCaptor =
                 ArgumentCaptor.forClass(ActivityOptions.class);
-        verify(mSystemUiProxy).startRecentsActivity(any(), optionsCaptor.capture(), any());
+        verify(mSystemUiProxy)
+                .startRecentsActivity(any(), optionsCaptor.capture(), any(), anyBoolean());
         assertEquals(ActivityOptions.MODE_BACKGROUND_ACTIVITY_START_ALLOW_ALWAYS,
                 optionsCaptor.getValue().getPendingIntentBackgroundActivityStartMode());
     }

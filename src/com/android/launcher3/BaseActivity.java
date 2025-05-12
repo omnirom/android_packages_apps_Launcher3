@@ -188,7 +188,7 @@ public abstract class BaseActivity extends Activity implements ActivityContext {
 
     public SystemUiController getSystemUiController() {
         if (mSystemUiController == null) {
-            mSystemUiController = new SystemUiController(getWindow());
+            mSystemUiController = new SystemUiController(getWindow().getDecorView());
         }
         return mSystemUiController;
     }

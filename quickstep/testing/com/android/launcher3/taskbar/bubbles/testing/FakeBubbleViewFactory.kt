@@ -54,14 +54,35 @@ object FakeBubbleViewFactory {
         val flags =
             if (suppressNotification) Notification.BubbleMetadata.FLAG_SUPPRESS_NOTIFICATION else 0
         val bubbleInfo =
-            BubbleInfo(key, flags, null, null, 0, context.packageName, null, null, false, true)
+            BubbleInfo(
+                key,
+                flags,
+                null,
+                null,
+                0,
+                context.packageName,
+                null,
+                null,
+                false,
+                true,
+                null,
+            )
         val bubbleView = inflater.inflate(R.layout.bubblebar_item_view, parent, false) as BubbleView
         val dotPath =
             PathParser.createPathFromPathData(
                 context.resources.getString(com.android.internal.R.string.config_icon_mask)
             )
         val bubble =
-            BubbleBarBubble(bubbleInfo, bubbleView, badge, icon, dotColor, dotPath, "test app")
+            BubbleBarBubble(
+                bubbleInfo,
+                bubbleView,
+                badge,
+                icon,
+                dotColor,
+                dotPath,
+                "test app",
+                null,
+            )
         bubbleView.setBubble(bubble)
         return bubbleView
     }

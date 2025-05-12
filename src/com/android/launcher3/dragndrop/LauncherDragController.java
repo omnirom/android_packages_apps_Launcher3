@@ -119,6 +119,9 @@ public class LauncherDragController extends DragController<Launcher> {
                         initialDragViewScale,
                         dragViewScaleOnDrop,
                         scalePx);
+        // During a drag, we don't want to expose the descendendants of drag view to a11y users,
+        // since those decendents are not a valid position in the workspace.
+        dragView.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS);
         dragView.setItemInfo(dragInfo);
         mDragObject.dragComplete = false;
 

@@ -168,21 +168,14 @@ public class TestInformationHandler implements ResourceBasedOverride {
             }
 
             case TestProtocol.REQUEST_TARGET_INSETS: {
-                return getUIProperty(Bundle::putParcelable, activity -> {
-                    WindowInsets insets = activity.getWindow()
-                            .getDecorView().getRootWindowInsets();
-                    return Insets.max(
-                            insets.getSystemGestureInsets(),
-                            insets.getSystemWindowInsets());
-                }, this::getCurrentActivity);
+                return getUIProperty(Bundle::putParcelable, insets -> Insets.max(
+                        insets.getSystemGestureInsets(),
+                        insets.getSystemWindowInsets()), this::getWindowInsets);
             }
 
             case TestProtocol.REQUEST_WINDOW_INSETS: {
-                return getUIProperty(Bundle::putParcelable, activity -> {
-                    WindowInsets insets = activity.getWindow()
-                            .getDecorView().getRootWindowInsets();
-                    return insets.getSystemWindowInsets();
-                }, this::getCurrentActivity);
+                return getUIProperty(Bundle::putParcelable,
+                        WindowInsets::getSystemWindowInsets, this::getWindowInsets);
             }
 
             case TestProtocol.REQUEST_CELL_LAYOUT_BOARDER_HEIGHT: {
@@ -192,13 +185,13 @@ public class TestInformationHandler implements ResourceBasedOverride {
             }
 
             case TestProtocol.REQUEST_SYSTEM_GESTURE_REGION: {
-                return getUIProperty(Bundle::putParcelable, activity -> {
-                    WindowInsetsCompat insets = WindowInsetsCompat.toWindowInsetsCompat(
-                            activity.getWindow().getDecorView().getRootWindowInsets());
+                return getUIProperty(Bundle::putParcelable, windowInsets -> {
+                    WindowInsetsCompat insets =
+                            WindowInsetsCompat.toWindowInsetsCompat(windowInsets);
                     return insets.getInsets(WindowInsetsCompat.Type.ime()
                             | WindowInsetsCompat.Type.systemGestures())
                             .toPlatformInsets();
-                }, this::getCurrentActivity);
+                }, this::getWindowInsets);
             }
 
             case TestProtocol.REQUEST_ICON_HEIGHT: {
@@ -253,12 +246,12 @@ public class TestInformationHandler implements ResourceBasedOverride {
 
             case TestProtocol.REQUEST_GET_SPLIT_SELECTION_ACTIVE:
                 response.putBoolean(TEST_INFO_RESPONSE_FIELD, enableSplitContextually()
-                        && Launcher.ACTIVITY_TRACKER.getCreatedActivity().isSplitSelectionActive());
+                        && Launcher.ACTIVITY_TRACKER.getCreatedContext().isSplitSelectionActive());
                 return response;
 
             case TestProtocol.REQUEST_ENABLE_ROTATION:
                 MAIN_EXECUTOR.submit(() ->
-                        Launcher.ACTIVITY_TRACKER.getCreatedActivity().getRotationHelper()
+                        Launcher.ACTIVITY_TRACKER.getCreatedContext().getRotationHelper()
                                 .forceAllowRotationForTesting(Boolean.parseBoolean(arg)));
                 return response;
 
@@ -482,12 +475,13 @@ public class TestInformationHandler implements ResourceBasedOverride {
     }
 
     protected boolean isLauncherInitialized() {
-        return Launcher.ACTIVITY_TRACKER.getCreatedActivity() == null
+        return Launcher.ACTIVITY_TRACKER.getCreatedContext() == null
                 || LauncherAppState.getInstance(mContext).getModel().isModelLoaded();
     }
 
-    protected Activity getCurrentActivity() {
-        return Launcher.ACTIVITY_TRACKER.getCreatedActivity();
+    protected WindowInsets getWindowInsets(){
+        return Launcher.ACTIVITY_TRACKER.getCreatedContext().getWindow().getDecorView()
+                .getRootWindowInsets();
     }
 
     /**
@@ -495,7 +489,7 @@ public class TestInformationHandler implements ResourceBasedOverride {
      */
     public static <T> Bundle getLauncherUIProperty(
             BundleSetter<T> bundleSetter, Function<Launcher, T> provider) {
-        return getUIProperty(bundleSetter, provider, Launcher.ACTIVITY_TRACKER::getCreatedActivity);
+        return getUIProperty(bundleSetter, provider, Launcher.ACTIVITY_TRACKER::getCreatedContext);
     }
 
     /**

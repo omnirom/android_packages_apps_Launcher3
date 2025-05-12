@@ -26,16 +26,22 @@ import android.content.Intent;
 
 import androidx.annotation.VisibleForTesting;
 
+import com.android.launcher3.dagger.ApplicationContext;
+import com.android.launcher3.dagger.LauncherAppSingleton;
+import com.android.launcher3.dagger.LauncherBaseAppComponent;
+
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.function.Consumer;
+
+import javax.inject.Inject;
 
 /**
  * Utility class for tracking if the screen is currently on or off
  */
+@LauncherAppSingleton
 public class ScreenOnTracker implements SafeCloseable {
 
-    public static final MainThreadInitializedObject<ScreenOnTracker> INSTANCE =
-            new MainThreadInitializedObject<>(ScreenOnTracker::new);
+    public static final DaggerSingletonObject<ScreenOnTracker> INSTANCE =
+            new DaggerSingletonObject<>(LauncherBaseAppComponent::getScreenOnTracker);
 
     private final SimpleBroadcastReceiver mReceiver;
     private final CopyOnWriteArrayList<ScreenOnListener> mListeners = new CopyOnWriteArrayList<>();
@@ -43,23 +49,26 @@ public class ScreenOnTracker implements SafeCloseable {
     private final Context mContext;
     private boolean mIsScreenOn;
 
-    private ScreenOnTracker(Context context) {
+    @Inject
+    ScreenOnTracker(@ApplicationContext Context context, DaggerSingletonTracker tracker) {
         // Assume that the screen is on to begin with
         mContext = context;
         mReceiver = new SimpleBroadcastReceiver(UI_HELPER_EXECUTOR, this::onReceive);
-        init();
+        init(tracker);
     }
 
     @VisibleForTesting
-    ScreenOnTracker(Context context, SimpleBroadcastReceiver receiver) {
+    ScreenOnTracker(@ApplicationContext Context context, SimpleBroadcastReceiver receiver,
+            DaggerSingletonTracker tracker) {
         mContext = context;
         mReceiver = receiver;
-        init();
+        init(tracker);
     }
 
-    private void init() {
+    private void init(DaggerSingletonTracker tracker) {
         mIsScreenOn = true;
         mReceiver.register(mContext, ACTION_SCREEN_ON, ACTION_SCREEN_OFF, ACTION_USER_PRESENT);
+        tracker.addCloseable(this);
     }
 
     @Override

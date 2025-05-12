@@ -23,7 +23,6 @@ import android.graphics.Paint
 import android.graphics.Path
 import android.graphics.RectF
 import com.android.app.animation.Interpolators
-import com.android.internal.policy.ScreenDecorationsUtils
 import com.android.launcher3.R
 import com.android.launcher3.Utilities
 import com.android.launcher3.Utilities.mapRange
@@ -98,12 +97,9 @@ class TaskbarBackgroundRenderer(private val context: TaskbarActivityContext) {
             shadowAlpha = LIGHT_THEME_SHADOW_ALPHA
         }
 
-        if (context.areDesktopTasksVisible()) {
-            fullCornerRadius = ScreenDecorationsUtils.getWindowCornerRadius(context)
-            cornerRadius = fullCornerRadius
-        } else {
-            fullCornerRadius = context.cornerRadius.toFloat()
-            cornerRadius = fullCornerRadius
+        fullCornerRadius = context.cornerRadius.toFloat()
+        cornerRadius = fullCornerRadius
+        if (!context.areDesktopTasksVisible()) {
             setCornerRoundness(MAX_ROUNDNESS)
         }
     }

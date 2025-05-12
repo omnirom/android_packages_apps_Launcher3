@@ -26,6 +26,7 @@ import com.android.launcher3.taskbar.allapps.TaskbarAllAppsController;
 import com.android.launcher3.taskbar.bubbles.BubbleControllers;
 import com.android.launcher3.taskbar.overlay.TaskbarOverlayController;
 import com.android.systemui.shared.rotation.RotationButtonController;
+import com.android.wm.shell.shared.bubbles.BubbleBarLocation;
 
 import java.io.PrintWriter;
 import java.util.ArrayList;
@@ -168,7 +169,7 @@ public class TaskbarControllers {
         taskbarOverlayController.init(this);
         taskbarAllAppsController.init(this, sharedState.allAppsVisible);
         navButtonController.init(this);
-        bubbleControllers.ifPresent(controllers -> controllers.init(this));
+        bubbleControllers.ifPresent(controllers -> controllers.init(sharedState, this));
         taskbarInsetsController.init(this);
         voiceInteractionWindowController.init(this);
         taskbarRecentAppsController.init(this);
@@ -194,11 +195,12 @@ public class TaskbarControllers {
         };
 
         if (taskbarDesktopModeController.getAreDesktopTasksVisible()) {
-            mCornerRoundness.updateValue(taskbarDesktopModeController.getTaskbarCornerRoundness(
-                    mSharedState.showCornerRadiusInDesktopMode));
+            mCornerRoundness.value = taskbarDesktopModeController.getTaskbarCornerRoundness(
+                    mSharedState.showCornerRadiusInDesktopMode);
         } else {
-            mCornerRoundness.updateValue(TaskbarBackgroundRenderer.MAX_ROUNDNESS);
+            mCornerRoundness.value = TaskbarBackgroundRenderer.MAX_ROUNDNESS;
         }
+        updateCornerRoundness();
         onPostInit();
     }
 
@@ -219,7 +221,17 @@ public class TaskbarControllers {
         uiController = newUiController;
         uiController.init(this);
         uiController.updateStateForSysuiFlags(mSharedState.sysuiStateFlags);
-
+        // if bubble controllers are present configure the UI controller
+        bubbleControllers.ifPresentOrElse(bubbleControllers -> {
+            BubbleBarLocation location =
+                    bubbleControllers.bubbleBarViewController.getBubbleBarLocation();
+            boolean hiddenForBubbles =
+                    bubbleControllers.bubbleBarViewController.isHiddenForNoBubbles();
+            if (!hiddenForBubbles) {
+                uiController.adjustHotseatForBubbleBar(/* isBubbleBarVisible= */ true);
+            }
+            uiController.onBubbleBarLocationUpdated(location);
+        }, () -> uiController.onBubbleBarLocationUpdated(null));
         // Notify that the ui controller has changed
         navbarButtonsViewController.onUiControllerChanged();
     }

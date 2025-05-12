@@ -99,6 +99,7 @@ import com.android.launcher3.widget.LauncherAppWidgetProviderInfo;
 import com.android.launcher3.widget.LauncherWidgetHolder;
 import com.android.launcher3.widget.LocalColorExtractor;
 import com.android.launcher3.widget.util.WidgetSizes;
+import com.android.systemui.shared.Flags;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -149,6 +150,14 @@ public class LauncherPreviewRenderer extends ContextWrapper
 
     public LauncherPreviewRenderer(Context context,
             InvariantDeviceProfile idp,
+            WallpaperColors wallpaperColorsOverride,
+            @Nullable final SparseArray<Size> launcherWidgetSpanInfo) {
+        this(context, idp, null, wallpaperColorsOverride, launcherWidgetSpanInfo);
+    }
+
+    public LauncherPreviewRenderer(Context context,
+            InvariantDeviceProfile idp,
+            SparseIntArray previewColorOverride,
             WallpaperColors wallpaperColorsOverride,
             @Nullable final SparseArray<Size> launcherWidgetSpanInfo) {
 
@@ -207,12 +216,29 @@ public class LauncherPreviewRenderer extends ContextWrapper
             mWorkspaceScreens.put(Workspace.SECOND_SCREEN_ID, rightPanel);
         }
 
-        WallpaperColors wallpaperColors = wallpaperColorsOverride != null
-                ? wallpaperColorsOverride
-                : WallpaperManager.getInstance(context).getWallpaperColors(FLAG_SYSTEM);
-        mWallpaperColorResources = wallpaperColors != null
-                ? LocalColorExtractor.newInstance(context).generateColorsOverride(wallpaperColors)
-                : null;
+        if (Flags.newCustomizationPickerUi()) {
+            if (previewColorOverride != null) {
+                mWallpaperColorResources = previewColorOverride;
+            } else if (wallpaperColorsOverride != null) {
+                mWallpaperColorResources = LocalColorExtractor.newInstance(
+                        context).generateColorsOverride(wallpaperColorsOverride);
+            } else {
+                WallpaperColors wallpaperColors = WallpaperManager.getInstance(
+                        context).getWallpaperColors(FLAG_SYSTEM);
+                mWallpaperColorResources = wallpaperColors != null
+                        ? LocalColorExtractor.newInstance(context).generateColorsOverride(
+                        wallpaperColors)
+                        : null;
+            }
+        } else {
+            WallpaperColors wallpaperColors = wallpaperColorsOverride != null
+                    ? wallpaperColorsOverride
+                    : WallpaperManager.getInstance(context).getWallpaperColors(FLAG_SYSTEM);
+            mWallpaperColorResources = wallpaperColors != null
+                    ? LocalColorExtractor.newInstance(context).generateColorsOverride(
+                    wallpaperColors)
+                    : null;
+        }
         mAppWidgetHost = new LauncherPreviewAppWidgetHost(context);
     }
 

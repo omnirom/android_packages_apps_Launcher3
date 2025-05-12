@@ -16,29 +16,28 @@
 
 package com.android.quickstep.contextualeducation;
 
-import android.content.Context;
-
 import com.android.launcher3.contextualeducation.ContextualEduStatsManager;
+import com.android.launcher3.dagger.LauncherAppSingleton;
 import com.android.quickstep.SystemUiProxy;
 import com.android.systemui.contextualeducation.GestureType;
+
+import javax.inject.Inject;
 
 /**
  * A class to update contextual education data via {@link SystemUiProxy}
  */
+@LauncherAppSingleton
 public class SystemContextualEduStatsManager extends ContextualEduStatsManager {
-    private Context mContext;
+    private final SystemUiProxy mSystemUiProxy;
 
-    public SystemContextualEduStatsManager(Context context) {
-        mContext = context;
+    @Inject
+    public SystemContextualEduStatsManager(SystemUiProxy systemUiProxy) {
+        mSystemUiProxy = systemUiProxy;
     }
 
     @Override
     public void updateEduStats(boolean isTrackpadGesture, GestureType gestureType) {
-        SystemUiProxy.INSTANCE.get(mContext).updateContextualEduStats(isTrackpadGesture,
+        mSystemUiProxy.updateContextualEduStats(isTrackpadGesture,
                 gestureType.name());
-    }
-
-    @Override
-    public void close() {
     }
 }

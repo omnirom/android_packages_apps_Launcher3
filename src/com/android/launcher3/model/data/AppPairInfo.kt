@@ -74,7 +74,7 @@ class AppPairInfo() : CollectionInfo() {
             (ActivityContext.lookupContext(context) as ActivityContext).getDeviceProfile().isTablet
         return Pair(
             isTablet || !getFirstApp().isNonResizeable(),
-            isTablet || !getSecondApp().isNonResizeable()
+            isTablet || !getSecondApp().isNonResizeable(),
         )
     }
 
@@ -105,10 +105,10 @@ class AppPairInfo() : CollectionInfo() {
     }
 
     /** Generates an ItemInfo for logging. */
-    override fun buildProto(cInfo: CollectionInfo?): LauncherAtom.ItemInfo {
+    override fun buildProto(cInfo: CollectionInfo?, context: Context): LauncherAtom.ItemInfo {
         val appPairIcon = LauncherAtom.FolderIcon.newBuilder().setCardinality(contents.size)
         appPairIcon.setLabelInfo(title.toString())
-        return getDefaultItemInfoBuilder()
+        return getDefaultItemInfoBuilder(context)
             .setFolderIcon(appPairIcon)
             .setRank(rank)
             .setContainerInfo(getContainerInfo())

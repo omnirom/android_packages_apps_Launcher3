@@ -177,12 +177,16 @@ public class FolderIcon extends FrameLayout implements FolderListener, FloatingI
         FolderIcon icon = inflateIcon(resId, activityContext, group, folderInfo);
         folder.setFolderIcon(icon);
         folder.bind(folderInfo);
+
         icon.setFolder(folder);
+        folderInfo.addListener(icon);
         return icon;
     }
 
     /**
-     * Builds a FolderIcon to be added to the Launcher
+     * Builds a FolderIcon to be added to the activity.
+     * This method doesn't add any listeners to the FolderInfo, and hence any changes to the info
+     * will not be reflected in the folder.
      */
     public static FolderIcon inflateIcon(int resId, ActivityContext activity,
             @Nullable ViewGroup group, FolderInfo folderInfo) {
@@ -227,8 +231,6 @@ public class FolderIcon extends FrameLayout implements FolderListener, FloatingI
         icon.mPreviewVerifier = createFolderGridOrganizer(activity.getDeviceProfile());
         icon.mPreviewVerifier.setFolderInfo(folderInfo);
         icon.updatePreviewItems(false);
-
-        folderInfo.addListener(icon);
 
         return icon;
     }

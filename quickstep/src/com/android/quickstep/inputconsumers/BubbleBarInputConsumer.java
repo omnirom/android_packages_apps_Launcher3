@@ -23,10 +23,12 @@ import android.graphics.PointF;
 import android.view.MotionEvent;
 import android.view.ViewConfiguration;
 
+import androidx.annotation.Nullable;
+
 import com.android.launcher3.taskbar.TaskbarActivityContext;
+import com.android.launcher3.taskbar.bubbles.BubbleBarSwipeController;
 import com.android.launcher3.taskbar.bubbles.BubbleBarViewController;
 import com.android.launcher3.taskbar.bubbles.BubbleControllers;
-import com.android.launcher3.taskbar.bubbles.BubbleDragController;
 import com.android.launcher3.taskbar.bubbles.stashing.BubbleStashController;
 import com.android.launcher3.testing.TestLogging;
 import com.android.launcher3.testing.shared.TestProtocol;
@@ -40,10 +42,11 @@ public class BubbleBarInputConsumer implements InputConsumer {
 
     private final BubbleStashController mBubbleStashController;
     private final BubbleBarViewController mBubbleBarViewController;
-    private final BubbleDragController mBubbleDragController;
+    @Nullable
+    private final BubbleBarSwipeController mBubbleBarSwipeController;
     private final InputMonitorCompat mInputMonitorCompat;
 
-    private boolean mSwipeUpOnBubbleHandle;
+    private boolean mPilfered;
     private boolean mPassedTouchSlop;
     private boolean mStashedOrCollapsedOnDown;
 
@@ -57,7 +60,8 @@ public class BubbleBarInputConsumer implements InputConsumer {
             InputMonitorCompat inputMonitorCompat) {
         mBubbleStashController = bubbleControllers.bubbleStashController;
         mBubbleBarViewController = bubbleControllers.bubbleBarViewController;
-        mBubbleDragController = bubbleControllers.bubbleDragController;
+        mBubbleBarSwipeController = bubbleControllers.bubbleBarSwipeController.orElse(null);
+
         mInputMonitorCompat = inputMonitorCompat;
         mTouchSlop = ViewConfiguration.get(context).getScaledTouchSlop();
         mTimeForTap = ViewConfiguration.getTapTimeout();
@@ -77,6 +81,9 @@ public class BubbleBarInputConsumer implements InputConsumer {
                 mDownPos.set(ev.getX(), ev.getY());
                 mLastPos.set(mDownPos);
                 mStashedOrCollapsedOnDown = mBubbleStashController.isStashed() || isCollapsed();
+                if (mBubbleBarSwipeController != null) {
+                    mBubbleBarSwipeController.start();
+                }
                 break;
             case MotionEvent.ACTION_MOVE:
                 int pointerIndex = ev.findPointerIndex(mActivePointerId);
@@ -90,11 +97,10 @@ public class BubbleBarInputConsumer implements InputConsumer {
                 if (!mPassedTouchSlop) {
                     mPassedTouchSlop = Math.abs(dY) > mTouchSlop || Math.abs(dX) > mTouchSlop;
                 }
-                if (mStashedOrCollapsedOnDown && !mSwipeUpOnBubbleHandle && mPassedTouchSlop) {
-                    boolean verticalGesture = Math.abs(dY) > Math.abs(dX);
-                    if (verticalGesture && !mBubbleDragController.isDragging()) {
-                        mSwipeUpOnBubbleHandle = true;
-                        mBubbleStashController.showBubbleBar(/* expandBubbles= */ true);
+                if (mBubbleBarSwipeController != null) {
+                    mBubbleBarSwipeController.swipeTo(dY);
+                    if (!mPilfered && mBubbleBarSwipeController.isSwipeGesture()) {
+                        mPilfered = true;
                         // Bubbles is handling the swipe so make sure no one else gets it.
                         TestLogging.recordEvent(TestProtocol.SEQUENCE_PILFER, "pilferPointers");
                         mInputMonitorCompat.pilferPointers();
@@ -102,11 +108,14 @@ public class BubbleBarInputConsumer implements InputConsumer {
                 }
                 break;
             case MotionEvent.ACTION_UP:
+                boolean swipeUpOnBubbleHandle = mBubbleBarSwipeController != null
+                        && mBubbleBarSwipeController.isSwipeGesture();
                 boolean isWithinTapTime = ev.getEventTime() - ev.getDownTime() <= mTimeForTap;
-                if (isWithinTapTime && !mSwipeUpOnBubbleHandle && !mPassedTouchSlop
+                if (isWithinTapTime && !swipeUpOnBubbleHandle && !mPassedTouchSlop
                         && mStashedOrCollapsedOnDown) {
                     // Taps on the handle / collapsed state should open the bar
-                    mBubbleStashController.showBubbleBar(/* expandBubbles= */ true);
+                    mBubbleStashController.showBubbleBar(
+                            /* expandBubbles= */ true, /* bubbleBarGesture= */ true);
                 }
                 break;
         }
@@ -116,8 +125,11 @@ public class BubbleBarInputConsumer implements InputConsumer {
     }
 
     private void cleanupAfterMotionEvent() {
+        if (mBubbleBarSwipeController != null) {
+            mBubbleBarSwipeController.finish();
+        }
         mPassedTouchSlop = false;
-        mSwipeUpOnBubbleHandle = false;
+        mPilfered = false;
     }
 
     private boolean isCollapsed() {

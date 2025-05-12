@@ -25,20 +25,23 @@ import androidx.annotation.Nullable;
 
 import com.android.launcher3.popup.SystemShortcut;
 import com.android.launcher3.statemanager.StateManager;
-import com.android.quickstep.RecentsActivity;
+import com.android.launcher3.statemanager.StatefulContainer;
 import com.android.quickstep.TopTaskTracker;
 import com.android.quickstep.fallback.RecentsState;
-import com.android.quickstep.util.TISBindHelper;
 import com.android.quickstep.views.RecentsView;
+import com.android.quickstep.views.RecentsViewContainer;
 
 import java.util.stream.Stream;
 
 /**
  * A data source which integrates with the fallback RecentsActivity instance (for 3P launchers).
+ * @param <T> The type of the RecentsViewContainer that will handle Recents state changes.
  */
-public class FallbackTaskbarUIController extends TaskbarUIController {
+public class FallbackTaskbarUIController
+        <T extends RecentsViewContainer & StatefulContainer<RecentsState>>
+        extends TaskbarUIController {
 
-    private final RecentsActivity mRecentsActivity;
+    private final T mRecentsContainer;
 
     private final StateManager.StateListener<RecentsState> mStateListener =
             new StateManager.StateListener<RecentsState>() {
@@ -46,8 +49,12 @@ public class FallbackTaskbarUIController extends TaskbarUIController {
                 public void onStateTransitionStart(RecentsState toState) {
                     animateToRecentsState(toState);
 
+                    RecentsView recentsView = getRecentsView();
+                    if (recentsView == null) {
+                        return;
+                    }
                     // Handle tapping on live tile.
-                    getRecentsView().setTaskLaunchListener(toState == RecentsState.DEFAULT
+                    recentsView.setTaskLaunchListener(toState == RecentsState.DEFAULT
                             ? (() -> animateToRecentsState(RecentsState.BACKGROUND_APP)) : null);
                 }
 
@@ -63,23 +70,26 @@ public class FallbackTaskbarUIController extends TaskbarUIController {
                 }
             };
 
-    public FallbackTaskbarUIController(RecentsActivity recentsActivity) {
-        mRecentsActivity = recentsActivity;
+    public FallbackTaskbarUIController(T recentsContainer) {
+        mRecentsContainer = recentsContainer;
     }
 
     @Override
     protected void init(TaskbarControllers taskbarControllers) {
         super.init(taskbarControllers);
-        mRecentsActivity.setTaskbarUIController(this);
-        mRecentsActivity.getStateManager().addStateListener(mStateListener);
+        mRecentsContainer.setTaskbarUIController(this);
+        mRecentsContainer.getStateManager().addStateListener(mStateListener);
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        getRecentsView().setTaskLaunchListener(null);
-        mRecentsActivity.setTaskbarUIController(null);
-        mRecentsActivity.getStateManager().removeStateListener(mStateListener);
+        RecentsView recentsView = getRecentsView();
+        if (recentsView != null) {
+            recentsView.setTaskLaunchListener(null);
+        }
+        mRecentsContainer.setTaskbarUIController(null);
+        mRecentsContainer.getStateManager().removeStateListener(mStateListener);
     }
 
     /**
@@ -108,8 +118,8 @@ public class FallbackTaskbarUIController extends TaskbarUIController {
     }
 
     @Override
-    public RecentsView getRecentsView() {
-        return mRecentsActivity.getOverviewPanel();
+    public @Nullable RecentsView getRecentsView() {
+        return mRecentsContainer.getOverviewPanel();
     }
 
     @Override
@@ -128,14 +138,8 @@ public class FallbackTaskbarUIController extends TaskbarUIController {
         return topTask.isHomeTask() || topTask.isRecentsTask();
     }
 
-    @Nullable
-    @Override
-    protected TISBindHelper getTISBindHelper() {
-        return mRecentsActivity.getTISBindHelper();
-    }
-
     @Override
     protected String getTaskbarUIControllerName() {
-        return "FallbackTaskbarUIController";
+        return "FallbackTaskbarUIController<" + mRecentsContainer.getClass().getSimpleName() + ">";
     }
 }

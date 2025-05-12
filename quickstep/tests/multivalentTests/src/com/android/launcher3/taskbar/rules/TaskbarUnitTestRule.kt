@@ -19,27 +19,27 @@ package com.android.launcher3.taskbar.rules
 import android.app.Instrumentation
 import android.app.PendingIntent
 import android.content.IIntentSender
-import android.content.Intent
-import android.provider.Settings
 import android.provider.Settings.Secure.NAV_BAR_KIDS_MODE
 import android.provider.Settings.Secure.USER_SETUP_COMPLETE
+import android.provider.Settings.Secure.getUriFor
 import androidx.test.platform.app.InstrumentationRegistry
-import androidx.test.rule.ServiceTestRule
 import com.android.launcher3.LauncherAppState
 import com.android.launcher3.statehandlers.DesktopVisibilityController
 import com.android.launcher3.taskbar.TaskbarActivityContext
+import com.android.launcher3.taskbar.TaskbarControllers
 import com.android.launcher3.taskbar.TaskbarManager
 import com.android.launcher3.taskbar.TaskbarNavButtonController.TaskbarNavButtonCallbacks
 import com.android.launcher3.taskbar.TaskbarViewController
+import com.android.launcher3.taskbar.bubbles.BubbleControllers
 import com.android.launcher3.taskbar.rules.TaskbarUnitTestRule.InjectController
 import com.android.launcher3.util.Executors.UI_HELPER_EXECUTOR
-import com.android.launcher3.util.LauncherMultivalentJUnit.Companion.isRunningInRobolectric
 import com.android.launcher3.util.TestUtil
 import com.android.quickstep.AllAppsActionManager
-import com.android.quickstep.TouchInteractionService
-import com.android.quickstep.TouchInteractionService.TISBinder
+import java.lang.reflect.Field
+import java.lang.reflect.ParameterizedType
+import java.util.Locale
+import java.util.Optional
 import org.junit.Assume.assumeTrue
-import org.junit.rules.RuleChain
 import org.junit.rules.TestRule
 import org.junit.runner.Description
 import org.junit.runners.model.Statement
@@ -76,11 +76,6 @@ class TaskbarUnitTestRule(
 ) : TestRule {
 
     private val instrumentation = InstrumentationRegistry.getInstrumentation()
-    private val serviceTestRule = ServiceTestRule()
-
-    private val userSetupCompleteRule = TaskbarSecureSettingRule(USER_SETUP_COMPLETE)
-    private val kidsModeRule = TaskbarSecureSettingRule(NAV_BAR_KIDS_MODE)
-    private val settingRules = RuleChain.outerRule(userSetupCompleteRule).around(kidsModeRule)
 
     private lateinit var taskbarManager: TaskbarManager
 
@@ -91,10 +86,6 @@ class TaskbarUnitTestRule(
         }
 
     override fun apply(base: Statement, description: Description): Statement {
-        return settingRules.apply(createStatement(base, description), description)
-    }
-
-    private fun createStatement(base: Statement, description: Description): Statement {
         return object : Statement() {
             override fun evaluate() {
 
@@ -106,34 +97,10 @@ class TaskbarUnitTestRule(
                 }
 
                 // Process secure setting annotations.
-                instrumentation.runOnMainSync {
-                    userSetupCompleteRule.putInt(
-                        if (description.getAnnotation(UserSetupMode::class.java) != null) {
-                            0
-                        } else {
-                            1
-                        }
-                    )
-                    kidsModeRule.putInt(
-                        if (description.getAnnotation(NavBarKidsMode::class.java) != null) 1 else 0
-                    )
-                }
-
-                // Check for existing Taskbar instance from Launcher process.
-                val launcherTaskbarManager: TaskbarManager? =
-                    if (!isRunningInRobolectric) {
-                        try {
-                            val tisBinder =
-                                serviceTestRule.bindService(
-                                    Intent(context, TouchInteractionService::class.java)
-                                ) as? TISBinder
-                            tisBinder?.taskbarManager
-                        } catch (_: Exception) {
-                            null
-                        }
-                    } else {
-                        null
-                    }
+                context.settingsCacheSandbox[getUriFor(USER_SETUP_COMPLETE)] =
+                    if (description.getAnnotation(UserSetupMode::class.java) != null) 0 else 1
+                context.settingsCacheSandbox[getUriFor(NAV_BAR_KIDS_MODE)] =
+                    if (description.getAnnotation(NavBarKidsMode::class.java) != null) 1 else 0
 
                 taskbarManager =
                     TestUtil.getOnUiThread {
@@ -153,23 +120,24 @@ class TaskbarUnitTestRule(
                         }
                     }
 
+                if (description.getAnnotation(ForceRtl::class.java) != null) {
+                    // Needs to be set on window context instead of sandbox context, because it does
+                    // does not propagate between them. However, this change will impact created
+                    // TaskbarActivityContext instances, since they wrap the window context.
+                    taskbarManager.windowContext.resources.configuration.setLayoutDirection(
+                        RTL_LOCALE
+                    )
+                }
+
                 try {
                     TaskbarViewController.enableModelLoadingForTests(false)
 
-                    // Replace Launcher Taskbar window with test instance.
-                    instrumentation.runOnMainSync {
-                        launcherTaskbarManager?.setSuspended(true)
-                        taskbarManager.onUserUnlocked() // Required to complete initialization.
-                    }
+                    // Required to complete initialization.
+                    instrumentation.runOnMainSync { taskbarManager.onUserUnlocked() }
 
                     base.evaluate()
                 } finally {
-                    // Revert Taskbar window.
-                    instrumentation.runOnMainSync {
-                        taskbarManager.destroy()
-                        launcherTaskbarManager?.setSuspended(false)
-                    }
-
+                    instrumentation.runOnMainSync { taskbarManager.destroy() }
                     TaskbarViewController.enableModelLoadingForTests(true)
                 }
             }
@@ -180,17 +148,36 @@ class TaskbarUnitTestRule(
     fun recreateTaskbar() = instrumentation.runOnMainSync { taskbarManager.recreateTaskbar() }
 
     private fun injectControllers() {
-        val controllers = activityContext.controllers
-        val controllerFieldsByType = controllers.javaClass.fields.associateBy { it.type }
+        val bubbleControllerTypes =
+            BubbleControllers::class.java.fields.map { f ->
+                if (f.type == Optional::class.java) {
+                    (f.genericType as ParameterizedType).actualTypeArguments[0] as Class<*>
+                } else {
+                    f.type
+                }
+            }
         testInstance.javaClass.fields
             .filter { it.isAnnotationPresent(InjectController::class.java) }
             .forEach {
-                it.set(
-                    testInstance,
-                    controllerFieldsByType[it.type]?.get(controllers)
-                        ?: throw NoSuchElementException("Failed to find controller for ${it.type}"),
-                )
+                val controllers: Any =
+                    if (it.type in bubbleControllerTypes) {
+                        activityContext.controllers.bubbleControllers.orElseThrow {
+                            NoSuchElementException("Bubble controllers are not initialized")
+                        }
+                    } else {
+                        activityContext.controllers
+                    }
+                injectController(it, testInstance, controllers)
             }
+    }
+
+    private fun injectController(field: Field, testInstance: Any, controllers: Any) {
+        val controllerFieldsByType = controllers.javaClass.fields.associateBy { it.type }
+        field.set(
+            testInstance,
+            controllerFieldsByType[field.type]?.get(controllers)
+                ?: throw NoSuchElementException("Failed to find controller for ${field.type}"),
+        )
     }
 
     /**
@@ -215,24 +202,10 @@ class TaskbarUnitTestRule(
     @Target(AnnotationTarget.CLASS, AnnotationTarget.FUNCTION)
     annotation class NavBarKidsMode
 
-    /** Rule for Taskbar integer-based secure settings. */
-    private inner class TaskbarSecureSettingRule(private val settingName: String) : TestRule {
-
-        override fun apply(base: Statement, description: Description): Statement {
-            return object : Statement() {
-                override fun evaluate() {
-                    val originalValue =
-                        Settings.Secure.getInt(context.contentResolver, settingName, /* def= */ 0)
-                    try {
-                        base.evaluate()
-                    } finally {
-                        instrumentation.runOnMainSync { putInt(originalValue) }
-                    }
-                }
-            }
-        }
-
-        /** Puts [value] into secure settings under [settingName]. */
-        fun putInt(value: Int) = Settings.Secure.putInt(context.contentResolver, settingName, value)
-    }
+    /** Forces RTL UI for tests. */
+    @Retention(AnnotationRetention.RUNTIME)
+    @Target(AnnotationTarget.CLASS, AnnotationTarget.FUNCTION)
+    annotation class ForceRtl
 }
+
+private val RTL_LOCALE = Locale.of("ar", "XB")

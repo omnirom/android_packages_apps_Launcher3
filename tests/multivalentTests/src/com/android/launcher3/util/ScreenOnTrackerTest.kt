@@ -39,13 +39,14 @@ class ScreenOnTrackerTest {
     @Mock private lateinit var receiver: SimpleBroadcastReceiver
     @Mock private lateinit var context: Context
     @Mock private lateinit var listener: ScreenOnTracker.ScreenOnListener
+    @Mock private lateinit var tracker: DaggerSingletonTracker
 
     private lateinit var underTest: ScreenOnTracker
 
     @Before
     fun setup() {
         MockitoAnnotations.initMocks(this)
-        underTest = ScreenOnTracker(context, receiver)
+        underTest = ScreenOnTracker(context, receiver, tracker)
     }
 
     @Test

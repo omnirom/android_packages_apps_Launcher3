@@ -32,7 +32,6 @@ import com.android.launcher3.util.TestUtil;
 import com.android.launcher3.util.rule.ScreenRecordRule.ScreenRecord;
 
 import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 
 /**
@@ -48,12 +47,6 @@ public class TaplWorkspaceTest extends AbstractLauncherUiTest<Launcher> {
 
     private int getCurrentWorkspacePage(Launcher launcher) {
         return launcher.getWorkspace().getCurrentPage();
-    }
-
-    @Before
-    public void setUp() throws Exception {
-        super.setUp();
-        initialize(this);
     }
 
     @After

@@ -24,7 +24,7 @@ import android.os.UserHandle;
 
 import com.android.launcher3.LauncherAppState;
 import com.android.launcher3.LauncherModel;
-import com.android.launcher3.util.PackageManagerHelper;
+import com.android.launcher3.util.ApplicationInfoWrapper;
 import com.android.launcher3.util.PackageUserKey;
 
 import java.util.ArrayList;
@@ -52,7 +52,6 @@ public class SdCardAvailableReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
         final LauncherApps launcherApps = context.getSystemService(LauncherApps.class);
-        final PackageManagerHelper pmHelper = PackageManagerHelper.INSTANCE.get(context);
         for (PackageUserKey puk : mPackages) {
             UserHandle user = puk.mUser;
 
@@ -60,7 +59,7 @@ public class SdCardAvailableReceiver extends BroadcastReceiver {
             final ArrayList<String> packagesUnavailable = new ArrayList<>();
 
             if (!launcherApps.isPackageEnabled(puk.mPackageName, user)) {
-                if (pmHelper.isAppOnSdcard(puk.mPackageName, user)) {
+                if (new ApplicationInfoWrapper(context, puk.mPackageName, user).isOnSdCard()) {
                     packagesUnavailable.add(puk.mPackageName);
                 } else {
                     packagesRemoved.add(puk.mPackageName);

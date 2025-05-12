@@ -35,7 +35,7 @@ class ModelTaskController(
     val dataModel: BgDataModel,
     val allAppsList: AllAppsList,
     private val model: LauncherModel,
-    private val uiExecutor: Executor
+    private val uiExecutor: Executor,
 ) {
 
     /** Schedules a {@param task} to be executed on the current callbacks. */
@@ -79,10 +79,19 @@ class ModelTaskController(
     }
 
     fun bindUpdatedWidgets(dataModel: BgDataModel) {
-        val widgets =
-            WidgetsListBaseEntriesBuilder(app.context)
-                .build(dataModel.widgetsModel.widgetsByPackageItem)
-        scheduleCallbackTask { it.bindAllWidgets(widgets) }
+        val widgetsByPackageItem = dataModel.widgetsModel.widgetsByPackageItem
+        val allWidgets = WidgetsListBaseEntriesBuilder(app.context).build(widgetsByPackageItem)
+
+        val defaultWidgetsFilter = dataModel.widgetsModel.defaultWidgetsFilter
+        val defaultWidgets =
+            if (defaultWidgetsFilter != null) {
+                WidgetsListBaseEntriesBuilder(app.context)
+                    .build(widgetsByPackageItem, defaultWidgetsFilter)
+            } else {
+                emptyList()
+            }
+
+        scheduleCallbackTask { it.bindAllWidgets(allWidgets, defaultWidgets) }
     }
 
     fun deleteAndBindComponentsRemoved(matcher: Predicate<ItemInfo?>, reason: String?) {
@@ -99,7 +108,7 @@ class ModelTaskController(
             val packageUserKeyToUidMap =
                 apps.associateBy(
                     keySelector = { PackageUserKey(it.componentName!!.packageName, it.user) },
-                    valueTransform = { it.uid }
+                    valueTransform = { it.uid },
                 )
             scheduleCallbackTask { it.bindAllApplications(apps, flags, packageUserKeyToUidMap) }
         }

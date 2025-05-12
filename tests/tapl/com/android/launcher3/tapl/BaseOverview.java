@@ -369,7 +369,6 @@ public class BaseOverview extends LauncherInstrumentation.VisibleContainer {
         }
     }
 
-
     int getTaskCount() {
         return getTasks().size();
     }
@@ -441,7 +440,7 @@ public class BaseOverview extends LauncherInstrumentation.VisibleContainer {
                     "Not expecting an actions bar: device is tablet and task is not centered");
             return false;
         }
-        if (task.isTaskSplit() && (!mLauncher.isAppPairsEnabled() || !isTablet)) {
+        if (task.isGrouped() && (!mLauncher.isAppPairsEnabled() || !isTablet)) {
             testLogD(TAG, "Not expecting an actions bar: device is phone and task is split");
             // Overview actions aren't visible for split screen tasks, except for save app pair
             // button on tablets.
@@ -504,11 +503,11 @@ public class BaseOverview extends LauncherInstrumentation.VisibleContainer {
                 "want to assert overview actions view visibility="
                         + isActionsViewVisible()
                         + ", focused task is "
-                        + (task == null ? "null" : (task.isTaskSplit() ? "split" : "not split"))
+                        + (task == null ? "null" : (task.isGrouped() ? "split" : "not split"))
                 )) {
 
             if (isActionsViewVisible()) {
-                if (task.isTaskSplit()) {
+                if (task.isGrouped()) {
                     mLauncher.waitForOverviewObject("action_save_app_pair");
                 } else {
                     mLauncher.waitForOverviewObject("action_buttons");
@@ -537,6 +536,10 @@ public class BaseOverview extends LauncherInstrumentation.VisibleContainer {
         int focusedTaskHeight = focusTaskSize.height();
         for (UiObject2 task : taskViews) {
             OverviewTask overviewTask = new OverviewTask(mLauncher, task, this);
+            // Desktop tasks can't be focused tasks, but are the same size.
+            if (overviewTask.isDesktop()) {
+                continue;
+            }
             if (overviewTask.getVisibleHeight() == focusedTaskHeight) {
                 return overviewTask;
             }

@@ -17,6 +17,7 @@
 package com.android.launcher3.model
 
 import android.platform.test.flag.junit.SetFlagsRule
+import android.util.Log
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.SmallTest
 import androidx.test.platform.app.InstrumentationRegistry
@@ -34,7 +35,14 @@ import org.junit.runner.RunWith
 
 private val phoneContext = InstrumentationRegistry.getInstrumentation().targetContext
 
-data class EntryData(val x: Int, val y: Int, val spanX: Int, val spanY: Int, val rank: Int)
+data class EntryData(
+    val x: Int,
+    val y: Int,
+    val screenId: Int,
+    val spanX: Int,
+    val spanY: Int,
+    val rank: Int,
+)
 
 /**
  * Holds the data needed to run a test in GridMigrationTest, usually we would have a src
@@ -52,11 +60,15 @@ class GridMigrationData(dbFileName: String?, val gridState: DeviceGridState) {
             phoneContext,
             dbFileName,
             { UserCache.INSTANCE.get(phoneContext).getSerialNumberForUser(it) },
-            {}
+            {},
         )
 
-    fun readEntries(): List<GridSizeMigrationUtil.DbEntry> =
-        GridSizeMigrationUtil.readAllEntries(dbHelper.readableDatabase, TABLE_NAME, phoneContext)
+    fun readEntries(): List<DbEntry> =
+        GridSizeMigrationDBController.readAllEntries(
+            dbHelper.readableDatabase,
+            TABLE_NAME,
+            phoneContext,
+        )
 }
 
 /**
@@ -68,34 +80,39 @@ class GridMigrationData(dbFileName: String?, val gridState: DeviceGridState) {
 @RunWith(AndroidJUnit4::class)
 class GridMigrationTest {
     private val DB_FILE = "test_launcher.db"
+    // This DB is used for testing the heuristic where we add an extra row at the bottom.
+    private val DB_FILE_NO_SHIFT = "test_launcher_2.db"
 
     @JvmField
     @Rule
     val setFlagsRule = SetFlagsRule(SetFlagsRule.DefaultInitValueType.DEVICE_DEFAULT)
 
-    // Copying the src db for all tests.
-    @JvmField
-    @Rule
-    val fileCopier =
-        TestToPhoneFileCopier(
-            src = "databases/GridMigrationTest/$DB_FILE",
-            dest = "databases/$DB_FILE",
-            removeOnFinish = true
-        )
-
     @Before
     fun setup() {
-        setFlagsRule.setFlags(false, Flags.FLAG_ENABLE_GRID_MIGRATION_FIX)
+        setFlagsRule.setFlags(true, Flags.FLAG_ONE_GRID_SPECS)
     }
 
     private fun migrate(src: GridMigrationData, dst: GridMigrationData) {
-        GridSizeMigrationUtil.migrateGridIfNeeded(
-            phoneContext,
-            src.gridState,
-            dst.gridState,
-            dst.dbHelper,
-            src.dbHelper.readableDatabase
-        )
+        if (Flags.gridMigrationRefactor()) {
+            val gridSizeMigrationLogic = GridSizeMigrationLogic()
+            gridSizeMigrationLogic.migrateGrid(
+                phoneContext,
+                src.gridState,
+                dst.gridState,
+                dst.dbHelper,
+                src.dbHelper.readableDatabase,
+                true,
+            )
+        } else {
+            GridSizeMigrationDBController.migrateGridIfNeeded(
+                phoneContext,
+                src.gridState,
+                dst.gridState,
+                dst.dbHelper,
+                src.dbHelper.readableDatabase,
+                true,
+            )
+        }
     }
 
     /**
@@ -114,14 +131,18 @@ class GridMigrationTest {
         }
     }
 
-    private fun compare(dst: GridMigrationData, target: GridMigrationData) {
-        val sort = compareBy<GridSizeMigrationUtil.DbEntry>({ it.cellX }, { it.cellY })
-        val mapF = { it: GridSizeMigrationUtil.DbEntry ->
-            EntryData(it.cellX, it.cellY, it.spanX, it.spanY, it.rank)
+    private fun compare(dst: GridMigrationData, target: GridMigrationData, src: GridMigrationData) {
+        val sort = compareBy<DbEntry>({ it.screenId }, { it.cellX }, { it.cellY })
+        val mapF = { it: DbEntry ->
+            EntryData(it.cellX, it.cellY, it.screenId, it.spanX, it.spanY, it.rank)
         }
         val entriesDst = dst.readEntries().sortedWith(sort).map(mapF)
         val entriesTarget = target.readEntries().sortedWith(sort).map(mapF)
-
+        val entriesSrc = src.readEntries().sortedWith(sort).map(mapF)
+        Log.i(
+            TAG,
+            "entriesSrc: $entriesSrc\n entriesDst: $entriesDst\n entriesTarget: $entriesTarget",
+        )
         assert(entriesDst == entriesTarget) {
             "The elements on the dst database is not the same as in the target"
         }
@@ -140,8 +161,18 @@ class GridMigrationTest {
             "Source db and destination db do not contain the same number of elements"
         }
         validateDb(dst)
-        compare(dst, target)
+        compare(dst, target, src)
     }
+
+    // Copying the src db for all tests.
+    @JvmField
+    @Rule
+    val fileCopier =
+        TestToPhoneFileCopier(
+            src = "databases/GridMigrationTest/$DB_FILE",
+            dest = "databases/$DB_FILE",
+            removeOnFinish = true,
+        )
 
     @JvmField
     @Rule
@@ -149,7 +180,7 @@ class GridMigrationTest {
         TestToPhoneFileCopier(
             src = "databases/GridMigrationTest/result5x5to3x3.db",
             dest = "databases/result5x5to3x3.db",
-            removeOnFinish = true
+            removeOnFinish = true,
         )
 
     @Test
@@ -158,12 +189,12 @@ class GridMigrationTest {
             src = GridMigrationData(DB_FILE, DeviceGridState(5, 5, 5, TYPE_PHONE, DB_FILE)),
             dst =
                 GridMigrationData(
-                    null, // in memory db, to download a new db change null for the filename of the
-                    // db name to store it. Do not use existing names.
-                    DeviceGridState(3, 3, 3, TYPE_PHONE, "")
+                    null, // in memory db, to download a new db change null for
+                    // the filename of the db name to store it. Do not use existing names.
+                    DeviceGridState(3, 3, 3, TYPE_PHONE, ""),
                 ),
             target =
-                GridMigrationData("result5x5to3x3.db", DeviceGridState(3, 3, 3, TYPE_PHONE, ""))
+                GridMigrationData("result5x5to3x3.db", DeviceGridState(3, 3, 3, TYPE_PHONE, "")),
         )
 
     @JvmField
@@ -172,7 +203,7 @@ class GridMigrationTest {
         TestToPhoneFileCopier(
             src = "databases/GridMigrationTest/result5x5to4x7.db",
             dest = "databases/result5x5to4x7.db",
-            removeOnFinish = true
+            removeOnFinish = true,
         )
 
     @Test
@@ -181,12 +212,48 @@ class GridMigrationTest {
             src = GridMigrationData(DB_FILE, DeviceGridState(5, 5, 5, TYPE_PHONE, DB_FILE)),
             dst =
                 GridMigrationData(
-                    null, // in memory db, to download a new db change null for the filename of the
-                    // db name to store it. Do not use existing names.
-                    DeviceGridState(4, 7, 4, TYPE_PHONE, "")
+                    null, // in memory db, to download a new db change null for
+                    // the filename of the db name to store it. Do not use existing names.
+                    DeviceGridState(4, 7, 4, TYPE_PHONE, ""),
                 ),
             target =
-                GridMigrationData("result5x5to4x7.db", DeviceGridState(4, 7, 4, TYPE_PHONE, ""))
+                GridMigrationData("result5x5to4x7.db", DeviceGridState(4, 7, 4, TYPE_PHONE, "")),
+        )
+
+    @JvmField
+    @Rule
+    val result5x5to5x8WithShift =
+        TestToPhoneFileCopier(
+            src = "databases/GridMigrationTest/result5x5to5x8WithShift.db",
+            dest = "databases/result5x5to5x8WithShift.db",
+            removeOnFinish = true,
+        )
+
+    @Test
+    fun `5x5 to 5x8 with cells shifting down`() =
+        runTest(
+            src = GridMigrationData(DB_FILE, DeviceGridState(5, 5, 5, TYPE_PHONE, DB_FILE)),
+            dst =
+                GridMigrationData(
+                    null, // in memory db, to download a new db change null
+                    // for
+                    // the filename of the db name to store it. Do not use existing names.
+                    DeviceGridState(5, 8, 5, TYPE_PHONE, ""),
+                ),
+            target =
+                GridMigrationData(
+                    "result5x5to5x8WithShift.db",
+                    DeviceGridState(5, 8, 5, TYPE_PHONE, ""),
+                ),
+        )
+
+    @JvmField
+    @Rule
+    val fileCopierNoShift =
+        TestToPhoneFileCopier(
+            src = "databases/GridMigrationTest/$DB_FILE_NO_SHIFT",
+            dest = "databases/$DB_FILE_NO_SHIFT",
+            removeOnFinish = true,
         )
 
     @JvmField
@@ -195,48 +262,28 @@ class GridMigrationTest {
         TestToPhoneFileCopier(
             src = "databases/GridMigrationTest/result5x5to5x8.db",
             dest = "databases/result5x5to5x8.db",
-            removeOnFinish = true
+            removeOnFinish = true,
         )
 
     @Test
-    fun `5x5 to 5x8`() =
+    fun `5x5 to 5x8 without cell shift`() =
         runTest(
-            src = GridMigrationData(DB_FILE, DeviceGridState(5, 5, 5, TYPE_PHONE, DB_FILE)),
+            src =
+                GridMigrationData(
+                    DB_FILE_NO_SHIFT,
+                    DeviceGridState(5, 5, 5, TYPE_PHONE, DB_FILE_NO_SHIFT),
+                ),
             dst =
                 GridMigrationData(
-                    null, // in memory db, to download a new db change null for the filename of the
-                    // db name to store it. Do not use existing names.
-                    DeviceGridState(5, 8, 5, TYPE_PHONE, "")
+                    null, // in memory db, to download a new db change null for
+                    // the filename of the db name to store it. Do not use existing names.
+                    DeviceGridState(5, 8, 5, TYPE_PHONE, ""),
                 ),
             target =
-                GridMigrationData("result5x5to5x8.db", DeviceGridState(5, 8, 5, TYPE_PHONE, ""))
+                GridMigrationData("result5x5to5x8.db", DeviceGridState(5, 8, 5, TYPE_PHONE, "")),
         )
 
-    @JvmField
-    @Rule
-    val flaggedResult5x5to5x8 =
-        TestToPhoneFileCopier(
-            src = "databases/GridMigrationTest/flagged_result5x5to5x8.db",
-            dest = "databases/flagged_result5x5to5x8.db",
-            removeOnFinish = true
-        )
-
-    @Test
-    fun `flagged 5x5 to 5x8`() {
-        setFlagsRule.setFlags(true, Flags.FLAG_ENABLE_GRID_MIGRATION_FIX)
-        runTest(
-            src = GridMigrationData(DB_FILE, DeviceGridState(5, 5, 5, TYPE_PHONE, DB_FILE)),
-            dst =
-                GridMigrationData(
-                    null, // in memory db, to download a new db change null for the filename of the
-                    // db name to store it. Do not use existing names.
-                    DeviceGridState(5, 8, 5, TYPE_PHONE, "")
-                ),
-            target =
-                GridMigrationData(
-                    "flagged_result5x5to5x8.db",
-                    DeviceGridState(5, 8, 5, TYPE_PHONE, "")
-                )
-        )
+    companion object {
+        private const val TAG = "GridMigrationTest"
     }
 }

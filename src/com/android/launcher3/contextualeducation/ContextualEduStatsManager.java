@@ -16,22 +16,25 @@
 
 package com.android.launcher3.contextualeducation;
 
-import static com.android.launcher3.util.MainThreadInitializedObject.forOverride;
-
-import com.android.launcher3.R;
-import com.android.launcher3.util.MainThreadInitializedObject;
-import com.android.launcher3.util.ResourceBasedOverride;
-import com.android.launcher3.util.SafeCloseable;
+import com.android.launcher3.dagger.LauncherAppSingleton;
+import com.android.launcher3.dagger.LauncherBaseAppComponent;
+import com.android.launcher3.util.DaggerSingletonObject;
 import com.android.systemui.contextualeducation.GestureType;
+
+import javax.inject.Inject;
 
 /**
  * A class to update contextual education data. It is a no-op implementation and could be
- * overridden by changing the resource value [R.string.contextual_edu_manager_class] to provide
- * a real implementation.
+ * overridden through dagger modules to provide a real implementation.
  */
-public class ContextualEduStatsManager implements ResourceBasedOverride, SafeCloseable {
-    public static final MainThreadInitializedObject<ContextualEduStatsManager> INSTANCE =
-            forOverride(ContextualEduStatsManager.class, R.string.contextual_edu_manager_class);
+@LauncherAppSingleton
+public class ContextualEduStatsManager {
+    public static final DaggerSingletonObject<ContextualEduStatsManager> INSTANCE =
+            new DaggerSingletonObject<>(LauncherBaseAppComponent::getContextualEduStatsManager);
+
+    @Inject
+    public ContextualEduStatsManager() { }
+
 
     /**
      * Updates contextual education stats when a gesture is triggered
@@ -39,9 +42,5 @@ public class ContextualEduStatsManager implements ResourceBasedOverride, SafeClo
      * @param gestureType type of gesture triggered
      */
     public void updateEduStats(boolean isTrackpadGesture, GestureType gestureType) {
-    }
-
-    @Override
-    public void close() {
     }
 }

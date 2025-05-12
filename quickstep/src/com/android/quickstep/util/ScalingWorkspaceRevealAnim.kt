@@ -16,15 +16,20 @@
 
 package com.android.quickstep.util
 
+import android.animation.Animator
+import android.animation.AnimatorListenerAdapter
 import android.animation.AnimatorSet
 import android.graphics.Matrix
 import android.graphics.Path
 import android.graphics.RectF
+import android.util.Log
 import android.view.View
 import android.view.animation.PathInterpolator
 import androidx.core.graphics.transform
+import com.android.app.animation.Animations
 import com.android.app.animation.Interpolators
 import com.android.app.animation.Interpolators.LINEAR
+import com.android.launcher3.Flags
 import com.android.launcher3.LauncherAnimUtils.HOTSEAT_SCALE_PROPERTY_FACTORY
 import com.android.launcher3.LauncherAnimUtils.SCALE_INDEX_WORKSPACE_STATE
 import com.android.launcher3.LauncherAnimUtils.WORKSPACE_SCALE_PROPERTY_FACTORY
@@ -39,14 +44,16 @@ import com.android.launcher3.states.StateAnimationConfig.SKIP_SCRIM
 import com.android.launcher3.uioverrides.QuickstepLauncher
 import com.android.quickstep.views.RecentsView
 
+const val TAG = "ScalingWorkspaceRevealAnim"
+
 /**
  * Creates an animation where the workspace and hotseat fade in while revealing from the center of
  * the screen outwards radially. This is used in conjunction with the swipe up to home animation.
  */
 class ScalingWorkspaceRevealAnim(
-    launcher: QuickstepLauncher,
+    private val launcher: QuickstepLauncher,
     siblingAnimation: RectFSpringAnim?,
-    windowTargetRect: RectF?
+    windowTargetRect: RectF?,
 ) {
     companion object {
         private const val FADE_DURATION_MS = 200L
@@ -87,25 +94,40 @@ class ScalingWorkspaceRevealAnim(
         launcher.workspace.stateTransitionAnimation.setScrim(
             PropertySetter.NO_ANIM_PROPERTY_SETTER,
             LauncherState.BACKGROUND_APP,
-            setupConfig
+            setupConfig,
         )
 
         val workspace = launcher.workspace
         val hotseat = launcher.hotseat
+
+        var fromSize =
+            if (Flags.coordinateWorkspaceScale()) {
+                // Interrupt the current animation, if any.
+                Animations.cancelOngoingAnimation(workspace)
+                Animations.cancelOngoingAnimation(hotseat)
+
+                if (workspace.scaleX != MAX_SIZE) {
+                    workspace.scaleX
+                } else {
+                    MIN_SIZE
+                }
+            } else {
+                MIN_SIZE
+            }
 
         // Scale the Workspace and Hotseat around the same pivot.
         workspace.setPivotToScaleWithSelf(hotseat)
         animation.addFloat(
             workspace,
             WORKSPACE_SCALE_PROPERTY_FACTORY[SCALE_INDEX_WORKSPACE_STATE],
-            MIN_SIZE,
+            fromSize,
             MAX_SIZE,
             SCALE_INTERPOLATOR,
         )
         animation.addFloat(
             hotseat,
             HOTSEAT_SCALE_PROPERTY_FACTORY[SCALE_INDEX_WORKSPACE_STATE],
-            MIN_SIZE,
+            fromSize,
             MAX_SIZE,
             SCALE_INTERPOLATOR,
         )
@@ -117,13 +139,13 @@ class ScalingWorkspaceRevealAnim(
         animation.setViewAlpha(
             workspace,
             MAX_ALPHA,
-            Interpolators.clampToProgress(LINEAR, 0f, fadeClamp)
+            Interpolators.clampToProgress(LINEAR, 0f, fadeClamp),
         )
         hotseat.alpha = MIN_ALPHA
         animation.setViewAlpha(
             hotseat,
             MAX_ALPHA,
-            Interpolators.clampToProgress(LINEAR, 0f, fadeClamp)
+            Interpolators.clampToProgress(LINEAR, 0f, fadeClamp),
         )
 
         val transitionConfig = StateAnimationConfig()
@@ -138,7 +160,7 @@ class ScalingWorkspaceRevealAnim(
         launcher.workspace.stateTransitionAnimation.setScrim(
             animation,
             LauncherState.NORMAL,
-            transitionConfig
+            transitionConfig,
         )
 
         // To avoid awkward jumps in icon position, we want the sibling animation to always be
@@ -165,7 +187,7 @@ class ScalingWorkspaceRevealAnim(
                         1 / workspace.scaleX,
                         1 / workspace.scaleY,
                         transformed.centerX(),
-                        transformed.centerY()
+                        transformed.centerY(),
                     )
                 }
             )
@@ -180,10 +202,36 @@ class ScalingWorkspaceRevealAnim(
         workspace.setLayerType(View.LAYER_TYPE_HARDWARE, null)
         hotseat.setLayerType(View.LAYER_TYPE_HARDWARE, null)
         animation.addListener(
+            object : AnimatorListenerAdapter() {
+                override fun onAnimationCancel(animation: Animator) {
+                    super.onAnimationCancel(animation)
+                    Log.d(TAG, "onAnimationCancel")
+                }
+
+                override fun onAnimationPause(animation: Animator) {
+                    super.onAnimationPause(animation)
+                    Log.d(TAG, "onAnimationPause")
+                }
+            }
+        )
+        animation.addListener(
             AnimatorListeners.forEndCallback(
                 Runnable {
+                    // The workspace might stay at a transparent state when the animation is
+                    // cancelled, and the alpha will not be recovered (this doesn't apply to scales
+                    // somehow). Resetting the alpha for the workspace here.
+                    workspace.alpha = 1.0F
+
                     workspace.setLayerType(View.LAYER_TYPE_NONE, null)
                     hotseat.setLayerType(View.LAYER_TYPE_NONE, null)
+
+                    if (Flags.coordinateWorkspaceScale()) {
+                        // Reset the cached animations.
+                        Animations.setOngoingAnimation(workspace, animation = null)
+                        Animations.setOngoingAnimation(hotseat, animation = null)
+                    }
+
+                    Log.d(TAG, "alpha of workspace at the end of animation: ${workspace.alpha}")
                 }
             )
         )
@@ -194,6 +242,14 @@ class ScalingWorkspaceRevealAnim(
     }
 
     fun start() {
-        getAnimators().start()
+        val animators = getAnimators()
+        if (Flags.coordinateWorkspaceScale()) {
+            // Make sure to cache the current animation, so it can be properly interrupted.
+            // TODO(b/367591368): ideally these animations would be refactored to be controlled
+            //  centrally so each instances doesn't need to care about this coordination.
+            Animations.setOngoingAnimation(launcher.workspace, animators)
+            Animations.setOngoingAnimation(launcher.hotseat, animators)
+        }
+        animators.start()
     }
 }

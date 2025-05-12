@@ -20,6 +20,10 @@ package com.android.launcher3.statemanager;
 import static com.android.launcher3.LauncherState.FLAG_CLOSE_POPUPS;
 import static com.android.launcher3.statemanager.BaseState.FLAG_NON_INTERACTIVE;
 
+import android.content.Context;
+import android.content.ContextWrapper;
+import android.content.res.Configuration;
+
 import androidx.annotation.CallSuper;
 
 import com.android.launcher3.AbstractFloatingView;
@@ -34,6 +38,23 @@ import java.util.List;
  */
 public interface StatefulContainer<STATE_TYPE extends BaseState<STATE_TYPE>> extends
         ActivityContext {
+
+    /**
+     * Returns an instance of an implementation of StatefulContainer
+     *
+     * @param context will find instance of StatefulContainer from given context.
+     */
+    static <T extends StatefulContainer> T fromContext(Context context) {
+        if (context instanceof StatefulContainer) {
+            return (T) context;
+        } else if (context instanceof ContextWrapper) {
+            return fromContext(((ContextWrapper) context).getBaseContext());
+        } else {
+            throw new IllegalArgumentException("Cannot find StatefulContainer in parent tree");
+        }
+    }
+
+    Context getContext();
 
     /**
      * Creates a factory for atomic state animations
@@ -54,12 +75,15 @@ public interface StatefulContainer<STATE_TYPE extends BaseState<STATE_TYPE>> ext
 
     /**
      * Called when transition to state ends
+     *
      * @param state current state of State_Type
      */
-    default void onStateSetEnd(STATE_TYPE state) { }
+    default void onStateSetEnd(STATE_TYPE state) {
+    }
 
     /**
      * Called when transition to state starts
+     *
      * @param state current state of State_Type
      */
     @CallSuper
@@ -71,6 +95,7 @@ public interface StatefulContainer<STATE_TYPE extends BaseState<STATE_TYPE>> ext
 
     /**
      * Returns true if the activity is in the provided state
+     *
      * @param state current state of State_Type
      */
     default boolean isInState(STATE_TYPE state) {
@@ -81,4 +106,8 @@ public interface StatefulContainer<STATE_TYPE extends BaseState<STATE_TYPE>> ext
      * Returns true if state change should transition with animation
      */
     boolean shouldAnimateStateChange();
+
+    default void handleConfigurationChanged(Configuration configuration){
+        //no op
+    }
 }

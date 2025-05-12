@@ -36,8 +36,11 @@ import android.widget.FrameLayout;
 import com.android.launcher3.Utilities;
 
 import androidx.annotation.IntDef;
+import androidx.annotation.Nullable;
 
+import com.android.launcher3.celllayout.CellLayoutLayoutParams;
 import com.android.launcher3.util.HorizontalInsettableView;
+import com.android.launcher3.util.MultiPropertyFactory;
 import com.android.launcher3.util.MultiPropertyFactory.MultiProperty;
 import com.android.launcher3.util.MultiTranslateDelegate;
 import com.android.launcher3.util.MultiValueAlpha;
@@ -63,6 +66,14 @@ public class Hotseat extends CellLayout implements Insettable {
     public @interface HotseatQsbAlphaId {
     }
 
+    public static final int ICONS_TRANSLATION_X_NAV_BAR_ALIGNMENT = 0;
+    public static final int ICONS_TRANSLATION_X_CHANNELS_COUNT = 1;
+
+    @Retention(RetentionPolicy.RUNTIME)
+    @IntDef({ICONS_TRANSLATION_X_NAV_BAR_ALIGNMENT})
+    public @interface IconsTranslationX {
+    }
+
     // Ratio of empty space, qsb should take up to appear visually centered.
     public static final float QSB_CENTER_FACTOR = .325f;
     private static final int BUBBLE_BAR_ADJUSTMENT_ANIMATION_DURATION_MS = 250;
@@ -73,6 +84,10 @@ public class Hotseat extends CellLayout implements Insettable {
     private boolean mSendTouchToWorkspace;
     private final MultiValueAlpha mIconsAlphaChannels;
     private final MultiValueAlpha mQsbAlphaChannels;
+
+    private @Nullable MultiProperty mQsbTranslationX;
+
+    private final MultiPropertyFactory mIconsTranslationXFactory;
 
     private final View mQsb;
 
@@ -95,7 +110,24 @@ public class Hotseat extends CellLayout implements Insettable {
         addView(mQsb);
         mIconsAlphaChannels = new MultiValueAlpha(getShortcutsAndWidgets(),
                 ALPHA_CHANNEL_CHANNELS_COUNT);
+        if (mQsb instanceof Reorderable qsbReorderable) {
+            mQsbTranslationX = qsbReorderable.getTranslateDelegate()
+                    .getTranslationX(MultiTranslateDelegate.INDEX_NAV_BAR_ANIM);
+        }
+        mIconsTranslationXFactory = new MultiPropertyFactory<>(getShortcutsAndWidgets(),
+                VIEW_TRANSLATE_X, ICONS_TRANSLATION_X_CHANNELS_COUNT, Float::sum);
         mQsbAlphaChannels = new MultiValueAlpha(mQsb, ALPHA_CHANNEL_CHANNELS_COUNT);
+    }
+
+    /** Provides translation X for hotseat icons for the channel. */
+    public MultiProperty getIconsTranslationX(@IconsTranslationX int channelId) {
+        return mIconsTranslationXFactory.get(channelId);
+    }
+
+    /** Provides translation X for hotseat Qsb. */
+    @Nullable
+    public MultiProperty getQsbTranslationX() {
+        return mQsbTranslationX;
     }
 
     /**
@@ -125,12 +157,9 @@ public class Hotseat extends CellLayout implements Insettable {
         DeviceProfile dp = mActivity.getDeviceProfile();
 
         if (bubbleBarEnabled) {
-            float adjustedBorderSpace = dp.getHotseatAdjustedBorderSpaceForBubbleBar(getContext());
-            if (hasBubbles && Float.compare(adjustedBorderSpace, 0f) != 0) {
-                getShortcutsAndWidgets().setTranslationProvider(cellX -> {
-                    float borderSpaceDelta = adjustedBorderSpace - dp.hotseatBorderSpace;
-                    return dp.iconSizePx + cellX * borderSpaceDelta;
-                });
+            if (dp.shouldAdjustHotseatForBubbleBar(getContext(), hasBubbles)) {
+                getShortcutsAndWidgets().setTranslationProvider(
+                        cellX -> dp.getHotseatAdjustedTranslation(getContext(), cellX));
                 if (mQsb instanceof HorizontalInsettableView) {
                     HorizontalInsettableView insettableQsb = (HorizontalInsettableView) mQsb;
                     final float insetFraction = (float) dp.iconSizePx / dp.hotseatQsbWidth;
@@ -165,37 +194,40 @@ public class Hotseat extends CellLayout implements Insettable {
      */
     public void adjustForBubbleBar(boolean isBubbleBarVisible) {
         DeviceProfile dp = mActivity.getDeviceProfile();
-        float adjustedBorderSpace = dp.getHotseatAdjustedBorderSpaceForBubbleBar(getContext());
-        if (Float.compare(adjustedBorderSpace, 0f) == 0) {
-            return;
-        }
-
+        boolean shouldAdjust = isBubbleBarVisible
+                && dp.shouldAdjustHotseatOrQsbForBubbleBar(getContext());
+        boolean shouldAdjustHotseat = shouldAdjust
+                && dp.shouldAlignBubbleBarWithHotseat();
         ShortcutAndWidgetContainer icons = getShortcutsAndWidgets();
-        AnimatorSet animatorSet = new AnimatorSet();
-        float borderSpaceDelta = adjustedBorderSpace - dp.hotseatBorderSpace;
-
         // update the translation provider for future layout passes of hotseat icons.
-        if (isBubbleBarVisible) {
-            icons.setTranslationProvider(cellX -> dp.iconSizePx + cellX * borderSpaceDelta);
+        if (shouldAdjustHotseat) {
+            icons.setTranslationProvider(
+                    cellX -> dp.getHotseatAdjustedTranslation(getContext(), cellX));
         } else {
             icons.setTranslationProvider(null);
         }
-
+        AnimatorSet animatorSet = new AnimatorSet();
         for (int i = 0; i < icons.getChildCount(); i++) {
             View child = icons.getChildAt(i);
-            float tx = isBubbleBarVisible ? dp.iconSizePx + i * borderSpaceDelta : 0;
-            if (child instanceof Reorderable) {
-                MultiTranslateDelegate mtd = ((Reorderable) child).getTranslateDelegate();
-                animatorSet.play(
-                        mtd.getTranslationX(INDEX_BUBBLE_ADJUSTMENT_ANIM).animateToValue(tx));
-            } else {
-                animatorSet.play(ObjectAnimator.ofFloat(child, VIEW_TRANSLATE_X, tx));
+            if (child.getLayoutParams() instanceof CellLayoutLayoutParams lp) {
+                float tx = shouldAdjustHotseat
+                        ? dp.getHotseatAdjustedTranslation(getContext(), lp.getCellX()) : 0;
+                if (child instanceof Reorderable) {
+                    MultiTranslateDelegate mtd = ((Reorderable) child).getTranslateDelegate();
+                    animatorSet.play(
+                            mtd.getTranslationX(INDEX_BUBBLE_ADJUSTMENT_ANIM).animateToValue(tx));
+                } else {
+                    animatorSet.play(ObjectAnimator.ofFloat(child, VIEW_TRANSLATE_X, tx));
+                }
             }
         }
+        //TODO(b/381109832) refactor & simplify adjustment logic
+        boolean shouldAdjustQsb =
+                shouldAdjustHotseat || (shouldAdjust && dp.shouldAlignBubbleBarWithQSB());
         if (mQsb instanceof HorizontalInsettableView horizontalInsettableQsb) {
             final float currentInsetFraction = horizontalInsettableQsb.getHorizontalInsets();
-            final float targetInsetFraction =
-                    isBubbleBarVisible ? (float) dp.iconSizePx / dp.hotseatQsbWidth : 0;
+            final float targetInsetFraction = shouldAdjustQsb
+                    ? (float) dp.iconSizePx / dp.hotseatQsbWidth : 0;
             ValueAnimator qsbAnimator =
                     ValueAnimator.ofFloat(currentInsetFraction, targetInsetFraction);
             qsbAnimator.addUpdateListener(animation -> {

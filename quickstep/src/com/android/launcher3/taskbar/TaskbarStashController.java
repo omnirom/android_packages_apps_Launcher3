@@ -23,6 +23,7 @@ import static com.android.app.animation.Interpolators.INSTANT;
 import static com.android.app.animation.Interpolators.LINEAR;
 import static com.android.internal.jank.InteractionJankMonitor.Configuration;
 import static com.android.launcher3.Flags.enableScalingRevealHomeAnimation;
+import static com.android.launcher3.QuickstepTransitionManager.PINNED_TASKBAR_TRANSITION_DURATION;
 import static com.android.launcher3.config.FeatureFlags.ENABLE_TASKBAR_NAVBAR_UNIFICATION;
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_TRANSIENT_TASKBAR_HIDE;
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_TRANSIENT_TASKBAR_SHOW;
@@ -30,6 +31,7 @@ import static com.android.launcher3.util.Executors.UI_HELPER_EXECUTOR;
 import static com.android.launcher3.util.FlagDebugUtils.appendFlag;
 import static com.android.launcher3.util.FlagDebugUtils.formatFlagChange;
 import static com.android.quickstep.util.SystemActionConstants.SYSTEM_ACTION_ID_TASKBAR;
+import static com.android.quickstep.util.SystemUiFlagUtils.isTaskbarHidden;
 import static com.android.systemui.shared.system.QuickStepContract.SYSUI_STATE_BUBBLES_EXPANDED;
 import static com.android.systemui.shared.system.QuickStepContract.SYSUI_STATE_DIALOG_SHOWING;
 import static com.android.systemui.shared.system.QuickStepContract.SYSUI_STATE_IME_SHOWING;
@@ -61,6 +63,7 @@ import com.android.launcher3.Alarm;
 import com.android.launcher3.DeviceProfile;
 import com.android.launcher3.R;
 import com.android.launcher3.anim.AnimatedFloat;
+import com.android.launcher3.anim.AnimationSuccessListener;
 import com.android.launcher3.anim.AnimatorListeners;
 import com.android.launcher3.util.DisplayController;
 import com.android.launcher3.util.MultiPropertyFactory.MultiProperty;
@@ -80,6 +83,8 @@ import java.util.function.LongPredicate;
 public class TaskbarStashController implements TaskbarControllers.LoggableTaskbarController {
     private static final String TAG = "TaskbarStashController";
     private static final boolean DEBUG = false;
+
+    private static boolean sEnableSoftwareImeForTests = false;
 
     /**
      * Def. value for @param shouldBubblesFollow in
@@ -101,6 +106,7 @@ public class TaskbarStashController implements TaskbarControllers.LoggableTaskba
     // An internal no-op flag to determine whether we should delay the taskbar background animation
     private static final int FLAG_DELAY_TASKBAR_BG_TAG = 1 << 12;
     public static final int FLAG_STASHED_FOR_BUBBLES = 1 << 13; // show handle for stashed hotseat
+    public static final int FLAG_TASKBAR_HIDDEN = 1 << 14; // taskbar hidden during dream, etc...
 
     // If any of these flags are enabled, isInApp should return true.
     private static final int FLAGS_IN_APP = FLAG_IN_APP | FLAG_IN_SETUP;
@@ -130,19 +136,22 @@ public class TaskbarStashController implements TaskbarControllers.LoggableTaskba
      *
      * Use {@link #getStashDuration()} to query duration
      */
-    private static final long TASKBAR_STASH_DURATION = InsetsController.ANIMATION_DURATION_RESIZE;
+    @VisibleForTesting
+    static final long TASKBAR_STASH_DURATION = InsetsController.ANIMATION_DURATION_RESIZE;
 
     /**
      * How long to stash/unstash transient taskbar.
      *
      * Use {@link #getStashDuration()} to query duration.
      */
-    private static final long TRANSIENT_TASKBAR_STASH_DURATION = 417;
+    @VisibleForTesting
+    static final long TRANSIENT_TASKBAR_STASH_DURATION = 417;
 
     /**
      * How long to stash/unstash when keyboard is appearing/disappearing.
      */
-    private static final long TASKBAR_STASH_DURATION_FOR_IME = 80;
+    @VisibleForTesting
+    static final long TASKBAR_STASH_DURATION_FOR_IME = 80;
 
     /**
      * The scale TaskbarView animates to when being stashed.
@@ -163,7 +172,7 @@ public class TaskbarStashController implements TaskbarControllers.LoggableTaskba
     /**
      * How long the icon/stash handle alpha animation plays.
      */
-    public static final long TASKBAR_STASH_ALPHA_DURATION = 50;
+    public static final long TRANSIENT_TASKBAR_STASH_ALPHA_DURATION = 50;
 
     /**
      * How long to delay the icon/stash handle alpha for the home to app taskbar animation.
@@ -209,6 +218,13 @@ public class TaskbarStashController implements TaskbarControllers.LoggableTaskba
      */
     private static final int TRANSITION_UNSTASH_SUW_MANUAL = 3;
 
+    /**
+     * total duration of entering dream state animation, which we use as start delay to
+     * applyState() when SYSUI_STATE_DEVICE_DREAMING flag is present. Keep this in sync with
+     * DreamAnimationController.TOTAL_ANIM_DURATION.
+     */
+    private static final int SKIP_TOTAL_DREAM_ANIM_DURATION = 450;
+
     @Retention(RetentionPolicy.SOURCE)
     @IntDef(value = {
             TRANSITION_DEFAULT,
@@ -252,7 +268,7 @@ public class TaskbarStashController implements TaskbarControllers.LoggableTaskba
     private boolean mEnableBlockingTimeoutDuringTests = false;
 
     private Animator mTaskbarBackgroundAlphaAnimator;
-    private long mTaskbarBackgroundDuration;
+    private final long mTaskbarBackgroundDuration;
     private boolean mUserIsNotGoingHome = false;
 
     // Evaluate whether the handle should be stashed
@@ -383,6 +399,9 @@ public class TaskbarStashController implements TaskbarControllers.LoggableTaskba
      * Returns how long the stash/unstash animation should play.
      */
     public long getStashDuration() {
+        if (DisplayController.isPinnedTaskbar(mActivity)) {
+            return PINNED_TASKBAR_TRANSITION_DURATION;
+        }
         return DisplayController.isTransientTaskbar(mActivity)
                 ? TRANSIENT_TASKBAR_STASH_DURATION
                 : TASKBAR_STASH_DURATION;
@@ -395,12 +414,20 @@ public class TaskbarStashController implements TaskbarControllers.LoggableTaskba
         return mIsStashed;
     }
 
-    /** Sets the hotseat stashed. */
+    /**
+     * Sets the hotseat stashed.
+     * b/373429249 - we might change this behavior if we remove the scrim, that's why we're keeping
+     * this method
+     */
     public void stashHotseat(boolean stash) {
         mControllers.uiController.stashHotseat(stash);
     }
 
-    /** Instantly un-stashes the hotseat. */
+    /**
+     * Instantly un-stashes the hotseat.
+     * * b/373429249 - we might change this behavior if we remove the scrim, that's why we're
+     * keeping this method
+     */
     public void unStashHotseatInstantly() {
         mControllers.uiController.unStashHotseatInstantly();
     }
@@ -442,6 +469,11 @@ public class TaskbarStashController implements TaskbarControllers.LoggableTaskba
     /** Returns whether the taskbar is currently in overview screen. */
     public boolean isInOverview() {
         return hasAnyFlag(FLAG_IN_OVERVIEW);
+    }
+
+    /** Returns whether the taskbar is currently on launcher home screen. */
+    public boolean isOnHome() {
+        return !isInOverview() && !isInApp();
     }
 
     /** Returns whether taskbar is hidden for bubbles. */
@@ -799,14 +831,14 @@ public class TaskbarStashController implements TaskbarControllers.LoggableTaskba
             if (animationType == TRANSITION_HANDLE_FADE) {
                 // When fading, the handle fades in/out at the beginning of the transition with
                 // TASKBAR_STASH_ALPHA_DURATION.
-                backgroundAndHandleAlphaDuration = TASKBAR_STASH_ALPHA_DURATION;
+                backgroundAndHandleAlphaDuration = TRANSIENT_TASKBAR_STASH_ALPHA_DURATION;
                 // The iconAlphaDuration must be set to duration for the skippable interpolators
                 // below to work.
                 iconAlphaDuration = duration;
             } else {
                 iconAlphaStartDelay = TASKBAR_STASH_ALPHA_START_DELAY;
-                iconAlphaDuration = TASKBAR_STASH_ALPHA_DURATION;
-                backgroundAndHandleAlphaDuration = TASKBAR_STASH_ALPHA_DURATION;
+                iconAlphaDuration = TRANSIENT_TASKBAR_STASH_ALPHA_DURATION;
+                backgroundAndHandleAlphaDuration = TRANSIENT_TASKBAR_STASH_ALPHA_DURATION;
 
                 if (isStashed) {
                     if (animationType == TRANSITION_HOME_TO_APP) {
@@ -951,7 +983,7 @@ public class TaskbarStashController implements TaskbarControllers.LoggableTaskba
         }
         int action = expanding ? InteractionJankMonitor.CUJ_TASKBAR_EXPAND :
                 InteractionJankMonitor.CUJ_TASKBAR_COLLAPSE;
-        animator.addListener(new AnimatorListenerAdapter() {
+        animator.addListener(new AnimationSuccessListener() {
             @Override
             public void onAnimationStart(@NonNull Animator animation) {
                 final Configuration.Builder builder =
@@ -963,8 +995,15 @@ public class TaskbarStashController implements TaskbarControllers.LoggableTaskba
             }
 
             @Override
-            public void onAnimationEnd(@NonNull Animator animation) {
+            public void onAnimationSuccess(@NonNull Animator animator) {
                 InteractionJankMonitor.getInstance().end(action);
+            }
+
+            @Override
+            public void onAnimationCancel(@NonNull Animator animation) {
+                super.onAnimationCancel(animation);
+
+                InteractionJankMonitor.getInstance().cancel(action);
             }
         });
     }
@@ -1070,7 +1109,8 @@ public class TaskbarStashController implements TaskbarControllers.LoggableTaskba
     /**
      * When hiding the IME, delay the unstash animation to align with the end of the transition.
      */
-    private long getTaskbarStashStartDelayForIme() {
+    @VisibleForTesting
+    long getTaskbarStashStartDelayForIme() {
         if (mIsImeShowing) {
             // Only delay when IME is exiting, not entering.
             return 0;
@@ -1104,7 +1144,13 @@ public class TaskbarStashController implements TaskbarControllers.LoggableTaskba
             startDelay = getTaskbarStashStartDelayForIme();
         }
 
-        applyState(skipAnim ? 0 : animDuration, skipAnim ? 0 : startDelay);
+        if (isTaskbarHidden(systemUiStateFlags) && !hasAnyFlag(FLAG_TASKBAR_HIDDEN)) {
+            updateStateForFlag(FLAG_TASKBAR_HIDDEN, isTaskbarHidden(systemUiStateFlags));
+            applyState(0, SKIP_TOTAL_DREAM_ANIM_DURATION);
+        } else {
+            updateStateForFlag(FLAG_TASKBAR_HIDDEN, isTaskbarHidden(systemUiStateFlags));
+            applyState(skipAnim ? 0 : animDuration, skipAnim ? 0 : startDelay);
+        }
     }
 
     /**
@@ -1126,13 +1172,13 @@ public class TaskbarStashController implements TaskbarControllers.LoggableTaskba
         }
 
         // Do not stash if pinned taskbar, hardware keyboard is attached and no IME is docked
-        if (mActivity.isHardwareKeyboard() && DisplayController.isPinnedTaskbar(mActivity)
+        if (isHardwareKeyboard() && DisplayController.isPinnedTaskbar(mActivity)
                 && !mActivity.isImeDocked()) {
             return false;
         }
 
         // Do not stash if hardware keyboard is attached, in 3 button nav and desktop windowing mode
-        if (mActivity.isHardwareKeyboard()
+        if (isHardwareKeyboard()
                 && mActivity.isThreeButtonNav()
                 && mControllers.taskbarDesktopModeController.getAreDesktopTasksVisible()) {
             return false;
@@ -1144,6 +1190,21 @@ public class TaskbarStashController implements TaskbarControllers.LoggableTaskba
         }
 
         return mIsImeShowing || mIsImeSwitcherShowing;
+    }
+
+    private boolean isHardwareKeyboard() {
+        return mActivity.isHardwareKeyboard() && !sEnableSoftwareImeForTests;
+    }
+
+    /**
+     * Overrides {@link #isHardwareKeyboard()} to {@code false} for testing, if enabled.
+     * <p>
+     * Virtual devices are sometimes in hardware keyboard mode, leading to an inconsistent
+     * testing environment.
+     */
+    @VisibleForTesting
+    static void enableSoftwareImeForTests(boolean enable) {
+        sEnableSoftwareImeForTests = enable;
     }
 
     /**
@@ -1271,7 +1332,7 @@ public class TaskbarStashController implements TaskbarControllers.LoggableTaskba
     /**
      * Attempts to start timer to auto hide the taskbar based on time.
      */
-    public void tryStartTaskbarTimeout() {
+    private void tryStartTaskbarTimeout() {
         if (!DisplayController.isTransientTaskbar(mActivity)
                 || mIsStashed
                 || mEnableBlockingTimeoutDuringTests) {
@@ -1297,6 +1358,11 @@ public class TaskbarStashController implements TaskbarControllers.LoggableTaskba
             return;
         }
         updateAndAnimateTransientTaskbarForTimeout();
+    }
+
+    @VisibleForTesting
+    Alarm getTimeoutAlarm() {
+        return mTimeoutAlarm;
     }
 
     @Override

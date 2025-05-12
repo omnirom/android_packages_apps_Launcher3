@@ -47,6 +47,8 @@
 
     <!-- Title for an option to open a new window for a given app   -->
     <string name="new_window_option_taskbar">New Window</string>
+    <!-- Title for an option to manage open windows for a given app   -->
+    <string name="manage_windows_option_taskbar">Manage Windows</string>
 
     <!-- App pairs -->
     <string name="save_app_pair">Save app pair</string>
@@ -152,11 +154,21 @@
     <!-- A widget category label for grouping widgets related to note taking. [CHAR_LIMIT=30] -->
     <string name="widget_category_note_taking">Note-taking</string>
 
+    <!-- Accessibility label on the widget preview that on click (if add button is hidden) shows the button to add widget to the home screen. [CHAR_LIMIT=none] -->
+    <string name="widget_cell_tap_to_show_add_button_label">Show add button</string>
+    <!-- Accessibility label on the widget preview that on click (if add button is showing) hides the button to add widget to the home screen. [CHAR_LIMIT=none] -->
+    <string name="widget_cell_tap_to_hide_add_button_label">Hide add button</string>
     <!-- Text on the button that adds a widget to the home screen. [CHAR_LIMIT=15] -->
     <string name="widget_add_button_label">Add</string>
     <!-- Accessibility content description for the button that adds a widget to the home screen. The
          placeholder text is the widget name. [CHAR_LIMIT=none] -->
     <string name="widget_add_button_content_description">Add <xliff:g id="widget_name" example="Calendar month view">%1$s</xliff:g> widget</string>
+    <!-- Text on the button that enables users to expand the widgets list to see all widget apps besides the default ones displayed. [CHAR_LIMIT=15] -->
+    <string name="widgets_list_expand_button_label">Show all</string>
+    <!-- Accessibility content description for the button that enables users to expand the widgets list to see all widget apps besides the default ones displayed. [CHAR_LIMIT=none]  -->
+    <string name="widgets_list_expand_button_content_description">Show all widgets</string>
+    <!-- Accessibility announcement to indicate to the users that widgets list is now expanded -->
+    <string name="widgets_list_expanded">Showing all widgets</string>
 
     <!-- Text on an educational tip on widget informing users that they can change widget settings.
          [CHAR_LIMIT=NONE] -->
@@ -311,6 +323,12 @@
     <string name="allow_rotation_title">Allow home screen rotation</string>
     <!-- Text explaining when the home screen will get rotated. [CHAR LIMIT=100] -->
     <string name="allow_rotation_desc">When phone is rotated</string>
+
+    <!-- Title for Landscape Mode setting. [CHAR LIMIT=50] -->
+    <string name="landscape_mode_title">Landscape mode</string>
+    <!--  [CHAR LIMIT=100] -->
+    <string name="landscape_mode_desc">Set phone into landscape mode</string>
+
     <!-- Title for Notification dots setting. Tapping this will link to the system Notifications settings screen where the user can turn off notification dots globally. [CHAR LIMIT=50] -->
     <string name="notification_dots_title">Notification dots</string>
     <!-- Text to indicate that the system notification dots setting is on [CHAR LIMIT=100] -->
@@ -355,8 +373,9 @@
     <!-- Title for an app whose download has been started. -->
     <string name="app_waiting_download_title"><xliff:g id="name" example="Messenger">%1$s</xliff:g> waiting to install</string>
     <!-- Title for an app which is archived. -->
-    <string name="app_archived_title"><xliff:g id="name" example="Messenger">%1$s</xliff:g> is archived. Tap to download and restore.</string>
-
+    <string name="app_archived_title"><xliff:g id="name" example="Messenger">%1$s</xliff:g> is archived.</string>
+    <!-- Accessibility Action for an app which is archived. -->
+    <string name="app_unarchiving_action">download and restore</string>
 
     <!-- Title shown on the alert dialog prompting the user to update the application in market
      in order to re-enable the disabled shortcuts -->
@@ -443,7 +462,7 @@
     <string name="widget_resized">Widget resized to width <xliff:g id="number" example="2">%1$s</xliff:g> height <xliff:g id="number" example="1">%2$s</xliff:g></string>
 
     <!-- Accessibility action to show quick actions menu for an icon. [CHAR_LIMIT=30] -->
-    <string name="action_deep_shortcut">Shortcuts</string>
+    <string name="action_deep_shortcut">Shortcut Menu</string>
 
     <!-- Accessibility action to dismiss a notification in the shortcuts menu for an icon. [CHAR_LIMIT=30] -->
     <string name="action_dismiss_notification">Dismiss</string>
@@ -465,6 +484,8 @@
     <string name="work_profile_edu_accept">Got it</string>
     <!-- Info icon unicode for alpha scroller when work edu card is present -->
     <string name="work_profile_edu_section" translatable="false">\u24D8</string>
+    <!-- Intent for work profiler scheduler -->
+    <string name="work_profile_scheduler_intent" translatable="false"/>
 
     <!--- heading shown when user opens work apps tab while work apps are paused -->
     <string name="work_apps_paused_title">Work apps are paused</string>
@@ -483,6 +504,8 @@
     <string name="work_apps_pause_btn_text">Pause work apps</string>
     <!-- button string shown enable work profile -->
     <string name="work_apps_enable_btn_text">Unpause</string>
+    <!-- Label for the work profile scheduler button in the work profile screen. [CHAR_LIMIT=40] -->
+    <string name="work_scheduler_button_content_description">Work apps schedule</string>
 
     <!-- A hint shown in launcher settings develop options filter box -->
     <string name="developer_options_filter_hint">Filter</string>

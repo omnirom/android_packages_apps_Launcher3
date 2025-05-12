@@ -47,16 +47,11 @@
     <color name="widget_picker_unselected_tab_text_color_dark">
         @android:color/system_neutral2_200</color>
     <color name="widget_picker_collapse_handle_color_dark">
-        @android:color/system_neutral2_700</color>
+        @android:color/system_neutral2_400</color>
     <color name="widget_picker_add_button_background_color_dark">
         @android:color/system_accent1_200</color>
     <color name="widget_picker_add_button_text_color_dark">
         @android:color/system_accent1_800</color>
-
-    <color name="work_fab_bg_color">
-        @android:color/system_accent1_200</color>
-    <color name="work_fab_icon_color">
-        @android:color/system_accent1_900</color>
 
     <color name="material_color_on_surface">@android:color/system_neutral1_100</color>
 </resources>

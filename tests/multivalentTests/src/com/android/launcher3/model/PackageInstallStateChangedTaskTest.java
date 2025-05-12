@@ -37,7 +37,6 @@ import com.android.launcher3.util.LauncherModelHelper;
 
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -47,8 +46,6 @@ import org.junit.runner.RunWith;
 @SmallTest
 @RunWith(AndroidJUnit4.class)
 public class PackageInstallStateChangedTaskTest {
-
-    @Rule public ModelTestRule mModelTestRule = new ModelTestRule();
 
     private static final String PENDING_APP_1 = TEST_PACKAGE + ".pending1";
     private static final String PENDING_APP_2 = TEST_PACKAGE + ".pending2";

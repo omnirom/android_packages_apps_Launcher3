@@ -16,30 +16,32 @@
 
 package com.android.launcher3.taskbar.rules
 
-import android.view.WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
-import androidx.test.platform.app.InstrumentationRegistry.getInstrumentation
 import com.android.launcher3.util.LauncherMultivalentJUnit
-import com.android.launcher3.util.MainThreadInitializedObject.SandboxContext
+import com.android.launcher3.util.LauncherMultivalentJUnit.EmulatedDevices
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
+import org.junit.runner.Description
 import org.junit.runner.RunWith
+import org.junit.runners.model.Statement
 
 @RunWith(LauncherMultivalentJUnit::class)
-@LauncherMultivalentJUnit.EmulatedDevices(["pixelFoldable2023", "pixelTablet2023"])
+@EmulatedDevices(["pixelFoldable2023"])
 class TaskbarWindowSandboxContextTest {
 
-    private val context = TaskbarWindowSandboxContext.create(getInstrumentation().targetContext)
-
     @Test
-    fun testCreateWindowContext_applicationContextSandboxed() {
-        val windowContext = context.createWindowContext(TYPE_APPLICATION_OVERLAY, null)
-        assertThat(windowContext.applicationContext).isInstanceOf(SandboxContext::class.java)
-    }
+    fun testVirtualDisplay_releasedOnTeardown() {
+        val context = TaskbarWindowSandboxContext.create()
+        assertThat(context.virtualDisplay.token).isNotNull()
 
-    @Test
-    fun testCreateWindowContext_nested_applicationContextSandboxed() {
-        val windowContext = context.createWindowContext(TYPE_APPLICATION_OVERLAY, null)
-        val nestedContext = windowContext.createWindowContext(TYPE_APPLICATION_OVERLAY, null)
-        assertThat(nestedContext.applicationContext).isInstanceOf(SandboxContext::class.java)
+        context
+            .apply(
+                object : Statement() {
+                    override fun evaluate() = Unit
+                },
+                Description.createSuiteDescription(TaskbarWindowSandboxContextTest::class.java),
+            )
+            .evaluate()
+
+        assertThat(context.virtualDisplay.token).isNull()
     }
 }

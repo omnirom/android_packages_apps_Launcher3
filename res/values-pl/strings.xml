@@ -32,6 +32,7 @@
     <string name="split_app_info_accessibility" msgid="5475288491241414932">"Informacje o aplikacji: %1$s"</string>
     <string name="split_app_usage_settings" msgid="7214375263347964093">"%1$s – ustawienia użycia"</string>
     <string name="new_window_option_taskbar" msgid="6448780542727767211">"Nowe okno"</string>
+    <string name="manage_windows_option_taskbar" msgid="2294109489960654212">"Zarządzaj oknami"</string>
     <string name="save_app_pair" msgid="5647523853662686243">"Zapisz parę aplikacji"</string>
     <string name="app_pair_default_title" msgid="4045241727446873529">"<xliff:g id="APP1">%1$s</xliff:g> | <xliff:g id="APP2">%2$s</xliff:g>"</string>
     <string name="app_pair_unlaunchable_at_screen_size" msgid="3446551575502685376">"Ta para aplikacji nie jest obsługiwana na tym urządzeniu"</string>
@@ -67,8 +68,13 @@
     <string name="widgets_full_sheet_work_tab" msgid="3767150027110633765">"Służbowe"</string>
     <string name="widget_category_conversations" msgid="8894438636213590446">"Rozmowy"</string>
     <string name="widget_category_note_taking" msgid="3469689394504266039">"Notatki"</string>
+    <string name="widget_cell_tap_to_show_add_button_label" msgid="4354194214317043581">"Pokaż przycisk Dodaj"</string>
+    <string name="widget_cell_tap_to_hide_add_button_label" msgid="6117805205101555997">"Ukryj przycisk Dodaj"</string>
     <string name="widget_add_button_label" msgid="2761267068711937179">"Dodaj"</string>
     <string name="widget_add_button_content_description" msgid="1810530016360039643">"Dodaj widżet <xliff:g id="WIDGET_NAME">%1$s</xliff:g>"</string>
+    <string name="widgets_list_expand_button_label" msgid="7912016136574932622">"Pokaż wszystko"</string>
+    <string name="widgets_list_expand_button_content_description" msgid="4600513860973450888">"Pokaż wszystkie widżety"</string>
+    <string name="widgets_list_expanded" msgid="7374857868788557730">"Wyświetlam wszystkie widżety"</string>
     <string name="reconfigurable_widget_education_tip" msgid="6336962690888067057">"Kliknij, aby zmienić ustawienia widżetu"</string>
     <string name="widget_reconfigure_button_content_description" msgid="8811472721881205250">"Zmień ustawienia widżetu"</string>
     <string name="all_apps_search_bar_hint" msgid="1390553134053255246">"Wyszukaj aplikacje"</string>
@@ -124,6 +130,8 @@
     <string name="msg_disabled_by_admin" msgid="6898038085516271325">"Funkcja wyłączona przez administratora"</string>
     <string name="allow_rotation_title" msgid="7222049633713050106">"Zezwalaj na obrót ekranu głównego"</string>
     <string name="allow_rotation_desc" msgid="8662546029078692509">"Po obróceniu telefonu"</string>
+    <string name="landscape_mode_title" msgid="5138814555934843926">"Tryb poziomy"</string>
+    <string name="landscape_mode_desc" msgid="7372569859592816793">"Przestaw telefon w tryb poziomy"</string>
     <string name="notification_dots_title" msgid="9062440428204120317">"Kropki powiadomień"</string>
     <string name="notification_dots_desc_on" msgid="1679848116452218908">"Włączone"</string>
     <string name="notification_dots_desc_off" msgid="1760796511504341095">"Wyłączone"</string>
@@ -142,7 +150,8 @@
     <string name="app_installing_title" msgid="5864044122733792085">"Instaluję aplikację <xliff:g id="NAME">%1$s</xliff:g>, postęp: <xliff:g id="PROGRESS">%2$s</xliff:g>"</string>
     <string name="app_downloading_title" msgid="8336702962104482644">"Pobieranie elementu <xliff:g id="NAME">%1$s</xliff:g>, ukończono: <xliff:g id="PROGRESS">%2$s</xliff:g>"</string>
     <string name="app_waiting_download_title" msgid="7053938513995617849">"<xliff:g id="NAME">%1$s</xliff:g> oczekuje na instalację"</string>
-    <string name="app_archived_title" msgid="7717956158562544081">"Aplikacja <xliff:g id="NAME">%1$s</xliff:g> jest zarchiwizowana. Kliknij, aby ją pobrać i przywrócić."</string>
+    <string name="app_archived_title" msgid="4548283110222420708">"Aplikacja <xliff:g id="NAME">%1$s</xliff:g> jest zarchiwizowana."</string>
+    <string name="app_unarchiving_action" msgid="5736107006413929484">"pobierz i przywróć"</string>
     <string name="dialog_update_title" msgid="114234265740994042">"Wymagana aktualizacja aplikacji"</string>
     <string name="dialog_update_message" msgid="4176784553982226114">"Aplikacja z tą ikoną nie jest aktualizowana. Możesz zaktualizować ją ręcznie, aby ponownie uruchomić ten skrót, lub usunąć ikonę."</string>
     <string name="dialog_update" msgid="2178028071796141234">"Aktualizuj"</string>
@@ -171,7 +180,7 @@
     <string name="action_decrease_width" msgid="1374549771083094654">"Zmniejsz szerokość"</string>
     <string name="action_decrease_height" msgid="282377193880900022">"Zmniejsz wysokość"</string>
     <string name="widget_resized" msgid="9130327887929620">"Szerokość i wysokość widżetu zmieniła się na <xliff:g id="NUMBER_0">%1$s</xliff:g> x <xliff:g id="NUMBER_1">%2$s</xliff:g>"</string>
-    <string name="action_deep_shortcut" msgid="2864038805849372848">"Skróty"</string>
+    <string name="action_deep_shortcut" msgid="4766835855579976045">"Menu skrótów"</string>
     <string name="action_dismiss_notification" msgid="5909461085055959187">"Zamknij"</string>
     <string name="accessibility_close" msgid="2277148124685870734">"Zamknij"</string>
     <string name="all_apps_personal_tab" msgid="4190252696685155002">"Osobiste"</string>
@@ -187,6 +196,7 @@
     <string name="work_apps_paused_edu_accept" msgid="6377476824357318532">"OK"</string>
     <string name="work_apps_pause_btn_text" msgid="4669288269140620646">"Wstrzymaj aplikacje służbowe"</string>
     <string name="work_apps_enable_btn_text" msgid="1736198302467317371">"Cofnij wstrzymywanie"</string>
+    <string name="work_scheduler_button_content_description" msgid="917340740986764967">"Harmonogram aplikacji służbowych"</string>
     <string name="developer_options_filter_hint" msgid="5896817443635989056">"Filtruj"</string>
     <string name="remote_action_failed" msgid="1383965239183576790">"Niepowodzenie: <xliff:g id="WHAT">%1$s</xliff:g>"</string>
     <string name="private_space_label" msgid="2359721649407947001">"Przestrzeń prywatna"</string>

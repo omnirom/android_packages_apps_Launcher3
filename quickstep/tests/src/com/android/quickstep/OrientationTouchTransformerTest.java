@@ -90,7 +90,7 @@ public class OrientationTouchTransformerTest {
         float landscapeRegionY =
                 generateTouchRegionHeight(NORMAL_SCREEN_SIZE, Surface.ROTATION_90) + 1;
 
-        mTouchTransformer.createOrAddTouchRegion(mInfo);
+        mTouchTransformer.createOrAddTouchRegion(mInfo, "test");
         tapAndAssertTrue(100, portraitRegionY,
                 event -> mTouchTransformer.touchInValidSwipeRegions(event.getX(), event.getY()));
         tapAndAssertFalse(100, landscapeRegionY,
@@ -102,7 +102,8 @@ public class OrientationTouchTransformerTest {
 
         // Override region
         mTouchTransformer
-            .createOrAddTouchRegion(createDisplayInfo(NORMAL_SCREEN_SIZE, Surface.ROTATION_90));
+            .createOrAddTouchRegion(createDisplayInfo(NORMAL_SCREEN_SIZE, Surface.ROTATION_90),
+                    "test");
         tapAndAssertFalse(100, portraitRegionY,
                 event -> mTouchTransformer.touchInValidSwipeRegions(event.getX(), event.getY()));
         tapAndAssertTrue(100, landscapeRegionY,
@@ -113,7 +114,7 @@ public class OrientationTouchTransformerTest {
                 event -> mTouchTransformer.touchInAssistantRegion(event));
 
         // Override region again
-        mTouchTransformer.createOrAddTouchRegion(mInfo);
+        mTouchTransformer.createOrAddTouchRegion(mInfo, "test");
         tapAndAssertTrue(100, portraitRegionY,
                 event -> mTouchTransformer.touchInValidSwipeRegions(event.getX(), event.getY()));
         tapAndAssertFalse(100, landscapeRegionY,
@@ -132,7 +133,8 @@ public class OrientationTouchTransformerTest {
                 generateTouchRegionHeight(NORMAL_SCREEN_SIZE, Surface.ROTATION_90) + 1;
 
         mTouchTransformer
-            .createOrAddTouchRegion(createDisplayInfo(NORMAL_SCREEN_SIZE, Surface.ROTATION_90));
+            .createOrAddTouchRegion(createDisplayInfo(NORMAL_SCREEN_SIZE, Surface.ROTATION_90),
+                    "test");
         tapAndAssertFalse(100, portraitRegionY,
                 event -> mTouchTransformer.touchInValidSwipeRegions(event.getX(), event.getY()));
         tapAndAssertTrue(100, landscapeRegionY,
@@ -144,7 +146,7 @@ public class OrientationTouchTransformerTest {
         // We have to add 0 rotation second so that gets set as the current rotation, otherwise
         // matrix transform will fail (tests only work in Portrait at the moment)
         mTouchTransformer.enableMultipleRegions(true, mInfo);
-        mTouchTransformer.createOrAddTouchRegion(mInfo);
+        mTouchTransformer.createOrAddTouchRegion(mInfo, "test");
 
         tapAndAssertTrue(100, portraitRegionY,
                 event -> mTouchTransformer.touchInValidSwipeRegions(event.getX(), event.getY()));
@@ -165,8 +167,9 @@ public class OrientationTouchTransformerTest {
 
         mTouchTransformer.enableMultipleRegions(true, mInfo);
         mTouchTransformer
-            .createOrAddTouchRegion(createDisplayInfo(NORMAL_SCREEN_SIZE, Surface.ROTATION_90));
-        mTouchTransformer.createOrAddTouchRegion(mInfo);
+            .createOrAddTouchRegion(createDisplayInfo(NORMAL_SCREEN_SIZE, Surface.ROTATION_90),
+                    "test");
+        mTouchTransformer.createOrAddTouchRegion(mInfo, "test");
         tapAndAssertTrue(0, portraitRegionY,
                 event -> mTouchTransformer.touchInAssistantRegion(event));
         tapAndAssertFalse(0, landscapeRegionY,
@@ -181,9 +184,10 @@ public class OrientationTouchTransformerTest {
                 generateTouchRegionHeight(NORMAL_SCREEN_SIZE, Surface.ROTATION_90) + 1;
 
         mTouchTransformer.enableMultipleRegions(true, mInfo);
-        mTouchTransformer.createOrAddTouchRegion(mInfo);
+        mTouchTransformer.createOrAddTouchRegion(mInfo, "test");
         mTouchTransformer
-            .createOrAddTouchRegion(createDisplayInfo(NORMAL_SCREEN_SIZE, Surface.ROTATION_90));
+            .createOrAddTouchRegion(createDisplayInfo(NORMAL_SCREEN_SIZE, Surface.ROTATION_90),
+                    "test");
         mTouchTransformer.enableMultipleRegions(false, mInfo);
         tapAndAssertTrue(0, portraitRegionY,
                 event -> mTouchTransformer.touchInAssistantRegion(event));
@@ -213,14 +217,14 @@ public class OrientationTouchTransformerTest {
 
     @Test
     public void applyTransform_taskNotFrozen_notInRegion() {
-        mTouchTransformer.createOrAddTouchRegion(mInfo);
+        mTouchTransformer.createOrAddTouchRegion(mInfo, "test");
         tapAndAssertFalse(100, 100,
                 event -> mTouchTransformer.touchInValidSwipeRegions(event.getX(), event.getY()));
     }
 
     @Test
     public void applyTransform_taskFrozen_noRotate_outOfRegion() {
-        mTouchTransformer.createOrAddTouchRegion(mInfo);
+        mTouchTransformer.createOrAddTouchRegion(mInfo, "test");
         mTouchTransformer.enableMultipleRegions(true, mInfo);
         tapAndAssertFalse(100, 100,
                 event -> mTouchTransformer.touchInValidSwipeRegions(event.getX(), event.getY()));
@@ -228,7 +232,7 @@ public class OrientationTouchTransformerTest {
 
     @Test
     public void applyTransform_taskFrozen_noRotate_inRegion() {
-        mTouchTransformer.createOrAddTouchRegion(mInfo);
+        mTouchTransformer.createOrAddTouchRegion(mInfo, "test");
         mTouchTransformer.enableMultipleRegions(true, mInfo);
         float y = generateTouchRegionHeight(NORMAL_SCREEN_SIZE, Surface.ROTATION_0) + 1;
         tapAndAssertTrue(100, y,
@@ -237,7 +241,7 @@ public class OrientationTouchTransformerTest {
 
     @Test
     public void applyTransform_taskNotFrozen_noRotate_inDefaultRegion() {
-        mTouchTransformer.createOrAddTouchRegion(mInfo);
+        mTouchTransformer.createOrAddTouchRegion(mInfo, "test");
         float y = generateTouchRegionHeight(NORMAL_SCREEN_SIZE, Surface.ROTATION_0) + 1;
         tapAndAssertTrue(100, y,
                 event -> mTouchTransformer.touchInValidSwipeRegions(event.getX(), event.getY()));
@@ -246,7 +250,8 @@ public class OrientationTouchTransformerTest {
     @Test
     public void applyTransform_taskNotFrozen_90Rotate_inRegion() {
         mTouchTransformer
-            .createOrAddTouchRegion(createDisplayInfo(NORMAL_SCREEN_SIZE, Surface.ROTATION_90));
+            .createOrAddTouchRegion(createDisplayInfo(NORMAL_SCREEN_SIZE, Surface.ROTATION_90),
+                    "test");
         float y = generateTouchRegionHeight(NORMAL_SCREEN_SIZE, Surface.ROTATION_90) + 1;
         tapAndAssertTrue(100, y,
                 event -> mTouchTransformer.touchInValidSwipeRegions(event.getX(), event.getY()));
@@ -254,10 +259,11 @@ public class OrientationTouchTransformerTest {
 
     @Test
     public void applyTransform_taskNotFrozen_90Rotate_withTwoRegions() {
-        mTouchTransformer.createOrAddTouchRegion(mInfo);
+        mTouchTransformer.createOrAddTouchRegion(mInfo, "test");
         mTouchTransformer.enableMultipleRegions(true, mInfo);
         mTouchTransformer
-            .createOrAddTouchRegion(createDisplayInfo(NORMAL_SCREEN_SIZE, Surface.ROTATION_90));
+            .createOrAddTouchRegion(createDisplayInfo(NORMAL_SCREEN_SIZE, Surface.ROTATION_90),
+                    "test");
         // Landscape point
         float y1 = generateTouchRegionHeight(NORMAL_SCREEN_SIZE, Surface.ROTATION_90) + 1;
         MotionEvent inRegion1_down = generateMotionEvent(MotionEvent.ACTION_DOWN, 10, y1);
@@ -278,10 +284,11 @@ public class OrientationTouchTransformerTest {
     @Test
     public void applyTransform_90Rotate_inRotatedRegion() {
         // Create regions for both 0 Rotation and 90 Rotation
-        mTouchTransformer.createOrAddTouchRegion(mInfo);
+        mTouchTransformer.createOrAddTouchRegion(mInfo, "test");
         mTouchTransformer.enableMultipleRegions(true, mInfo);
         mTouchTransformer
-                .createOrAddTouchRegion(createDisplayInfo(NORMAL_SCREEN_SIZE, Surface.ROTATION_90));
+                .createOrAddTouchRegion(createDisplayInfo(NORMAL_SCREEN_SIZE, Surface.ROTATION_90),
+                        "test");
         // Portrait point in landscape orientation axis
         float x1 = generateTouchRegionHeight(NORMAL_SCREEN_SIZE, Surface.ROTATION_0);
         // bottom of screen, from landscape perspective right side of screen

@@ -44,23 +44,30 @@ import androidx.annotation.Nullable;
 import androidx.annotation.WorkerThread;
 
 import com.android.launcher3.R;
+import com.android.launcher3.dagger.ApplicationContext;
+import com.android.launcher3.dagger.LauncherAppSingleton;
 import com.android.launcher3.model.data.ItemInfo;
 import com.android.launcher3.popup.RemoteActionShortcut;
 import com.android.launcher3.popup.SystemShortcut;
+import com.android.launcher3.util.DaggerSingletonObject;
+import com.android.launcher3.util.DaggerSingletonTracker;
 import com.android.launcher3.util.Executors;
-import com.android.launcher3.util.MainThreadInitializedObject;
 import com.android.launcher3.util.Preconditions;
 import com.android.launcher3.util.SafeCloseable;
 import com.android.launcher3.util.SimpleBroadcastReceiver;
 import com.android.launcher3.views.ActivityContext;
+import com.android.quickstep.dagger.QuickstepBaseAppComponent;
 
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.inject.Inject;
+
 /**
  * Data model for digital wellbeing status of apps.
  */
+@LauncherAppSingleton
 public final class WellbeingModel implements SafeCloseable {
     private static final String TAG = "WellbeingModel";
     private static final int[] RETRY_TIMES_MS = {5000, 15000, 30000};
@@ -75,8 +82,8 @@ public final class WellbeingModel implements SafeCloseable {
     private static final String EXTRA_PACKAGES = "packages";
     private static final String EXTRA_SUCCESS = "success";
 
-    public static final MainThreadInitializedObject<WellbeingModel> INSTANCE =
-            new MainThreadInitializedObject<>(WellbeingModel::new);
+    public static final DaggerSingletonObject<WellbeingModel> INSTANCE =
+            new DaggerSingletonObject<>(QuickstepBaseAppComponent::getWellbeingModel);
 
     private final Context mContext;
     private final String mWellbeingProviderPkg;
@@ -93,7 +100,9 @@ public final class WellbeingModel implements SafeCloseable {
 
     private boolean mIsInTest;
 
-    private WellbeingModel(final Context context) {
+    @Inject
+    WellbeingModel(@ApplicationContext final Context context,
+            DaggerSingletonTracker tracker) {
         mContext = context;
         mWellbeingProviderPkg = mContext.getString(R.string.wellbeing_provider_pkg);
         mWorkerHandler = new Handler(TextUtils.isEmpty(mWellbeingProviderPkg)
@@ -112,6 +121,7 @@ public final class WellbeingModel implements SafeCloseable {
             }
         };
         mWorkerHandler.post(this::initializeInBackground);
+        tracker.addCloseable(this);
     }
 
     @WorkerThread

@@ -32,6 +32,7 @@
     <string name="split_app_info_accessibility" msgid="5475288491241414932">"Сведения о приложении \"%1$s\""</string>
     <string name="split_app_usage_settings" msgid="7214375263347964093">"Настройки использования приложения \"%1$s\""</string>
     <string name="new_window_option_taskbar" msgid="6448780542727767211">"Новое окно"</string>
+    <string name="manage_windows_option_taskbar" msgid="2294109489960654212">"Управление окнами"</string>
     <string name="save_app_pair" msgid="5647523853662686243">"Сохранить приложения"</string>
     <string name="app_pair_default_title" msgid="4045241727446873529">"<xliff:g id="APP1">%1$s</xliff:g> | <xliff:g id="APP2">%2$s</xliff:g>"</string>
     <string name="app_pair_unlaunchable_at_screen_size" msgid="3446551575502685376">"Одновременно использовать эти два приложения на устройстве нельзя."</string>
@@ -67,8 +68,13 @@
     <string name="widgets_full_sheet_work_tab" msgid="3767150027110633765">"Рабочие виджеты"</string>
     <string name="widget_category_conversations" msgid="8894438636213590446">"Разговоры"</string>
     <string name="widget_category_note_taking" msgid="3469689394504266039">"Создание заметок"</string>
+    <string name="widget_cell_tap_to_show_add_button_label" msgid="4354194214317043581">"Показать кнопку добавления виджета"</string>
+    <string name="widget_cell_tap_to_hide_add_button_label" msgid="6117805205101555997">"Скрыть кнопку добавления виджета"</string>
     <string name="widget_add_button_label" msgid="2761267068711937179">"Добавить"</string>
     <string name="widget_add_button_content_description" msgid="1810530016360039643">"Добавить виджет \"<xliff:g id="WIDGET_NAME">%1$s</xliff:g>\""</string>
+    <string name="widgets_list_expand_button_label" msgid="7912016136574932622">"Показать все"</string>
+    <string name="widgets_list_expand_button_content_description" msgid="4600513860973450888">"Показать все виджеты"</string>
+    <string name="widgets_list_expanded" msgid="7374857868788557730">"Показаны все виджеты"</string>
     <string name="reconfigurable_widget_education_tip" msgid="6336962690888067057">"Нажмите, чтобы изменить настройки виджета"</string>
     <string name="widget_reconfigure_button_content_description" msgid="8811472721881205250">"Изменить настройки виджета"</string>
     <string name="all_apps_search_bar_hint" msgid="1390553134053255246">"Поиск приложений"</string>
@@ -124,6 +130,8 @@
     <string name="msg_disabled_by_admin" msgid="6898038085516271325">"Функция отключена администратором"</string>
     <string name="allow_rotation_title" msgid="7222049633713050106">"Разрешить поворачивать главный экран"</string>
     <string name="allow_rotation_desc" msgid="8662546029078692509">"При повороте телефона"</string>
+    <string name="landscape_mode_title" msgid="5138814555934843926">"Горизонтальный режим"</string>
+    <string name="landscape_mode_desc" msgid="7372569859592816793">"Перевести телефон в горизонтальный режим"</string>
     <string name="notification_dots_title" msgid="9062440428204120317">"Значки уведомлений"</string>
     <string name="notification_dots_desc_on" msgid="1679848116452218908">"Включены"</string>
     <string name="notification_dots_desc_off" msgid="1760796511504341095">"Отключены"</string>
@@ -142,7 +150,8 @@
     <string name="app_installing_title" msgid="5864044122733792085">"Установка приложения \"<xliff:g id="NAME">%1$s</xliff:g>\" (выполнено <xliff:g id="PROGRESS">%2$s</xliff:g>)"</string>
     <string name="app_downloading_title" msgid="8336702962104482644">"Скачивается \"<xliff:g id="NAME">%1$s</xliff:g>\" (<xliff:g id="PROGRESS">%2$s</xliff:g>)"</string>
     <string name="app_waiting_download_title" msgid="7053938513995617849">"Ожидание установки \"<xliff:g id="NAME">%1$s</xliff:g>\""</string>
-    <string name="app_archived_title" msgid="7717956158562544081">"Приложение \"<xliff:g id="NAME">%1$s</xliff:g>\" находится в архиве. Нажмите, чтобы скачать его и восстановить"</string>
+    <string name="app_archived_title" msgid="4548283110222420708">"Приложение \"<xliff:g id="NAME">%1$s</xliff:g>\" находится в архиве."</string>
+    <string name="app_unarchiving_action" msgid="5736107006413929484">"скачать и восстановить"</string>
     <string name="dialog_update_title" msgid="114234265740994042">"Обновите приложение"</string>
     <string name="dialog_update_message" msgid="4176784553982226114">"Эта версия приложения устарела. Обновите его вручную, чтобы снова пользоваться ярлыком, или удалите значок."</string>
     <string name="dialog_update" msgid="2178028071796141234">"Обновить"</string>
@@ -171,7 +180,7 @@
     <string name="action_decrease_width" msgid="1374549771083094654">"Уменьшить ширину"</string>
     <string name="action_decrease_height" msgid="282377193880900022">"Уменьшить высоту"</string>
     <string name="widget_resized" msgid="9130327887929620">"Изменен размер виджета: до <xliff:g id="NUMBER_0">%1$s</xliff:g> в ширину и <xliff:g id="NUMBER_1">%2$s</xliff:g> в высоту"</string>
-    <string name="action_deep_shortcut" msgid="2864038805849372848">"Ярлыки"</string>
+    <string name="action_deep_shortcut" msgid="4766835855579976045">"Быстрое меню"</string>
     <string name="action_dismiss_notification" msgid="5909461085055959187">"Закрыть"</string>
     <string name="accessibility_close" msgid="2277148124685870734">"Закрыть"</string>
     <string name="all_apps_personal_tab" msgid="4190252696685155002">"Личные"</string>
@@ -187,6 +196,7 @@
     <string name="work_apps_paused_edu_accept" msgid="6377476824357318532">"ОК"</string>
     <string name="work_apps_pause_btn_text" msgid="4669288269140620646">"Приостановить рабочие приложения"</string>
     <string name="work_apps_enable_btn_text" msgid="1736198302467317371">"Возобновить"</string>
+    <string name="work_scheduler_button_content_description" msgid="917340740986764967">"Расписание рабочих приложений"</string>
     <string name="developer_options_filter_hint" msgid="5896817443635989056">"Фильтр"</string>
     <string name="remote_action_failed" msgid="1383965239183576790">"Не удалось выполнить действие (<xliff:g id="WHAT">%1$s</xliff:g>)."</string>
     <string name="private_space_label" msgid="2359721649407947001">"Частное пространство"</string>

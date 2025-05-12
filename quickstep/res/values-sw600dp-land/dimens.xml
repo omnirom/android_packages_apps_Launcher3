@@ -33,4 +33,6 @@
     <!-- The bottom margin above the bottom row of tasks in grid only overview -->
     <dimen name="overview_bottom_margin_grid_only">40dp</dimen>
 
+    <dimen name="taskbar_suw_insets">24dp</dimen>
+
 </resources>

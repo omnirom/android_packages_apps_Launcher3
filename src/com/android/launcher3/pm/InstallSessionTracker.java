@@ -33,7 +33,6 @@ import androidx.annotation.Nullable;
 import androidx.annotation.WorkerThread;
 
 import com.android.launcher3.Flags;
-import com.android.launcher3.logging.FileLog;
 import com.android.launcher3.util.PackageUserKey;
 
 import java.lang.ref.WeakReference;
@@ -79,7 +78,7 @@ public class InstallSessionTracker extends PackageInstaller.SessionCallback {
         }
         SessionInfo sessionInfo = pushSessionDisplayToLauncher(sessionId, helper, callback);
         if (sessionInfo != null) {
-            FileLog.d(TAG, "onCreated: Install session created for"
+            Log.d(TAG, "onCreated: Install session created for"
                     + " appPackageName=" + sessionInfo.getAppPackageName()
                     + ", sessionId=" + sessionInfo.getSessionId()
                     + ", appIcon=" + sessionInfo.getAppIcon()
@@ -111,7 +110,7 @@ public class InstallSessionTracker extends PackageInstaller.SessionCallback {
         activeSessions.remove(sessionId);
 
         if (key != null && key.mPackageName != null) {
-            FileLog.d(TAG, "onFinished: active install session finished for"
+            Log.d(TAG, "onFinished: active install session finished for"
                     + " appPackageName=" + key.mPackageName
                     + ", sessionId=" + sessionId
                     + ", success=" + success);

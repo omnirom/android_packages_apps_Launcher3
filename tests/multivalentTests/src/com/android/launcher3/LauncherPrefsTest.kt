@@ -17,7 +17,6 @@ package com.android.launcher3
 
 import android.content.Context
 import android.content.SharedPreferences
-import android.content.SharedPreferences.OnSharedPreferenceChangeListener
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.SmallTest
 import androidx.test.platform.app.InstrumentationRegistry
@@ -63,7 +62,7 @@ class LauncherPrefsTest {
     @Test
     fun addListener_listeningForStringItemUpdates_isCorrectlyNotifiedOfUpdates() {
         val latch = CountDownLatch(1)
-        val listener = OnSharedPreferenceChangeListener { _, _ -> latch.countDown() }
+        val listener = LauncherPrefChangeListener { latch.countDown() }
 
         with(launcherPrefs) {
             putSync(TEST_STRING_ITEM.to(TEST_STRING_ITEM.defaultValue))
@@ -78,7 +77,7 @@ class LauncherPrefsTest {
     @Test
     fun removeListener_previouslyListeningForStringItemUpdates_isNoLongerNotifiedOfUpdates() {
         val latch = CountDownLatch(1)
-        val listener = OnSharedPreferenceChangeListener { _, _ -> latch.countDown() }
+        val listener = LauncherPrefChangeListener { latch.countDown() }
 
         with(launcherPrefs) {
             addListener(listener, TEST_STRING_ITEM)
@@ -94,14 +93,14 @@ class LauncherPrefsTest {
     @Test
     fun addListenerAndRemoveListener_forMultipleItems_bothWorkProperly() {
         var latch = CountDownLatch(3)
-        val listener = OnSharedPreferenceChangeListener { _, _ -> latch.countDown() }
+        val listener = LauncherPrefChangeListener { latch.countDown() }
 
         with(launcherPrefs) {
             addListener(listener, TEST_INT_ITEM, TEST_STRING_ITEM, TEST_BOOLEAN_ITEM)
             putSync(
                 TEST_INT_ITEM.to(TEST_INT_ITEM.defaultValue + 123),
                 TEST_STRING_ITEM.to(TEST_STRING_ITEM.defaultValue + "abc"),
-                TEST_BOOLEAN_ITEM.to(!TEST_BOOLEAN_ITEM.defaultValue)
+                TEST_BOOLEAN_ITEM.to(!TEST_BOOLEAN_ITEM.defaultValue),
             )
             assertThat(latch.await(WAIT_TIME_IN_SECONDS, TimeUnit.SECONDS)).isTrue()
 
@@ -110,7 +109,7 @@ class LauncherPrefsTest {
             putSync(
                 TEST_INT_ITEM.to(TEST_INT_ITEM.defaultValue),
                 TEST_STRING_ITEM.to(TEST_STRING_ITEM.defaultValue),
-                TEST_BOOLEAN_ITEM.to(TEST_BOOLEAN_ITEM.defaultValue)
+                TEST_BOOLEAN_ITEM.to(TEST_BOOLEAN_ITEM.defaultValue),
             )
             remove(TEST_INT_ITEM, TEST_STRING_ITEM, TEST_BOOLEAN_ITEM)
 
@@ -150,7 +149,7 @@ class LauncherPrefsTest {
             putSync(
                 TEST_STRING_ITEM.to(TEST_STRING_ITEM.defaultValue),
                 TEST_INT_ITEM.to(TEST_INT_ITEM.defaultValue),
-                TEST_BOOLEAN_ITEM.to(TEST_BOOLEAN_ITEM.defaultValue)
+                TEST_BOOLEAN_ITEM.to(TEST_BOOLEAN_ITEM.defaultValue),
             )
             assertThat(has(TEST_BOOLEAN_ITEM, TEST_INT_ITEM, TEST_STRING_ITEM)).isTrue()
             remove(TEST_STRING_ITEM, TEST_INT_ITEM, TEST_BOOLEAN_ITEM)
@@ -191,7 +190,7 @@ class LauncherPrefsTest {
             LauncherPrefs.backedUpItem(
                 TEST_PREF_KEY,
                 TEST_DEFAULT_VALUE,
-                EncryptionType.DEVICE_PROTECTED
+                EncryptionType.DEVICE_PROTECTED,
             )
 
         val bootAwarePrefs: SharedPreferences =
@@ -212,7 +211,7 @@ class LauncherPrefsTest {
             LauncherPrefs.backedUpItem(
                 TEST_PREF_KEY,
                 TEST_DEFAULT_VALUE,
-                EncryptionType.DEVICE_PROTECTED
+                EncryptionType.DEVICE_PROTECTED,
             )
 
         val bootAwarePrefs: SharedPreferences =

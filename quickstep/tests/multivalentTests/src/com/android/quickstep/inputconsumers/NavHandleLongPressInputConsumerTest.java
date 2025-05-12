@@ -92,14 +92,15 @@ public class NavHandleLongPressInputConsumerTest {
         when(mTopTaskTracker.getCachedTopTask(anyBoolean())).thenReturn(mTaskInfo);
         when(mDeviceState.getSquaredTouchSlop()).thenReturn(SQUARED_TOUCH_SLOP);
         when(mDelegate.allowInterceptByParent()).thenReturn(true);
-        MAIN_EXECUTOR.getHandler().removeCallbacks(mLongPressRunnable);
         mLongPressTriggered.set(false);
         when(mNavHandleLongPressHandler.getLongPressRunnable(any())).thenReturn(mLongPressRunnable);
         initializeObjectUnderTest();
     }
 
     @After
-    public void tearDown() {
+    public void tearDown() throws Exception {
+        MAIN_EXECUTOR.getHandler().removeCallbacks(mLongPressRunnable);
+        MAIN_EXECUTOR.submit(() -> null).get();
         mContext.onDestroy();
     }
 

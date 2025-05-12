@@ -15,28 +15,22 @@
 <merge xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:launcher="http://schemas.android.com/apk/res-auto">
 
-    <FrameLayout
+    <LinearLayout
         android:id="@+id/widgets_two_pane_sheet_recyclerview"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:gravity="start"
         android:layout_gravity="start"
         android:clipChildren="false"
-        android:layout_alignParentStart="true">
-
-        <com.android.launcher3.widget.picker.WidgetsRecyclerView
-            android:id="@+id/primary_widgets_list_view"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_marginHorizontal="@dimen/widget_list_horizontal_margin_two_pane"
-            android:clipToPadding="false" />
-
+        android:layout_alignParentStart="true"
+        android:orientation="vertical">
         <!-- SearchAndRecommendationsView without the tab layout as well -->
-        <com.android.launcher3.views.StickyHeaderLayout
+        <LinearLayout
             android:id="@+id/search_and_recommendations_container"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:clipToOutline="true"
+            android:background="?attr/widgetPickerPrimarySurfaceColor"
             android:orientation="vertical">
 
             <LinearLayout
@@ -83,6 +77,21 @@
                 android:background="?attr/widgetPickerPrimarySurfaceColor"
                 launcher:layout_sticky="true">
             </FrameLayout>
-        </com.android.launcher3.views.StickyHeaderLayout>
-    </FrameLayout>
+        </LinearLayout>
+
+        <com.android.launcher3.widget.picker.WidgetsRecyclerView
+            android:id="@+id/primary_widgets_list_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginHorizontal="@dimen/widget_list_horizontal_margin_two_pane"
+            android:clipToPadding="false" />
+
+        <com.android.launcher3.widget.picker.WidgetsRecyclerView
+            android:id="@+id/search_widgets_list_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clipToPadding="false"
+            android:paddingHorizontal="@dimen/widget_list_horizontal_margin_two_pane"
+            android:visibility="gone" />
+    </LinearLayout>
 </merge>

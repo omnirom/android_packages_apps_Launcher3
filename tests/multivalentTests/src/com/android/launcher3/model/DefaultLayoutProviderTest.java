@@ -39,7 +39,6 @@ import com.android.launcher3.util.LauncherModelHelper;
 
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -49,8 +48,6 @@ import org.junit.runner.RunWith;
 @SmallTest
 @RunWith(AndroidJUnit4.class)
 public class DefaultLayoutProviderTest {
-
-    @Rule public ModelTestRule rule = new ModelTestRule();
 
     private LauncherModelHelper mModelHelper;
     private LauncherModelHelper.SandboxModelContext mTargetContext;

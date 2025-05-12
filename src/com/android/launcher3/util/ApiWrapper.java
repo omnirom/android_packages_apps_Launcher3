@@ -17,13 +17,13 @@
 package com.android.launcher3.util;
 
 import static com.android.launcher3.LauncherConstants.ActivityCodes.REQUEST_HOME_ROLE;
-import static com.android.launcher3.util.MainThreadInitializedObject.forOverride;
 
 import android.app.ActivityOptions;
 import android.app.Person;
 import android.app.role.RoleManager;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.ApplicationInfo;
 import android.content.pm.LauncherActivityInfo;
 import android.content.pm.ShortcutInfo;
 import android.graphics.drawable.ColorDrawable;
@@ -32,28 +32,35 @@ import android.os.UserHandle;
 import android.os.UserManager;
 import android.util.ArrayMap;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.android.launcher3.BuildConfig;
 import com.android.launcher3.Launcher;
-import com.android.launcher3.R;
 import com.android.launcher3.Utilities;
+import com.android.launcher3.dagger.ApplicationContext;
+import com.android.launcher3.dagger.LauncherAppComponent;
+import com.android.launcher3.dagger.LauncherAppSingleton;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import javax.inject.Inject;
+
 /**
  * A wrapper for the hidden API calls
  */
-public class ApiWrapper implements ResourceBasedOverride, SafeCloseable {
+@LauncherAppSingleton
+public class ApiWrapper {
 
-    public static final MainThreadInitializedObject<ApiWrapper> INSTANCE =
-            forOverride(ApiWrapper.class, R.string.api_wrapper_class);
+    public static final DaggerSingletonObject<ApiWrapper> INSTANCE = new DaggerSingletonObject<>(
+            LauncherAppComponent::getApiWrapper);
 
     protected final Context mContext;
 
-    public ApiWrapper(Context context) {
+    @Inject
+    public ApiWrapper(@ApplicationContext Context context) {
         mContext = context;
     }
 
@@ -156,8 +163,13 @@ public class ApiWrapper implements ResourceBasedOverride, SafeCloseable {
         }
     }
 
-    @Override
-    public void close() { }
+    /**
+     * Returns a hash to uniquely identify a particular version of appInfo
+     */
+    public String getApplicationInfoHash(@NonNull ApplicationInfo appInfo) {
+        // The hashString in source dir changes with every install
+        return appInfo.sourceDir;
+    }
 
     private static class NoopDrawable extends ColorDrawable {
         @Override

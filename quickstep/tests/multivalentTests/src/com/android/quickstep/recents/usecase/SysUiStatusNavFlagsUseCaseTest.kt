@@ -71,7 +71,7 @@ class SysUiStatusNavFlagsUseCaseTest {
                         whenever(width).thenReturn(THUMBNAIL_WIDTH)
                         whenever(height).thenReturn(THUMBNAIL_HEIGHT)
                     },
-                appearance = APPEARANCE_LIGHT_THEME
+                appearance = APPEARANCE_LIGHT_THEME,
             )
 
         val secondTask =
@@ -85,14 +85,14 @@ class SysUiStatusNavFlagsUseCaseTest {
                         whenever(width).thenReturn(THUMBNAIL_WIDTH)
                         whenever(height).thenReturn(THUMBNAIL_HEIGHT)
                     },
-                appearance = APPEARANCE_DARK_THEME
+                appearance = APPEARANCE_DARK_THEME,
             )
 
         tasksRepository.seedTasks(listOf(firstTask, secondTask))
         tasksRepository.seedThumbnailData(
             mapOf(FIRST_TASK_ID to firstThumbnailData, SECOND_TASK_ID to secondThumbnailData)
         )
-        tasksRepository.setVisibleTasks(listOf(FIRST_TASK_ID, SECOND_TASK_ID))
+        tasksRepository.setVisibleTasks(setOf(FIRST_TASK_ID, SECOND_TASK_ID))
     }
 
     companion object {

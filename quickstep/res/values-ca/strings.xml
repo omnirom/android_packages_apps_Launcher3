@@ -22,6 +22,7 @@
     <string name="recent_task_option_pin" msgid="7929860679018978258">"Fixa"</string>
     <string name="recent_task_option_freeform" msgid="48863056265284071">"Format lliure"</string>
     <string name="recent_task_option_desktop" msgid="8280879717125435668">"Escriptori"</string>
+    <string name="recent_task_option_external_display" msgid="4533840664313389484">"Mou a la pantalla externa"</string>
     <string name="recent_task_desktop" msgid="8081113562549637334">"Escriptori"</string>
     <string name="recents_empty_message" msgid="7040467240571714191">"No hi ha cap element recent"</string>
     <string name="accessibility_app_usage_settings" msgid="6312864233673544149">"Configuració d\'ús d\'aplicacions"</string>
@@ -154,4 +155,5 @@
     <string name="bubble_bar_action_dismiss_all" msgid="3290722022983403060">"Ignora-ho tot"</string>
     <string name="bubble_bar_accessibility_announce_expand" msgid="1503192695527477102">"desplega <xliff:g id="BUBBLE_DESCRIPTION">%1$s</xliff:g>"</string>
     <string name="bubble_bar_accessibility_announce_collapse" msgid="928284600086798791">"replega <xliff:g id="BUBBLE_DESCRIPTION">%1$s</xliff:g>"</string>
+    <string name="search_gesture_feature_title" msgid="1294044108313175306">"Encercla per cercar"</string>
 </resources>

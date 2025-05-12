@@ -56,8 +56,6 @@ public class TaplPrivateSpaceTest extends AbstractQuickStepTest {
     @Override
     public void setUp() throws Exception {
         super.setUp();
-        initialize(this);
-
         createAndStartPrivateProfileUser();
 
         mDevice.pressHome();

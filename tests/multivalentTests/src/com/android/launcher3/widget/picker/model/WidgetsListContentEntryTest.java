@@ -33,8 +33,8 @@ import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.filters.SmallTest;
 
 import com.android.launcher3.InvariantDeviceProfile;
-import com.android.launcher3.icons.ComponentWithLabel;
 import com.android.launcher3.icons.IconCache;
+import com.android.launcher3.icons.cache.CachedObject;
 import com.android.launcher3.model.WidgetItem;
 import com.android.launcher3.model.data.PackageItemInfo;
 import com.android.launcher3.widget.LauncherAppWidgetProviderInfo;
@@ -81,7 +81,7 @@ public final class WidgetsListContentEntryTest {
         mTestProfile.numColumns = 5;
 
         doAnswer(invocation -> {
-            ComponentWithLabel componentWithLabel = (ComponentWithLabel) invocation.getArgument(0);
+            CachedObject componentWithLabel = invocation.getArgument(0);
             return mWidgetsToLabels.get(componentWithLabel.getComponent());
         }).when(mIconCache).getTitleNoCache(any());
     }

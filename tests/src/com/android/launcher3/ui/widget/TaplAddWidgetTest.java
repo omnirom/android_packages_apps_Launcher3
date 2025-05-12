@@ -29,6 +29,7 @@ import com.android.launcher3.tapl.WidgetResizeFrame;
 import com.android.launcher3.ui.AbstractLauncherUiTest;
 import com.android.launcher3.ui.PortraitLandscapeRunner.PortraitLandscape;
 import com.android.launcher3.ui.TestViewHelpers;
+import com.android.launcher3.util.TestUtil;
 import com.android.launcher3.util.rule.ShellCommandRule;
 import com.android.launcher3.widget.LauncherAppWidgetProviderInfo;
 
@@ -61,14 +62,14 @@ public class TaplAddWidgetTest extends AbstractLauncherUiTest<Launcher> {
         WidgetResizeFrame resizeFrame = mLauncher
                 .getWorkspace()
                 .openAllWidgets()
-                .getWidget(widgetInfo.getLabel(mTargetContext.getPackageManager()))
+                .getWidget(widgetInfo.getLabel())
                 .dragWidgetToWorkspace();
 
         assertNotNull("Widget resize frame not shown after widget add", resizeFrame);
         resizeFrame.dismiss();
 
         final Widget widget = mLauncher.getWorkspace().tryGetWidget(widgetInfo.label,
-                DEFAULT_UI_TIMEOUT);
+                TestUtil.DEFAULT_UI_TIMEOUT);
         assertNotNull("Widget not found on the workspace", widget);
         widget.launch(getAppPackageName());
         mLauncher.disableDebugTracing(); // b/289161193
@@ -111,7 +112,7 @@ public class TaplAddWidgetTest extends AbstractLauncherUiTest<Launcher> {
         WidgetResizeFrame resizeFrame = mLauncher
                 .getWorkspace()
                 .openAllWidgets()
-                .getWidget(widgetInfo.getLabel(mTargetContext.getPackageManager()))
+                .getWidget(widgetInfo.getLabel())
                 .dragWidgetToWorkspace();
 
         assertNotNull("Widget resize frame not shown after widget add", resizeFrame);

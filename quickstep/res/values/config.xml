@@ -33,13 +33,9 @@
     <string name="taskbar_model_callbacks_factory_class" translatable="false">com.android.launcher3.taskbar.TaskbarModelCallbacksFactory</string>
     <string name="taskbar_view_callbacks_factory_class" translatable="false">com.android.launcher3.taskbar.TaskbarViewCallbacksFactory</string>
     <string name="launcher_restore_event_logger_class" translatable="false">com.android.quickstep.LauncherRestoreEventLoggerImpl</string>
-    <string name="plugin_manager_wrapper_class" translatable="false">com.android.launcher3.uioverrides.plugins.PluginManagerWrapperImpl</string>
     <string name="taskbar_edu_tooltip_controller_class" translatable="false">com.android.launcher3.taskbar.TaskbarEduTooltipController</string>
-    <string name="contextual_edu_manager_class" translatable="false">com.android.quickstep.contextualeducation.SystemContextualEduStatsManager</string>
     <string name="nav_handle_long_press_handler_class" translatable="false"></string>
-    <string name="assist_utils_class" translatable="false"></string>
-    <string name="assist_state_manager_class" translatable="false"></string>
-    <string name="api_wrapper_class" translatable="false">com.android.launcher3.uioverrides.SystemApiWrapper</string>
+    <string name="contextual_search_state_manager_class" translatable="false"></string>
 
     <!-- The number of thumbnails and icons to keep in the cache. The thumbnail cache size also
          determines how many thumbnails will be fetched in the background. -->
@@ -54,6 +50,11 @@
     <string name="wellbeing_provider_pkg" translatable="false"/>
 
     <integer name="max_depth_blur_radius">23</integer>
+
+    <!-- If predicted widgets from prediction service are less than this number, additional
+    eligible widgets may be added locally by launcher. When set to 0, no widgets will be added
+    locally. -->
+    <integer name="widget_predictions_min_count">6</integer>
 
     <!-- Accessibility actions -->
     <item type="id" name="action_move_to_top_or_left" />

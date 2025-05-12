@@ -66,7 +66,7 @@ class GetThumbnailPositionUseCaseTest {
             deviceProfileRepository,
             rotationStateRepository,
             tasksRepository,
-            previewPositionHelper
+            previewPositionHelper,
         )
 
     @Test
@@ -80,7 +80,7 @@ class GetThumbnailPositionUseCaseTest {
     @Test
     fun visibleTaskWithoutThumbnailData_returnsIdentityMatrix() = runTest {
         tasksRepository.seedTasks(listOf(task))
-        tasksRepository.setVisibleTasks(listOf(TASK_ID))
+        tasksRepository.setVisibleTasks(setOf(TASK_ID))
 
         assertThat(systemUnderTest.run(TASK_ID, CANVAS_WIDTH, CANVAS_HEIGHT, isRtl = true))
             .isInstanceOf(MissingThumbnail::class.java)
@@ -90,7 +90,7 @@ class GetThumbnailPositionUseCaseTest {
     fun visibleTaskWithThumbnailData_returnsTransformedMatrix() = runTest {
         tasksRepository.seedThumbnailData(mapOf(TASK_ID to thumbnailData))
         tasksRepository.seedTasks(listOf(task))
-        tasksRepository.setVisibleTasks(listOf(TASK_ID))
+        tasksRepository.setVisibleTasks(setOf(TASK_ID))
 
         val isLargeScreen = true
         deviceProfileRepository.setRecentsDeviceProfile(
@@ -119,7 +119,7 @@ class GetThumbnailPositionUseCaseTest {
                 CANVAS_HEIGHT,
                 isLargeScreen,
                 activityRotation,
-                isRtl
+                isRtl,
             )
     }
 

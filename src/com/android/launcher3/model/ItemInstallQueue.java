@@ -45,16 +45,18 @@ import com.android.launcher3.InvariantDeviceProfile;
 import com.android.launcher3.Launcher;
 import com.android.launcher3.LauncherAppState;
 import com.android.launcher3.LauncherSettings.Favorites;
+import com.android.launcher3.dagger.ApplicationContext;
+import com.android.launcher3.dagger.LauncherAppSingleton;
+import com.android.launcher3.dagger.LauncherBaseAppComponent;
 import com.android.launcher3.logging.FileLog;
 import com.android.launcher3.model.data.ItemInfo;
 import com.android.launcher3.model.data.LauncherAppWidgetInfo;
 import com.android.launcher3.model.data.WorkspaceItemInfo;
 import com.android.launcher3.shortcuts.ShortcutKey;
 import com.android.launcher3.shortcuts.ShortcutRequest;
-import com.android.launcher3.util.MainThreadInitializedObject;
+import com.android.launcher3.util.DaggerSingletonObject;
 import com.android.launcher3.util.PersistedItemArray;
 import com.android.launcher3.util.Preconditions;
-import com.android.launcher3.util.SafeCloseable;
 import com.android.launcher3.widget.LauncherAppWidgetProviderInfo;
 
 import java.util.HashSet;
@@ -62,10 +64,13 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import javax.inject.Inject;
+
 /**
  * Class to maintain a queue of pending items to be added to the workspace.
  */
-public class ItemInstallQueue implements SafeCloseable {
+@LauncherAppSingleton
+public class ItemInstallQueue {
 
     private static final String LOG = "ItemInstallQueue";
 
@@ -81,9 +86,8 @@ public class ItemInstallQueue implements SafeCloseable {
     public static final int NEW_SHORTCUT_BOUNCE_DURATION = 450;
     public static final int NEW_SHORTCUT_STAGGER_DELAY = 85;
 
-    public static MainThreadInitializedObject<ItemInstallQueue> INSTANCE =
-            new MainThreadInitializedObject<>(ItemInstallQueue::new);
-
+    public static DaggerSingletonObject<ItemInstallQueue> INSTANCE =
+            new DaggerSingletonObject<>(LauncherBaseAppComponent::getItemInstallQueue);
     private final PersistedItemArray<PendingInstallShortcutInfo> mStorage =
             new PersistedItemArray<>(APPS_PENDING_INSTALL);
     private final Context mContext;
@@ -95,12 +99,10 @@ public class ItemInstallQueue implements SafeCloseable {
     // Only accessed on worker thread
     private List<PendingInstallShortcutInfo> mItems;
 
-    private ItemInstallQueue(Context context) {
+    @Inject
+    public ItemInstallQueue(@ApplicationContext Context context) {
         mContext = context;
     }
-
-    @Override
-    public void close() {}
 
     @WorkerThread
     private void ensureQueueLoaded() {
@@ -121,7 +123,7 @@ public class ItemInstallQueue implements SafeCloseable {
 
     @WorkerThread
     private void flushQueueInBackground() {
-        Launcher launcher = Launcher.ACTIVITY_TRACKER.getCreatedActivity();
+        Launcher launcher = Launcher.ACTIVITY_TRACKER.getCreatedContext();
         if (launcher == null) {
             // Launcher not loaded
             return;

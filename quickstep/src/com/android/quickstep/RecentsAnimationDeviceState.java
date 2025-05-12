@@ -19,6 +19,7 @@ import static android.app.WindowConfiguration.ACTIVITY_TYPE_UNDEFINED;
 import static android.app.WindowConfiguration.WINDOWING_MODE_PINNED;
 import static android.view.Display.DEFAULT_DISPLAY;
 
+import static com.android.launcher3.MotionEventsUtils.isTrackpadScroll;
 import static com.android.launcher3.util.DisplayController.CHANGE_ALL;
 import static com.android.launcher3.util.DisplayController.CHANGE_NAVIGATION_MODE;
 import static com.android.launcher3.util.DisplayController.CHANGE_ROTATION;
@@ -70,7 +71,7 @@ import com.android.launcher3.util.NavigationMode;
 import com.android.launcher3.util.SettingsCache;
 import com.android.quickstep.TopTaskTracker.CachedTaskInfo;
 import com.android.quickstep.util.ActiveGestureLog;
-import com.android.quickstep.util.AssistStateManager;
+import com.android.quickstep.util.ContextualSearchStateManager;
 import com.android.quickstep.util.GestureExclusionManager;
 import com.android.quickstep.util.GestureExclusionManager.ExclusionListener;
 import com.android.quickstep.util.NavBarPosition;
@@ -101,7 +102,7 @@ public class RecentsAnimationDeviceState implements DisplayInfoChangeListener, E
     private final DisplayController mDisplayController;
 
     private final GestureExclusionManager mExclusionManager;
-    private final AssistStateManager mAssistStateManager;
+    private final ContextualSearchStateManager mContextualSearchStateManager;
 
     private final RotationTouchHelper mRotationTouchHelper;
     private final TaskStackChangeListener mPipListener;
@@ -152,7 +153,7 @@ public class RecentsAnimationDeviceState implements DisplayInfoChangeListener, E
         mContext = context;
         mDisplayController = DisplayController.INSTANCE.get(context);
         mExclusionManager = exclusionManager;
-        mAssistStateManager = AssistStateManager.INSTANCE.get(context);
+        mContextualSearchStateManager = ContextualSearchStateManager.INSTANCE.get(context);
         mIsOneHandedModeSupported = SystemProperties.getBoolean(SUPPORT_ONE_HANDED_MODE, false);
         mRotationTouchHelper = RotationTouchHelper.INSTANCE.get(context);
         if (isInstanceForTouches) {
@@ -353,7 +354,11 @@ public class RecentsAnimationDeviceState implements DisplayInfoChangeListener, E
      * @return whether the given running task info matches the gesture-blocked task.
      */
     public boolean isGestureBlockedTask(CachedTaskInfo taskInfo) {
-        return taskInfo != null && taskInfo.getTaskId() == mGestureBlockingTaskId;
+        if (com.android.wm.shell.Flags.enableShellTopTaskTracking()) {
+            return taskInfo != null && taskInfo.topGroupedTaskContainsTask(mGestureBlockingTaskId);
+        } else {
+            return taskInfo != null && taskInfo.getTaskId() == mGestureBlockingTaskId;
+        }
     }
 
     /**
@@ -563,6 +568,7 @@ public class RecentsAnimationDeviceState implements DisplayInfoChangeListener, E
         return mAssistantAvailable
                 && !QuickStepContract.isAssistantGestureDisabled(mSystemUiStateFlags)
                 && mRotationTouchHelper.touchInAssistantRegion(ev)
+                && !isTrackpadScroll(ev)
                 && !isLockToAppActive();
     }
 
@@ -617,8 +623,9 @@ public class RecentsAnimationDeviceState implements DisplayInfoChangeListener, E
                 : QUICKSTEP_TOUCH_SLOP_RATIO_TWO_BUTTON;
         float touchSlop = ViewConfiguration.get(mContext).getScaledTouchSlop();
 
-        if (mAssistStateManager.getLPNHCustomSlopMultiplier().isPresent()) {
-            float customSlopMultiplier = mAssistStateManager.getLPNHCustomSlopMultiplier().get();
+        if (mContextualSearchStateManager.getLPNHCustomSlopMultiplier().isPresent()) {
+            float customSlopMultiplier =
+                    mContextualSearchStateManager.getLPNHCustomSlopMultiplier().get();
             return customSlopMultiplier * slopMultiplier * touchSlop;
         } else {
             return slopMultiplier * touchSlop;

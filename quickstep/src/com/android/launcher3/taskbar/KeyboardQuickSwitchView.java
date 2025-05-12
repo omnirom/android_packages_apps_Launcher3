@@ -17,8 +17,6 @@ package com.android.launcher3.taskbar;
 
 import static androidx.constraintlayout.widget.ConstraintLayout.LayoutParams.PARENT_ID;
 
-import static com.android.launcher3.taskbar.KeyboardQuickSwitchController.MAX_TASKS;
-
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.animation.AnimatorSet;
@@ -37,6 +35,8 @@ import android.view.ViewTreeObserver;
 import android.view.animation.Interpolator;
 import android.widget.HorizontalScrollView;
 import android.widget.TextView;
+import android.window.OnBackInvokedDispatcher;
+import android.window.WindowOnBackInvokedDispatcher;
 
 import androidx.annotation.LayoutRes;
 import androidx.annotation.NonNull;
@@ -111,6 +111,8 @@ public class KeyboardQuickSwitchView extends ConstraintLayout {
 
     @Nullable private AnimatorSet mOpenAnimation;
 
+    private boolean mIsBackCallbackRegistered = false;
+
     @Nullable private KeyboardQuickSwitchViewController.ViewCallbacks mViewCallbacks;
 
     public KeyboardQuickSwitchView(@NonNull Context context) {
@@ -133,6 +135,15 @@ public class KeyboardQuickSwitchView extends ConstraintLayout {
     }
 
     @Override
+    protected void onDetachedFromWindow() {
+        super.onDetachedFromWindow();
+
+        if (mViewCallbacks != null) {
+            mViewCallbacks.onViewDetchedFromWindow();
+        }
+    }
+
+    @Override
     protected void onFinishInflate() {
         super.onFinishInflate();
         mNoRecentItemsPane = findViewById(R.id.no_recent_items_pane);
@@ -149,6 +160,34 @@ public class KeyboardQuickSwitchView extends ConstraintLayout {
                 R.dimen.keyboard_quick_switch_view_small_spacing);
         mOutlineRadius = resources.getDimensionPixelSize(R.dimen.keyboard_quick_switch_view_radius);
         mIsRtl = Utilities.isRtl(resources);
+    }
+
+    private void registerOnBackInvokedCallback() {
+        OnBackInvokedDispatcher dispatcher = findOnBackInvokedDispatcher();
+
+        if (isOnBackInvokedCallbackEnabled(dispatcher)
+                && !mIsBackCallbackRegistered) {
+            dispatcher.registerOnBackInvokedCallback(
+                    OnBackInvokedDispatcher.PRIORITY_OVERLAY, mViewCallbacks.onBackInvokedCallback);
+            mIsBackCallbackRegistered = true;
+        }
+    }
+
+    private void unregisterOnBackInvokedCallback() {
+        OnBackInvokedDispatcher dispatcher = findOnBackInvokedDispatcher();
+
+        if (isOnBackInvokedCallbackEnabled(dispatcher)
+                && mIsBackCallbackRegistered) {
+            dispatcher.unregisterOnBackInvokedCallback(
+                    mViewCallbacks.onBackInvokedCallback);
+            mIsBackCallbackRegistered = false;
+        }
+    }
+
+    private boolean isOnBackInvokedCallbackEnabled(OnBackInvokedDispatcher dispatcher) {
+        return dispatcher instanceof WindowOnBackInvokedDispatcher
+                && ((WindowOnBackInvokedDispatcher) dispatcher).isOnBackInvokedCallbackEnabled()
+                && mViewCallbacks != null;
     }
 
     private KeyboardQuickSwitchTaskView createAndAddTaskView(
@@ -194,13 +233,15 @@ public class KeyboardQuickSwitchView extends ConstraintLayout {
             int currentFocusIndexOverride,
             @NonNull KeyboardQuickSwitchViewController.ViewCallbacks viewCallbacks,
             boolean useDesktopTaskView) {
+        mContent.removeAllViews();
+
         mViewCallbacks = viewCallbacks;
         Resources resources = context.getResources();
         Resources.Theme theme = context.getTheme();
 
         View previousTaskView = null;
         LayoutInflater layoutInflater = LayoutInflater.from(context);
-        int tasksToDisplay = Math.min(MAX_TASKS, groupTasks.size());
+        int tasksToDisplay = groupTasks.size();
         for (int i = 0; i < tasksToDisplay; i++) {
             GroupTask groupTask = groupTasks.get(i);
             KeyboardQuickSwitchTaskView currentTaskView = createAndAddTaskView(
@@ -268,6 +309,7 @@ public class KeyboardQuickSwitchView extends ConstraintLayout {
                 new ViewTreeObserver.OnGlobalLayoutListener() {
                     @Override
                     public void onGlobalLayout() {
+                        registerOnBackInvokedCallback();
                         animateOpen(currentFocusIndexOverride);
 
                         getViewTreeObserver().removeOnGlobalLayoutListener(this);
@@ -281,6 +323,13 @@ public class KeyboardQuickSwitchView extends ConstraintLayout {
 
     int getDesktopTaskIndex() {
         return mDesktopTaskIndex;
+    }
+
+    void resetViewCallbacks() {
+        // Unregister the back invoked callback after the view is closed and before the
+        // mViewCallbacks is reset.
+        unregisterOnBackInvokedCallback();
+        mViewCallbacks = null;
     }
 
     protected Animator getCloseAnimation() {
@@ -322,11 +371,17 @@ public class KeyboardQuickSwitchView extends ConstraintLayout {
         return closeAnimation;
     }
 
-    private void animateOpen(int currentFocusIndexOverride) {
+    protected void animateOpen(int currentFocusIndexOverride) {
         if (mOpenAnimation != null) {
             // Restart animation since currentFocusIndexOverride can change the initial scroll.
             mOpenAnimation.cancel();
         }
+
+        // Reset the alpha for the case where the KQS view is opened before.
+        setAlpha(0);
+        mScrollView.setAlpha(0);
+        mNoRecentItemsPane.setAlpha(0);
+
         mOpenAnimation = new AnimatorSet();
 
         Animator outlineAnimation = mOutlineAnimationProgress.animateToValue(1f);

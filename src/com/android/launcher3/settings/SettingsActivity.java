@@ -22,10 +22,13 @@ import static androidx.preference.PreferenceFragmentCompat.ARG_PREFERENCE_ROOT;
 
 import static com.android.launcher3.BuildConfig.IS_DEBUG_DEVICE;
 import static com.android.launcher3.BuildConfig.IS_STUDIO_BUILD;
+import static com.android.launcher3.InvariantDeviceProfile.TYPE_MULTI_DISPLAY;
+import static com.android.launcher3.InvariantDeviceProfile.TYPE_TABLET;
 import static com.android.launcher3.states.RotationHelper.ALLOW_ROTATION_PREFERENCE_KEY;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
 import android.net.Uri;
 import android.content.res.XmlResourceParser;
 import android.os.Bundle;
@@ -83,6 +86,8 @@ public class SettingsActivity extends FragmentActivity
 
     @VisibleForTesting
     static final String DEVELOPER_OPTIONS_KEY = "pref_developer_options";
+
+    public static final String FIXED_LANDSCAPE_MODE = "pref_fixed_landscape_mode";
 
     private static final String NOTIFICATION_DOTS_PREFERENCE_KEY = "pref_icon_badging";
     private static final String GRID_SIZE_PREFERENCE_KEY = "pref_grid";
@@ -330,7 +335,7 @@ public class SettingsActivity extends FragmentActivity
         /**
          * Finds the parent preference screen for the given target key.
          *
-         * @param parent the parent preference screen
+         * @param parent    the parent preference screen
          * @param targetKey the key of the preference to find
          * @return the parent preference screen that contains the target preference
          */
@@ -380,13 +385,14 @@ public class SettingsActivity extends FragmentActivity
          * will remove that preference from the list.
          */
         protected boolean initPreference(Preference preference) {
+            DisplayController.Info info = DisplayController.INSTANCE.get(getContext()).getInfo();
             switch (preference.getKey()) {
                 case NOTIFICATION_DOTS_PREFERENCE_KEY:
                     return BuildConfig.NOTIFICATION_DOTS_ENABLED;
-
                 case ALLOW_ROTATION_PREFERENCE_KEY:
-                    DisplayController.Info info =
-                            DisplayController.INSTANCE.get(getContext()).getInfo();
+                    if (Flags.oneGridSpecs()) {
+                        return false;
+                    }
                     if (info.isTablet(info.realBounds)) {
                         // Launcher supports rotation by default. No need to show this setting.
                         return false;
@@ -394,14 +400,34 @@ public class SettingsActivity extends FragmentActivity
                     // Initialize the UI once
                     preference.setDefaultValue(RotationHelper.getAllowRotationDefaultValue(info));
                     return true;
-
                 case DEVELOPER_OPTIONS_KEY:
                     if (IS_STUDIO_BUILD) {
                         preference.setOrder(0);
                     }
                     return mDeveloperOptionsEnabled;
+                case FIXED_LANDSCAPE_MODE:
+                    if (!Flags.oneGridSpecs()
+                            // adding this condition until fixing b/378972567
+                            || InvariantDeviceProfile.INSTANCE.get(getContext()).deviceType
+                            == TYPE_MULTI_DISPLAY
+                            || InvariantDeviceProfile.INSTANCE.get(getContext()).deviceType
+                            == TYPE_TABLET) {
+                        return false;
+                    }
+                    // When the setting changes rotate the screen accordingly to showcase the result
+                    // of the setting
+                    preference.setOnPreferenceChangeListener(
+                            (pref, newValue) -> {
+                                getActivity().setRequestedOrientation(
+                                        (boolean) newValue
+                                                ? ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+                                                : ActivityInfo.SCREEN_ORIENTATION_USER
+                                );
+                                return true;
+                            }
+                    );
+                    return !info.isTablet(info.realBounds);
             }
-
             return true;
         }
 

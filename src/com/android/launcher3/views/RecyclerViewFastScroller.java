@@ -180,7 +180,7 @@ public class RecyclerViewFastScroller extends View {
         mTrackPaint.setAlpha(MAX_TRACK_ALPHA);
 
         mThumbColor = Themes.getColorAccent(context);
-        mThumbLetterScrollerColor = Themes.getAttrColor(context, R.attr.materialColorSurfaceBright);
+        mThumbLetterScrollerColor = context.getColor(R.color.materialColorSurfaceBright);
         mThumbPaint = new Paint();
         mThumbPaint.setAntiAlias(true);
         mThumbPaint.setColor(mThumbColor);

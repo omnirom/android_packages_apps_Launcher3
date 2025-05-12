@@ -63,17 +63,6 @@ public final class FeatureFlags {
      * and set a default value for the flag. This will be the default value on Debug builds.
      * <p>
      */
-    // TODO(Block 3): Clean up flags
-    public static final BooleanFlag ENABLE_WORKSPACE_LOADING_OPTIMIZATION = getDebugFlag(251502424,
-            "ENABLE_WORKSPACE_LOADING_OPTIMIZATION", DISABLED,
-            "load the current workspace screen visible to the user before the rest rather than "
-                    + "loading all of them at once.");
-
-    public static final BooleanFlag CHANGE_MODEL_DELEGATE_LOADING_ORDER = getDebugFlag(251502424,
-            "CHANGE_MODEL_DELEGATE_LOADING_ORDER", DISABLED,
-            "changes the timing of the loading and binding of delegate items during "
-                    + "data preparation for loading the home screen");
-
     // TODO(Block 6): Clean up flags
     public static final BooleanFlag SECONDARY_DRAG_N_DROP_TO_PIN = getDebugFlag(270395140,
             "SECONDARY_DRAG_N_DROP_TO_PIN", DISABLED,

@@ -89,12 +89,7 @@ class TaskOverlayViewModelTest {
         task.isLocked = false
 
         assertThat(systemUnderTest.overlayState.first())
-            .isEqualTo(
-                Enabled(
-                    isRealSnapshot = false,
-                    thumbnail = null,
-                )
-            )
+            .isEqualTo(Enabled(isRealSnapshot = false, thumbnail = null))
     }
 
     @Test
@@ -103,17 +98,12 @@ class TaskOverlayViewModelTest {
         recentsViewData.settledFullyVisibleTaskIds.value = setOf(TASK_ID)
         tasksRepository.seedTasks(listOf(task))
         tasksRepository.seedThumbnailData(mapOf(TASK_ID to thumbnailData))
-        tasksRepository.setVisibleTasks(listOf(TASK_ID))
+        tasksRepository.setVisibleTasks(setOf(TASK_ID))
         thumbnailData.isRealSnapshot = true
         task.isLocked = false
 
         assertThat(systemUnderTest.overlayState.first())
-            .isEqualTo(
-                Enabled(
-                    isRealSnapshot = true,
-                    thumbnail = thumbnailData.thumbnail,
-                )
-            )
+            .isEqualTo(Enabled(isRealSnapshot = true, thumbnail = thumbnailData.thumbnail))
     }
 
     @Test
@@ -122,17 +112,12 @@ class TaskOverlayViewModelTest {
         recentsViewData.settledFullyVisibleTaskIds.value = setOf(TASK_ID)
         tasksRepository.seedTasks(listOf(task))
         tasksRepository.seedThumbnailData(mapOf(TASK_ID to thumbnailData))
-        tasksRepository.setVisibleTasks(listOf(TASK_ID))
+        tasksRepository.setVisibleTasks(setOf(TASK_ID))
         thumbnailData.isRealSnapshot = true
         task.isLocked = true
 
         assertThat(systemUnderTest.overlayState.first())
-            .isEqualTo(
-                Enabled(
-                    isRealSnapshot = false,
-                    thumbnail = thumbnailData.thumbnail,
-                )
-            )
+            .isEqualTo(Enabled(isRealSnapshot = false, thumbnail = thumbnailData.thumbnail))
     }
 
     @Test
@@ -141,17 +126,12 @@ class TaskOverlayViewModelTest {
         recentsViewData.settledFullyVisibleTaskIds.value = setOf(TASK_ID)
         tasksRepository.seedTasks(listOf(task))
         tasksRepository.seedThumbnailData(mapOf(TASK_ID to thumbnailData))
-        tasksRepository.setVisibleTasks(listOf(TASK_ID))
+        tasksRepository.setVisibleTasks(setOf(TASK_ID))
         thumbnailData.isRealSnapshot = false
         task.isLocked = false
 
         assertThat(systemUnderTest.overlayState.first())
-            .isEqualTo(
-                Enabled(
-                    isRealSnapshot = false,
-                    thumbnail = thumbnailData.thumbnail,
-                )
-            )
+            .isEqualTo(Enabled(isRealSnapshot = false, thumbnail = thumbnailData.thumbnail))
     }
 
     @Test

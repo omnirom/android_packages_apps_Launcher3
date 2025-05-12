@@ -58,8 +58,7 @@ import org.mockito.kotlin.whenever
 @RunWith(AndroidJUnit4::class)
 class PackageUpdatedTaskTest {
 
-    @get:Rule(order = 0) val setFlagsRule = SetFlagsRule()
-    @get:Rule(order = 1) val modelTestRule = ModelTestRule()
+    @get:Rule val setFlagsRule = SetFlagsRule()
 
     private val mUser = UserHandle(0)
     private val mDataModel: BgDataModel = BgDataModel()

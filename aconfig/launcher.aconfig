@@ -65,6 +65,13 @@ flag {
 }
 
 flag {
+    name: "enable_taskbar_connected_displays"
+    namespace: "launcher"
+    description: "Enables connected displays in taskbar."
+    bug: "362720616"
+}
+
+flag {
     name: "enable_taskbar_customization"
     namespace: "launcher"
     description: "Enables taskbar customization framework."
@@ -304,6 +311,13 @@ flag {
 }
 
 flag {
+    name: "all_apps_sheet_for_handheld"
+    namespace: "launcher"
+    description: "All Apps will be presented on a bottom sheet in handheld mode"
+    bug: "374186088"
+}
+
+flag {
     name: "multiline_search_bar"
     namespace: "launcher"
     description: "Search bar can wrap to multi-line"
@@ -359,6 +373,13 @@ flag {
     metadata {
       purpose: PURPOSE_BUGFIX
     }
+}
+
+flag {
+    name: "work_scheduler_in_work_profile"
+    namespace: "launcher"
+    description: "Enables work scheduler view above the work pause button in work profile."
+    bug: "361589193"
 }
 
 flag {
@@ -425,4 +446,101 @@ flag {
     namespace: "launcher"
     description: "Show recent apps in the taskbar overflow."
     bug: "368119679"
+}
+
+flag {
+    name: "enable_active_gesture_proto_log"
+    namespace: "launcher"
+    description: "Enables tracking active gesture logs in ProtoLog"
+    bug: "293182501"
+}
+
+flag {
+    name: "enable_recents_window_proto_log"
+    namespace: "launcher"
+    description: "Enables tracking recents window logs in ProtoLog"
+    bug: "292269949"
+}
+
+flag {
+    name: "enable_state_manager_proto_log"
+    namespace: "launcher"
+    description: "Enables tracking state manager logs in ProtoLog"
+    bug: "292269949"
+}
+
+flag {
+    name: "coordinate_workspace_scale"
+    namespace: "launcher"
+    description: "Ensure that the workspace and hotseat scale doesn't conflict and transitions smoothly between launching and closing apps"
+    bug: "366403487"
+    metadata {
+      purpose: PURPOSE_BUGFIX
+    }
+}
+
+flag {
+    name: "enable_tiered_widgets_by_default_in_picker"
+    namespace: "launcher"
+    description: "Shows filtered set of widgets by default and an option to show all widgets in the widget picker"
+    bug: "356127021"
+}
+
+flag {
+    name: "show_taskbar_pinning_popup_from_anywhere"
+    namespace: "launcher"
+    description: "Shows the pinning popup view after long-pressing or right-clicking anywhere on the pinned taskbar"
+    bug: "297325541"
+}
+
+flag {
+    name: "enable_launcher_overview_in_window"
+    namespace: "launcher"
+    description: "Enables launcher recents opening inside of a window instead of being hosted in launcher activity."
+    bug: "292269949"
+}
+
+flag {
+   name: "use_system_radius_for_app_widgets"
+   namespace: "launcher"
+   description: "Use system radius for enforced widget corners instead of a separate 16.dp value"
+   bug: "373351337"
+   metadata {
+    purpose: PURPOSE_BUGFIX
+  }
+}
+
+flag {
+    name: "enable_contrast_tiles"
+    namespace: "launcher"
+    description: "Enable launcher app contrast tiles."
+    bug: "341217082"
+}
+
+flag {
+  name: "msdl_feedback"
+  namespace: "launcher"
+  description: "Enable MSDL feedback for Launcher interactions"
+  bug: "377496684"
+}
+
+flag {
+    name: "taskbar_recents_layout_transition"
+    namespace: "launcher"
+    description: "Enable Taskbar LayoutTransition for Recent Apps"
+    bug: "343521765"
+}
+
+flag {
+    name: "enable_pinning_app_with_context_menu"
+    namespace: "launcher"
+    description: "Add options to pin/unpin to taskbar to app context menus."
+    bug: "375648361"
+}
+
+flag {
+  name: "enable_launcher_icon_shapes"
+  namespace: "launcher"
+  description: "Enable launcher icon shape customizations"
+  bug: "348708061"
 }

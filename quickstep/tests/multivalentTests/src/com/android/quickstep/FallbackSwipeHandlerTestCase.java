@@ -16,6 +16,7 @@
 
 package com.android.quickstep;
 
+import androidx.annotation.NonNull;
 import androidx.test.filters.SmallTest;
 
 import com.android.launcher3.util.LauncherMultivalentJUnit;
@@ -28,15 +29,14 @@ import org.mockito.Mock;
 @SmallTest
 @RunWith(LauncherMultivalentJUnit.class)
 public class FallbackSwipeHandlerTestCase extends AbsSwipeUpHandlerTestCase<
-        RecentsActivity,
         RecentsState,
-        FallbackRecentsView,
         RecentsActivity,
-        FallbackActivityInterface,
-        FallbackSwipeHandler> {
+        FallbackRecentsView<RecentsActivity>,
+        FallbackSwipeHandler,
+        FallbackActivityInterface> {
 
     @Mock private RecentsActivity mRecentsActivity;
-    @Mock private FallbackRecentsView mRecentsView;
+    @Mock private FallbackRecentsView<RecentsActivity> mRecentsView;
 
 
     @Override
@@ -52,13 +52,15 @@ public class FallbackSwipeHandlerTestCase extends AbsSwipeUpHandlerTestCase<
                 mInputConsumerController);
     }
 
+    @NonNull
     @Override
     protected RecentsActivity getRecentsContainer() {
         return mRecentsActivity;
     }
 
+    @NonNull
     @Override
-    protected FallbackRecentsView getRecentsView() {
+    protected FallbackRecentsView<RecentsActivity> getRecentsView() {
         return mRecentsView;
     }
 }

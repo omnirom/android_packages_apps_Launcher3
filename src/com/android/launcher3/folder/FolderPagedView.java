@@ -373,8 +373,9 @@ public class FolderPagedView extends PagedView<PageIndicatorDots> implements Cli
         // Update footer
         mPageIndicator.setVisibility(getPageCount() > 1 ? View.VISIBLE : View.GONE);
         // Set the gravity as LEFT or RIGHT instead of START, as START depends on the actual text.
-        mFolder.getFolderName().setGravity(getPageCount() > 1
-                ? (mIsRtl ? Gravity.RIGHT : Gravity.LEFT) : Gravity.CENTER_HORIZONTAL);
+        int horizontalGravity = getPageCount() > 1
+                ? (mIsRtl ? Gravity.RIGHT : Gravity.LEFT) : Gravity.CENTER_HORIZONTAL;
+        mFolder.getFolderName().setGravity(horizontalGravity | Gravity.CENTER_VERTICAL);
     }
 
     public int getDesiredWidth() {

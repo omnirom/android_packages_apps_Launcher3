@@ -23,6 +23,7 @@ import android.graphics.Canvas;
 import android.graphics.Point;
 import android.graphics.Rect;
 import android.os.SystemProperties;
+import android.view.MotionEvent;
 import android.view.ViewTreeObserver;
 
 import com.android.launcher3.DeviceProfile;
@@ -324,6 +325,16 @@ public class TaskbarDragLayerController implements TaskbarControllers.LoggableTa
                 return;
             }
             mControllers.taskbarInsetsController.drawDebugTouchableRegionBounds(canvas);
+        }
+
+        /** Handles any touch event before it is dispatched to the rest of TaskbarDragLayer. */
+        public void onDispatchTouchEvent(MotionEvent ev) {
+            if (mActivity.isThreeButtonNav() && ev.getAction() == MotionEvent.ACTION_OUTSIDE
+                    && mControllers.uiController.isAnimatingToHotseat()) {
+                // When touching during animation to home, jump to the end so Hotseat can handle
+                // the touch. (Gesture Navigation handles this in AbsSwipeUpHandler.)
+                mControllers.uiController.endAnimationToHotseat();
+            }
         }
     }
 }

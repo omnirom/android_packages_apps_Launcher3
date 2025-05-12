@@ -22,7 +22,7 @@
     android:layout_height="wrap_content"
     android:clipToOutline="true"
     android:importantForAccessibility="yes"
-    launcher:focusBorderColor="?androidprv:attr/materialColorOutline"
+    launcher:focusBorderColor="@androidprv:color/materialColorOutline"
     launcher:focusBorderRadius="@dimen/keyboard_quick_switch_text_button_radius">
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -30,7 +30,7 @@
         android:layout_width="@dimen/keyboard_quick_switch_text_button_width"
         android:layout_height="@dimen/keyboard_quick_switch_taskview_height"
         android:background="@drawable/keyboard_quick_switch_text_button_background"
-        android:backgroundTint="?androidprv:attr/materialColorSurfaceBright"
+        android:backgroundTint="@androidprv:color/materialColorSurfaceBright"
         android:paddingHorizontal="@dimen/keyboard_quick_switch_text_button_horizontal_padding"
 
         app:layout_constraintTop_toTopOf="parent"

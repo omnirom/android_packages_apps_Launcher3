@@ -26,15 +26,25 @@ import com.android.launcher3.dagger.LauncherBaseAppComponent;
  */
 public class LauncherApplication extends Application {
 
-    private LauncherBaseAppComponent mAppComponent;
+    private volatile LauncherBaseAppComponent mAppComponent;
     @Override
     public void onCreate() {
         super.onCreate();
         MainProcessInitializer.initialize(this);
-        initDagger();
     }
 
     public LauncherAppComponent getAppComponent() {
+        if (mAppComponent == null) {
+            synchronized (this) {
+                // Check for null again, as it may have been assigned on a different thread. This
+                // avoids holding synchronization locks everytime.
+                if (mAppComponent == null) {
+                    // Initialize the dagger component on demand as content providers can get
+                    // accessed before the Launcher application (b/36917845#comment4)
+                    initDaggerComponent(DaggerLauncherAppComponent.builder());
+                }
+            }
+        }
         // Since supertype setters will return a supertype.builder and @Component.Builder types
         // must not have any generic types.
         // We need to cast mAppComponent to {@link LauncherAppComponent} since appContext()
@@ -42,7 +52,10 @@ public class LauncherApplication extends Application {
         return (LauncherAppComponent) mAppComponent;
     }
 
-    protected void initDagger() {
-        mAppComponent = DaggerLauncherAppComponent.builder().appContext(this).build();
+    /**
+     * Init with the desired dagger component.
+     */
+    public void initDaggerComponent(LauncherAppComponent.Builder componentBuilder) {
+        mAppComponent = componentBuilder.appContext(this).build();
     }
 }

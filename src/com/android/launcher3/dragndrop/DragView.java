@@ -224,7 +224,6 @@ public abstract class DragView<T extends Context & ActivityContext> extends Fram
         measure(makeMeasureSpec(width, EXACTLY), makeMeasureSpec(height, EXACTLY));
 
         mBlurSizeOutline = getResources().getDimensionPixelSize(R.dimen.blur_size_medium_outline);
-        setElevation(getResources().getDimension(R.dimen.drag_elevation));
         setWillNotDraw(false);
     }
 

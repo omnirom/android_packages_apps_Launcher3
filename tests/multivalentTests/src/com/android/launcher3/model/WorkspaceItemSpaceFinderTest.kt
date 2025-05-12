@@ -21,7 +21,6 @@ import androidx.test.filters.SmallTest
 import com.google.common.truth.Truth.assertThat
 import org.junit.After
 import org.junit.Before
-import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 
@@ -29,8 +28,6 @@ import org.junit.runner.RunWith
 @SmallTest
 @RunWith(AndroidJUnit4::class)
 class WorkspaceItemSpaceFinderTest : AbstractWorkspaceModelTest() {
-
-    @get:Rule val modelTestRule = ModelTestRule()
 
     private val mItemSpaceFinder = WorkspaceItemSpaceFinder()
 
@@ -52,7 +49,7 @@ class WorkspaceItemSpaceFinderTest : AbstractWorkspaceModelTest() {
                 mExistingScreens,
                 mNewScreens,
                 spanX,
-                spanY
+                spanY,
             )
             .let { NewItemSpace.fromIntArray(it) }
 
@@ -62,7 +59,7 @@ class WorkspaceItemSpaceFinderTest : AbstractWorkspaceModelTest() {
                     newItemSpace.cellX,
                     newItemSpace.cellY,
                     spanX,
-                    spanY
+                    spanY,
                 )
             )
             .isTrue()
@@ -171,7 +168,7 @@ class WorkspaceItemSpaceFinderTest : AbstractWorkspaceModelTest() {
             screen0 = listOf(Rect(2, 0, 5, 2)),
             screen1 = fullScreenSpaces, // full screens are skipped
             screen2 = fullScreenSpaces, // full screens are skipped
-            screen3 = emptyScreenSpaces
+            screen3 = emptyScreenSpaces,
         )
 
         val spaceFound = findSpace(3, 1)

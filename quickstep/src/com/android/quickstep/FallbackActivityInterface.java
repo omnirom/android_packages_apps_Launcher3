@@ -36,8 +36,8 @@ import com.android.launcher3.util.DisplayController;
 import com.android.quickstep.GestureState.GestureEndTarget;
 import com.android.quickstep.fallback.RecentsState;
 import com.android.quickstep.orientation.RecentsPagedOrientationHandler;
-import com.android.quickstep.util.ActivityInitListener;
 import com.android.quickstep.util.AnimatorControllerWithResistance;
+import com.android.quickstep.util.ContextInitListener;
 import com.android.quickstep.views.RecentsView;
 
 import java.util.function.Consumer;
@@ -88,16 +88,16 @@ public final class FallbackActivityInterface extends
     }
 
     @Override
-    public ActivityInitListener createActivityInitListener(
+    public ContextInitListener<RecentsActivity> createActivityInitListener(
             Predicate<Boolean> onInitListener) {
-        return new ActivityInitListener<>((activity, alreadyOnHome) ->
+        return new ContextInitListener<>((activity, alreadyOnHome) ->
                 onInitListener.test(alreadyOnHome), RecentsActivity.ACTIVITY_TRACKER);
     }
 
     @Nullable
     @Override
     public RecentsActivity getCreatedContainer() {
-        return RecentsActivity.ACTIVITY_TRACKER.getCreatedActivity();
+        return RecentsActivity.ACTIVITY_TRACKER.getCreatedContext();
     }
 
     @Override
