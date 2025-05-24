@@ -100,4 +100,8 @@
     <!-- View tag key used to store SpringAnimation data. -->
     <item type="id" name="spring_animation_tag" />
 
+    <!-- Navigation bar dpad -->
+    <item type="id" name="dpad_left" />
+    <item type="id" name="dpad_right" />
+
 </resources>

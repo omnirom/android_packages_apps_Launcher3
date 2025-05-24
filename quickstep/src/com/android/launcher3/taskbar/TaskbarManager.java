@@ -91,7 +91,7 @@ import org.omnirom.omnilib.utils.OmniSettings;
  */
 public class TaskbarManager {
     private static final String TAG = "TaskbarManager";
-    private static final boolean DEBUG = false;
+    private static final boolean DEBUG = true;
 
     /**
      * All the configurations which do not initiate taskbar recreation.

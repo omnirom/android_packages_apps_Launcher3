@@ -29,6 +29,8 @@ import static com.android.launcher3.config.FeatureFlags.ENABLE_TASKBAR_NAVBAR_UN
 import static com.android.launcher3.taskbar.LauncherTaskbarUIController.SYSUI_SURFACE_PROGRESS_INDEX;
 import static com.android.launcher3.taskbar.TaskbarNavButtonController.BUTTON_A11Y;
 import static com.android.launcher3.taskbar.TaskbarNavButtonController.BUTTON_BACK;
+import static com.android.launcher3.taskbar.TaskbarNavButtonController.BUTTON_CHEVRON_LEFT;
+import static com.android.launcher3.taskbar.TaskbarNavButtonController.BUTTON_CHEVRON_RIGHT;
 import static com.android.launcher3.taskbar.TaskbarNavButtonController.BUTTON_HOME;
 import static com.android.launcher3.taskbar.TaskbarNavButtonController.BUTTON_IME_SWITCH;
 import static com.android.launcher3.taskbar.TaskbarNavButtonController.BUTTON_RECENTS;
@@ -241,6 +243,12 @@ public class NavbarButtonsViewController implements TaskbarControllers.LoggableT
     private @BarTransitions.TransitionMode int mTransitionMode;
 
     private final Runnable mAutoDim = () -> mTaskbarTransitions.setAutoDim(true);
+
+    // omni add-on
+    private ImageView mChevronLeft;
+    private ImageView mChevronRight;
+    private MultiValueAlpha mDpadLeftAlpha;
+    private MultiValueAlpha mDpadRightAlpha;
 
     public NavbarButtonsViewController(TaskbarActivityContext context,
             @Nullable Context navigationBarPanelContext, NearestTouchFrame navButtonsView,
@@ -504,6 +512,28 @@ public class NavbarButtonsViewController implements TaskbarControllers.LoggableT
         mSpace.setOnClickListener(view -> navButtonController.onButtonClick(BUTTON_SPACE, view));
         mSpace.setOnLongClickListener(view ->
                 navButtonController.onButtonLongClick(BUTTON_SPACE, view));
+
+        // chevron left
+        mChevronLeft = addButton(R.drawable.ic_navbar_chevron_left, BUTTON_CHEVRON_LEFT, navContainer,
+                navButtonController, R.id.dpad_left);
+        mDpadLeftAlpha = new MultiValueAlpha(mChevronLeft, NUM_ALPHA_CHANNELS);
+        mDpadLeftAlpha.setUpdateVisibility(true);
+        mPropertyHolders.add(
+                new StatePropertyHolder(mDpadLeftAlpha.get(
+                        ALPHA_INDEX_KEYGUARD_OR_DISABLE),
+                        flags -> (flags & FLAG_KEYGUARD_VISIBLE) == 0
+                                && (flags & FLAG_DISABLE_HOME) == 0 && !mContext.isGestureNav()));
+
+        // chevron right
+        mChevronRight = addButton(R.drawable.ic_navbar_chevron_right, BUTTON_CHEVRON_RIGHT, navContainer,
+                navButtonController, R.id.dpad_right);
+        mDpadRightAlpha = new MultiValueAlpha(mChevronRight, NUM_ALPHA_CHANNELS);
+        mDpadRightAlpha.setUpdateVisibility(true);
+        mPropertyHolders.add(
+                new StatePropertyHolder(mDpadRightAlpha.get(
+                        ALPHA_INDEX_KEYGUARD_OR_DISABLE),
+                        flags -> (flags & FLAG_KEYGUARD_VISIBLE) == 0
+                                && (flags & FLAG_DISABLE_HOME) == 0 && !mContext.isGestureNav()));
     }
 
     private void parseSystemUiFlags(@SystemUiStateFlags long sysUiStateFlags) {
