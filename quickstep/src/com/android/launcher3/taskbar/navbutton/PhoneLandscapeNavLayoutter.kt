@@ -112,9 +112,11 @@ open class PhoneLandscapeNavLayoutter(
 
     open fun addThreeButtons() {
         // Swap recents and back button
+        navButtonContainer.addView(dpadLeftButton)
         navButtonContainer.addView(recentsButton)
         navButtonContainer.addView(homeButton)
         navButtonContainer.addView(backButton)
+        navButtonContainer.addView(dpadRightButton)
     }
 
     open fun repositionContextualButtons(buttonSize: Int) {

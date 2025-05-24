@@ -25,6 +25,8 @@ import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCH
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_TASKBAR_A11Y_BUTTON_TAP;
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_TASKBAR_BACK_BUTTON_LONGPRESS;
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_TASKBAR_BACK_BUTTON_TAP;
+import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_TASKBAR_DPAD_LEFT_BUTTON_PRESS;
+import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_TASKBAR_DPAD_RIGHT_BUTTON_PRESS;
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_TASKBAR_HOME_BUTTON_LONGPRESS;
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_TASKBAR_HOME_BUTTON_TAP;
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_TASKBAR_IME_SWITCHER_BUTTON_LONGPRESS;
@@ -101,6 +103,8 @@ public class TaskbarNavButtonController implements TaskbarControllers.LoggableTa
             BUTTON_A11Y,
             BUTTON_QUICK_SETTINGS,
             BUTTON_NOTIFICATIONS,
+            BUTTON_CHEVRON_LEFT,
+            BUTTON_CHEVRON_RIGHT,
     })
 
     public @interface TaskbarButton {}
@@ -112,7 +116,9 @@ public class TaskbarNavButtonController implements TaskbarControllers.LoggableTa
     static final int BUTTON_A11Y = BUTTON_IME_SWITCH << 1;
     static final int BUTTON_QUICK_SETTINGS = BUTTON_A11Y << 1;
     static final int BUTTON_NOTIFICATIONS = BUTTON_QUICK_SETTINGS << 1;
-    static final int BUTTON_SPACE = BUTTON_NOTIFICATIONS << 1;
+    static final int BUTTON_CHEVRON_LEFT = BUTTON_NOTIFICATIONS << 1;
+    static final int BUTTON_CHEVRON_RIGHT = BUTTON_CHEVRON_LEFT << 1;
+    static final int BUTTON_SPACE = BUTTON_CHEVRON_RIGHT << 1;
 
     private static final int SCREEN_UNPIN_COMBO = BUTTON_BACK | BUTTON_RECENTS;
     private int mLongPressedButtons = 0;
@@ -222,6 +228,14 @@ public class TaskbarNavButtonController implements TaskbarControllers.LoggableTa
                 logEvent(LAUNCHER_TASKBAR_OVERVIEW_BUTTON_LONGPRESS);
                 backRecentsLongpress(buttonType);
                 return true;
+            case BUTTON_CHEVRON_LEFT:
+                logEvent(LAUNCHER_TASKBAR_DPAD_LEFT_BUTTON_PRESS);
+                mSystemUiProxy.injectChevronPress(KeyEvent.KEYCODE_DPAD_LEFT);
+                return true;
+            case BUTTON_CHEVRON_RIGHT:
+                logEvent(LAUNCHER_TASKBAR_DPAD_RIGHT_BUTTON_PRESS);
+                mSystemUiProxy.injectChevronPress(KeyEvent.KEYCODE_DPAD_RIGHT);
+                return true;
             case BUTTON_IME_SWITCH:
                 if (Flags.imeSwitcherRevamp()) {
                     logEvent(LAUNCHER_TASKBAR_IME_SWITCHER_BUTTON_LONGPRESS);
@@ -250,6 +264,10 @@ public class TaskbarNavButtonController implements TaskbarControllers.LoggableTa
                 return R.string.taskbar_button_notifications;
             case BUTTON_QUICK_SETTINGS:
                 return R.string.taskbar_button_quick_settings;
+            case BUTTON_CHEVRON_LEFT:
+                return R.string.accessibility_dpad_left;
+            case BUTTON_CHEVRON_RIGHT:
+                return R.string.accessibility_dpad_right;
             default:
                 return 0;
         }

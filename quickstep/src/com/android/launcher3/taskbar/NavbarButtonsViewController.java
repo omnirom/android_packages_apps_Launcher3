@@ -29,6 +29,8 @@ import static com.android.launcher3.config.FeatureFlags.ENABLE_TASKBAR_NAVBAR_UN
 import static com.android.launcher3.taskbar.LauncherTaskbarUIController.SYSUI_SURFACE_PROGRESS_INDEX;
 import static com.android.launcher3.taskbar.TaskbarNavButtonController.BUTTON_A11Y;
 import static com.android.launcher3.taskbar.TaskbarNavButtonController.BUTTON_BACK;
+import static com.android.launcher3.taskbar.TaskbarNavButtonController.BUTTON_CHEVRON_LEFT;
+import static com.android.launcher3.taskbar.TaskbarNavButtonController.BUTTON_CHEVRON_RIGHT;
 import static com.android.launcher3.taskbar.TaskbarNavButtonController.BUTTON_HOME;
 import static com.android.launcher3.taskbar.TaskbarNavButtonController.BUTTON_IME_SWITCH;
 import static com.android.launcher3.taskbar.TaskbarNavButtonController.BUTTON_RECENTS;
@@ -242,6 +244,12 @@ public class NavbarButtonsViewController implements TaskbarControllers.LoggableT
 
     private final Runnable mAutoDim = () -> mTaskbarTransitions.setAutoDim(true);
 
+    // omni add-on
+    private ImageView mChevronLeft;
+    private ImageView mChevronRight;
+    private MultiValueAlpha mDpadLeftAlpha;
+    private MultiValueAlpha mDpadRightAlpha;
+
     public NavbarButtonsViewController(TaskbarActivityContext context,
             @Nullable Context navigationBarPanelContext, NearestTouchFrame navButtonsView,
             Handler handler) {
@@ -425,8 +433,20 @@ public class NavbarButtonsViewController implements TaskbarControllers.LoggableT
     private void initButtons(ViewGroup navContainer, ViewGroup endContainer,
             TaskbarNavButtonController navButtonController) {
 
+        // chevron left
+        mChevronLeft = addButton(R.drawable.ic_navbar_chevron_left, BUTTON_CHEVRON_LEFT,
+                mNavButtonContainer, mControllers.navButtonController, R.id.dpad_left);
+        mDpadLeftAlpha = new MultiValueAlpha(mChevronLeft, NUM_ALPHA_CHANNELS);
+        mDpadLeftAlpha.setUpdateVisibility(true);
+        mPropertyHolders.add(
+                new StatePropertyHolder(mDpadLeftAlpha.get(
+                        ALPHA_INDEX_KEYGUARD_OR_DISABLE),
+                        flags -> (flags & FLAG_KEYGUARD_VISIBLE) == 0
+                                && (flags & FLAG_DISABLE_HOME) == 0 && !mContext.isGestureNav()));
+
+        // back button
         mBackButton = addButton(R.drawable.ic_sysbar_back, BUTTON_BACK,
-                mNavButtonContainer, mControllers.navButtonController, R.id.back);
+                navContainer, navButtonController, R.id.back);
         mBackButtonAlpha = new MultiValueAlpha(mBackButton, NUM_ALPHA_CHANNELS);
         mBackButtonAlpha.setUpdateVisibility(true);
         mPropertyHolders.add(new StatePropertyHolder(
@@ -491,6 +511,17 @@ public class NavbarButtonsViewController implements TaskbarControllers.LoggableT
         mPropertyHolders.add(new StatePropertyHolder(mRecentsButton,
                 flags -> (flags & FLAG_KEYGUARD_VISIBLE) == 0 && (flags & FLAG_DISABLE_RECENTS) == 0
                         && !mContext.isNavBarKidsModeActive() && !mContext.isGestureNav()));
+
+        // chevron right
+       mChevronRight = addButton(R.drawable.ic_navbar_chevron_right, BUTTON_CHEVRON_RIGHT,
+                navContainer, navButtonController, R.id.dpad_right);
+        mDpadRightAlpha = new MultiValueAlpha(mChevronRight, NUM_ALPHA_CHANNELS);
+        mDpadRightAlpha.setUpdateVisibility(true);
+        mPropertyHolders.add(
+                new StatePropertyHolder(mDpadRightAlpha.get(
+                        ALPHA_INDEX_KEYGUARD_OR_DISABLE),
+                        flags -> (flags & FLAG_KEYGUARD_VISIBLE) == 0
+                                && (flags & FLAG_DISABLE_HOME) == 0 && !mContext.isGestureNav()));
 
         // A11y button
         mA11yButton = addButton(R.drawable.ic_sysbar_accessibility_button, BUTTON_A11Y,
