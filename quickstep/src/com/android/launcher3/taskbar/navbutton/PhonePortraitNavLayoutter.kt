@@ -78,9 +78,11 @@ class PhonePortraitNavLayoutter(
         navButtonContainer.removeAllViews()
         navButtonContainer.orientation = LinearLayout.HORIZONTAL
 
+        navButtonContainer.addView(dpadLeftButton)
         navButtonContainer.addView(backButton)
         navButtonContainer.addView(homeButton)
         navButtonContainer.addView(recentsButton)
+        navButtonContainer.addView(dpadRightButton)
 
         navButtonContainer.layoutParams = navContainerParams
         navButtonContainer.gravity = Gravity.CENTER
