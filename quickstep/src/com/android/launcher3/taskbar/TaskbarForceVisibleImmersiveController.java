@@ -160,6 +160,17 @@ public class TaskbarForceVisibleImmersiveController implements TouchController {
         if (ba != null) {
             ha.get(ALPHA_INDEX_IMMERSIVE_MODE).setValue(mIconAlphaForDimming.value);
         }
+
+        MultiPropertyFactory<View> dpla =
+                mControllers.navbarButtonsViewController.getDpadLeftButtonAlpha();
+        if (ba != null) {
+            dpla.get(ALPHA_INDEX_IMMERSIVE_MODE).setValue(mIconAlphaForDimming.value);
+        }
+        MultiPropertyFactory<View> dpra =
+                mControllers.navbarButtonsViewController.getDpadRightButtonAlpha();
+        if (ba != null) {
+            dpra.get(ALPHA_INDEX_IMMERSIVE_MODE).setValue(mIconAlphaForDimming.value);
+        }
     }
 
     @Override
