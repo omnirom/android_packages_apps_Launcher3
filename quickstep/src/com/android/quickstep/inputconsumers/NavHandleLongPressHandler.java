@@ -23,8 +23,10 @@ import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCH
 import static com.android.launcher3.logging.StatsLogManager.LauncherLatencyEvent.LAUNCHER_LATENCY_OMNI_RUNNABLE;
 
 import android.content.Context;
+import android.os.UserHandle;
 import android.os.SystemClock;
 import android.util.Log;
+import android.view.HapticFeedbackConstants;
 import android.view.ViewConfiguration;
 
 import androidx.annotation.Nullable;
@@ -42,6 +44,9 @@ import com.android.quickstep.TopTaskTracker;
 import com.android.quickstep.util.ContextualSearchHapticManager;
 import com.android.quickstep.util.ContextualSearchInvoker;
 import com.android.quickstep.util.ContextualSearchStateManager;
+
+import org.omnirom.omnilib.utils.TaskUtils;
+import org.omnirom.omnilib.utils.OmniVibe;
 
 /**
  * Class for extending nav handle long press behavior
@@ -89,6 +94,8 @@ public class NavHandleLongPressHandler implements ResourceBasedOverride {
     @Nullable
     @VisibleForTesting
     final Runnable getLongPressRunnable(NavHandle navHandle) {
+        onHomeHandleLongClick();
+
         if (!isContextualSearchEntrypointEnabled(navHandle)) {
             Log.i(TAG, "Contextual Search invocation failed: entry point disabled");
             mVibratorWrapper.cancelVibrate();
@@ -193,5 +200,10 @@ public class NavHandleLongPressHandler implements ResourceBasedOverride {
                         /*isTouchDown*/ true, /*shrink*/ false, /*durationMs*/ longPressTimeout);
             }
         }
+    }
+
+    private void onHomeHandleLongClick() {
+        OmniVibe.performHapticFeedbackLw(HapticFeedbackConstants.LONG_PRESS, false, mContext);
+        TaskUtils.toggleLastApp(mContext, UserHandle.myUserId());
     }
 }
