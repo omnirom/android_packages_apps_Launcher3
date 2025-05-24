@@ -46,9 +46,11 @@ class PhoneSeascapeNavLayoutter(
 
     override fun addThreeButtons() {
         // Flip ordering of back and recents buttons
+        navButtonContainer.addView(dpadLeftButton)
         navButtonContainer.addView(backButton)
         navButtonContainer.addView(homeButton)
         navButtonContainer.addView(recentsButton)
+        navButtonContainer.addView(dpadRightButton)
     }
 
     override fun repositionContextualButtons(buttonSize: Int) {
