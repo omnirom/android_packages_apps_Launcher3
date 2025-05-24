@@ -84,6 +84,8 @@ import com.android.systemui.unfold.util.ScopedUnfoldTransitionProgressProvider;
 import java.io.PrintWriter;
 import java.util.StringJoiner;
 
+import org.omnirom.omnilib.utils.OmniSettings;
+
 /**
  * Class to manage taskbar lifecycle
  */
@@ -112,6 +114,13 @@ public class TaskbarManager {
 
     private static final Uri NAV_BAR_KIDS_MODE = Settings.Secure.getUriFor(
             Settings.Secure.NAV_BAR_KIDS_MODE);
+
+    //omni
+    public static final Uri OMNI_GESTURE_HANDLE_HIDE = Settings.System.getUriFor(
+            OmniSettings.OMNI_GESTURE_HANDLE_HIDE);
+
+    public static final Uri OMNI_GESTURE_HANDLE_SMALL = Settings.System.getUriFor(
+            OmniSettings.OMNI_GESTURE_HANDLE_SMALL);
 
     private final Context mWindowContext;
     private final @Nullable Context mNavigationBarPanelContext;
@@ -249,6 +258,10 @@ public class TaskbarManager {
                 .register(USER_SETUP_COMPLETE_URI, mOnSettingsChangeListener);
         SettingsCache.INSTANCE.get(mWindowContext)
                 .register(NAV_BAR_KIDS_MODE, mOnSettingsChangeListener);
+        SettingsCache.INSTANCE.get(mWindowContext)
+                .register(OMNI_GESTURE_HANDLE_HIDE, mOnSettingsChangeListener);
+        SettingsCache.INSTANCE.get(mWindowContext)
+                .register(OMNI_GESTURE_HANDLE_SMALL, mOnSettingsChangeListener);
         Log.d(TASKBAR_NOT_DESTROYED_TAG, "registering component callbacks from constructor.");
         mWindowContext.registerComponentCallbacks(mDefaultComponentCallbacks);
         mShutdownReceiver.register(mWindowContext, Intent.ACTION_SHUTDOWN);
@@ -721,6 +734,10 @@ public class TaskbarManager {
                 .unregister(USER_SETUP_COMPLETE_URI, mOnSettingsChangeListener);
         SettingsCache.INSTANCE.get(mWindowContext)
                 .unregister(NAV_BAR_KIDS_MODE, mOnSettingsChangeListener);
+        SettingsCache.INSTANCE.get(mWindowContext)
+                .unregister(OMNI_GESTURE_HANDLE_HIDE, mOnSettingsChangeListener);
+        SettingsCache.INSTANCE.get(mWindowContext)
+                .unregister(OMNI_GESTURE_HANDLE_SMALL, mOnSettingsChangeListener);
         Log.d(TASKBAR_NOT_DESTROYED_TAG, "unregistering component callbacks from destroy().");
         mWindowContext.unregisterComponentCallbacks(mDefaultComponentCallbacks);
         mShutdownReceiver.unregisterReceiverSafely(mWindowContext);
