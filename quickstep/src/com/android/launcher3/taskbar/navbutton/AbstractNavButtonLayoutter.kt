@@ -50,9 +50,11 @@ abstract class AbstractNavButtonLayoutter(
     protected val a11yButton: ImageView?,
     protected val space: Space?
 ) : NavButtonLayoutter {
+    protected val dpadLeftButton: ImageView? = navButtonContainer.findViewById(R.id.dpad_left)
     protected val homeButton: ImageView? = navButtonContainer.findViewById(R.id.home)
     protected val recentsButton: ImageView? = navButtonContainer.findViewById(R.id.recent_apps)
     protected val backButton: ImageView? = navButtonContainer.findViewById(R.id.back)
+    protected val dpadRightButton: ImageView? = navButtonContainer.findViewById(R.id.dpad_right)
 
     init {
         // setup back button drawable

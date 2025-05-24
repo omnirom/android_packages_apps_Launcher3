@@ -267,6 +267,18 @@ public class SystemUiProxy implements ISystemUiProxy, NavHandle {
         }
     }
 
+
+    @Override
+    public void injectChevronPress(int keyCode) {
+        if (mSystemUiProxy != null) {
+            try {
+                mSystemUiProxy.injectChevronPress(keyCode);
+            } catch (RemoteException e) {
+                Log.w(TAG, "Failed call injectChevronPress", e);
+            }
+        }
+    }
+
     @Override
     public IBinder asBinder() {
         // Do nothing
