@@ -24,6 +24,8 @@ import static com.android.launcher3.taskbar.TaskbarPinningController.PINNING_TRA
 
 import android.animation.Animator;
 import android.animation.AnimatorSet;
+import android.content.Intent;
+import android.content.pm.ShortcutInfo;
 import android.content.res.Resources;
 import android.graphics.Point;
 import android.graphics.PointF;
@@ -39,15 +41,20 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.android.app.animation.Interpolators;
+import com.android.launcher3.AbstractFloatingView;
 import com.android.launcher3.DeviceProfile;
 import com.android.launcher3.R;
 import com.android.launcher3.anim.AnimatedFloat;
 import com.android.launcher3.anim.RoundedRectRevealOutlineProvider;
+import com.android.launcher3.dragndrop.DragController;
+import com.android.launcher3.model.data.ItemInfo;
+import com.android.launcher3.model.data.WorkspaceItemInfo;
 import com.android.launcher3.taskbar.TaskbarActivityContext;
 import com.android.launcher3.taskbar.TaskbarControllers;
 import com.android.launcher3.taskbar.TaskbarInsetsController;
 import com.android.launcher3.taskbar.TaskbarSharedState;
 import com.android.launcher3.taskbar.TaskbarStashController;
+import com.android.launcher3.taskbar.bubbles.BubbleBarLocationDropTarget.BubbleBarDragListener;
 import com.android.launcher3.taskbar.bubbles.animation.BubbleBarViewAnimator;
 import com.android.launcher3.taskbar.bubbles.flyout.BubbleBarFlyoutController;
 import com.android.launcher3.taskbar.bubbles.flyout.BubbleBarFlyoutPositioner;
@@ -59,6 +66,7 @@ import com.android.launcher3.util.MultiValueAlpha;
 import com.android.quickstep.SystemUiProxy;
 import com.android.wm.shell.Flags;
 import com.android.wm.shell.shared.bubbles.BubbleBarLocation;
+import com.android.wm.shell.shared.bubbles.DeviceConfig;
 
 import java.io.PrintWriter;
 import java.util.List;
@@ -117,12 +125,67 @@ public class BubbleBarViewController {
         updateTranslationY();
         setBubbleBarScaleAndPadding(pinningProgress);
     });
+    private final BubbleBarDragListener mDragListener = new BubbleBarDragListener() {
+
+        @Override
+        public void getBubbleBarLocationHitRect(@NonNull BubbleBarLocation bubbleBarLocation,
+                Rect outRect) {
+            Point screenSize = DisplayController.INSTANCE.get(mActivity).getInfo().currentSize;
+            outRect.top = screenSize.y - mBubbleBarDropTargetSize;
+            outRect.bottom = screenSize.y;
+            if (bubbleBarLocation.isOnLeft(mBarView.isLayoutRtl())) {
+                outRect.left = 0;
+                outRect.right = mBubbleBarDropTargetSize;
+            } else {
+                outRect.left = screenSize.x - mBubbleBarDropTargetSize;
+                outRect.right = screenSize.x;
+            }
+        }
+
+        @Override
+        public void onLauncherItemDroppedOverBubbleBarDragZone(@NonNull BubbleBarLocation location,
+                @NonNull ItemInfo itemInfo) {
+            AbstractFloatingView.closeAllOpenViews(mActivity);
+            if (itemInfo instanceof WorkspaceItemInfo) {
+                ShortcutInfo shortcutInfo = ((WorkspaceItemInfo) itemInfo).getDeepShortcutInfo();
+                if (shortcutInfo != null) {
+                    mSystemUiProxy.showShortcutBubble(shortcutInfo, location);
+                    return;
+                }
+            }
+            Intent itemIntent = itemInfo.getIntent();
+            if (itemIntent != null && itemIntent.getComponent() != null) {
+                itemIntent.setPackage(itemIntent.getComponent().getPackageName());
+                mSystemUiProxy.showAppBubble(itemIntent, itemInfo.user, location);
+            }
+        }
+
+        @Override
+        public void onLauncherItemDraggedOutsideBubbleBarDropZone() {
+            onItemDraggedOutsideBubbleBarDropZone();
+            mSystemUiProxy.showBubbleDropTarget(/* show = */ false);
+        }
+
+        @Override
+        public void onLauncherItemDraggedOverBubbleBarDragZone(
+                @NonNull BubbleBarLocation location) {
+            onDragItemOverBubbleBarDragZone(location);
+            mSystemUiProxy.showBubbleDropTarget(/* show = */ true, location);
+        }
+
+        @NonNull
+        @Override
+        public View getDropView() {
+            return mBarView;
+        }
+    };
 
     // Modified when swipe up is happening on the bubble bar or task bar.
     private float mBubbleBarSwipeUpTranslationY;
     // Modified when bubble bar is springing back into the stash handle.
     private float mBubbleBarStashTranslationY;
-
+    // Minimum distance between the BubbleBar and the taskbar
+    private final int mBubbleBarTaskbarMinDistance;
     // Whether the bar is hidden for a sysui state.
     private boolean mHiddenForSysui;
     // Whether the bar is hidden because there are no bubbles.
@@ -130,15 +193,22 @@ public class BubbleBarViewController {
     // Whether the bar is hidden when stashed
     private boolean mHiddenForStashed;
     private boolean mShouldShowEducation;
-
     public boolean mOverflowAdded;
+    private boolean mWasStashedBeforeEnteringBubbleDragZone = false;
+
+    /** This field is used solely to track the bubble bar location prior to the start of the drag */
+    private @Nullable BubbleBarLocation mBubbleBarDragLocation;
 
     private BubbleBarViewAnimator mBubbleBarViewAnimator;
     private final FrameLayout mBubbleBarContainer;
     private BubbleBarFlyoutController mBubbleBarFlyoutController;
+    private BubbleBarPinController mBubbleBarPinController;
     private TaskbarSharedState mTaskbarSharedState;
+    private final BubbleBarLocationDropTarget mBubbleBarLeftDropTarget;
+    private final BubbleBarLocationDropTarget mBubbleBarRightDropTarget;
     private final TimeSource mTimeSource = System::currentTimeMillis;
     private final int mTaskbarTranslationDelta;
+    private final int mBubbleBarDropTargetSize;
 
     @Nullable
     private BubbleBarBoundsChangeListener mBoundsChangeListener;
@@ -150,11 +220,21 @@ public class BubbleBarViewController {
         mBubbleBarContainer = bubbleBarContainer;
         mSystemUiProxy = SystemUiProxy.INSTANCE.get(mActivity);
         mBubbleBarAlpha = new MultiValueAlpha(mBarView, 1 /* num alpha channels */);
-        mIconSize = activity.getResources().getDimensionPixelSize(
-                R.dimen.bubblebar_icon_size);
-        mDragElevation = activity.getResources().getDimensionPixelSize(
-                R.dimen.bubblebar_drag_elevation);
+        Resources res = activity.getResources();
+        mIconSize = res.getDimensionPixelSize(R.dimen.bubblebar_icon_size);
+        mBubbleBarTaskbarMinDistance = res.getDimensionPixelSize(
+                R.dimen.bubblebar_transient_taskbar_min_distance);
+        mDragElevation = res.getDimensionPixelSize(R.dimen.dragged_bubble_elevation);
         mTaskbarTranslationDelta = getBubbleBarTranslationDeltaForTaskbar(activity);
+        if (DeviceConfig.isSmallTablet(mActivity)) {
+            mBubbleBarDropTargetSize = res.getDimensionPixelSize(R.dimen.drag_zone_bubble_fold);
+        } else {
+            mBubbleBarDropTargetSize = res.getDimensionPixelSize(R.dimen.drag_zone_bubble_tablet);
+        }
+        mBubbleBarLeftDropTarget = new BubbleBarLocationDropTarget(BubbleBarLocation.LEFT,
+                mDragListener);
+        mBubbleBarRightDropTarget = new BubbleBarLocationDropTarget(BubbleBarLocation.RIGHT,
+                mDragListener);
     }
 
     /** Initializes controller. */
@@ -164,6 +244,7 @@ public class BubbleBarViewController {
         mBubbleStashController = bubbleControllers.bubbleStashController;
         mBubbleBarController = bubbleControllers.bubbleBarController;
         mBubbleDragController = bubbleControllers.bubbleDragController;
+        mBubbleBarPinController = bubbleControllers.bubbleBarPinController;
         mTaskbarStashController = controllers.taskbarStashController;
         mTaskbarInsetsController = controllers.taskbarInsetsController;
         mBubbleBarFlyoutController = new BubbleBarFlyoutController(
@@ -183,6 +264,11 @@ public class BubbleBarViewController {
         if (!Flags.enableOptionalBubbleOverflow()) {
             showOverflow(true);
         }
+        if (!mBubbleStashController.isTransientTaskBar()) {
+            // TODO(b/380274085) for transient taskbar mode, the click is also handled by the input
+            //  consumer. This check can be removed once b/380274085 is fixed.
+            mBarView.setOnClickListener(v -> setExpanded(!mBarView.isExpanded()));
+        }
         mBarView.addOnLayoutChangeListener(
                 (v, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom) -> {
                     mTaskbarInsetsController.onTaskbarOrBubblebarWindowHeightOrInsetsChanged();
@@ -190,7 +276,7 @@ public class BubbleBarViewController {
                         mBoundsChangeListener.onBoundsChanged();
                     }
                 });
-        float pinningValue = DisplayController.isTransientTaskbar(mActivity)
+        float pinningValue = mActivity.isTransientTaskbar()
                 ? PINNING_TRANSIENT
                 : PINNING_PERSISTENT;
         mBubbleBarPinning.updateValue(pinningValue);
@@ -257,6 +343,18 @@ public class BubbleBarViewController {
         };
     }
 
+    /** Adds bubble bar locations drop zones to the drag controller. */
+    public void addBubbleBarDropTargets(DragController<?> dragController) {
+        dragController.addDropTarget(mBubbleBarLeftDropTarget);
+        dragController.addDropTarget(mBubbleBarRightDropTarget);
+    }
+
+    /** Removes bubble bar locations drop zones to the drag controller. */
+    public void removeBubbleBarDropTargets(DragController<?> dragController) {
+        dragController.removeDropTarget(mBubbleBarLeftDropTarget);
+        dragController.removeDropTarget(mBubbleBarRightDropTarget);
+    }
+
     /** Returns animated float property responsible for pinning transition animation. */
     public AnimatedFloat getBubbleBarPinning() {
         return mBubbleBarPinning;
@@ -267,7 +365,10 @@ public class BubbleBarViewController {
 
             @Override
             public boolean isOnLeft() {
-                return mBarView.getBubbleBarLocation().isOnLeft(mBarView.isLayoutRtl());
+                boolean shouldRevertLocation =
+                        mBarView.isShowingDropTarget() && isLocationUpdatedForDropTarget();
+                boolean isOnLeft = mBarView.getBubbleBarLocation().isOnLeft(mBarView.isLayoutRtl());
+                return shouldRevertLocation != isOnLeft;
             }
 
             @Override
@@ -476,7 +577,7 @@ public class BubbleBarViewController {
 
     /** Whether the bubble bar has bubbles. */
     public boolean hasBubbles() {
-        return mBubbleBarController.getSelectedBubbleKey() != null;
+        return mBarView.getBubbleChildCount() > 0;
     }
 
     /**
@@ -515,6 +616,100 @@ public class BubbleBarViewController {
      */
     public void animateBubbleBarLocation(BubbleBarLocation bubbleBarLocation) {
         mBarView.animateToBubbleBarLocation(bubbleBarLocation);
+    }
+
+    /** Return animator for animating bubble bar in. */
+    public Animator animateBubbleBarLocationIn(BubbleBarLocation fromLocation,
+            BubbleBarLocation toLocation) {
+        return mBarView.animateToBubbleBarLocationIn(fromLocation, toLocation);
+    }
+
+    /** Return animator for animating bubble bar out. */
+    public Animator animateBubbleBarLocationOut(BubbleBarLocation toLocation) {
+        return mBarView.animateToBubbleBarLocationOut(toLocation);
+    }
+
+    /** Returns whether the Bubble Bar is currently displaying a drop target. */
+    public boolean isShowingDropTarget() {
+        return mBarView.isShowingDropTarget();
+    }
+
+    /**
+     * Notifies the controller that a drag event is over the Bubble Bar drop zone. The controller
+     * will display the appropriate drop target and enter drop target mode. The controller will also
+     * update the return value of {@link #isLocationUpdatedForDropTarget()} to true if location was
+     * updated.
+     */
+    public void onDragItemOverBubbleBarDragZone(@NonNull BubbleBarLocation bubbleBarLocation) {
+        mBubbleBarDragLocation = bubbleBarLocation;
+        mBarView.showDropTarget(/* isDropTarget = */ true);
+        mWasStashedBeforeEnteringBubbleDragZone = hasBubbles()
+            && mBubbleStashController.isStashed();
+        if (mWasStashedBeforeEnteringBubbleDragZone) {
+            // bubble bar is stashed - un-stash at drag location
+            mBubbleStashController.showBubbleBarAtLocation(
+                    /* fromLocation = */ getBubbleBarLocation(),
+                    /* toLocation = */  mBubbleBarDragLocation
+            );
+        } else if (hasBubbles()) {
+            if (isLocationUpdatedForDropTarget()) {
+                // bubble bar has bubbles and location is changed - animate bar to the opposite side
+                animateBubbleBarLocation(bubbleBarLocation);
+            }
+        } else {
+            // bubble bar has no bubbles flow just show the empty drop target
+            mBubbleBarPinController.showDropTarget(bubbleBarLocation);
+        }
+    }
+
+    /**
+     * Returns {@code true} if location was updated after most recent
+     * {@link #onDragItemOverBubbleBarDragZone}}.
+     */
+    public boolean isLocationUpdatedForDropTarget() {
+        if (mBubbleBarDragLocation == null) {
+            return false;
+        }
+        boolean isRtl = mBarView.isLayoutRtl();
+        return getBubbleBarLocation().isOnLeft(isRtl)
+                != mBubbleBarDragLocation.isOnLeft(isRtl);
+    }
+
+    /**
+     * Notifies the controller that the drag event is outside the Bubble Bar drop zone.
+     * This will hide the drop target zone if there are no bubbles or return the
+     * Bubble Bar to its original location. The controller will also exit drop target
+     * mode and reset the value returned from {@link #isLocationUpdatedForDropTarget()} to false.
+     */
+    public void onItemDraggedOutsideBubbleBarDropZone() {
+        if (!isShowingDropTarget()) {
+            return;
+        }
+        if (mWasStashedBeforeEnteringBubbleDragZone && mBubbleBarDragLocation != null) {
+            // bubble bar was stashed - stash at original location
+            mBubbleStashController.stashBubbleBarToLocation(
+                    /* fromLocation = */ mBubbleBarDragLocation,
+                    /* toLocation = */ getBubbleBarLocation()
+            );
+        } else if (hasBubbles()) {
+            if (isLocationUpdatedForDropTarget()) {
+                // bubble bar has bubbles and location was changed - return to the original
+                // location
+                animateBubbleBarLocation(getBubbleBarLocation());
+            }
+        }
+        onItemDragCompleted();
+    }
+
+    /**
+     * Notifies the controller that the drag has completed over the Bubble Bar drop zone.
+     * The controller will hide the drop target if there are no bubbles and exit drop target mode.
+     */
+    public void onItemDragCompleted() {
+        mBarView.showDropTarget(/* isDropTarget = */ false);
+        mBubbleBarPinController.hideDropTarget();
+        mWasStashedBeforeEnteringBubbleDragZone = false;
+        mBubbleBarDragLocation = null;
     }
 
     /**
@@ -581,7 +776,7 @@ public class BubbleBarViewController {
 
     /** Returns maximum height of the bubble bar with the flyout view. */
     public int getBubbleBarWithFlyoutMaximumHeight() {
-        if (!isBubbleBarVisible() && !isAnimatingNewBubble()) return 0;
+        if (!hasBubbles() && !isAnimatingNewBubble()) return 0;
         int bubbleBarTopOnHome = (int) (mBubbleStashController.getBubbleBarVerticalCenterForHome()
                 + mBarView.getBubbleBarCollapsedHeight() / 2 + mBarView.getArrowHeight());
         if (isAnimatingNewBubble()) {
@@ -650,11 +845,53 @@ public class BubbleBarViewController {
     }
 
     private void updateVisibilityForStateChange() {
-        if (!mHiddenForSysui && !mHiddenForNoBubbles && !mHiddenForStashed) {
-            mBarView.setVisibility(VISIBLE);
-        } else {
+        boolean hiddenForStashedAndNotAnimating =
+                mHiddenForStashed && !mBubbleBarViewAnimator.isAnimating();
+        if (mHiddenForSysui || mHiddenForNoBubbles || hiddenForStashedAndNotAnimating) {
+            //TODO(b/404870188) this visibility change cause search view drag misbehavior
             mBarView.setVisibility(INVISIBLE);
+        } else {
+            mBarView.setVisibility(VISIBLE);
         }
+    }
+
+    /**
+     * Returns the translation X of the transient taskbar according to the bubble bar location
+     * regardless of the current taskbar mode.
+     */
+    public int getTransientTaskbarTranslationXForBubbleBar(BubbleBarLocation location) {
+        int taskbarShift = 0;
+        if (!isBubbleBarVisible() || mTaskbarViewPropertiesProvider == null) return taskbarShift;
+        Rect taskbarViewBounds = mTaskbarViewPropertiesProvider.getTaskbarViewBounds();
+        if (taskbarViewBounds.isEmpty()) return taskbarShift;
+        int actualDistance =
+                getDistanceBetweenTransientTaskbarAndBubbleBar(location, taskbarViewBounds);
+        if (actualDistance < mBubbleBarTaskbarMinDistance) {
+            taskbarShift = mBubbleBarTaskbarMinDistance - actualDistance;
+            if (!location.isOnLeft(mBarView.isLayoutRtl())) {
+                taskbarShift = -taskbarShift;
+            }
+        }
+        return taskbarShift;
+    }
+
+    private int getDistanceBetweenTransientTaskbarAndBubbleBar(BubbleBarLocation location,
+            Rect taskbarViewBounds) {
+        Resources res = mActivity.getResources();
+        DeviceProfile transientDp = mActivity.getTransientTaskbarDeviceProfile();
+        int transientIconSize = getBubbleBarIconSizeFromDeviceProfile(res, transientDp);
+        int transientPadding = getBubbleBarPaddingFromDeviceProfile(res, transientDp);
+        int transientWidthWithMargin = (int) (mBarView.getCollapsedWidthForIconSizeAndPadding(
+                transientIconSize, transientPadding) + mBarView.getHorizontalMargin());
+        int distance;
+        if (location.isOnLeft(mBarView.isLayoutRtl())) {
+            distance = taskbarViewBounds.left - transientWidthWithMargin;
+        } else {
+            int displayWidth = res.getDisplayMetrics().widthPixels;
+            int bubbleBarLeft = displayWidth - transientWidthWithMargin;
+            distance = bubbleBarLeft - taskbarViewBounds.right;
+        }
+        return distance;
     }
 
     //
@@ -836,11 +1073,12 @@ public class BubbleBarViewController {
     }
 
     /** Adds a new bubble and removes an old bubble at the same time. */
-    public void addBubbleAndRemoveBubble(BubbleBarBubble addedBubble,
-            BubbleBarBubble removedBubble, boolean isExpanding, boolean suppressAnimation,
-            boolean addOverflowToo) {
+    public void addBubbleAndRemoveBubble(BubbleBarBubble addedBubble, BubbleBarBubble removedBubble,
+            @Nullable BubbleBarBubble bubbleToSelect, boolean isExpanding,
+            boolean suppressAnimation, boolean addOverflowToo) {
+        BubbleView bubbleToSelectView = bubbleToSelect == null ? null : bubbleToSelect.getView();
         mBarView.addBubbleAndRemoveBubble(addedBubble.getView(), removedBubble.getView(),
-                addOverflowToo ? () -> showOverflow(true) : null);
+                bubbleToSelectView, addOverflowToo ? () -> showOverflow(true) : null);
         addedBubble.getView().setOnClickListener(mBubbleClickListener);
         addedBubble.getView().setController(mBubbleViewController);
         removedBubble.getView().setController(null);
@@ -871,22 +1109,26 @@ public class BubbleBarViewController {
     }
 
     /** Adds the overflow view to the bubble bar while animating a view away. */
-    public void addOverflowAndRemoveBubble(BubbleBarBubble removedBubble) {
+    public void addOverflowAndRemoveBubble(BubbleBarBubble removedBubble,
+            @Nullable BubbleBarBubble bubbleToSelect) {
         if (mOverflowAdded) return;
         mOverflowAdded = true;
+        BubbleView bubbleToSelectView = bubbleToSelect == null ? null : bubbleToSelect.getView();
         mBarView.addBubbleAndRemoveBubble(mOverflowBubble.getView(), removedBubble.getView(),
-                null /* onEndRunnable */);
+                bubbleToSelectView, null /* onEndRunnable */);
         mOverflowBubble.getView().setOnClickListener(mBubbleClickListener);
         mOverflowBubble.getView().setController(mBubbleViewController);
         removedBubble.getView().setController(null);
     }
 
     /** Removes the overflow view to the bubble bar while animating a view in. */
-    public void removeOverflowAndAddBubble(BubbleBarBubble addedBubble) {
+    public void removeOverflowAndAddBubble(BubbleBarBubble addedBubble,
+            @Nullable BubbleBarBubble bubbleToSelect) {
         if (!mOverflowAdded) return;
         mOverflowAdded = false;
+        BubbleView bubbleToSelectView = bubbleToSelect == null ? null : bubbleToSelect.getView();
         mBarView.addBubbleAndRemoveBubble(addedBubble.getView(), mOverflowBubble.getView(),
-                null /* onEndRunnable */);
+                bubbleToSelectView, null /* onEndRunnable */);
         addedBubble.getView().setOnClickListener(mBubbleClickListener);
         addedBubble.getView().setController(mBubbleViewController);
         mOverflowBubble.getView().setController(null);
@@ -895,9 +1137,15 @@ public class BubbleBarViewController {
     /**
      * Adds the provided bubble to the bubble bar.
      */
-    public void addBubble(BubbleBarItem b, boolean isExpanding, boolean suppressAnimation) {
+    public void addBubble(BubbleBarItem b,
+            boolean isExpanding,
+            boolean suppressAnimation,
+            @Nullable BubbleBarBubble bubbleToSelect
+    ) {
         if (b != null) {
-            mBarView.addBubble(b.getView());
+            BubbleView bubbleToSelectView =
+                    bubbleToSelect == null ? null : bubbleToSelect.getView();
+            mBarView.addBubble(b.getView(), bubbleToSelectView);
             b.getView().setOnClickListener(mBubbleClickListener);
             mBubbleDragController.setupBubbleView(b.getView());
             b.getView().setController(mBubbleViewController);
@@ -937,7 +1185,12 @@ public class BubbleBarViewController {
         boolean isInApp = mTaskbarStashController.isInApp();
         // if this is the first bubble, animate to the initial state.
         if (mBarView.getBubbleChildCount() == 1 && !isUpdate) {
-            mBubbleBarViewAnimator.animateToInitialState(bubble, isInApp, isExpanding);
+            // If a drop target is visible and the first bubble is added, hide the empty drop target
+            if (mBarView.isShowingDropTarget()) {
+                mBubbleBarPinController.hideDropTarget();
+            }
+            mBubbleBarViewAnimator.animateToInitialState(bubble, isInApp, isExpanding,
+                    mBarView.isShowingDropTarget());
             return;
         }
         // if we're not stashed or we're in persistent taskbar, animate for collapsed state.
@@ -1135,6 +1388,7 @@ public class BubbleBarViewController {
 
     /** Removes all existing bubble views */
     public void removeAllBubbles() {
+        mOverflowAdded = false;
         mBarView.removeAllViews();
     }
 
@@ -1153,6 +1407,19 @@ public class BubbleBarViewController {
     /** Called when the controller is destroyed. */
     public void onDestroy() {
         adjustTaskbarAndHotseatToBubbleBarState(/*isBubbleBarExpanded = */false);
+    }
+
+    /**
+     * Removes the bubble from the bubble bar and notifies sysui that the bubble should move to
+     * full screen.
+     */
+    public void moveDraggedBubbleToFullscreen(@NonNull BubbleView bubbleView, Point dropLocation) {
+        if (bubbleView.getBubble() == null) {
+            return;
+        }
+        String key = bubbleView.getBubble().getKey();
+        mSystemUiProxy.moveDraggedBubbleToFullscreen(key, dropLocation);
+        onBubbleDismissed(bubbleView);
     }
 
     /**
@@ -1215,6 +1482,7 @@ public class BubbleBarViewController {
         pw.println("Bubble bar view controller state:");
         pw.println("  mHiddenForSysui: " + mHiddenForSysui);
         pw.println("  mHiddenForNoBubbles: " + mHiddenForNoBubbles);
+        pw.println("  mHiddenForStashed: " + mHiddenForStashed);
         pw.println("  mShouldShowEducation: " + mShouldShowEducation);
         pw.println("  mBubbleBarTranslationY.value: " + mBubbleBarTranslationY.value);
         pw.println("  mBubbleBarSwipeUpTranslationY: " + mBubbleBarSwipeUpTranslationY);

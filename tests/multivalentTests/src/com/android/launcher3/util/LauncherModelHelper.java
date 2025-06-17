@@ -21,8 +21,8 @@ import static androidx.test.platform.app.InstrumentationRegistry.getInstrumentat
 
 import static com.android.launcher3.util.Executors.MAIN_EXECUTOR;
 import static com.android.launcher3.util.Executors.MODEL_EXECUTOR;
-import static com.android.launcher3.util.TestUtil.runOnExecutorSync;
 import static com.android.launcher3.util.TestUtil.grantWriteSecurePermission;
+import static com.android.launcher3.util.TestUtil.runOnExecutorSync;
 
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
@@ -51,11 +51,11 @@ import androidx.test.core.app.ApplicationProvider;
 import com.android.launcher3.InvariantDeviceProfile;
 import com.android.launcher3.LauncherAppState;
 import com.android.launcher3.LauncherModel;
+import com.android.launcher3.dagger.LauncherBaseAppComponent;
 import com.android.launcher3.model.BgDataModel;
 import com.android.launcher3.model.BgDataModel.Callbacks;
 import com.android.launcher3.model.ModelDbController;
 import com.android.launcher3.testing.TestInformationProvider;
-import com.android.launcher3.util.MainThreadInitializedObject.SandboxContext;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -267,14 +267,6 @@ public class LauncherModelHelper {
         }
 
         @Override
-        public <T extends SafeCloseable> T createObject(MainThreadInitializedObject<T> object) {
-            if (object == LauncherAppState.INSTANCE) {
-                return (T) new LauncherAppState(this, null /* iconCacheFileName */);
-            }
-            return super.createObject(object);
-        }
-
-        @Override
         public File getDatabasePath(String name) {
             if (!mDbDir.exists()) {
                 mDbDir.mkdirs();
@@ -341,6 +333,11 @@ public class LauncherModelHelper {
                 }
             }
             return success;
+        }
+
+        @Override
+        public void initDaggerComponent(LauncherBaseAppComponent.Builder componentBuilder) {
+            super.initDaggerComponent(componentBuilder.iconsDbName(null));
         }
     }
 }

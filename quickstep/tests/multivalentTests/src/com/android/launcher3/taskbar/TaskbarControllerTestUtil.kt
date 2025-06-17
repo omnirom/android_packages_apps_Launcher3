@@ -17,15 +17,16 @@
 package com.android.launcher3.taskbar
 
 import android.content.Context
-import androidx.test.platform.app.InstrumentationRegistry.getInstrumentation
 import com.android.launcher3.ConstantItem
 import com.android.launcher3.LauncherPrefs
+import com.android.launcher3.util.Executors.MAIN_EXECUTOR
+import com.android.launcher3.util.TestUtil
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
 
 object TaskbarControllerTestUtil {
     inline fun runOnMainSync(crossinline runTest: () -> Unit) {
-        getInstrumentation().runOnMainSync { runTest() }
+        TestUtil.runOnExecutorSync(MAIN_EXECUTOR) { runTest() }
     }
 
     /** Returns a property to read/write the value of a [ConstantItem]. */

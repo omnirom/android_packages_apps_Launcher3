@@ -30,6 +30,8 @@
     <string name="recent_task_option_desktop">Desktop</string>
     <!-- Title and content description for an option to move app to external display. -->
     <string name="recent_task_option_external_display">Move to external display</string>
+    <!-- Title and content description for an option to close the app [CHAR LIMIT=30] -->
+    <string name="recent_task_option_close">Close</string>
 
     <!-- Title and content description for Desktop tile in Recents screen that contains apps opened inside desktop windowing mode [CHAR LIMIT=NONE] -->
     <string name="recent_task_desktop">Desktop</string>
@@ -48,9 +50,6 @@
 
     <!-- Accessibility title for the list of recent apps [CHAR_LIMIT=none] -->
     <string name="accessibility_recent_apps">Recent apps</string>
-
-    <!-- Accessibility confirmation for task closed -->
-    <string name="task_view_closed">Task Closed</string>
 
     <!-- Accessibility title for an app card in Recents for apps that have time limit set
      [CHAR_LIMIT=none] -->
@@ -101,6 +100,9 @@
     <!-- content description for hotseat items -->
     <string name="hotseat_prediction_content_description">Predicted app: <xliff:g id="title" example="Chrome">%1$s</xliff:g></string>
 
+    <!-- Title of the Gesture Navigation Tutorial page [CHAR LIMIT=NONE] -->
+    <string name="gesture_tutorial_title">Gesture Navigation Tutorial</string>
+
     <!-- Title of prompt shown before the gesture navigation tutorial to users who need to rotate their screen. [CHAR LIMIT=100] -->
     <string name="gesture_tutorial_rotation_prompt_title">Rotate your device</string>
     <!-- Prompt shown before the gesture navigation tutorial to users who need to rotate their screen to begin. [CHAR LIMIT=100] -->
@@ -125,8 +127,6 @@
     <string name="back_gesture_intro_title">Swipe to go back</string>
     <!-- Introduction subtitle for the Back gesture tutorial. [CHAR LIMIT=200] -->
     <string name="back_gesture_intro_subtitle">To go back to the last screen, swipe from the left or right edge to the middle of the screen.</string>
-    <!-- Introduction subtitle for the Back gesture tutorial that will be spoken by screen readers. [CHAR LIMIT=200] -->
-    <string name="back_gesture_spoken_intro_subtitle">To go back to the last screen, swipe with 2 fingers from the left or right edge to the middle of the screen.</string>
     <!-- Title of the gesture tutorial section educating users on how to go back to the previous screen. [CHAR LIMIT=100] -->
     <string name="back_gesture_tutorial_title">Go back</string>
     <!-- Subtitle of the gesture tutorial section educating users on how to go to back to the previous screen [CHAR LIMIT=100] -->
@@ -145,8 +145,6 @@
     <string name="home_gesture_intro_title">Swipe to go home</string>
     <!-- Introduction subtitle for the Home gesture tutorial. [CHAR LIMIT=100] -->
     <string name="home_gesture_intro_subtitle">Swipe up from the bottom of your screen. This gesture always takes you to the Home screen.</string>
-    <!-- Introduction subtitle for the Home gesture tutorial that will be spoken by screen readers. [CHAR LIMIT=100] -->
-    <string name="home_gesture_spoken_intro_subtitle">Swipe up with 2 fingers from the bottom of the screen. This gesture always takes you to the Home screen.</string>
     <!-- Title of the gesture tutorial section educating users on how to go to the home screen. [CHAR LIMIT=100] -->
     <string name="home_gesture_tutorial_title">Go home</string>
     <!-- Subtitle of the gesture tutorial section educating users on how to go to the home screen [CHAR LIMIT=100] -->
@@ -168,8 +166,6 @@
     <string name="overview_gesture_intro_title">Swipe to switch apps</string>
     <!-- Introduction subtitle for the Overview gesture tutorial. [CHAR LIMIT=100] -->
     <string name="overview_gesture_intro_subtitle">To switch between apps, swipe up from the bottom of your screen, hold, then release.</string>
-    <!-- Introduction subtitle for the Overview gesture tutorial that will be spoken by screen readers. [CHAR LIMIT=100] -->
-    <string name="overview_gesture_spoken_intro_subtitle">To switch between apps, swipe up with 2 fingers from the bottom of your screen, hold, then release.</string>
     <!-- Title of the gesture tutorial section educating users on how to switch between apps. [CHAR LIMIT=100] -->
     <string name="overview_gesture_tutorial_title">Switch apps</string>
     <!-- Subtitle of the gesture tutorial section educating users on how to switch between apps [CHAR LIMIT=100] -->
@@ -310,10 +306,6 @@
     <string name="taskbar_a11y_shown_with_bubbles_left_title">Taskbar &#38; bubbles left shown</string>
     <!-- Accessibility title for the Taskbar window appearing together with bubble bar on right. [CHAR_LIMIT=30] -->
     <string name="taskbar_a11y_shown_with_bubbles_right_title">Taskbar &#38; bubbles right shown</string>
-    <!-- Accessibility title for the Taskbar window being closed. [CHAR_LIMIT=30] -->
-    <string name="taskbar_a11y_hidden_title">Taskbar hidden</string>
-    <!-- Accessibility title for the Taskbar window being closed together with bubble bar. [CHAR_LIMIT=30] -->
-    <string name="taskbar_a11y_hidden_with_bubbles_title">Taskbar &#38; bubbles hidden</string>
     <!-- Accessibility title for the Taskbar window on phones. [CHAR_LIMIT=NONE] -->
     <string name="taskbar_phone_a11y_title">Navigation bar</string>
     <!-- Text in popup dialog for user to switch between always showing Taskbar or not. [CHAR LIMIT=30] -->
@@ -330,6 +322,14 @@
     <string name="move_drop_target_top_or_left">Move to top&#47;left</string>
     <!-- Label for moving drop target to the bottom or right side of the screen, depending on orientation (from the Taskbar only). -->
     <string name="move_drop_target_bottom_or_right">Move to bottom&#47;right</string>
+    <!-- Label for creating an application bubble (from the Taskbar only). -->
+    <string name="open_app_as_a_bubble">Open app as a bubble</string>
+
+    <!-- Accessibility pane title for quick switch view, which lists apps opened by the user, ordered by how recently the app was opened. -->
+    <string name="quick_switch_pane_title">Recent apps</string>
+
+    <!-- Content description for the quick switch view, which lists apps opened by the user, ordered by how recently the app was opened. -->
+    <string name="quick_switch_content_description">Recent app list</string>
 
     <!-- Label for quick switch tile showing how many more apps are available. The number will be displayed above this text. [CHAR LIMIT=NONE] -->
     <string name="quick_switch_overflow">{count, plural,
@@ -342,6 +342,13 @@
 
     <!-- Accessibility label for quick switch tiles showing split tasks [CHAR LIMIT=NONE] -->
     <string name="quick_switch_split_task"><xliff:g id="app_name_1" example="Chrome">%1$s</xliff:g> and <xliff:g id="app_name_2" example="Gmail">%2$s</xliff:g></string>
+    <!-- Accessibility label for quick switch tiles that include information about the tile's position in the parent list [CHAR LIMIT=NONE] -->
+    <string name="quick_switch_task_with_position_in_parent"><xliff:g id="task_description" example="Chrome">%1$s</xliff:g>, item <xliff:g id="index_in_parent" example="1">%2$d</xliff:g> of <xliff:g id="total_tasks" example="5">%3$d</xliff:g></string>
+
+    <!-- Accessibility label for an arrow button within quick switch UI that scrolls the quick switch content left -->
+    <string name="quick_switch_scroll_arrow_left">Scroll left</string>
+    <!-- Accessibility label for an arrow button within quick switch UI that scrolls the quick switch content right -->
+    <string name="quick_switch_scroll_arrow_right">Scroll right</string>
 
     <!-- Strings for bubble bar -->
     <!-- Fallback name for a bubble if it does have a title [CHAR_LIMIT=none] -->
@@ -366,4 +373,17 @@
     <!-- Name of Google's new feature to circle to search anything on your phone screen, without
      switching apps. [CHAR_LIMIT=60] -->
     <string name="search_gesture_feature_title">Circle to Search</string>
+
+    <!-- Strings for task thumbnail header in Overview -->
+    <!-- Content description for the header app icon. [CHAR LIMIT=NONE] -->
+    <string name="header_app_icon_description">App icon</string>
+    <!-- Default app title for a task view in Overview. [CHAR LIMIT=NONE] -->
+    <string name="header_default_app_title">App title</string>
+    <!-- Content description for the header close button. [CHAR LIMIT=NONE] -->
+    <string name="header_close_icon_description">Close button</string>
+
+    <!-- Label for pinning an item to the taskbar. [CHAR_LIMIT=20] -->
+    <string name="pin_to_taskbar">Pin to taskbar</string>
+    <!-- Label for unpinning an item from the taskbar. [CHAR_LIMIT=20] -->
+    <string name="unpin_from_taskbar">Unpin from taskbar</string>
 </resources>

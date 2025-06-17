@@ -29,6 +29,7 @@ import static com.android.launcher3.util.window.WindowManagerProxy.MIN_TABLET_WI
 import android.content.Context;
 import android.os.Handler;
 import android.os.Message;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.WorkerThread;
@@ -210,7 +211,9 @@ public class RotationHelper implements LauncherPrefChangeListener,
         }
 
         final int activityFlags;
-        if (mStateHandlerRequest != REQUEST_NONE) {
+        if (mIsFixedLandscape) {
+            activityFlags = SCREEN_ORIENTATION_USER_LANDSCAPE;
+        } else if (mStateHandlerRequest != REQUEST_NONE) {
             activityFlags = mStateHandlerRequest == REQUEST_LOCK ?
                     SCREEN_ORIENTATION_LOCKED : SCREEN_ORIENTATION_UNSPECIFIED;
         } else if (mCurrentTransitionRequest != REQUEST_NONE) {
@@ -218,8 +221,6 @@ public class RotationHelper implements LauncherPrefChangeListener,
                     SCREEN_ORIENTATION_LOCKED : SCREEN_ORIENTATION_UNSPECIFIED;
         } else if (mCurrentStateRequest == REQUEST_LOCK) {
             activityFlags = SCREEN_ORIENTATION_LOCKED;
-        } else if (mIsFixedLandscape) {
-            activityFlags = SCREEN_ORIENTATION_USER_LANDSCAPE;
         } else if (mIgnoreAutoRotateSettings || mCurrentStateRequest == REQUEST_ROTATE
                 || mHomeRotationEnabled || mForceAllowRotationForTesting) {
             activityFlags = SCREEN_ORIENTATION_UNSPECIFIED;
@@ -230,6 +231,7 @@ public class RotationHelper implements LauncherPrefChangeListener,
         }
         if (activityFlags != mLastActivityFlags) {
             mLastActivityFlags = activityFlags;
+            Log.d("b/380940677", toString());
             mRequestOrientationHandler.sendEmptyMessage(activityFlags);
         }
     }
@@ -257,9 +259,9 @@ public class RotationHelper implements LauncherPrefChangeListener,
         return String.format("[mStateHandlerRequest=%d, mCurrentStateRequest=%d, "
                         + "mLastActivityFlags=%d, mIgnoreAutoRotateSettings=%b, "
                         + "mHomeRotationEnabled=%b, mForceAllowRotationForTesting=%b,"
-                        + " mDestroyed=%b]",
+                        + " mDestroyed=%b, mIsFixedLandscape=%b]",
                 mStateHandlerRequest, mCurrentStateRequest, mLastActivityFlags,
                 mIgnoreAutoRotateSettings, mHomeRotationEnabled, mForceAllowRotationForTesting,
-                mDestroyed);
+                mDestroyed, mIsFixedLandscape);
     }
 }

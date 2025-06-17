@@ -36,6 +36,8 @@ import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.animation.ArgbEvaluator
 import com.android.launcher3.R
 import com.android.launcher3.popup.RoundedArrowDrawable
+import com.android.wm.shell.shared.TypefaceUtils
+import com.android.wm.shell.shared.TypefaceUtils.Companion.setTypeface
 import kotlin.math.min
 
 /** The flyout view used to notify the user of a new bubble notification. */
@@ -162,6 +164,9 @@ class BubbleBarFlyoutView(
     init {
         LayoutInflater.from(context).inflate(R.layout.bubblebar_flyout, this, true)
         id = R.id.bubble_bar_flyout_view
+
+        setTypeface(title, TypefaceUtils.FontFamily.GSF_LABEL_LARGE)
+        setTypeface(message, TypefaceUtils.FontFamily.GSF_BODY_MEDIUM)
 
         val ta = context.obtainStyledAttributes(intArrayOf(android.R.attr.dialogCornerRadius))
         cornerRadius = ta.getDimensionPixelSize(0, 0).toFloat()

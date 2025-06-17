@@ -23,7 +23,8 @@ import static android.view.WindowInsets.Type.statusBars;
 import static com.android.launcher3.util.Executors.MAIN_EXECUTOR;
 import static com.android.launcher3.util.Executors.MODEL_EXECUTOR;
 
-import static java.util.Collections.emptyList;
+import static java.lang.Math.max;
+import static java.lang.Math.min;
 
 import android.appwidget.AppWidgetManager;
 import android.appwidget.AppWidgetProviderInfo;
@@ -46,13 +47,13 @@ import com.android.launcher3.dragndrop.SimpleDragLayer;
 import com.android.launcher3.model.StringCache;
 import com.android.launcher3.model.WidgetItem;
 import com.android.launcher3.model.WidgetPredictionsRequester;
-import com.android.launcher3.model.WidgetsFilterDataProvider;
 import com.android.launcher3.model.WidgetsModel;
 import com.android.launcher3.model.data.ItemInfo;
 import com.android.launcher3.model.data.PackageItemInfo;
 import com.android.launcher3.widget.WidgetCell;
 import com.android.launcher3.widget.model.WidgetsListBaseEntriesBuilder;
 import com.android.launcher3.widget.model.WidgetsListBaseEntry;
+import com.android.launcher3.widget.picker.WidgetCategoryFilter;
 import com.android.launcher3.widget.picker.WidgetsFullSheet;
 import com.android.launcher3.widget.picker.model.WidgetPickerDataProvider;
 import com.android.systemui.animation.back.FlingOnBackAnimationCallback;
@@ -67,7 +68,8 @@ import java.util.function.Predicate;
 import java.util.regex.Pattern;
 
 /** An Activity that can host Launcher's widget picker. */
-public class WidgetPickerActivity extends BaseActivity {
+public class WidgetPickerActivity extends BaseActivity implements
+        WidgetPredictionsRequester.WidgetPredictionsListener {
     private static final String TAG = "WidgetPickerActivity";
     /**
      * Name of the extra that indicates that a widget being dragged.
@@ -81,6 +83,10 @@ public class WidgetPickerActivity extends BaseActivity {
     // the intent, then widgets will not be filtered for size.
     private static final String EXTRA_DESIRED_WIDGET_WIDTH = "desired_widget_width";
     private static final String EXTRA_DESIRED_WIDGET_HEIGHT = "desired_widget_height";
+    // Unlike the AppWidgetManager.EXTRA_CATEGORY_FILTER, this filter removes certain categories.
+    // Filter is ignore if it is not a negative value.
+    // Example usage: WIDGET_CATEGORY_HOME_SCREEN.inv() and WIDGET_CATEGORY_NOT_KEYGUARD.inv()
+    private static final String EXTRA_CATEGORY_EXCLUSION_FILTER = "category_exclusion_filter";
     /**
      * Widgets currently added by the user in the UI surface.
      * <p>This allows widget picker to exclude existing widgets from suggestions.</p>
@@ -114,13 +120,12 @@ public class WidgetPickerActivity extends BaseActivity {
     private LauncherAppState mApp;
     private StringCache mStringCache;
     private WidgetPredictionsRequester mWidgetPredictionsRequester;
-    private final WidgetPickerDataProvider mWidgetPickerDataProvider =
-            new WidgetPickerDataProvider();
-    private WidgetsFilterDataProvider mWidgetsFilterDataProvider;
+    private WidgetPickerDataProvider mWidgetPickerDataProvider;
 
     private int mDesiredWidgetWidth;
     private int mDesiredWidgetHeight;
-    private int mWidgetCategoryFilter;
+    private WidgetCategoryFilter mWidgetCategoryInclusionFilter;
+    private WidgetCategoryFilter mWidgetCategoryExclusionFilter;
     @Nullable
     private String mUiSurface;
     // Widgets existing on the host surface.
@@ -161,8 +166,8 @@ public class WidgetPickerActivity extends BaseActivity {
         mApp = LauncherAppState.getInstance(this);
         InvariantDeviceProfile idp = mApp.getInvariantDeviceProfile();
         mDeviceProfile = idp.getDeviceProfile(this);
-        mModel = new WidgetsModel();
-        mWidgetsFilterDataProvider = WidgetsFilterDataProvider.Companion.newInstance(this);
+        mModel = new WidgetsModel(mApp.getContext());
+        mWidgetPickerDataProvider = new WidgetPickerDataProvider(this);
 
         setContentView(R.layout.widget_picker_activity);
         mDragLayer = findViewById(R.id.drag_layer);
@@ -194,8 +199,19 @@ public class WidgetPickerActivity extends BaseActivity {
                 getIntent().getIntExtra(EXTRA_DESIRED_WIDGET_HEIGHT, 0);
 
         // Defaults to '0' to indicate that there isn't a category filter.
-        mWidgetCategoryFilter =
-                getIntent().getIntExtra(AppWidgetManager.EXTRA_CATEGORY_FILTER, 0);
+        // Negative value indicates it's an exclusion filter (e.g. NOT_KEYGUARD_CATEGORY.inv())
+        // Positive value indicates it's inclusion filter (e.g. HOME_SCREEN or KEYGUARD)
+        // Note: A filter can either be inclusion or exclusion filter; not both.
+        int inclusionFilter = getIntent().getIntExtra(AppWidgetManager.EXTRA_CATEGORY_FILTER, 0);
+        if (inclusionFilter < 0) {
+            Log.w(TAG, "Invalid EXTRA_CATEGORY_FILTER: " + inclusionFilter);
+        }
+        mWidgetCategoryInclusionFilter = new WidgetCategoryFilter(max(0, inclusionFilter));
+        int exclusionFilter = getIntent().getIntExtra(EXTRA_CATEGORY_EXCLUSION_FILTER, 0);
+        if (exclusionFilter > 0) {
+            Log.w(TAG, "Invalid EXTRA_CATEGORY_EXCLUSION_FILTER: " + exclusionFilter);
+        }
+        mWidgetCategoryExclusionFilter = new WidgetCategoryFilter(min(0 , exclusionFilter));
 
         String uiSurfaceParam = getIntent().getStringExtra(EXTRA_UI_SURFACE);
         if (uiSurfaceParam != null && UI_SURFACE_PATTERN.matcher(uiSurfaceParam).matches()) {
@@ -293,24 +309,21 @@ public class WidgetPickerActivity extends BaseActivity {
      */
     private void refreshAndBindWidgets() {
         MODEL_EXECUTOR.execute(() -> {
-            LauncherAppState app = LauncherAppState.getInstance(this);
-            // Don't have to setup filters - its setup when launcher loads
-            // Just refresh filters with available cached info.
-            mModel.updateWidgetFilters(mWidgetsFilterDataProvider);
-            mModel.update(app, null);
+            mModel.update(null);
 
             StringCache stringCache = new StringCache();
             stringCache.loadStrings(this);
 
             bindStringCache(stringCache);
-            bindWidgets(mModel.getWidgetsByPackageItem(), mModel.getDefaultWidgetsFilter());
+            bindWidgets(mModel.getWidgetsByPackageItemForPicker());
             // Open sheet once widgets are available, so that it doesn't interrupt the open
             // animation.
             openWidgetsSheet();
             if (mUiSurface != null) {
-                mWidgetPredictionsRequester = new WidgetPredictionsRequester(app.getContext(),
-                        mUiSurface, mModel.getWidgetsByComponentKey());
-                mWidgetPredictionsRequester.request(mAddedWidgets, this::bindRecommendedWidgets);
+                mWidgetPredictionsRequester = new WidgetPredictionsRequester(
+                        getApplicationContext(), mUiSurface,
+                        mModel.getWidgetsByComponentKeyForPicker());
+                mWidgetPredictionsRequester.request(mAddedWidgets, this);
             }
         });
     }
@@ -319,26 +332,19 @@ public class WidgetPickerActivity extends BaseActivity {
         MAIN_EXECUTOR.execute(() -> mStringCache = stringCache);
     }
 
-    private void bindWidgets(Map<PackageItemInfo, List<WidgetItem>> widgets,
-            @Nullable Predicate<WidgetItem> defaultWidgetsFilter) {
+    private void bindWidgets(Map<PackageItemInfo, List<WidgetItem>> widgets) {
         WidgetsListBaseEntriesBuilder builder = new WidgetsListBaseEntriesBuilder(
                 mApp.getContext());
-
         final List<WidgetsListBaseEntry> allWidgets = builder.build(widgets, mNoShortcutsFilter);
 
-        // Default list is shown if either defaultWidgetsFilter exists or host has additionally
-        // enforced size filtering.
+        // Default list is shown if host has additionally enforced size filtering.
         @Nullable Predicate<WidgetItem> defaultListFilter =
                 hasHostSizeFilters() ? mHostSizeAndNoShortcutsFilter : null;
-        if (defaultWidgetsFilter != null) {
-            defaultListFilter = defaultListFilter != null ? defaultListFilter.and(
-                    defaultWidgetsFilter) : defaultWidgetsFilter;
-        }
-        final List<WidgetsListBaseEntry> defaultWidgets = defaultListFilter != null ? builder.build(
-                widgets, defaultListFilter) : emptyList();
 
-        MAIN_EXECUTOR.execute(
-                () -> mWidgetPickerDataProvider.setWidgets(allWidgets, defaultWidgets));
+        MAIN_EXECUTOR.execute(() -> {
+            mWidgetPickerDataProvider.setHostSpecifiedDefaultWidgetsFilter(defaultListFilter);
+            mWidgetPickerDataProvider.setWidgets(allWidgets);
+        });
     }
 
     private void openWidgetsSheet() {
@@ -350,7 +356,8 @@ public class WidgetPickerActivity extends BaseActivity {
         });
     }
 
-    private void bindRecommendedWidgets(List<ItemInfo> recommendedWidgets) {
+    @Override
+    public void onPredictionsAvailable(List<ItemInfo> recommendedWidgets) {
         // Bind recommendations once picker has finished open animation.
         MAIN_EXECUTOR.getHandler().postDelayed(
                 () -> mWidgetPickerDataProvider.setWidgetRecommendations(recommendedWidgets),
@@ -360,7 +367,7 @@ public class WidgetPickerActivity extends BaseActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        MODEL_EXECUTOR.execute(() -> mWidgetsFilterDataProvider.destroy());
+        mWidgetPickerDataProvider.destroy();
         if (mWidgetPredictionsRequester != null) {
             mWidgetPredictionsRequester.clear();
         }
@@ -436,11 +443,13 @@ public class WidgetPickerActivity extends BaseActivity {
                     widget.user.getIdentifier());
         }
 
-        if (mWidgetCategoryFilter > 0 && (info.widgetCategory & mWidgetCategoryFilter) == 0) {
+        if (!mWidgetCategoryInclusionFilter.matches(info.widgetCategory)
+                || !mWidgetCategoryExclusionFilter.matches(info.widgetCategory)) {
             return rejectWidget(
                     widget,
-                    "doesn't match category filter [filter=%d, widget=%d]",
-                    mWidgetCategoryFilter,
+                    "doesn't match category filter [inclusion=%d, exclusion=%d, widget=%d]",
+                    mWidgetCategoryInclusionFilter.getCategoryMask(),
+                    mWidgetCategoryExclusionFilter.getCategoryMask(),
                     info.widgetCategory);
         }
 
@@ -463,7 +472,7 @@ public class WidgetPickerActivity extends BaseActivity {
                             mDesiredWidgetWidth);
                 }
 
-                final int minWidth = Math.min(info.minResizeWidth, info.minWidth);
+                final int minWidth = min(info.minResizeWidth, info.minWidth);
                 if (minWidth > mDesiredWidgetWidth) {
                     return rejectWidget(
                             widget,
@@ -487,7 +496,7 @@ public class WidgetPickerActivity extends BaseActivity {
                             mDesiredWidgetHeight);
                 }
 
-                final int minHeight = Math.min(info.minResizeHeight, info.minHeight);
+                final int minHeight = min(info.minResizeHeight, info.minHeight);
                 if (minHeight > mDesiredWidgetHeight) {
                     return rejectWidget(
                             widget,

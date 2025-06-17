@@ -51,7 +51,6 @@ public class TaplAddWidgetTest extends AbstractLauncherUiTest<Launcher> {
     @Test
     @PortraitLandscape
     public void testDragIcon() throws Throwable {
-        mLauncher.enableDebugTracing(); // b/289161193
         commitTransactionAndLoadHome(new FavoriteItemsTransaction(mTargetContext));
 
         waitForLauncherCondition("Workspace didn't finish loading", l -> !l.isWorkspaceLoading());
@@ -72,7 +71,6 @@ public class TaplAddWidgetTest extends AbstractLauncherUiTest<Launcher> {
                 TestUtil.DEFAULT_UI_TIMEOUT);
         assertNotNull("Widget not found on the workspace", widget);
         widget.launch(getAppPackageName());
-        mLauncher.disableDebugTracing(); // b/289161193
     }
 
     /**

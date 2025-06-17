@@ -93,7 +93,7 @@ public class NavHandleLongPressHandler implements ResourceBasedOverride {
      */
     @Nullable
     @VisibleForTesting
-    final Runnable getLongPressRunnable(NavHandle navHandle) {
+    final Runnable getLongPressRunnable(NavHandle navHandle, int displayId) {
         onHomeHandleLongClick();
 
         if (!isContextualSearchEntrypointEnabled(navHandle)) {
@@ -123,7 +123,7 @@ public class NavHandleLongPressHandler implements ResourceBasedOverride {
                 Log.i(TAG, "Contextual Search invocation successful");
 
                 String runningPackage = TopTaskTracker.INSTANCE.get(mContext).getCachedTopTask(
-                        /* filterOnlyVisibleRecents */ true).getPackageName();
+                        /* filterOnlyVisibleRecents */ true, displayId).getPackageName();
                 mStatsLogManager.logger().withPackageName(runningPackage)
                         .log(LAUNCHER_LAUNCH_ASSISTANT_SUCCESSFUL_NAV_HANDLE);
             } else {

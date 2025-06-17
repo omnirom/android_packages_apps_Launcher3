@@ -15,7 +15,6 @@
  */
 package com.android.launcher3.ui.widget;
 
-import static com.android.launcher3.LauncherSettings.Favorites.TABLE_NAME;
 import static com.android.launcher3.WorkspaceLayoutManager.FIRST_SCREEN_ID;
 import static com.android.launcher3.model.data.LauncherAppWidgetInfo.FLAG_ID_NOT_VALID;
 import static com.android.launcher3.model.data.LauncherAppWidgetInfo.FLAG_PROVIDER_NOT_READY;
@@ -318,7 +317,7 @@ public class BindWidgetTest extends BaseLauncherActivityTest<Launcher> {
         try {
             return MODEL_EXECUTOR.submit(() ->
                 mModel.getModelDbController().query(
-                                TABLE_NAME, null, itemIdMatch(0), null, null)).get();
+                        null, itemIdMatch(0), null, null)).get();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

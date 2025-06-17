@@ -30,12 +30,13 @@ import android.util.LongSparseArray
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.android.launcher3.Flags.FLAG_ENABLE_SUPPORT_FOR_ARCHIVING
-import com.android.launcher3.LauncherAppState
+import com.android.launcher3.InvariantDeviceProfile
 import com.android.launcher3.LauncherSettings.Favorites
 import com.android.launcher3.LauncherSettings.Favorites.CONTAINER_DESKTOP
 import com.android.launcher3.LauncherSettings.Favorites.ITEM_TYPE_APPLICATION
 import com.android.launcher3.LauncherSettings.Favorites.ITEM_TYPE_APPWIDGET
 import com.android.launcher3.icons.CacheableShortcutInfo
+import com.android.launcher3.icons.IconCache
 import com.android.launcher3.model.data.IconRequestInfo
 import com.android.launcher3.model.data.LauncherAppWidgetInfo
 import com.android.launcher3.model.data.LauncherAppWidgetInfo.FLAG_RESTORE_STARTED
@@ -52,12 +53,14 @@ import com.google.common.truth.Truth.assertThat
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.mockito.Answers
 import org.mockito.ArgumentCaptor
 import org.mockito.Mock
-import org.mockito.Mockito
 import org.mockito.Mockito.RETURNS_DEEP_STUBS
 import org.mockito.Mockito.verify
+import org.mockito.MockitoAnnotations
 import org.mockito.kotlin.any
+import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doAnswer
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
@@ -70,10 +73,10 @@ class WorkspaceItemProcessorExtraTest {
     @Mock private lateinit var mockWorkspaceInfo: WorkspaceItemInfo
     @Mock private lateinit var mockBgDataModel: BgDataModel
     @Mock private lateinit var mockContext: Context
-    @Mock private lateinit var mockAppState: LauncherAppState
+    @Mock private lateinit var mockIconCache: IconCache
     @Mock private lateinit var mockPmHelper: PackageManagerHelper
     @Mock private lateinit var mockLauncherApps: LauncherApps
-    @Mock private lateinit var mockCursor: LoaderCursor
+    @Mock(answer = Answers.RETURNS_DEEP_STUBS) private lateinit var mockCursor: LoaderCursor
     @Mock private lateinit var mockUserCache: UserCache
     @Mock private lateinit var mockUserManagerState: UserManagerState
     @Mock private lateinit var mockWidgetInflater: WidgetInflater
@@ -94,10 +97,9 @@ class WorkspaceItemProcessorExtraTest {
 
     @Before
     fun setup() {
+        MockitoAnnotations.initMocks(this)
+
         mUserHandle = UserHandle(0)
-        mockIconRequestInfo = mock<IconRequestInfo<WorkspaceItemInfo>>()
-        mockWorkspaceInfo = mock<WorkspaceItemInfo>()
-        mockBgDataModel = mock<BgDataModel>()
         mComponentName = ComponentName("package", "class")
         mUnlockedUsersArray = LongSparseArray<Boolean>(1).apply { put(101, true) }
         intent =
@@ -106,52 +108,36 @@ class WorkspaceItemProcessorExtraTest {
                 `package` = "pkg"
                 putExtra(ShortcutKey.EXTRA_SHORTCUT_ID, "")
             }
-        mockLauncherApps =
-            mock<LauncherApps>().apply {
-                whenever(isPackageEnabled("package", mUserHandle)).thenReturn(true)
-                whenever(isActivityEnabled(mComponentName, mUserHandle)).thenReturn(true)
-            }
-        mockContext =
-            mock<Context>().apply {
-                whenever(packageManager).thenReturn(mock())
-                whenever(packageManager.getUserBadgedLabel(any(), any())).thenReturn("")
-                whenever(applicationContext).thenReturn(ApplicationProvider.getApplicationContext())
-                whenever(getSystemService(LauncherApps::class.java)).thenReturn(mockLauncherApps)
-            }
-        mockAppState =
-            mock<LauncherAppState>().apply {
-                whenever(context).thenReturn(mockContext)
-                whenever(iconCache).thenReturn(mock())
-                whenever(iconCache.getShortcutIcon(any(), any(), any())).then {}
-            }
-        mockPmHelper =
-            mock<PackageManagerHelper>().apply {
-                whenever(getAppLaunchIntent(mComponentName.packageName, mUserHandle))
-                    .thenReturn(intent)
-            }
-        mockCursor =
-            Mockito.mock(LoaderCursor::class.java, RETURNS_DEEP_STUBS).apply {
-                user = mUserHandle
-                itemType = ITEM_TYPE_APPLICATION
-                id = 1
-                restoreFlag = 1
-                serialNumber = 101
-                whenever(parseIntent()).thenReturn(intent)
-                whenever(markRestored()).doAnswer { restoreFlag = 0 }
-                whenever(updater().put(Favorites.INTENT, intent.toUri(0)).commit()).thenReturn(1)
-                whenever(getAppShortcutInfo(any(), any(), any(), any()))
-                    .thenReturn(mockWorkspaceInfo)
-                whenever(createIconRequestInfo(any(), any())).thenReturn(mockIconRequestInfo)
-            }
-        mockUserCache =
-            mock<UserCache>().apply {
-                val userIconInfo =
-                    mock<UserIconInfo>().apply { whenever(isPrivate).thenReturn(false) }
-                whenever(getUserInfo(any())).thenReturn(userIconInfo)
-            }
+        mockLauncherApps.apply {
+            whenever(isPackageEnabled("package", mUserHandle)).thenReturn(true)
+            whenever(isActivityEnabled(mComponentName, mUserHandle)).thenReturn(true)
+        }
+        mockContext.apply {
+            whenever(packageManager).thenReturn(mock())
+            whenever(packageManager.getUserBadgedLabel(any(), any())).thenReturn("")
+            whenever(applicationContext).thenReturn(ApplicationProvider.getApplicationContext())
+            whenever(getSystemService(LauncherApps::class.java)).thenReturn(mockLauncherApps)
+        }
 
-        mockUserManagerState = mock<UserManagerState>()
-        mockWidgetInflater = mock<WidgetInflater>()
+        whenever(mockIconCache.getShortcutIcon(any(), any(), any())).then {}
+        whenever(mockPmHelper.getAppLaunchIntent(mComponentName.packageName, mUserHandle))
+            .thenReturn(intent)
+        mockCursor.apply {
+            user = mUserHandle
+            itemType = ITEM_TYPE_APPLICATION
+            id = 1
+            restoreFlag = 1
+            serialNumber = 101
+            whenever(parseIntent()).thenReturn(intent)
+            whenever(markRestored()).doAnswer { restoreFlag = 0 }
+            whenever(updater().put(Favorites.INTENT, intent.toUri(0)).commit()).thenReturn(1)
+            whenever(getAppShortcutInfo(any(), any(), any(), any())).thenReturn(mockWorkspaceInfo)
+            whenever(createIconRequestInfo(any(), any())).thenReturn(mockIconRequestInfo)
+        }
+
+        val mockUserInfo = mock<UserIconInfo>().apply { whenever(isPrivate).thenReturn(false) }
+        whenever(mockUserCache.getUserInfo(any())).thenReturn(mockUserInfo)
+
         mKeyToPinnedShortcutsMap = mutableMapOf()
         mInstallingPkgs = hashMapOf()
         mAllDeepShortcuts = mutableListOf()
@@ -220,7 +206,8 @@ class WorkspaceItemProcessorExtraTest {
             )
             .commit()
         val widgetInfoCaptor = ArgumentCaptor.forClass(LauncherAppWidgetInfo::class.java)
-        verify(mockCursor).checkAndAddItem(widgetInfoCaptor.capture(), eq(mockBgDataModel))
+        verify(mockCursor)
+            .checkAndAddItem(widgetInfoCaptor.capture(), eq(mockBgDataModel), anyOrNull())
         val actualWidgetInfo = widgetInfoCaptor.value
         with(actualWidgetInfo) {
             assertThat(providerName).isEqualTo(expectedWidgetInfo.providerName)
@@ -271,7 +258,7 @@ class WorkspaceItemProcessorExtraTest {
         itemProcessorUnderTest.processItem()
 
         // Then
-        verify(mockCursor).checkAndAddItem(any(), any())
+        verify(mockCursor).checkAndAddItem(any(), any(), anyOrNull())
     }
 
     private fun createWorkspaceItemProcessorUnderTest(
@@ -281,7 +268,7 @@ class WorkspaceItemProcessorExtraTest {
         userManagerState: UserManagerState = mockUserManagerState,
         launcherApps: LauncherApps = mockLauncherApps,
         shortcutKeyToPinnedShortcuts: Map<ShortcutKey, ShortcutInfo> = mKeyToPinnedShortcutsMap,
-        app: LauncherAppState = mockAppState,
+        context: Context = mockContext,
         bgDataModel: BgDataModel = mockBgDataModel,
         widgetProvidersMap: MutableMap<ComponentKey, AppWidgetProviderInfo?> = mWidgetProvidersMap,
         widgetInflater: WidgetInflater = mockWidgetInflater,
@@ -295,11 +282,11 @@ class WorkspaceItemProcessorExtraTest {
     ) =
         WorkspaceItemProcessor(
             c = cursor,
+            context = context,
             memoryLogger = memoryLogger,
             userCache = userCache,
             userManagerState = userManagerState,
             launcherApps = launcherApps,
-            app = app,
             bgDataModel = bgDataModel,
             widgetProvidersMap = widgetProvidersMap,
             widgetInflater = widgetInflater,
@@ -311,5 +298,8 @@ class WorkspaceItemProcessorExtraTest {
             shortcutKeyToPinnedShortcuts = shortcutKeyToPinnedShortcuts,
             installingPkgs = installingPkgs,
             allDeepShortcuts = allDeepShortcuts,
+            idp = InvariantDeviceProfile.INSTANCE.get(context),
+            iconCache = mockIconCache,
+            isSafeMode = false,
         )
 }

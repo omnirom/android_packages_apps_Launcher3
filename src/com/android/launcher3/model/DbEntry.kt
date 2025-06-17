@@ -30,7 +30,6 @@ import com.android.launcher3.LauncherSettings.Favorites.SPANX
 import com.android.launcher3.LauncherSettings.Favorites.SPANY
 import com.android.launcher3.model.data.ItemInfo
 import com.android.launcher3.util.ContentWriter
-import java.net.URISyntaxException
 import java.util.Objects
 
 class DbEntry : ItemInfo(), Comparable<DbEntry> {
@@ -129,8 +128,8 @@ class DbEntry : ItemInfo(), Comparable<DbEntry> {
     private fun cleanIntentString(intentStr: String): String {
         try {
             return Intent.parseUri(intentStr, 0).apply { sourceBounds = null }.toURI()
-        } catch (e: URISyntaxException) {
-            Log.e(TAG, "Unable to parse Intent string", e)
+        } catch (e: Exception) {
+            Log.e(TAG, "Unable to parse Intent string: $intentStr", e)
             return intentStr
         }
     }

@@ -22,11 +22,15 @@ import android.graphics.PointF
 import android.os.SystemClock
 import android.os.Trace
 import android.util.Log
+import android.view.Display.DEFAULT_DISPLAY
 import android.view.View
+import android.window.TransitionInfo
 import androidx.annotation.BinderThread
 import androidx.annotation.UiThread
 import androidx.annotation.VisibleForTesting
+import com.android.app.tracing.traceSection
 import com.android.internal.jank.Cuj
+import com.android.launcher3.Flags.enableAltTabKqsOnConnectedDisplays
 import com.android.launcher3.Flags.enableLargeDesktopWindowingTile
 import com.android.launcher3.Flags.enableOverviewCommandHelperTimeout
 import com.android.launcher3.PagedView
@@ -35,6 +39,8 @@ import com.android.launcher3.logging.StatsLogManager
 import com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_OVERVIEW_SHOW_OVERVIEW_FROM_3_BUTTON
 import com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_OVERVIEW_SHOW_OVERVIEW_FROM_KEYBOARD_QUICK_SWITCH
 import com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_OVERVIEW_SHOW_OVERVIEW_FROM_KEYBOARD_SHORTCUT
+import com.android.launcher3.taskbar.TaskbarManager
+import com.android.launcher3.taskbar.TaskbarUIController
 import com.android.launcher3.util.Executors
 import com.android.launcher3.util.RunnableList
 import com.android.launcher3.util.coroutines.DispatcherProvider
@@ -45,6 +51,8 @@ import com.android.quickstep.OverviewCommandHelper.CommandType.HOME
 import com.android.quickstep.OverviewCommandHelper.CommandType.KEYBOARD_INPUT
 import com.android.quickstep.OverviewCommandHelper.CommandType.SHOW
 import com.android.quickstep.OverviewCommandHelper.CommandType.TOGGLE
+import com.android.quickstep.fallback.window.RecentsDisplayModel
+import com.android.quickstep.fallback.window.RecentsWindowFlags.Companion.enableOverviewInWindow
 import com.android.quickstep.util.ActiveGestureLog
 import com.android.quickstep.util.ActiveGestureProtoLogProxy
 import com.android.quickstep.views.RecentsView
@@ -67,8 +75,10 @@ class OverviewCommandHelper
 constructor(
     private val touchInteractionService: TouchInteractionService,
     private val overviewComponentObserver: OverviewComponentObserver,
-    private val taskAnimationManager: TaskAnimationManager,
     private val dispatcherProvider: DispatcherProvider = ProductionDispatchers,
+    private val recentsDisplayModel: RecentsDisplayModel,
+    private val focusState: FocusState,
+    private val taskbarManager: TaskbarManager,
 ) {
     private val coroutineScope = CoroutineScope(SupervisorJob() + dispatcherProvider.background)
 
@@ -81,25 +91,33 @@ constructor(
      */
     private var keyboardTaskFocusIndex = -1
 
-    private val containerInterface: BaseContainerInterface<*, *>
-        get() = overviewComponentObserver.containerInterface
+    private fun getContainerInterface(displayId: Int) =
+        overviewComponentObserver.getContainerInterface(displayId)
 
-    private val visibleRecentsView: RecentsView<*, *>?
-        get() = containerInterface.getVisibleRecentsView<RecentsView<*, *>>()
+    private fun getVisibleRecentsView(displayId: Int) =
+        getContainerInterface(displayId).getVisibleRecentsView<RecentsView<*, *>>()
 
     /**
      * Adds a command to be executed next, after all pending tasks are completed. Max commands that
      * can be queued is [.MAX_QUEUE_SIZE]. Requests after reaching that limit will be silently
      * dropped.
+     *
+     * @param type The type of the command
+     * @param onDisplays The display to run the command on
      */
     @BinderThread
-    fun addCommand(type: CommandType): CommandInfo? {
+    @JvmOverloads
+    fun addCommand(
+        type: CommandType,
+        displayId: Int = DEFAULT_DISPLAY,
+        isLastOfBatch: Boolean = true,
+    ): CommandInfo? {
         if (commandQueue.size >= MAX_QUEUE_SIZE) {
             Log.d(TAG, "command not added: $type - queue is full ($commandQueue).")
             return null
         }
 
-        val command = CommandInfo(type)
+        val command = CommandInfo(type, displayId = displayId, isLastOfBatch = isLastOfBatch)
         commandQueue.add(command)
         Log.d(TAG, "command added: $command")
 
@@ -117,6 +135,35 @@ constructor(
         return command
     }
 
+    @BinderThread
+    fun addCommandsForDisplays(type: CommandType, displayIds: IntArray): CommandInfo? {
+        if (displayIds.isEmpty()) return null
+        var lastCommand: CommandInfo? = null
+        displayIds.forEachIndexed({ i, displayId ->
+            lastCommand = addCommand(type, displayId, i == displayIds.size - 1)
+        })
+        return lastCommand
+    }
+
+    @BinderThread
+    fun addCommandsForAllDisplays(type: CommandType) =
+        addCommandsForDisplays(
+            type,
+            recentsDisplayModel.activeDisplayResources
+                .map { resource -> resource.displayId }
+                .toIntArray(),
+        )
+
+    @BinderThread
+    fun addCommandsForDisplaysExcept(type: CommandType, excludedDisplayId: Int) =
+        addCommandsForDisplays(
+            type,
+            recentsDisplayModel.activeDisplayResources
+                .map { resource -> resource.displayId }
+                .filter { displayId -> displayId != excludedDisplayId }
+                .toIntArray(),
+        )
+
     fun canStartHomeSafely(): Boolean = commandQueue.isEmpty() || commandQueue.first().type == HOME
 
     /** Clear pending or completed commands from the queue */
@@ -131,35 +178,38 @@ constructor(
      * completion (returns false).
      */
     @UiThread
-    private fun processNextCommand() {
-        val command: CommandInfo =
-            commandQueue.firstOrNull()
-                ?: run {
-                    Log.d(TAG, "no pending commands to be executed.")
-                    return
-                }
-
-        command.status = CommandStatus.PROCESSING
-        Log.d(TAG, "executing command: $command")
-
-        if (enableOverviewCommandHelperTimeout()) {
-            coroutineScope.launch(dispatcherProvider.main) {
-                withTimeout(QUEUE_WAIT_DURATION_IN_MS) {
-                    executeCommandSuspended(command)
-                    ensureActive()
-                    onCommandFinished(command)
-                }
+    private fun processNextCommand(): Unit =
+        traceSection("OverviewCommandHelper.processNextCommand") {
+            val command: CommandInfo? = commandQueue.firstOrNull()
+            if (command == null) {
+                Log.d(TAG, "no pending commands to be executed.")
+                return@traceSection
             }
-        } else {
-            val result = executeCommand(command, onCallbackResult = { onCommandFinished(command) })
-            Log.d(TAG, "command executed: $command with result: $result")
-            if (result) {
-                onCommandFinished(command)
+
+            command.status = CommandStatus.PROCESSING
+            Log.d(TAG, "executing command: $command")
+
+            if (enableOverviewCommandHelperTimeout()) {
+                coroutineScope.launch(dispatcherProvider.main) {
+                    traceSection("OverviewCommandHelper.executeCommandWithTimeout") {
+                        withTimeout(QUEUE_WAIT_DURATION_IN_MS) {
+                            executeCommandSuspended(command)
+                            ensureActive()
+                            onCommandFinished(command)
+                        }
+                    }
+                }
             } else {
-                Log.d(TAG, "waiting for command callback: $command")
+                val result =
+                    executeCommand(command, onCallbackResult = { onCommandFinished(command) })
+                Log.d(TAG, "command executed: $command with result: $result")
+                if (result) {
+                    onCommandFinished(command)
+                } else {
+                    Log.d(TAG, "waiting for command callback: $command")
+                }
             }
         }
-    }
 
     /**
      * Executes the task and returns true if next task can be executed. If false, then the next task
@@ -167,7 +217,7 @@ constructor(
      */
     @VisibleForTesting
     fun executeCommand(command: CommandInfo, onCallbackResult: () -> Unit): Boolean {
-        val recentsView = visibleRecentsView
+        val recentsView = getVisibleRecentsView(command.displayId)
         Log.d(TAG, "executeCommand: $command - visibleRecentsView: $recentsView")
         return if (recentsView != null) {
             executeWhenRecentsIsVisible(command, recentsView, onCallbackResult)
@@ -215,6 +265,7 @@ constructor(
                     launchTask(recentsView, taskView, command, onCallbackResult)
                 }
             }
+
             TOGGLE -> {
                 launchTask(
                     recentsView,
@@ -223,6 +274,7 @@ constructor(
                     onCallbackResult,
                 )
             }
+
             HOME -> {
                 recentsView.startHome()
                 true
@@ -233,7 +285,7 @@ constructor(
         // When running task view is null we return last large taskView - typically focusView when
         // grid only is not enabled else last desktop task view.
         return if (recentsView.runningTaskView == null) {
-            recentsView.lastLargeTaskView ?: recentsView.getTaskViewAt(0)
+            recentsView.lastLargeTaskView ?: recentsView.getFirstTaskView()
         } else {
             if (
                 enableLargeDesktopWindowingTile() &&
@@ -279,28 +331,63 @@ constructor(
         command: CommandInfo,
         onCallbackResult: () -> Unit,
     ): Boolean {
+        val containerInterface = getContainerInterface(command.displayId)
         val recentsViewContainer = containerInterface.getCreatedContainer()
         val recentsView: RecentsView<*, *>? = recentsViewContainer?.getOverviewPanel()
         val deviceProfile = recentsViewContainer?.getDeviceProfile()
         val uiController = containerInterface.getTaskbarController()
-        val allowQuickSwitch =
-            uiController != null &&
-                deviceProfile != null &&
-                (deviceProfile.isTablet || deviceProfile.isTwoPanels)
+
+        val focusedDisplayId = focusState.focusedDisplayId
+        val focusedDisplayUIController: TaskbarUIController? =
+            if (enableOverviewInWindow) {
+                Log.d(
+                    TAG,
+                    "Querying RecentsDisplayModel for TaskbarUIController for display: $focusedDisplayId",
+                )
+                recentsDisplayModel.getRecentsWindowManager(focusedDisplayId)?.taskbarUIController
+            } else {
+                Log.d(
+                    TAG,
+                    "Querying TaskbarManager for TaskbarUIController for display: $focusedDisplayId",
+                )
+                // TODO(b/395061396): Remove this path when overview in widow is enabled.
+                taskbarManager.getUIControllerForDisplay(focusedDisplayId)
+            }
+        Log.d(
+            TAG,
+            "TaskbarUIController for display $focusedDisplayId was" +
+                "${if (focusedDisplayUIController == null) " not" else ""} found",
+        )
 
         when (command.type) {
             HIDE -> {
-                if (!allowQuickSwitch) return true
-                keyboardTaskFocusIndex = uiController!!.launchFocusedTask()
+                if (uiController == null || deviceProfile?.isTablet == false) return true
+                keyboardTaskFocusIndex =
+                    if (
+                        enableAltTabKqsOnConnectedDisplays() && focusedDisplayUIController != null
+                    ) {
+                        focusedDisplayUIController.launchFocusedTask()
+                    } else {
+                        uiController.launchFocusedTask()
+                    }
+
                 if (keyboardTaskFocusIndex == -1) return true
             }
+
             KEYBOARD_INPUT ->
-                if (allowQuickSwitch) {
-                    uiController!!.openQuickSwitchView()
+                if (uiController != null && deviceProfile?.isTablet == true) {
+                    if (
+                        enableAltTabKqsOnConnectedDisplays() && focusedDisplayUIController != null
+                    ) {
+                        focusedDisplayUIController.openQuickSwitchView()
+                    } else {
+                        uiController.openQuickSwitchView()
+                    }
                     return true
                 } else {
                     keyboardTaskFocusIndex = 0
                 }
+
             HOME -> {
                 ActiveGestureProtoLogProxy.logExecuteHomeCommand()
                 // Although IActivityTaskManager$Stub$Proxy.startActivity is a slow binder call,
@@ -310,16 +397,22 @@ constructor(
                 touchInteractionService.startActivity(overviewComponentObserver.homeIntent)
                 return true
             }
+
             SHOW ->
                 // When Recents is not currently visible, the command's type is SHOW
                 // when overview is triggered via the keyboard overview button or Action+Tab
                 // keys (Not Alt+Tab which is KQS). The overview button on-screen in 3-button
                 // nav is TYPE_TOGGLE.
                 keyboardTaskFocusIndex = 0
+
             TOGGLE -> {}
         }
 
-        recentsView?.setKeyboardTaskFocusIndex(keyboardTaskFocusIndex)
+        recentsView?.setKeyboardTaskFocusIndex(
+            recentsView.indexOfChild(recentsView.taskViews.elementAtOrNull(keyboardTaskFocusIndex))
+                ?: -1
+        )
+
         // Handle recents view focus when launching from home
         val animatorListener: Animator.AnimatorListener =
             object : AnimatorListenerAdapter() {
@@ -327,7 +420,7 @@ constructor(
                     Log.d(TAG, "switching to Overview state - onAnimationStart: $command")
                     super.onAnimationStart(animation)
                     updateRecentsViewFocus(command)
-                    logShowOverviewFrom(command.type)
+                    logShowOverviewFrom(command)
                 }
 
                 override fun onAnimationEnd(animation: Animator) {
@@ -343,22 +436,24 @@ constructor(
             return false
         }
 
-        val activity = containerInterface.getCreatedContainer()
-        if (activity != null) {
-            InteractionJankMonitorWrapper.begin(activity.rootView, Cuj.CUJ_LAUNCHER_QUICK_SWITCH)
+        if (!enableOverviewInWindow) {
+            containerInterface.getCreatedContainer()?.rootView?.let { view ->
+                InteractionJankMonitorWrapper.begin(view, Cuj.CUJ_LAUNCHER_QUICK_SWITCH)
+            }
         }
 
         val gestureState =
             touchInteractionService.createGestureState(
+                command.displayId,
                 GestureState.DEFAULT_STATE,
                 GestureState.TrackpadGestureType.NONE,
             )
         gestureState.isHandlingAtomicEvent = true
         val interactionHandler =
-            touchInteractionService.swipeUpHandlerFactory.newHandler(
-                gestureState,
-                command.createTime,
-            )
+            touchInteractionService
+                // TODO(b/404757863): use command.displayId instead of focusedDisplayId.
+                .getSwipeUpHandlerFactory(focusedDisplayId)
+                .newHandler(gestureState, command.createTime)
         interactionHandler.setGestureEndCallback {
             onTransitionComplete(command, interactionHandler, onCallbackResult)
         }
@@ -369,13 +464,24 @@ constructor(
                 override fun onRecentsAnimationStart(
                     controller: RecentsAnimationController,
                     targets: RecentsAnimationTargets,
+                    transitionInfo: TransitionInfo?,
                 ) {
                     Log.d(TAG, "recents animation started: $command")
+                    if (enableOverviewInWindow) {
+                        containerInterface.getCreatedContainer()?.rootView?.let { view ->
+                            InteractionJankMonitorWrapper.begin(view, Cuj.CUJ_LAUNCHER_QUICK_SWITCH)
+                        }
+                    }
+
                     updateRecentsViewFocus(command)
-                    logShowOverviewFrom(command.type)
+                    logShowOverviewFrom(command)
                     containerInterface.runOnInitBackgroundStateUI {
                         Log.d(TAG, "recents animation started - onInitBackgroundStateUI: $command")
-                        interactionHandler.onGestureEnded(0f, PointF())
+                        interactionHandler.onGestureEnded(
+                            0f,
+                            PointF(),
+                            /* horizontalTouchSlopPassed= */ false,
+                        )
                     }
                     command.removeListener(this)
                 }
@@ -392,6 +498,15 @@ constructor(
                 }
             }
 
+        val taskAnimationManager =
+            recentsDisplayModel.getTaskAnimationManager(command.displayId)
+                ?: run {
+                    Log.e(TAG, "No TaskAnimationManager found for display ${command.displayId}")
+                    ActiveGestureProtoLogProxy.logOnTaskAnimationManagerNotAvailable(
+                        command.displayId
+                    )
+                    return false
+                }
         if (taskAnimationManager.isRecentsAnimationRunning) {
             command.setAnimationCallbacks(
                 taskAnimationManager.continueRecentsAnimation(gestureState)
@@ -454,7 +569,7 @@ constructor(
     }
 
     private fun updateRecentsViewFocus(command: CommandInfo) {
-        val recentsView: RecentsView<*, *> = visibleRecentsView ?: return
+        val recentsView: RecentsView<*, *> = getVisibleRecentsView(command.displayId) ?: return
         if (command.type != KEYBOARD_INPUT && command.type != HIDE && command.type != SHOW) {
             return
         }
@@ -470,12 +585,12 @@ constructor(
         // Stops requesting focused after first view gets focused.
         recentsView.getTaskViewAt(keyboardTaskFocusIndex).requestFocus() ||
             recentsView.nextTaskView.requestFocus() ||
-            recentsView.getTaskViewAt(0).requestFocus() ||
+            recentsView.firstTaskView.requestFocus() ||
             recentsView.requestFocus()
     }
 
     private fun onRecentsViewFocusUpdated(command: CommandInfo) {
-        val recentsView: RecentsView<*, *> = visibleRecentsView ?: return
+        val recentsView: RecentsView<*, *> = getVisibleRecentsView(command.displayId) ?: return
         if (command.type != HIDE || keyboardTaskFocusIndex == PagedView.INVALID_PAGE) {
             return
         }
@@ -493,10 +608,11 @@ constructor(
         return true
     }
 
-    private fun logShowOverviewFrom(commandType: CommandType) {
+    private fun logShowOverviewFrom(command: CommandInfo) {
+        val containerInterface = getContainerInterface(command.displayId)
         val container = containerInterface.getCreatedContainer() ?: return
         val event =
-            when (commandType) {
+            when (command.type) {
                 SHOW -> LAUNCHER_OVERVIEW_SHOW_OVERVIEW_FROM_KEYBOARD_SHORTCUT
                 HIDE -> LAUNCHER_OVERVIEW_SHOW_OVERVIEW_FROM_KEYBOARD_QUICK_SWITCH
                 TOGGLE -> LAUNCHER_OVERVIEW_SHOW_OVERVIEW_FROM_3_BUTTON
@@ -529,6 +645,8 @@ constructor(
         var status: CommandStatus = CommandStatus.IDLE,
         val createTime: Long = SystemClock.elapsedRealtime(),
         private var animationCallbacks: RecentsAnimationCallbacks? = null,
+        val displayId: Int = DEFAULT_DISPLAY,
+        val isLastOfBatch: Boolean = true,
     ) {
         fun setAnimationCallbacks(recentsAnimationCallbacks: RecentsAnimationCallbacks) {
             this.animationCallbacks = recentsAnimationCallbacks

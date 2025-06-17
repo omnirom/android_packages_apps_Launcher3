@@ -21,19 +21,22 @@ import static android.view.RemoteAnimationTarget.MODE_OPENING;
 import static android.view.WindowManager.LayoutParams.TYPE_DOCK_DIVIDER;
 
 import static com.android.launcher3.util.Executors.MAIN_EXECUTOR;
+import static com.android.wm.shell.shared.TransitionUtil.TYPE_SPLIT_SCREEN_DIM_LAYER;
 
+import android.annotation.Nullable;
 import android.graphics.Rect;
 import android.os.Bundle;
 import android.util.ArraySet;
 import android.view.RemoteAnimationTarget;
+import android.window.TransitionInfo;
 
 import androidx.annotation.BinderThread;
 import androidx.annotation.NonNull;
 import androidx.annotation.UiThread;
 
-import com.android.launcher3.Flags;
 import com.android.launcher3.Utilities;
 import com.android.launcher3.util.Preconditions;
+import com.android.quickstep.fallback.window.RecentsWindowFlags;
 import com.android.quickstep.util.ActiveGestureProtoLogProxy;
 import com.android.systemui.shared.recents.model.ThumbnailData;
 import com.android.systemui.shared.system.RecentsAnimationControllerCompat;
@@ -93,7 +96,7 @@ public class RecentsAnimationCallbacks implements
             RemoteAnimationTarget[] appTargets, Rect homeContentInsets,
             Rect minimizedHomeBounds, Bundle extras) {
         onAnimationStart(controller, appTargets, new RemoteAnimationTarget[0],
-                homeContentInsets, minimizedHomeBounds, extras);
+                homeContentInsets, minimizedHomeBounds, extras, /* transitionInfo= */ null);
     }
 
     // Called only in R+ platform
@@ -101,7 +104,8 @@ public class RecentsAnimationCallbacks implements
     public final void onAnimationStart(RecentsAnimationControllerCompat animationController,
             RemoteAnimationTarget[] appTargets,
             RemoteAnimationTarget[] wallpaperTargets,
-            Rect homeContentInsets, Rect minimizedHomeBounds, Bundle extras) {
+            Rect homeContentInsets, Rect minimizedHomeBounds, Bundle extras,
+            @Nullable TransitionInfo transitionInfo) {
         long appCount = Arrays.stream(appTargets)
                 .filter(app -> app.mode == MODE_CLOSING)
                 .count();
@@ -109,8 +113,8 @@ public class RecentsAnimationCallbacks implements
         boolean isOpeningHome = Arrays.stream(appTargets).filter(app -> app.mode == MODE_OPENING
                         && app.windowConfiguration.getActivityType() == ACTIVITY_TYPE_HOME)
                 .count() > 0;
-        if (appCount == 0 && (!(Flags.enableFallbackOverviewInWindow()
-                || Flags.enableLauncherOverviewInWindow()) || isOpeningHome)) {
+        if (appCount == 0 && (!RecentsWindowFlags.Companion.getEnableOverviewInWindow()
+                || isOpeningHome)) {
             ActiveGestureProtoLogProxy.logOnRecentsAnimationStartCancelled();
             // Edge case, if there are no closing app targets, then Launcher has nothing to handle
             notifyAnimationCanceled();
@@ -141,7 +145,7 @@ public class RecentsAnimationCallbacks implements
             Utilities.postAsyncCallback(MAIN_EXECUTOR.getHandler(), () -> {
                 ActiveGestureProtoLogProxy.logOnRecentsAnimationStart(targets.apps.length);
                 for (RecentsAnimationListener listener : getListeners()) {
-                    listener.onRecentsAnimationStart(mController, targets);
+                    listener.onRecentsAnimationStart(mController, targets, transitionInfo);
                 }
             });
         }
@@ -160,11 +164,12 @@ public class RecentsAnimationCallbacks implements
 
     @BinderThread
     @Override
-    public void onTasksAppeared(RemoteAnimationTarget[] apps) {
+    public void onTasksAppeared(
+            RemoteAnimationTarget[] apps, @Nullable TransitionInfo transitionInfo) {
         Utilities.postAsyncCallback(MAIN_EXECUTOR.getHandler(), () -> {
             ActiveGestureProtoLogProxy.logRecentsAnimationCallbacksOnTasksAppeared();
             for (RecentsAnimationListener listener : getListeners()) {
-                listener.onTasksAppeared(apps);
+                listener.onTasksAppeared(apps, transitionInfo);
             }
         });
     }
@@ -186,7 +191,8 @@ public class RecentsAnimationCallbacks implements
             ArrayList<RemoteAnimationTarget> apps, ArrayList<RemoteAnimationTarget> nonApps) {
         for (int i = 0; i < appTargets.length; i++) {
             RemoteAnimationTarget target = appTargets[i];
-            if (target.windowType == TYPE_DOCK_DIVIDER) {
+            if (target.windowType == TYPE_DOCK_DIVIDER
+                    || target.windowType == TYPE_SPLIT_SCREEN_DIM_LAYER) {
                 nonApps.add(target);
             } else {
                 apps.add(target);
@@ -205,7 +211,7 @@ public class RecentsAnimationCallbacks implements
      */
     public interface RecentsAnimationListener {
         default void onRecentsAnimationStart(RecentsAnimationController controller,
-                RecentsAnimationTargets targets) {}
+                RecentsAnimationTargets targets, @Nullable TransitionInfo transitionInfo) {}
 
         /**
          * Callback from the system when the recents animation is canceled. {@param thumbnailData}
@@ -222,6 +228,7 @@ public class RecentsAnimationCallbacks implements
         /**
          * Callback made when a task started from the recents is ready for an app transition.
          */
-        default void onTasksAppeared(@NonNull RemoteAnimationTarget[] appearedTaskTarget) {}
+        default void onTasksAppeared(@NonNull RemoteAnimationTarget[] appearedTaskTarget,
+                @Nullable TransitionInfo transitionInfo) {}
     }
 }

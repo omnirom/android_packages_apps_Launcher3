@@ -40,6 +40,8 @@ import com.android.launcher3.util.SplitConfigurationOptions.SplitBounds;
 import com.android.quickstep.util.BorderAnimator;
 import com.android.systemui.shared.recents.model.Task;
 import com.android.systemui.shared.recents.model.ThumbnailData;
+import com.android.wm.shell.shared.TypefaceUtils;
+import com.android.wm.shell.shared.TypefaceUtils.FontFamily;
 
 import kotlin.Unit;
 
@@ -63,6 +65,11 @@ public class KeyboardQuickSwitchTaskView extends ConstraintLayout {
     @Nullable private ImageView mIcon1;
     @Nullable private ImageView mIcon2;
     @Nullable private View mContent;
+
+    // Describe the task position in the parent container. Used to add information about the task's
+    // position in a task list to the task view's content description.
+    private int mIndexInParent = -1;
+    private int mTotalTasksInParent = -1;
 
     public KeyboardQuickSwitchTaskView(@NonNull Context context) {
         this(context, null);
@@ -104,16 +111,27 @@ public class KeyboardQuickSwitchTaskView extends ConstraintLayout {
         mIcon2 = findViewById(R.id.icon_2);
         mContent = findViewById(R.id.content);
 
-        Resources resources = mContext.getResources();
-
         Preconditions.assertNotNull(mContent);
+
+        TypefaceUtils.setTypeface(
+                mContent.findViewById(R.id.large_text),
+                FontFamily.GSF_HEADLINE_LARGE_EMPHASIZED
+        );
+        TypefaceUtils.setTypeface(
+                mContent.findViewById(R.id.small_text),
+                FontFamily.GSF_LABEL_LARGE
+        );
+
+        Resources resources = mContext.getResources();
         mBorderAnimator = BorderAnimator.createScalingBorderAnimator(
                 /* borderRadiusPx= */ mBorderRadius != INVALID_BORDER_RADIUS
                         ? mBorderRadius
                         : resources.getDimensionPixelSize(
                                 R.dimen.keyboard_quick_switch_task_view_radius),
                 /* borderWidthPx= */ resources.getDimensionPixelSize(
-                                R.dimen.keyboard_quick_switch_border_width),
+                        R.dimen.keyboard_quick_switch_border_width),
+                /* borderStrokePx= */ resources.getDimensionPixelSize(
+                        R.dimen.keyboard_quick_switch_border_stroke),
                 /* boundsBuilder= */ bounds -> {
                     bounds.set(0, 0, getWidth(), getHeight());
                     return Unit.INSTANCE;
@@ -144,34 +162,49 @@ public class KeyboardQuickSwitchTaskView extends ConstraintLayout {
         applyThumbnail(mThumbnailView1, task1, thumbnailUpdateFunction);
         applyThumbnail(mThumbnailView2, task2, thumbnailUpdateFunction);
 
+        // Update content description, even in cases task icons, and content descriptions need to be
+        // loaded asynchronously to ensure that the task has non empty description (assuming task
+        // position information was set), as KeyboardQuickSwitch view may request accessibility
+        // focus to be moved to the task when the quick switch UI gets shown. The description will
+        // be updated once the task metadata has been loaded - the delay should be very short, and
+        // the content description when task titles are not available still gives some useful
+        // information to the user (the task's position in the list).
+        updateContentDesctiptionForTasks(task1, task2);
+
         if (iconUpdateFunction == null) {
             applyIcon(mIcon1, task1);
             applyIcon(mIcon2, task2);
-            setContentDescription(task2 == null
-                    ? task1.titleDescription
-                    : getContext().getString(
-                            R.string.quick_switch_split_task,
-                            task1.titleDescription,
-                            task2.titleDescription));
             return;
         }
+
         iconUpdateFunction.updateIconInBackground(task1, t -> {
             applyIcon(mIcon1, task1);
             if (task2 != null) {
                 return;
             }
-            setContentDescription(task1.titleDescription);
+            updateContentDesctiptionForTasks(task1, null);
         });
+
         if (task2 == null) {
             return;
         }
         iconUpdateFunction.updateIconInBackground(task2, t -> {
             applyIcon(mIcon2, task2);
-            setContentDescription(getContext().getString(
-                    R.string.quick_switch_split_task,
-                    task1.titleDescription,
-                    task2.titleDescription));
+            updateContentDesctiptionForTasks(task1, task2);
         });
+    }
+
+    /**
+     * Initializes information about the task's position within the parent container context - used
+     * to add position information to the view's content description.
+     * Should be called before associating the view with tasks.
+     *
+     * @param index The view's 0-based index within the parent task container.
+     * @param totalTasks The total number of tasks in the parent task container.
+     */
+    protected void setPositionInformation(int index, int totalTasks) {
+        mIndexInParent = index;
+        mTotalTasksInParent = totalTasks;
     }
 
     protected void setThumbnailsForSplitTasks(
@@ -188,8 +221,7 @@ public class KeyboardQuickSwitchTaskView extends ConstraintLayout {
 
 
         final boolean isLeftRightSplit = !splitBounds.appsStackedVertically;
-        final float leftOrTopTaskPercent = isLeftRightSplit
-                ? splitBounds.leftTaskPercent : splitBounds.topTaskPercent;
+        final float leftOrTopTaskPercent = splitBounds.getLeftTopTaskPercent();
 
         ConstraintLayout.LayoutParams leftTopParams = (ConstraintLayout.LayoutParams)
                 mThumbnailView1.getLayoutParams();
@@ -271,6 +303,28 @@ public class KeyboardQuickSwitchTaskView extends ConstraintLayout {
         // Use the bitmap directly since the drawable's scale can change
         iconView.setImageDrawable(
                 constantState.newDrawable(getResources(), getContext().getTheme()));
+    }
+
+    /**
+     * Updates the task view's content description to reflect tasks represented by the view.
+     */
+    private void updateContentDesctiptionForTasks(@NonNull Task task1, @Nullable Task task2) {
+        String tasksDescription = task1.titleDescription == null || task2 == null
+                ? task1.titleDescription
+                : getContext().getString(
+                        R.string.quick_switch_split_task,
+                        task1.titleDescription,
+                        task2.titleDescription);
+        if (mIndexInParent < 0) {
+            setContentDescription(tasksDescription);
+            return;
+        }
+
+        setContentDescription(
+                getContext().getString(R.string.quick_switch_task_with_position_in_parent,
+                        tasksDescription != null ? tasksDescription : "",
+                        mIndexInParent + 1,
+                        mTotalTasksInParent));
     }
 
     protected interface ThumbnailUpdateFunction {

@@ -272,6 +272,11 @@ public class BubbleStashedHandleViewController {
         updateTranslationY();
     }
 
+    /** Sets translation X for stash handle. */
+    public void setTranslationX(float translationX) {
+        mStashedHandleView.setTranslationX(translationX);
+    }
+
     private void updateTranslationY() {
         mStashedHandleView.setTranslationY(mTranslationForSwipeY + mTranslationForStashY);
     }

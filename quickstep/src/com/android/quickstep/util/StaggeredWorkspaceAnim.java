@@ -81,8 +81,10 @@ public class StaggeredWorkspaceAnim {
 
     public StaggeredWorkspaceAnim(QuickstepLauncher launcher, float velocity,
             boolean animateOverviewScrim, @Nullable View ignoredView, boolean staggerWorkspace) {
+        boolean isPinnedTaskbarAndNotInDesktopMode = DisplayController.isPinnedTaskbar(launcher)
+                && !DisplayController.isInDesktopMode(launcher);
         mTaskbarDurationInMs = QuickstepTransitionManager.getTaskbarToHomeDuration(
-                DisplayController.isPinnedTaskbar(launcher));
+                isPinnedTaskbarAndNotInDesktopMode);
         prepareToAnimate(launcher, animateOverviewScrim);
 
         mIgnoredView = ignoredView;

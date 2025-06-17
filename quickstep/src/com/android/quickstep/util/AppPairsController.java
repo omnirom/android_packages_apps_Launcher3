@@ -26,13 +26,12 @@ import static com.android.launcher3.util.Executors.MAIN_EXECUTOR;
 import static com.android.launcher3.util.Executors.MODEL_EXECUTOR;
 import static com.android.launcher3.util.SplitConfigurationOptions.STAGE_POSITION_BOTTOM_OR_RIGHT;
 import static com.android.launcher3.util.SplitConfigurationOptions.STAGE_POSITION_TOP_OR_LEFT;
+import static com.android.systemui.shared.recents.utilities.Utilities.isFreeformTask;
 import static com.android.wm.shell.shared.split.SplitScreenConstants.SNAP_TO_2_50_50;
 import static com.android.wm.shell.shared.split.SplitScreenConstants.SNAP_TO_NONE;
-import static com.android.wm.shell.shared.split.SplitScreenConstants.SPLIT_POSITION_BOTTOM_OR_RIGHT;
-import static com.android.wm.shell.shared.split.SplitScreenConstants.SPLIT_POSITION_TOP_OR_LEFT;
+import static com.android.wm.shell.shared.split.SplitScreenConstants.getIndex;
 import static com.android.wm.shell.shared.split.SplitScreenConstants.isPersistentSnapPosition;
 
-import android.content.Context;
 import android.content.Intent;
 import android.content.pm.LauncherApps;
 import android.util.Log;
@@ -47,7 +46,6 @@ import com.android.launcher3.LauncherAppState;
 import com.android.launcher3.accessibility.LauncherAccessibilityDelegate;
 import com.android.launcher3.allapps.AllAppsStore;
 import com.android.launcher3.apppairs.AppPairIcon;
-import com.android.launcher3.config.FeatureFlags;
 import com.android.launcher3.icons.IconCache;
 import com.android.launcher3.logging.InstanceId;
 import com.android.launcher3.logging.StatsLogManager;
@@ -55,6 +53,7 @@ import com.android.launcher3.model.data.AppInfo;
 import com.android.launcher3.model.data.AppPairInfo;
 import com.android.launcher3.model.data.ItemInfo;
 import com.android.launcher3.model.data.ItemInfoWithIcon;
+import com.android.launcher3.model.data.TaskViewItemInfo;
 import com.android.launcher3.model.data.WorkspaceItemInfo;
 import com.android.launcher3.taskbar.TaskbarActivityContext;
 import com.android.launcher3.uioverrides.QuickstepLauncher;
@@ -70,10 +69,12 @@ import com.android.quickstep.views.TaskContainer;
 import com.android.quickstep.views.TaskView;
 import com.android.systemui.shared.recents.model.Task;
 import com.android.systemui.shared.system.InteractionJankMonitorWrapper;
+import com.android.wm.shell.shared.desktopmode.DesktopModeStatus;
 import com.android.wm.shell.shared.split.SplitScreenConstants.PersistentSnapPosition;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Consumer;
 
 /**
@@ -91,10 +92,10 @@ public class AppPairsController {
     private static final int BITMASK_SIZE = 16;
     private static final int BITMASK_FOR_SNAP_POSITION = (1 << BITMASK_SIZE) - 1;
 
-    private Context mContext;
+    private ActivityContext mContext;
     private final SplitSelectStateController mSplitSelectStateController;
     private final StatsLogManager mStatsLogManager;
-    public AppPairsController(Context context,
+    public AppPairsController(ActivityContext context,
             SplitSelectStateController splitSelectStateController,
             StatsLogManager statsLogManager) {
         mContext = context;
@@ -126,29 +127,27 @@ public class AppPairsController {
                 .anyMatch(att -> att != null && att.getItemInfo() != null
                         && ((att.getItemInfo().runtimeStatusFlags
                             & ItemInfoWithIcon.FLAG_NOT_PINNABLE) != 0));
-        if (!FeatureFlags.enableAppPairs()
-                || !taskView.containsMultipleTasks()
+        if (!taskView.containsMultipleTasks()
                 || hasUnpinnableApp
-                || !(taskView instanceof GroupedTaskView)) {
+                || !(taskView instanceof GroupedTaskView groupedTaskView)) {
             return false;
         }
 
-        GroupedTaskView gtv = (GroupedTaskView) taskView;
-        List<TaskContainer> containers = gtv.getTaskContainers();
-        ComponentKey taskKey1 = TaskUtils.getLaunchComponentKeyForTask(
-                containers.get(0).getTask().key);
-        ComponentKey taskKey2 = TaskUtils.getLaunchComponentKeyForTask(
-                containers.get(1).getTask().key);
-        AppInfo app1 = resolveAppInfoByComponent(taskKey1);
-        AppInfo app2 = resolveAppInfoByComponent(taskKey2);
+        ComponentKey leftTopComponentKey = TaskUtils.getLaunchComponentKeyForTask(
+                groupedTaskView.getLeftTopTaskContainer().getTask().key);
+        ComponentKey rightBottomComponentKey = TaskUtils.getLaunchComponentKeyForTask(
+                groupedTaskView.getRightBottomTaskContainer().getTask().key);
+        AppInfo leftTopAppInfo = resolveAppInfoByComponent(leftTopComponentKey);
+        AppInfo rightBottomAppInfo = resolveAppInfoByComponent(rightBottomComponentKey);
 
-        if (app1 == null || app2 == null) {
+        if (leftTopAppInfo == null || rightBottomAppInfo == null) {
             // Disallow saving app pairs for apps that don't have a front-door in Launcher
             return false;
         }
 
-        if (PackageManagerHelper.isSameAppForMultiInstance(app1, app2)) {
-            if (!app1.supportsMultiInstance() || !app2.supportsMultiInstance()) {
+        if (PackageManagerHelper.isSameAppForMultiInstance(leftTopAppInfo, rightBottomAppInfo)) {
+            if (!leftTopAppInfo.supportsMultiInstance()
+                    || !rightBottomAppInfo.supportsMultiInstance()) {
                 return false;
             }
         }
@@ -171,20 +170,6 @@ public class AppPairsController {
      */
     public void saveAppPair(GroupedTaskView gtv) {
         InteractionJankMonitorWrapper.begin(gtv, Cuj.CUJ_LAUNCHER_SAVE_APP_PAIR);
-        List<TaskContainer> containers = gtv.getTaskContainers();
-        WorkspaceItemInfo recentsInfo1 = containers.get(0).getItemInfo();
-        WorkspaceItemInfo recentsInfo2 = containers.get(1).getItemInfo();
-        WorkspaceItemInfo app1 = resolveAppPairWorkspaceInfo(recentsInfo1);
-        WorkspaceItemInfo app2 = resolveAppPairWorkspaceInfo(recentsInfo2);
-
-        if (app1 == null || app2 == null) {
-            // This shouldn't happen if canSaveAppPair() is called above, but log an error and do
-            // not create the app pair if the workspace items can't be resolved
-            Log.w(TAG, "Failed to save app pair due to invalid apps ("
-                    + "app1=" + recentsInfo1.getComponentKey().componentName
-                    + " app2=" + recentsInfo2.getComponentKey().componentName + ")");
-            return;
-        }
 
         @PersistentSnapPosition int snapPosition = gtv.getSnapPosition();
         if (snapPosition == SNAP_TO_NONE) {
@@ -198,20 +183,40 @@ public class AppPairsController {
             return;
         }
 
-        app1.rank = encodeRank(SPLIT_POSITION_TOP_OR_LEFT, snapPosition);
-        app2.rank = encodeRank(SPLIT_POSITION_BOTTOM_OR_RIGHT, snapPosition);
-        AppPairInfo newAppPair = new AppPairInfo(app1, app2);
+        List<TaskViewItemInfo> recentsInfos =
+                gtv.getTaskContainers().stream().map(TaskContainer::getItemInfo).toList();
+        List<WorkspaceItemInfo> apps =
+                recentsInfos.stream().map(this::resolveAppPairWorkspaceInfo).toList();
 
-        IconCache iconCache = LauncherAppState.getInstance(mContext).getIconCache();
+        if (apps.stream().anyMatch(Objects::isNull)) {
+            // This shouldn't happen if canSaveAppPair() is called above, but log an error and do
+            // not create the app pair if the workspace items can't be resolved
+            StringBuilder error =
+                    new StringBuilder("Failed to save app pair due to invalid apps (");
+            for (int i = 0; i < recentsInfos.size(); i++) {
+                error.append("app").append(i).append("=")
+                        .append(recentsInfos.get(i).getComponentKey().componentName).append(" ");
+            }
+            error.append(")");
+            Log.w(TAG, error.toString());
+            return;
+        }
+
+        for (int i = 0; i < apps.size(); i++) {
+            apps.get(i).rank = encodeRank(getIndex(i), snapPosition);
+        }
+        AppPairInfo newAppPair = new AppPairInfo(apps);
+
+        IconCache iconCache = LauncherAppState.getInstance(mContext.asContext()).getIconCache();
         MODEL_EXECUTOR.execute(() -> {
             newAppPair.getAppContents().forEach(member -> {
                 member.title = "";
                 member.bitmap = iconCache.getDefaultIcon(newAppPair.user);
-                iconCache.getTitleAndIcon(member, member.usingLowResIcon());
+                iconCache.getTitleAndIcon(member, member.getMatchingLookupFlag());
             });
             MAIN_EXECUTOR.execute(() -> {
-                LauncherAccessibilityDelegate delegate =
-                        QuickstepLauncher.getLauncher(mContext).getAccessibilityDelegate();
+                LauncherAccessibilityDelegate delegate = QuickstepLauncher.getLauncher(
+                        mContext.asContext()).getAccessibilityDelegate();
                 if (delegate != null) {
                     delegate.addToWorkspace(newAppPair, true, (success) -> {
                         if (success) {
@@ -294,7 +299,7 @@ public class AppPairsController {
      */
     @Nullable
     private AppInfo resolveAppInfoByComponent(@NonNull ComponentKey key) {
-        AllAppsStore appsStore = ActivityContext.lookupContext(mContext)
+        AllAppsStore appsStore = ActivityContext.lookupContext(mContext.asContext())
                 .getAppsView().getAppsStore();
 
         // First look up the app info in order of:
@@ -320,7 +325,7 @@ public class AppPairsController {
         if (appInfo == null) {
             return null;
         }
-        return appInfo.makeWorkspaceItem(mContext);
+        return appInfo.makeWorkspaceItem(mContext.asContext());
     }
 
     /**
@@ -333,10 +338,12 @@ public class AppPairsController {
      *   c) App B is on-screen, but App A isn't.
      *   d) Neither is on-screen.
      *
-     * If the user tapped an app pair while inside a single app, there are 3 cases:
-     *   a) The on-screen app is App A of the app pair.
-     *   b) The on-screen app is App B of the app pair.
-     *   c) It is neither.
+     * If the user tapped an app pair while a fullscreen or freeform app is visible on screen,
+     * there are 4 cases:
+     *   a) At least one of the apps in the app pair is in freeform windowing mode.
+     *   b) The on-screen app is App A of the app pair.
+     *   c) The on-screen app is App B of the app pair.
+     *   d) It is neither.
      *
      * For each case, we call the appropriate animation and split launch type.
      */
@@ -410,7 +417,7 @@ public class AppPairsController {
         } else {
             // Tapped an app pair while in a single app
             final TopTaskTracker.CachedTaskInfo runningTask = topTaskTracker
-                    .getCachedTopTask(false /* filterOnlyVisibleRecents */);
+                    .getCachedTopTask(false /* filterOnlyVisibleRecents */, context.getDisplayId());
 
             mSplitSelectStateController.findLastActiveTasksAndRunCallback(
                     componentKeys,
@@ -418,6 +425,14 @@ public class AppPairsController {
                     foundTasks -> {
                         Task foundTask1 = foundTasks[0];
                         Task foundTask2 = foundTasks[1];
+
+                        if (DesktopModeStatus.canEnterDesktopMode(context) && (isFreeformTask(
+                                foundTask1) || isFreeformTask(foundTask2))) {
+                            launchAppPair(launchingIconView,
+                                    CUJ_LAUNCHER_LAUNCH_APP_PAIR_FROM_TASKBAR);
+                            return;
+                        }
+
                         boolean task1IsOnScreen;
                         boolean task2IsOnScreen;
                         if (com.android.wm.shell.Flags.enableShellTopTaskTracking()) {
@@ -532,6 +547,6 @@ public class AppPairsController {
      */
     @VisibleForTesting
     public TopTaskTracker getTopTaskTracker() {
-        return TopTaskTracker.INSTANCE.get(mContext);
+        return TopTaskTracker.INSTANCE.get(mContext.asContext());
     }
 }

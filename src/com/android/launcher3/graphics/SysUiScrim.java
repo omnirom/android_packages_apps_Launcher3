@@ -40,6 +40,7 @@ import com.android.launcher3.testing.shared.ResourceUtils;
 import com.android.launcher3.util.ScreenOnTracker;
 import com.android.launcher3.util.ScreenOnTracker.ScreenOnListener;
 import com.android.launcher3.util.Themes;
+import com.android.launcher3.views.ActivityContext;
 
 /**
  * View scrim which draws behind hotseat and workspace
@@ -94,8 +95,8 @@ public class SysUiScrim implements View.OnAttachStateChangeListener {
 
     public SysUiScrim(View view) {
         mRoot = view;
-        mContainer = StatefulContainer.fromContext(view.getContext());
-        DisplayMetrics dm = mContainer.getContext().getResources().getDisplayMetrics();
+        mContainer = ActivityContext.lookupContext(view.getContext());
+        DisplayMetrics dm = mContainer.asContext().getResources().getDisplayMetrics();
 
         mTopMaskHeight = ResourceUtils.pxFromDp(TOP_MASK_HEIGHT_DP, dm);
         mBottomMaskHeight = ResourceUtils.pxFromDp(BOTTOM_MASK_HEIGHT_DP, dm);
@@ -173,12 +174,12 @@ public class SysUiScrim implements View.OnAttachStateChangeListener {
 
     @Override
     public void onViewAttachedToWindow(View view) {
-        ScreenOnTracker.INSTANCE.get(mContainer.getContext()).addListener(mScreenOnListener);
+        ScreenOnTracker.INSTANCE.get(mContainer.asContext()).addListener(mScreenOnListener);
     }
 
     @Override
     public void onViewDetachedFromWindow(View view) {
-        ScreenOnTracker.INSTANCE.get(mContainer.getContext()).removeListener(mScreenOnListener);
+        ScreenOnTracker.INSTANCE.get(mContainer.asContext()).removeListener(mScreenOnListener);
     }
 
     /**
@@ -213,7 +214,7 @@ public class SysUiScrim implements View.OnAttachStateChangeListener {
     }
 
     private Bitmap createDitheredAlphaMask(int height, @ColorInt int[] colors, float[] positions) {
-        DisplayMetrics dm = mContainer.getContext().getResources().getDisplayMetrics();
+        DisplayMetrics dm = mContainer.asContext().getResources().getDisplayMetrics();
         int width = ResourceUtils.pxFromDp(ALPHA_MASK_BITMAP_WIDTH_DP, dm);
         Bitmap dst = Bitmap.createBitmap(width, height, Bitmap.Config.ALPHA_8);
         Canvas c = new Canvas(dst);

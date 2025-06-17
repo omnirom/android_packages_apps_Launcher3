@@ -21,32 +21,22 @@ import androidx.test.filters.SmallTest
 import androidx.test.platform.app.InstrumentationRegistry.getInstrumentation
 import com.android.launcher3.util.ActivityContextWrapper
 import com.android.launcher3.util.Executors
+import com.android.launcher3.util.TestUtil
 import java.util.function.IntConsumer
 import org.junit.Assert.assertNotSame
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertSame
-import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.mockito.Mock
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
-import org.mockito.MockitoAnnotations
 
 @SmallTest
 @RunWith(AndroidJUnit4::class)
 class LauncherAppWidgetHostTest {
 
-    @Mock private lateinit var onAppWidgetRemovedCallback: IntConsumer
-
     private val context = ActivityContextWrapper(getInstrumentation().targetContext)
-    private lateinit var underTest: LauncherAppWidgetHost
-
-    @Before
-    fun setUp() {
-        MockitoAnnotations.initMocks(this)
-        underTest = LauncherAppWidgetHost(context, onAppWidgetRemovedCallback, emptyList())
-    }
+    private var underTest = LauncherAppWidgetHost(context, HOST_ID)
 
     @Test
     fun `Host set view to recycle`() {
@@ -74,15 +64,20 @@ class LauncherAppWidgetHostTest {
 
     @Test
     fun `Runnable called when app widget removed`() {
+        val holder = LauncherWidgetHolder(context, underTest)
+        holder.setAppWidgetRemovedCallback(mock(IntConsumer::class.java))
+        TestUtil.runOnExecutorSync(Executors.MAIN_EXECUTOR) {}
+
         underTest.onAppWidgetRemoved(WIDGET_ID)
 
         Executors.MODEL_EXECUTOR.submit {}.get()
         getInstrumentation().waitForIdleSync()
 
-        verify(onAppWidgetRemovedCallback).accept(WIDGET_ID)
+        verify(holder.mAppWidgetRemovedCallback!!).accept(WIDGET_ID)
     }
 
     companion object {
+        const val HOST_ID = 2233
         const val WIDGET_ID = 10001
     }
 }

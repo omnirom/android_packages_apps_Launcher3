@@ -35,10 +35,10 @@ import android.view.ViewGroup;
 import android.widget.FrameLayout;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.VisibleForTesting;
 import androidx.core.graphics.ColorUtils;
 
 import com.android.app.animation.Interpolators;
-import com.android.launcher3.R;
 import com.android.launcher3.Reorderable;
 import com.android.launcher3.Utilities;
 import com.android.launcher3.icons.IconNormalizer;
@@ -165,7 +165,6 @@ public class TaskbarOverflowView extends FrameLayout implements Reorderable {
     private boolean mIsRtlLayout;
     private final List<Task> mItems = new ArrayList<Task>();
     private int mIconSize;
-    private int mPadding;
     private Paint mItemBackgroundPaint;
     private final MultiTranslateDelegate mTranslateDelegate = new MultiTranslateDelegate(this);
     private float mScaleForReorderBounce = 1f;
@@ -214,25 +213,25 @@ public class TaskbarOverflowView extends FrameLayout implements Reorderable {
         TaskbarOverflowView icon = (TaskbarOverflowView) inflater.inflate(resId, group, false);
 
         icon.mIconSize = iconSize;
-        icon.mPadding = padding;
 
         final float taskbarIconRadius =
-                iconSize * IconNormalizer.ICON_VISIBLE_AREA_FACTOR / 2f - padding;
+                (iconSize - padding * 2f) * IconNormalizer.ICON_VISIBLE_AREA_FACTOR / 2f;
 
         icon.mLeaveBehindSizeDefault = taskbarIconRadius;  // 1/2 of taskbar app icon size
         icon.mLeaveBehindSizeScaledDown =
                 icon.mLeaveBehindSizeDefault * LEAVE_BEHIND_SIZE_SCALE_DOWN_MULTIPLIER;
         icon.mLeaveBehindSize = icon.mLeaveBehindSizeScaledDown;
 
-        icon.mItemIconStrokeWidthDefault = taskbarIconRadius / 5f;  // 1/10 of taskbar app icon size
+        icon.mItemIconStrokeWidthDefault =
+                taskbarIconRadius / 10f;  // 1/20 of taskbar app icon size
         icon.mItemIconStrokeWidth = icon.mItemIconStrokeWidthDefault;
 
-        icon.mItemIconSizeDefault = 2 * (taskbarIconRadius - icon.mItemIconStrokeWidthDefault)
-                * TWO_ITEM_ICONS_BOX_ASPECT_RATIO;
+        icon.mItemIconSizeDefault = 2f * taskbarIconRadius * TWO_ITEM_ICONS_BOX_ASPECT_RATIO;
         icon.mItemIconSizeScaledDown = icon.mLeaveBehindSizeScaledDown;
         icon.mItemIconSize = icon.mItemIconSizeDefault;
 
-        icon.mItemIconCenterOffsetDefault = taskbarIconRadius - icon.mItemIconSizeDefault / 2f
+        icon.mItemIconCenterOffsetDefault = taskbarIconRadius
+                - icon.mItemIconSizeDefault * IconNormalizer.ICON_VISIBLE_AREA_FACTOR / 2f
                 - icon.mItemIconStrokeWidthDefault;
         icon.mItemIconCenterOffset = icon.mItemIconCenterOffsetDefault;
 
@@ -242,7 +241,8 @@ public class TaskbarOverflowView extends FrameLayout implements Reorderable {
     private void init() {
         mIsRtlLayout = Utilities.isRtl(getResources());
         mItemBackgroundPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        mItemBackgroundColor = getContext().getColor(R.color.taskbar_background);
+        mItemBackgroundColor = getContext().getColor(
+                com.android.internal.R.color.materialColorInverseOnSurface);
         mLeaveBehindColor = Themes.getAttrColor(getContext(), android.R.attr.textColorTertiary);
 
         setWillNotDraw(false);
@@ -258,8 +258,9 @@ public class TaskbarOverflowView extends FrameLayout implements Reorderable {
 
     private void drawAppIcons(@NonNull Canvas canvas) {
         mItemBackgroundPaint.setColor(mItemBackgroundColor);
-        float radius = mIconSize / 2f - mPadding;
+        float canvasCenterXY = mIconSize / 2f;
         int adjustedItemIconSize = Math.round(mItemIconSize);
+        float itemIconRadius = adjustedItemIconSize / 2f;
 
         int itemsToShow = Math.min(mItems.size(), MAX_ITEMS_IN_PREVIEW);
         for (int i = itemsToShow - 1; i >= 0; --i) {
@@ -278,12 +279,12 @@ public class TaskbarOverflowView extends FrameLayout implements Reorderable {
                     BlendMode.SRC_ATOP));
 
             canvas.save();
-            float itemIconRadius = adjustedItemIconSize / 2f;
             canvas.translate(
-                    mPadding + itemCenterX + radius - itemIconRadius,
-                    mPadding + itemCenterY + radius - itemIconRadius);
+                    canvasCenterXY + itemCenterX - itemIconRadius,
+                    canvasCenterXY + itemCenterY - itemIconRadius);
             canvas.drawCircle(itemIconRadius, itemIconRadius,
-                    itemIconRadius + mItemIconStrokeWidth, mItemBackgroundPaint);
+                    itemIconRadius * IconNormalizer.ICON_VISIBLE_AREA_FACTOR + mItemIconStrokeWidth,
+                    mItemBackgroundPaint);
             iconCopy.draw(canvas);
             canvas.restore();
         }
@@ -313,6 +314,11 @@ public class TaskbarOverflowView extends FrameLayout implements Reorderable {
         mItems.clear();
         mItems.addAll(items);
         invalidate();
+    }
+
+    @VisibleForTesting
+    public List<Integer> getItemIds() {
+        return mItems.stream().map(task -> task.key.id).toList();
     }
 
     /**

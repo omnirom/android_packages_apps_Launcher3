@@ -25,6 +25,7 @@ java_defaults {
     name: "launcher-non-platform-apis-defaults",
     static_libs: [
         "android.os.flags-aconfig-java",
+        "android.multiuser.flags-aconfig-java",
         "android.appwidget.flags-aconfig-java",
         "com.android.window.flags.window-aconfig-java",
     ],
@@ -389,6 +390,7 @@ android_library {
         "//frameworks/libs/systemui:contextualeducationlib",
         "//frameworks/libs/systemui:msdl",
         "SystemUI-statsd",
+        "WindowManager-Shell-shared-AOSP",
         "launcher-testing-shared",
         "androidx.lifecycle_lifecycle-common-java8",
         "androidx.lifecycle_lifecycle-extensions",
@@ -408,6 +410,9 @@ android_library {
     lint: {
         baseline_filename: "lint-baseline.xml",
     },
+    flags_packages: [
+        "com_android_launcher3_flags",
+    ],
 }
 
 //
@@ -452,8 +457,12 @@ android_app {
         "AndroidManifest-common.xml",
     ],
     lint: {
+        extra_check_modules: ["Launcher3LintChecker"],
         baseline_filename: "lint-baseline.xml",
     },
+    kotlincflags: [
+        "-Xjvm-default=all",
+    ],
 }
 
 // Library with all the dependencies for building quickstep
@@ -476,6 +485,9 @@ android_library {
     ],
     manifest: "quickstep/AndroidManifest.xml",
     min_sdk_version: "current",
+    lint: {
+        disabled_checks: ["MissingClass"],
+    },
 }
 
 // Library with all the source code and dependencies for building Launcher Go
@@ -515,6 +527,9 @@ android_library {
     min_sdk_version: "current",
     // TODO(b/319712088): re-enable use_resource_processor
     use_resource_processor: false,
+    kotlincflags: [
+        "-Xjvm-default=all",
+    ],
 }
 
 // Library with all the source code and dependencies for building Quickstep
@@ -586,6 +601,9 @@ android_library {
     min_sdk_version: "current",
     // TODO(b/319712088): re-enable use_resource_processor
     use_resource_processor: false,
+    kotlincflags: [
+        "-Xjvm-default=all",
+    ],
 }
 
 // Build rule for Quickstep app.

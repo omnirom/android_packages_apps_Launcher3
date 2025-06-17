@@ -19,7 +19,6 @@ package com.android.launcher3.taskbar
 import android.platform.test.flag.junit.FlagsParameterization
 import android.platform.test.flag.junit.FlagsParameterization.allCombinationsOf
 import android.platform.test.flag.junit.SetFlagsRule
-import com.android.launcher3.Flags.FLAG_TASKBAR_RECENTS_LAYOUT_TRANSITION
 import com.android.launcher3.R
 import com.android.launcher3.taskbar.TaskbarControllerTestUtil.runOnMainSync
 import com.android.launcher3.taskbar.TaskbarIconType.ALL_APPS
@@ -34,6 +33,7 @@ import com.android.launcher3.taskbar.rules.TaskbarUnitTestRule
 import com.android.launcher3.taskbar.rules.TaskbarUnitTestRule.ForceRtl
 import com.android.launcher3.taskbar.rules.TaskbarWindowSandboxContext
 import com.android.launcher3.util.LauncherMultivalentJUnit.Companion.isRunningInRobolectric
+import com.android.window.flags.Flags.FLAG_ENABLE_TASKBAR_RECENTS_LAYOUT_TRANSITION
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -54,7 +54,7 @@ class TaskbarViewTest(deviceName: String, flags: FlagsParameterization) {
                 } else {
                     listOf("onDevice") // Unused.
                 }
-            val flags = allCombinationsOf(FLAG_TASKBAR_RECENTS_LAYOUT_TRANSITION)
+            val flags = allCombinationsOf(FLAG_ENABLE_TASKBAR_RECENTS_LAYOUT_TRANSITION)
             return devices.flatMap { d -> flags.map { f -> arrayOf(d, f) } } // Cartesian product.
         }
     }
@@ -150,6 +150,15 @@ class TaskbarViewTest(deviceName: String, flags: FlagsParameterization) {
     fun testUpdateItems_removeRecentsItem_updatesRecents() {
         runOnMainSync {
             taskbarView.updateItems(createHotseatItems(1), createRecents(2))
+            taskbarView.updateItems(createHotseatItems(1), createRecents(1))
+        }
+        assertThat(taskbarView).hasIconTypes(ALL_APPS, HOTSEAT, DIVIDER, RECENT)
+    }
+
+    @Test
+    fun testUpdateItem_addHotseatItemAfterRecentsItem_hotseatItemBeforeDivider() {
+        runOnMainSync {
+            taskbarView.updateItems(emptyArray(), createRecents(1))
             taskbarView.updateItems(createHotseatItems(1), createRecents(1))
         }
         assertThat(taskbarView).hasIconTypes(ALL_APPS, HOTSEAT, DIVIDER, RECENT)

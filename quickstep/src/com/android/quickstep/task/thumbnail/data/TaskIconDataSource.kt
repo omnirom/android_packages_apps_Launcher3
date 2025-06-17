@@ -16,10 +16,9 @@
 
 package com.android.quickstep.task.thumbnail.data
 
-import com.android.launcher3.util.CancellableTask
-import com.android.quickstep.TaskIconCache.GetTaskIconCallback
+import com.android.quickstep.TaskIconCache
 import com.android.systemui.shared.recents.model.Task
 
 interface TaskIconDataSource {
-    fun getIconInBackground(task: Task, callback: GetTaskIconCallback): CancellableTask<*>?
+    suspend fun getIcon(task: Task): TaskIconCache.TaskCacheEntry
 }

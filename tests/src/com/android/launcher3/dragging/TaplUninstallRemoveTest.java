@@ -26,6 +26,7 @@ import static com.google.common.truth.Truth.assertThat;
 
 import android.graphics.Point;
 import android.platform.test.annotations.PlatinumTest;
+import android.platform.test.rule.ScreenRecordRule;
 import android.util.Log;
 
 import com.android.launcher3.Launcher;
@@ -36,7 +37,6 @@ import com.android.launcher3.ui.AbstractLauncherUiTest;
 import com.android.launcher3.ui.PortraitLandscapeRunner.PortraitLandscape;
 import com.android.launcher3.util.TestUtil;
 import com.android.launcher3.util.Wait;
-import com.android.launcher3.util.rule.ScreenRecordRule;
 
 import org.junit.Test;
 
@@ -55,7 +55,6 @@ public class TaplUninstallRemoveTest extends AbstractLauncherUiTest<Launcher> {
      */
     @Test
     @PortraitLandscape
-    @ScreenRecordRule.ScreenRecord // b/349439239
     public void testDeleteFromWorkspace() {
         for (String appName : new String[]{GMAIL_APP_NAME, STORE_APP_NAME, TEST_APP_NAME}) {
             final HomeAppIcon homeAppIcon = createShortcutInCenterIfNotExist(appName);
@@ -109,7 +108,11 @@ public class TaplUninstallRemoveTest extends AbstractLauncherUiTest<Launcher> {
     @Test
     @PortraitLandscape
     @PlatinumTest(focusArea = "launcher")
+    @ScreenRecordRule.ScreenRecord // b/386231522
     public void testUninstallFromAllApps() throws Exception {
+        // Ensure no existing app icons on the workspace cause scroll to all apps interruptions
+        mLauncher.clearLauncherData();
+
         installDummyAppAndWaitForUIUpdate();
         try {
             Workspace workspace = mLauncher.getWorkspace();
@@ -126,7 +129,6 @@ public class TaplUninstallRemoveTest extends AbstractLauncherUiTest<Launcher> {
      */
     @Test
     @PlatinumTest(focusArea = "launcher")
-    @ScreenRecordRule.ScreenRecord // b/319501259
     public void uninstallWorkspaceIcon() throws IOException {
         Point[] gridPositions = TestUtil.getCornersAndCenterPositions(mLauncher);
         StringBuilder sb = new StringBuilder();

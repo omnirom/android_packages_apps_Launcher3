@@ -51,6 +51,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.VisibleForTesting;
 import androidx.annotation.WorkerThread;
 
+import com.android.launcher3.Flags;
 import com.android.launcher3.InvariantDeviceProfile;
 import com.android.launcher3.LauncherAppState;
 import com.android.launcher3.LauncherFiles;
@@ -79,6 +80,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 /**
@@ -130,9 +132,11 @@ public class RestoreDbTask {
         removeOldDBs(context, oldPhoneFileName);
         // The idp before this contains data about the old phone, after this it becomes the idp
         // of the current phone.
-        FileLog.d(TAG, "Resetting IDP to default for restore dest device");
-        idp.reset(context);
-        trySettingPreviousGridAsCurrent(context, idp, oldPhoneFileName, previousDbs);
+        if (!Flags.oneGridSpecs()) {
+            FileLog.d(TAG, "Resetting IDP to default for restore dest device");
+            idp.reset(context);
+            trySettingPreviousGridAsCurrent(context, idp, oldPhoneFileName, previousDbs);
+        }
     }
 
 
@@ -176,7 +180,7 @@ public class RestoreDbTask {
         // At this point idp.dbFile contains the name of the dbFile from the previous phone
         return LauncherFiles.GRID_DB_FILES.stream()
                 .filter(dbName -> context.getDatabasePath(dbName).exists())
-                .toList();
+                .collect(Collectors.toList());
     }
 
     /**
@@ -203,7 +207,8 @@ public class RestoreDbTask {
             LauncherRestoreEventLogger restoreEventLogger =
                     LauncherRestoreEventLogger.Companion.newInstance(context);
             task.sanitizeDB(context, controller, db, backupManager, restoreEventLogger);
-            task.restoreAppWidgetIdsIfExists(context, controller, restoreEventLogger);
+            task.restoreAppWidgetIdsIfExists(context, controller, restoreEventLogger,
+                    () -> new AppWidgetHost(context, APPWIDGET_HOST_ID));
             t.commit();
             return true;
         } catch (Exception e) {
@@ -415,7 +420,11 @@ public class RestoreDbTask {
     }
 
     public static boolean isPending(Context context) {
-        return LauncherPrefs.get(context).has(RESTORE_DEVICE);
+        return isPending(LauncherPrefs.get(context));
+    }
+
+    public static boolean isPending(LauncherPrefs prefs) {
+        return prefs.has(RESTORE_DEVICE);
     }
 
     /**
@@ -431,14 +440,13 @@ public class RestoreDbTask {
     @WorkerThread
     @VisibleForTesting
     void restoreAppWidgetIdsIfExists(Context context, ModelDbController controller,
-            LauncherRestoreEventLogger restoreEventLogger) {
+            LauncherRestoreEventLogger restoreEventLogger, Supplier<AppWidgetHost> hostSupplier) {
         LauncherPrefs lp = LauncherPrefs.get(context);
         if (lp.has(APP_WIDGET_IDS, OLD_APP_WIDGET_IDS)) {
-            AppWidgetHost host = new AppWidgetHost(context, APPWIDGET_HOST_ID);
             restoreAppWidgetIds(context, controller, restoreEventLogger,
                     IntArray.fromConcatString(lp.get(OLD_APP_WIDGET_IDS)).toArray(),
                     IntArray.fromConcatString(lp.get(APP_WIDGET_IDS)).toArray(),
-                    host);
+                    hostSupplier.get());
         } else {
             FileLog.d(TAG, "Did not receive new app widget id map during Launcher restore");
         }
@@ -531,7 +539,7 @@ public class RestoreDbTask {
         }
 
         logFavoritesTable(controller.getDb(), "launcher db after remap widget ids", null, null);
-        LauncherAppState.INSTANCE.executeIfCreated(app -> app.getModel().forceReload());
+        LauncherAppState.INSTANCE.get(context).getModel().reloadIfActive();
     }
 
     private static void logDatabaseWidgetInfo(ModelDbController controller) {

@@ -24,8 +24,7 @@ import com.android.launcher3.dagger.LauncherComponentProvider;
 import java.util.function.Function;
 
 /**
- * A class to provide DaggerSingleton objects in a traditional way for
- * {@link MainThreadInitializedObject}.
+ * A class to provide DaggerSingleton objects in a traditional way.
  * We should delete this class at the end and use @Inject to get dagger provided singletons.
  */
 

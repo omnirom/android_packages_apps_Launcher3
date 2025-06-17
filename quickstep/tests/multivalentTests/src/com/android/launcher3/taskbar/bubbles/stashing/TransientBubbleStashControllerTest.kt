@@ -507,6 +507,45 @@ class TransientBubbleStashControllerTest {
         assertThat(height).isEqualTo(BUBBLE_BAR_HEIGHT)
     }
 
+    @Test
+    fun getHandleViewAlpha_stashedHasBubbles_alphaPropertyReturned() {
+        // Given BubbleBar is stashed and has bubbles
+        whenever(bubbleBarViewController.hasBubbles()).thenReturn(true)
+        mTransientBubbleStashController.isStashed = true
+
+        // When handle view alpha property
+        val alphaProperty = mTransientBubbleStashController.getHandleViewAlpha()
+
+        // Then the stash handle alpha property should not be null
+        assertThat(alphaProperty).isNotNull()
+    }
+
+    @Test
+    fun getHandleViewAlpha_stashedHasNoBubblesBar_alphaPropertyIsNull() {
+        // Given BubbleBar is stashed and has no bubbles
+        whenever(bubbleBarViewController.hasBubbles()).thenReturn(false)
+        mTransientBubbleStashController.isStashed = true
+
+        // When handle view alpha property
+        val alphaProperty = mTransientBubbleStashController.getHandleViewAlpha()
+
+        // Then the stash handle alpha property should be null
+        assertThat(alphaProperty).isNull()
+    }
+
+    @Test
+    fun getHandleViewAlpha_unstashedHasBubbles_alphaPropertyIsNull() {
+        // Given BubbleBar is not stashed and has bubbles
+        whenever(bubbleBarViewController.hasBubbles()).thenReturn(true)
+        mTransientBubbleStashController.isStashed = false
+
+        // When handle view alpha property
+        val alphaProperty = mTransientBubbleStashController.getHandleViewAlpha()
+
+        // Then the stash handle alpha property should be null
+        assertThat(alphaProperty).isNull()
+    }
+
     private fun advanceTimeBy(advanceMs: Long) {
         // Advance animator for on-device tests
         getInstrumentation().runOnMainSync { animatorTestRule.advanceTimeBy(advanceMs) }

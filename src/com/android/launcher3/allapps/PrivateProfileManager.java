@@ -142,6 +142,7 @@ public class PrivateProfileManager extends UserProfileManager {
     private PrivateSpaceSettingsButton mPrivateSpaceSettingsButton;
     @Nullable
     private ConstraintLayout mFloatingMaskView;
+    private final String mPrivateSpaceAppContentDesc;
     private final String mLockedStateContentDesc;
     private final String mUnLockedStateContentDesc;
 
@@ -157,6 +158,8 @@ public class PrivateProfileManager extends UserProfileManager {
         UI_HELPER_EXECUTOR.post(() -> initializeInBackgroundThread(appContext));
         mPsHeaderHeight = mAllApps.getContext().getResources().getDimensionPixelSize(
                 R.dimen.ps_header_height);
+        mPrivateSpaceAppContentDesc = mAllApps.getContext()
+                .getString(R.string.ps_app_content_description);
         mLockedStateContentDesc = mAllApps.getContext()
                 .getString(R.string.ps_container_lock_button_content_description);
         mUnLockedStateContentDesc = mAllApps.getContext()
@@ -187,15 +190,11 @@ public class PrivateProfileManager extends UserProfileManager {
     /** Adds Private Space install app button to the layout. */
     public void addPrivateSpaceInstallAppButton(List<BaseAllAppsAdapter.AdapterItem> adapterItems) {
         Context context = mAllApps.getContext();
-        // Prepare bitmapInfo
-        Intent.ShortcutIconResource shortcut = Intent.ShortcutIconResource.fromContext(
-                context, com.android.launcher3.R.drawable.private_space_install_app_icon);
-        BitmapInfo bitmapInfo = LauncherIcons.obtain(context).createIconBitmap(shortcut);
 
         PrivateSpaceInstallAppButtonInfo itemInfo = new PrivateSpaceInstallAppButtonInfo();
         itemInfo.title = context.getResources().getString(R.string.ps_add_button_label);
         itemInfo.intent = mAppInstallerIntent;
-        itemInfo.bitmap = bitmapInfo;
+        itemInfo.bitmap = preparePSBitmapInfo();
         itemInfo.contentDescription = context.getResources().getString(
                 com.android.launcher3.R.string.ps_add_button_content_description);
         itemInfo.runtimeStatusFlags |= FLAG_NOT_PINNABLE;
@@ -213,6 +212,13 @@ public class PrivateProfileManager extends UserProfileManager {
     public boolean isPrivateSpaceHidden() {
         return getCurrentState() == STATE_DISABLED && SettingsCache.INSTANCE
                     .get(mAllApps.getContext()).getValue(PRIVATE_SPACE_HIDE_WHEN_LOCKED_URI, 0);
+    }
+
+    BitmapInfo preparePSBitmapInfo() {
+        Context context = mAllApps.getContext();
+        Intent.ShortcutIconResource shortcut = Intent.ShortcutIconResource.fromContext(
+                context, com.android.launcher3.R.drawable.private_space_install_app_icon);
+        return LauncherIcons.obtain(context).createIconBitmap(shortcut);
     }
 
     /**
@@ -927,6 +933,10 @@ public class PrivateProfileManager extends UserProfileManager {
 
     int getPsHeaderHeight() {
         return mPsHeaderHeight;
+    }
+
+    String getPsAppContentDesc() {
+        return mPrivateSpaceAppContentDesc;
     }
 
     boolean isPrivateSpaceItem(BaseAllAppsAdapter.AdapterItem item) {

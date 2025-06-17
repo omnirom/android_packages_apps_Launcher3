@@ -18,6 +18,7 @@ package com.android.quickstep.util
 
 import android.content.ComponentName
 import android.content.Intent
+import android.view.Display.DEFAULT_DISPLAY
 import com.android.launcher3.util.LauncherMultivalentJUnit
 import com.android.systemui.shared.recents.model.Task
 import com.google.common.truth.Truth.assertThat
@@ -29,35 +30,42 @@ class DesktopTaskTest {
 
     @Test
     fun testDesktopTask_sameInstance_isEqual() {
-        val task = DesktopTask(createTasks(1))
+        val task = DesktopTask(deskId = 0, DEFAULT_DISPLAY, createTasks(1))
         assertThat(task).isEqualTo(task)
     }
 
     @Test
     fun testDesktopTask_identicalConstructor_isEqual() {
-        val task1 = DesktopTask(createTasks(1))
-        val task2 = DesktopTask(createTasks(1))
+        val task1 = DesktopTask(deskId = 0, DEFAULT_DISPLAY, createTasks(1))
+        val task2 = DesktopTask(deskId = 0, DEFAULT_DISPLAY, createTasks(1))
         assertThat(task1).isEqualTo(task2)
     }
 
     @Test
     fun testDesktopTask_copy_isEqual() {
-        val task1 = DesktopTask(createTasks(1))
+        val task1 = DesktopTask(deskId = 0, DEFAULT_DISPLAY, createTasks(1))
         val task2 = task1.copy()
         assertThat(task1).isEqualTo(task2)
     }
 
     @Test
-    fun testDesktopTask_differentId_isNotEqual() {
-        val task1 = DesktopTask(createTasks(1))
-        val task2 = DesktopTask(createTasks(2))
+    fun testDesktopTask_differentDeskIds_isNotEqual() {
+        val task1 = DesktopTask(deskId = 0, DEFAULT_DISPLAY, createTasks(1))
+        val task2 = DesktopTask(deskId = 1, DEFAULT_DISPLAY, createTasks(1))
+        assertThat(task1).isNotEqualTo(task2)
+    }
+
+    @Test
+    fun testDesktopTask_differentTaskIds_isNotEqual() {
+        val task1 = DesktopTask(deskId = 0, DEFAULT_DISPLAY, createTasks(1))
+        val task2 = DesktopTask(deskId = 0, DEFAULT_DISPLAY, createTasks(2))
         assertThat(task1).isNotEqualTo(task2)
     }
 
     @Test
     fun testDesktopTask_differentLength_isNotEqual() {
-        val task1 = DesktopTask(createTasks(1))
-        val task2 = DesktopTask(createTasks(1, 2))
+        val task1 = DesktopTask(deskId = 0, DEFAULT_DISPLAY, createTasks(1))
+        val task2 = DesktopTask(deskId = 0, DEFAULT_DISPLAY, createTasks(1, 2))
         assertThat(task1).isNotEqualTo(task2)
     }
 

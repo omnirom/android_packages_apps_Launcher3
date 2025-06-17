@@ -19,7 +19,6 @@ package com.android.launcher3.taskbar.customization
 import com.android.launcher3.Flags.enableRecentsInTaskbar
 import com.android.launcher3.config.FeatureFlags.enableTaskbarPinning
 import com.android.launcher3.taskbar.TaskbarActivityContext
-import com.android.launcher3.util.DisplayController
 
 /** Evaluates all the features taskbar can have. */
 class TaskbarFeatureEvaluator
@@ -36,7 +35,7 @@ private constructor(private val taskbarActivityContext: TaskbarActivityContext) 
         get() = enableTaskbarPinning() || isRecentsEnabled
 
     val isTransient: Boolean
-        get() = DisplayController.isTransientTaskbar(taskbarActivityContext)
+        get() = taskbarActivityContext.isTransientTaskbar
 
     val isLandscape: Boolean
         get() = taskbarActivityContext.deviceProfile.isLandscape

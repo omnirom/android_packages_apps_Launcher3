@@ -1,5 +1,7 @@
 package com.android.launcher3.widget;
 
+import static com.android.launcher3.InvariantDeviceProfile.TYPE_PHONE;
+
 import android.appwidget.AppWidgetProviderInfo;
 import android.content.ComponentName;
 import android.content.Context;
@@ -14,6 +16,7 @@ import android.os.UserHandle;
 import androidx.annotation.Nullable;
 
 import com.android.launcher3.DeviceProfile;
+import com.android.launcher3.Flags;
 import com.android.launcher3.InvariantDeviceProfile;
 import com.android.launcher3.LauncherAppState;
 import com.android.launcher3.icons.cache.BaseIconCache;
@@ -108,6 +111,13 @@ public class LauncherAppWidgetProviderInfo extends AppWidgetProviderInfo impleme
 
         Point cellSize = new Point();
         for (DeviceProfile dp : idp.supportedProfiles) {
+            // On phones we no longer support regular landscape, only fixed landscape for this
+            // reason we don't need to take regular landscape into account in phones
+            if (Flags.oneGridSpecs() && dp.inv.deviceType == TYPE_PHONE
+                    && dp.inv.isFixedLandscape != dp.isLandscape) {
+                continue;
+            }
+
             dp.getCellSize(cellSize);
             Rect widgetPadding = dp.widgetPadding;
 

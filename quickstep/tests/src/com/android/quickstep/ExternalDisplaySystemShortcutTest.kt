@@ -17,23 +17,29 @@
 package com.android.quickstep
 
 import android.content.ComponentName
+import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.platform.test.annotations.DisableFlags
 import android.platform.test.annotations.EnableFlags
 import android.platform.test.flag.junit.SetFlagsRule
+import android.view.Display.DEFAULT_DISPLAY
+import androidx.test.platform.app.InstrumentationRegistry
 import com.android.dx.mockito.inline.extended.ExtendedMockito.mockitoSession
 import com.android.dx.mockito.inline.extended.StaticMockitoSession
+import com.android.internal.R
 import com.android.launcher3.AbstractFloatingView
 import com.android.launcher3.AbstractFloatingViewHelper
 import com.android.launcher3.Flags.enableRefactorTaskThumbnail
 import com.android.launcher3.logging.StatsLogManager
 import com.android.launcher3.logging.StatsLogManager.LauncherEvent
 import com.android.launcher3.model.data.TaskViewItemInfo
-import com.android.launcher3.uioverrides.QuickstepLauncher
 import com.android.launcher3.util.SplitConfigurationOptions
 import com.android.launcher3.util.TransformingTouchDelegate
 import com.android.quickstep.TaskOverlayFactory.TaskOverlay
 import com.android.quickstep.task.thumbnail.TaskThumbnailView
 import com.android.quickstep.views.LauncherRecentsView
+import com.android.quickstep.views.RecentsViewContainer
 import com.android.quickstep.views.TaskContainer
 import com.android.quickstep.views.TaskThumbnailViewDeprecated
 import com.android.quickstep.views.TaskView
@@ -62,7 +68,7 @@ class ExternalDisplaySystemShortcutTest {
 
     @get:Rule val setFlagsRule = SetFlagsRule(SetFlagsRule.DefaultInitValueType.DEVICE_DEFAULT)
 
-    private val launcher: QuickstepLauncher = mock()
+    private val launcher: RecentsViewContainer = mock()
     private val statsLogManager: StatsLogManager = mock()
     private val statsLogger: StatsLogManager.StatsLogger = mock()
     private val recentsView: LauncherRecentsView = mock()
@@ -71,6 +77,7 @@ class ExternalDisplaySystemShortcutTest {
     private val overlayFactory: TaskOverlayFactory = mock()
     private val factory: TaskShortcutFactory =
         ExternalDisplaySystemShortcut.createFactory(abstractFloatingViewHelper)
+    private val context: Context = spy(InstrumentationRegistry.getInstrumentation().targetContext)
 
     private lateinit var mockitoSession: StaticMockitoSession
 
@@ -83,6 +90,7 @@ class ExternalDisplaySystemShortcutTest {
                 .startMocking()
         whenever(DesktopModeStatus.canEnterDesktopMode(any())).thenReturn(true)
         whenever(overlayFactory.createOverlay(any())).thenReturn(mock<TaskOverlay<*>>())
+        whenever(launcher.asContext()).thenReturn(context)
     }
 
     @After
@@ -97,6 +105,89 @@ class ExternalDisplaySystemShortcutTest {
 
         val taskContainer = createTaskContainer(createTask())
 
+        val shortcuts = factory.getShortcuts(launcher, taskContainer)
+        assertThat(shortcuts).isNull()
+    }
+
+    @Test
+    @EnableFlags(
+        Flags.FLAG_MOVE_TO_EXTERNAL_DISPLAY_SHORTCUT,
+        Flags.FLAG_ENABLE_DESKTOP_WINDOWING_MODALS_POLICY,
+    )
+    @DisableFlags(Flags.FLAG_ENABLE_MODALS_FULLSCREEN_WITH_PERMISSION)
+    fun createExternalDisplayTaskShortcut_transparentTask() {
+        val baseComponent = ComponentName("", /* class */ "")
+        val taskKey =
+            TaskKey(
+                /* id */ 1,
+                /* windowingMode */ 0,
+                Intent(),
+                baseComponent,
+                /* userId */ 0,
+                /* lastActiveTime */ 2000,
+                DEFAULT_DISPLAY,
+                baseComponent,
+                /* numActivities */ 1,
+                /* isTopActivityNoDisplay */ false,
+                /* isActivityStackTransparent */ true,
+            )
+        val taskContainer = createTaskContainer(Task(taskKey))
+        val shortcuts = factory.getShortcuts(launcher, taskContainer)
+        assertThat(shortcuts).isNull()
+    }
+
+    @Test
+    @EnableFlags(
+        Flags.FLAG_MOVE_TO_EXTERNAL_DISPLAY_SHORTCUT,
+        Flags.FLAG_ENABLE_DESKTOP_WINDOWING_MODALS_POLICY,
+    )
+    fun createExternalDisplayTaskShortcut_systemUiTask() {
+        val sysUiPackageName: String = context.resources.getString(R.string.config_systemUi)
+        val baseComponent = ComponentName(sysUiPackageName, /* class */ "")
+        val taskKey =
+            TaskKey(
+                /* id */ 1,
+                /* windowingMode */ 0,
+                Intent(),
+                baseComponent,
+                /* userId */ 0,
+                /* lastActiveTime */ 2000,
+                DEFAULT_DISPLAY,
+                baseComponent,
+                /* numActivities */ 1,
+                /* isTopActivityNoDisplay */ false,
+                /* isActivityStackTransparent */ false,
+            )
+        val taskContainer = createTaskContainer(Task(taskKey))
+        val shortcuts = factory.getShortcuts(launcher, taskContainer)
+        assertThat(shortcuts).isNull()
+    }
+
+    @Test
+    @EnableFlags(
+        Flags.FLAG_MOVE_TO_EXTERNAL_DISPLAY_SHORTCUT,
+        Flags.FLAG_ENABLE_DESKTOP_WINDOWING_MODALS_POLICY,
+    )
+    fun createExternalDisplayTaskShortcut_defaultHomeTask() {
+        val packageManager: PackageManager = mock()
+        val homeActivities = ComponentName("defaultHomePackage", /* class */ "")
+        whenever(context.packageManager).thenReturn(packageManager)
+        whenever(packageManager.getHomeActivities(any())).thenReturn(homeActivities)
+        val taskKey =
+            TaskKey(
+                /* id */ 1,
+                /* windowingMode */ 0,
+                Intent(),
+                homeActivities,
+                /* userId */ 0,
+                /* lastActiveTime */ 2000,
+                DEFAULT_DISPLAY,
+                homeActivities,
+                /* numActivities */ 1,
+                /* isTopActivityNoDisplay */ false,
+                /* isActivityStackTransparent */ false,
+            )
+        val taskContainer = createTaskContainer(Task(taskKey).apply { isDockable = true })
         val shortcuts = factory.getShortcuts(launcher, taskContainer)
         assertThat(shortcuts).isNull()
     }
@@ -134,7 +225,22 @@ class ExternalDisplaySystemShortcutTest {
         verify(statsLogger).log(LauncherEvent.LAUNCHER_SYSTEM_SHORTCUT_EXTERNAL_DISPLAY_TAP)
     }
 
-    private fun createTask() = Task(TaskKey(1, 0, Intent(), ComponentName("", ""), 0, 2000))
+    private fun createTask() =
+        Task(
+            TaskKey(
+                /* id */ 1,
+                /* windowingMode */ 0,
+                Intent(),
+                ComponentName("", ""),
+                /* userId */ 0,
+                /* lastActiveTime */ 2000,
+                DEFAULT_DISPLAY,
+                ComponentName("", ""),
+                /* numActivities */ 1,
+                /* isTopActivityNoDisplay */ false,
+                /* isActivityStackTransparent */ false,
+            )
+        )
 
     private fun createTaskContainer(task: Task) =
         TaskContainer(

@@ -21,6 +21,7 @@ import android.app.contextualsearch.ContextualSearchManager.ENTRYPOINT_LONG_PRES
 import android.app.contextualsearch.ContextualSearchManager.FEATURE_CONTEXTUAL_SEARCH
 import android.content.Context
 import android.util.Log
+import android.view.Display.DEFAULT_DISPLAY
 import androidx.annotation.VisibleForTesting
 import com.android.internal.app.AssistUtils
 import com.android.launcher3.logging.StatsLogManager
@@ -86,7 +87,8 @@ internal constructor(
             if (success) {
                 val runningPackage =
                     TopTaskTracker.INSTANCE[context].getCachedTopTask(
-                            /* filterOnlyVisibleRecents */ true
+                            /* filterOnlyVisibleRecents */ true,
+                            DEFAULT_DISPLAY,
                         )
                         .getPackageName()
                 statsLogManager
@@ -222,7 +224,8 @@ internal constructor(
 
     @VisibleForTesting
     fun getRecentsContainerInterface(): BaseContainerInterface<*, *>? {
-        return OverviewComponentObserver.INSTANCE.get(context).containerInterface
+        return OverviewComponentObserver.INSTANCE.get(context)
+            .getContainerInterface(DEFAULT_DISPLAY)
     }
 
     /**

@@ -18,6 +18,7 @@ package com.android.quickstep.util;
 
 import android.animation.Animator;
 import android.animation.RectEvaluator;
+import android.app.PictureInPictureParams;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.pm.ActivityInfo;
@@ -25,6 +26,7 @@ import android.graphics.Matrix;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.util.Log;
+import android.util.Rational;
 import android.view.Surface;
 import android.view.SurfaceControl;
 import android.view.View;
@@ -49,8 +51,6 @@ public class SwipePipToHomeAnimator extends RectFSpringAnim {
     private static final String TAG = "SwipePipToHomeAnimator";
 
     private static final float END_PROGRESS = 1.0f;
-
-    private static final float PIP_ASPECT_RATIO_MISMATCH_THRESHOLD = 0.01f;
 
     private final int mTaskId;
     private final ActivityInfo mActivityInfo;
@@ -137,7 +137,8 @@ public class SwipePipToHomeAnimator extends RectFSpringAnim {
         mDestinationBoundsTransformed.set(destinationBoundsTransformed);
         mSurfaceTransactionHelper = new PipSurfaceTransactionHelper(cornerRadius, shadowRadius);
 
-        final float aspectRatio = destinationBounds.width() / (float) destinationBounds.height();
+        final Rational aspectRatio = new Rational(
+                destinationBounds.width(), destinationBounds.height());
         String reasonForCreateOverlay = null; // For debugging purpose.
 
         // Slightly larger app bounds to allow for off by 1 pixel source-rect-hint errors.
@@ -158,20 +159,22 @@ public class SwipePipToHomeAnimator extends RectFSpringAnim {
             // not a valid rectangle to use for cropping app surface
             reasonForCreateOverlay = "Source rect hint exceeds display bounds " + sourceRectHint;
             sourceRectHint.setEmpty();
-        } else if (Math.abs(
-                aspectRatio - (sourceRectHint.width() / (float) sourceRectHint.height()))
-                > PIP_ASPECT_RATIO_MISMATCH_THRESHOLD) {
-            // The source rect hint does not aspect ratio
-            reasonForCreateOverlay = "Source rect hint does not match aspect ratio "
-                    + sourceRectHint + " aspect ratio " + aspectRatio;
-            sourceRectHint.setEmpty();
+        } else {
+            final Rational srcAspectRatio = new Rational(
+                    sourceRectHint.width(), sourceRectHint.height());
+            if (!PictureInPictureParams.isSameAspectRatio(destinationBounds, srcAspectRatio)) {
+                // The aspect ratio of destination bounds does not match source rect hint.
+                // We use the aspect ratio of source rect hint to check against destination bounds
+                // here to avoid upscaling error.
+                reasonForCreateOverlay = "Source rect hint:" + sourceRectHint
+                        + " does not match destination bounds:" + destinationBounds;
+                sourceRectHint.setEmpty();
+            }
         }
 
         if (sourceRectHint.isEmpty()) {
-            mSourceRectHint.set(getEnterPipWithOverlaySrcRectHint(appBounds, aspectRatio));
-            // Create a new overlay layer. We do not call detach on this instance, it's propagated
-            // to other classes like PipTaskOrganizer / RecentsAnimationController to complete
-            // the cleanup.
+            mSourceRectHint.set(
+                    getEnterPipWithOverlaySrcRectHint(appBounds, aspectRatio.floatValue()));
             mPipContentOverlay = new PipContentOverlay.PipAppIconOverlay(view.getContext(),
                     mAppBounds, mDestinationBounds,
                     new IconProvider(context).getIcon(mActivityInfo), appIconSizePx);

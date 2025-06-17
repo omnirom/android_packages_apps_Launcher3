@@ -33,7 +33,6 @@ import org.mockito.Mockito.times
 import org.mockito.kotlin.any
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
-import org.mockito.kotlin.same
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoMoreInteractions
 import org.mockito.kotlin.whenever
@@ -142,10 +141,9 @@ class AddWorkspaceItemsTaskTest : AbstractWorkspaceModelTest() {
     /** Sets up the item space data that will be returned from WorkspaceItemSpaceFinder. */
     private fun givenNewItemSpaces(vararg newItemSpaces: NewItemSpace) {
         val spaceStack = newItemSpaces.toMutableList()
-        whenever(
-                mWorkspaceItemSpaceFinder.findSpaceForItem(any(), any(), any(), any(), any(), any())
-            )
-            .then { spaceStack.removeFirst().toIntArray() }
+        whenever(mWorkspaceItemSpaceFinder.findSpaceForItem(any(), any(), any(), any())).then {
+            spaceStack.removeFirst().toIntArray()
+        }
     }
 
     /**
@@ -155,8 +153,6 @@ class AddWorkspaceItemsTaskTest : AbstractWorkspaceModelTest() {
     private fun verifyItemSpaceFinderCall(nonEmptyScreenIds: List<Int>, numberOfExpectedCall: Int) {
         verify(mWorkspaceItemSpaceFinder, times(numberOfExpectedCall))
             .findSpaceForItem(
-                same(mAppState),
-                same(mModelHelper.bgDataModel),
                 eq(IntArray.wrap(*nonEmptyScreenIds.toIntArray())),
                 eq(IntArray()),
                 eq(1),

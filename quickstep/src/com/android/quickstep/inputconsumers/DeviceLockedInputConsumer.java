@@ -37,6 +37,7 @@ import android.graphics.PointF;
 import android.view.MotionEvent;
 import android.view.RemoteAnimationTarget;
 import android.view.VelocityTracker;
+import android.window.TransitionInfo;
 
 import com.android.app.animation.Interpolators;
 import com.android.launcher3.R;
@@ -52,6 +53,7 @@ import com.android.quickstep.RecentsAnimationController;
 import com.android.quickstep.RecentsAnimationDeviceState;
 import com.android.quickstep.RecentsAnimationTargets;
 import com.android.quickstep.RemoteAnimationTargets;
+import com.android.quickstep.RotationTouchHelper;
 import com.android.quickstep.TaskAnimationManager;
 import com.android.quickstep.util.SurfaceTransaction.SurfaceProperties;
 import com.android.quickstep.util.TransformParams;
@@ -82,7 +84,7 @@ public class DeviceLockedInputConsumer implements InputConsumer,
             getFlagForIndex(1, "STATE_HANDLER_INVALIDATED");
 
     private final Context mContext;
-    private final RecentsAnimationDeviceState mDeviceState;
+    private final RotationTouchHelper mRotationTouchHelper;
     private final TaskAnimationManager mTaskAnimationManager;
     private final GestureState mGestureState;
     private final float mTouchSlopSquared;
@@ -106,18 +108,21 @@ public class DeviceLockedInputConsumer implements InputConsumer,
 
     private RecentsAnimationController mRecentsAnimationController;
 
-    public DeviceLockedInputConsumer(Context context, RecentsAnimationDeviceState deviceState,
-            TaskAnimationManager taskAnimationManager, GestureState gestureState,
+    public DeviceLockedInputConsumer(
+            Context context,
+            RecentsAnimationDeviceState deviceState,
+            TaskAnimationManager taskAnimationManager,
+            GestureState gestureState,
             InputMonitorCompat inputMonitorCompat) {
         mContext = context;
-        mDeviceState = deviceState;
         mTaskAnimationManager = taskAnimationManager;
         mGestureState = gestureState;
-        mTouchSlopSquared = mDeviceState.getSquaredTouchSlop();
+        mTouchSlopSquared = deviceState.getSquaredTouchSlop();
         mTransformParams = new TransformParams();
         mInputMonitorCompat = inputMonitorCompat;
         mMaxTranslationY = context.getResources().getDimensionPixelSize(
                 R.dimen.device_locked_y_offset);
+        mRotationTouchHelper = RotationTouchHelper.INSTANCE.get(mContext);
 
         // Do not use DeviceProfile as the user data might be locked
         mDisplaySize = DisplayController.INSTANCE.get(context).getInfo().currentSize;
@@ -133,6 +138,11 @@ public class DeviceLockedInputConsumer implements InputConsumer,
     @Override
     public int getType() {
         return TYPE_DEVICE_LOCKED;
+    }
+
+    @Override
+    public int getDisplayId() {
+        return mGestureState.getDisplayId();
     }
 
     @Override
@@ -152,7 +162,7 @@ public class DeviceLockedInputConsumer implements InputConsumer,
                 if (!mThresholdCrossed) {
                     // Cancel interaction in case of multi-touch interaction
                     int ptrIdx = ev.getActionIndex();
-                    if (!mDeviceState.getRotationTouchHelper().isInSwipeUpTouchRegion(ev, ptrIdx)) {
+                    if (!mRotationTouchHelper.isInSwipeUpTouchRegion(ev, ptrIdx)) {
                         int action = ev.getAction();
                         ev.setAction(ACTION_CANCEL);
                         finishTouchTracking(ev);
@@ -248,7 +258,7 @@ public class DeviceLockedInputConsumer implements InputConsumer,
 
     @Override
     public void onRecentsAnimationStart(RecentsAnimationController controller,
-            RecentsAnimationTargets targets) {
+            RecentsAnimationTargets targets, TransitionInfo transitionInfo) {
         mRecentsAnimationController = controller;
         mTransformParams.setTargetSet(targets);
         applyTransform();

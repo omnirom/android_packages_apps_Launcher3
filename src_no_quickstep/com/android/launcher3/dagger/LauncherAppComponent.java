@@ -22,7 +22,7 @@ import dagger.Component;
  * Root component for Dagger injection for Launcher AOSP.
  */
 @LauncherAppSingleton
-@Component
+@Component(modules = LauncherAppModule.class)
 public interface LauncherAppComponent extends LauncherBaseAppComponent {
     /** Builder for aosp LauncherAppComponent. */
     @Component.Builder

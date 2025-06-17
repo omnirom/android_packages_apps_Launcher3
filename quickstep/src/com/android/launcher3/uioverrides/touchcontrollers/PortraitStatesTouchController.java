@@ -37,6 +37,7 @@ import com.android.launcher3.uioverrides.states.OverviewState;
 import com.android.quickstep.SystemUiProxy;
 import com.android.quickstep.util.LayoutUtils;
 import com.android.quickstep.views.RecentsView;
+import com.android.systemui.contextualeducation.GestureType;
 import com.android.systemui.shared.system.InteractionJankMonitorWrapper;
 
 /**
@@ -163,8 +164,19 @@ public class PortraitStatesTouchController extends AbstractStateChangeTouchContr
     @Override
     protected void onSwipeInteractionCompleted(LauncherState targetState) {
         super.onSwipeInteractionCompleted(targetState);
+        SystemUiProxy sysUIProxy = SystemUiProxy.INSTANCE.get(mLauncher);
         if (mStartState == NORMAL && targetState == OVERVIEW) {
-            SystemUiProxy.INSTANCE.get(mLauncher).onOverviewShown(true, TAG);
+            sysUIProxy.onOverviewShown(true, TAG);
+        }
+
+        if (targetState == OVERVIEW) {
+            sysUIProxy.updateContextualEduStats(
+                    mDetector.isTrackpadGesture(), GestureType.OVERVIEW);
+        } else if (targetState == ALL_APPS && !mDetector.isTrackpadGesture()) {
+            // Only update if it is touch gesture as trackpad gesture is not relevant for all apps
+            // which only provides keyboard education.
+            sysUIProxy.updateContextualEduStats(
+                    /* isTrackpadGesture= */ false, GestureType.ALL_APPS);
         }
     }
 

@@ -24,8 +24,6 @@ import static com.android.launcher3.LauncherPrefs.OLD_APP_WIDGET_IDS;
 import static com.android.launcher3.LauncherPrefs.RESTORE_DEVICE;
 import static com.android.launcher3.LauncherSettings.Favorites.CONTAINER_DESKTOP;
 import static com.android.launcher3.LauncherSettings.Favorites.ITEM_TYPE_APPLICATION;
-import static com.android.launcher3.LauncherSettings.Favorites.TABLE_NAME;
-import static com.android.launcher3.widget.LauncherWidgetHolder.APPWIDGET_HOST_ID;
 
 import static com.google.common.truth.Truth.assertThat;
 
@@ -50,7 +48,6 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.UserHandle;
 import android.os.UserManager;
-import android.util.LongSparseArray;
 
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.filters.SmallTest;
@@ -60,9 +57,17 @@ import com.android.launcher3.LauncherPrefs;
 import com.android.launcher3.LauncherSettings;
 import com.android.launcher3.LauncherSettings.Favorites;
 import com.android.launcher3.backuprestore.LauncherRestoreEventLogger;
+import com.android.launcher3.dagger.LauncherAppComponent;
+import com.android.launcher3.dagger.LauncherAppSingleton;
 import com.android.launcher3.model.ModelDbController;
+import com.android.launcher3.pm.UserCache;
+import com.android.launcher3.util.AllModulesForTest;
 import com.android.launcher3.util.IntArray;
 import com.android.launcher3.util.LauncherModelHelper;
+import com.android.launcher3.util.LauncherModelHelper.SandboxModelContext;
+
+import dagger.BindsInstance;
+import dagger.Component;
 
 import org.junit.After;
 import org.junit.Before;
@@ -85,7 +90,9 @@ public class RestoreDbTaskTest {
     private final UserHandle mWorkUser = UserHandle.getUserHandleForUid(PER_USER_RANGE);
 
     private LauncherModelHelper mModelHelper;
-    private Context mContext;
+    private SandboxModelContext mContext;
+    private UserCache mUserCacheSpy;
+
     private RestoreDbTask mTask;
     private ModelDbController mMockController;
     private SQLiteDatabase mMockDb;
@@ -94,10 +101,17 @@ public class RestoreDbTaskTest {
     private LauncherRestoreEventLogger mMockRestoreEventLogger;
     private SQLiteDatabase mDb;
 
+    private AppWidgetHost mWidgetHost;
+
     @Before
     public void setup() {
         mModelHelper = new LauncherModelHelper();
         mContext = mModelHelper.sandboxContext;
+        mUserCacheSpy = spy(UserCache.getInstance(getInstrumentation().getTargetContext()));
+
+        mContext.initDaggerComponent(
+                DaggerRestoreDbTaskTest_TestComponent.builder().bindUserCache(mUserCacheSpy));
+
         mTask = new RestoreDbTask();
         mMockController = Mockito.mock(ModelDbController.class);
         mMockDb = mock(SQLiteDatabase.class);
@@ -106,10 +120,20 @@ public class RestoreDbTaskTest {
         mMockRestoreEventLogger = mock(LauncherRestoreEventLogger.class);
     }
 
+    private synchronized AppWidgetHost getWidgetHostLazy() {
+        if (mWidgetHost == null) {
+            mWidgetHost = new AppWidgetHost(mContext, 1012);
+        }
+        return mWidgetHost;
+    }
+
     @After
     public void teardown() {
         if (mDb != null) {
             mDb.close();
+        }
+        if (mWidgetHost != null) {
+            mWidgetHost.deleteHost();
         }
         mModelHelper.destroy();
         LauncherPrefs.get(mContext).removeSync(RESTORE_DEVICE);
@@ -117,13 +141,13 @@ public class RestoreDbTaskTest {
 
     @Test
     public void testGetProfileId() throws Exception {
-        mDb = new MyModelDbController(23).getDb();
+        mDb = getModelDbController(23).getDb();
         assertEquals(23, new RestoreDbTask().getDefaultProfileId(mDb));
     }
 
     @Test
     public void testMigrateProfileId() throws Exception {
-        mDb = new MyModelDbController(42).getDb();
+        mDb = getModelDbController(42).getDb();
         // Add some mock data
         for (int i = 0; i < 5; i++) {
             ContentValues values = new ContentValues();
@@ -143,7 +167,7 @@ public class RestoreDbTaskTest {
 
     @Test
     public void testChangeDefaultColumn() throws Exception {
-        mDb = new MyModelDbController(42).getDb();
+        mDb = getModelDbController(42).getDb();
         // Add some mock data
         for (int i = 0; i < 5; i++) {
             ContentValues values = new ContentValues();
@@ -173,12 +197,12 @@ public class RestoreDbTaskTest {
         long workProfileId = myProfileId + 2;
         long workProfileId_old = myProfileId + 3;
 
-        MyModelDbController controller = new MyModelDbController(myProfileId);
+        ModelDbController controller = getModelDbController(myProfileId);
         mDb = controller.getDb();
         BackupManager bm = spy(new BackupManager(mContext));
         doReturn(myUserHandle()).when(bm).getUserForAncestralSerialNumber(eq(myProfileId_old));
         doReturn(mWorkUser).when(bm).getUserForAncestralSerialNumber(eq(workProfileId_old));
-        controller.users.put(workProfileId, mWorkUser);
+        doReturn(workProfileId).when(mUserCacheSpy).getSerialNumberForUser(mWorkUser);
 
         addIconsBulk(controller, 10, 1, myProfileId_old);
         addIconsBulk(controller, 6, 2, workProfileId_old);
@@ -202,7 +226,7 @@ public class RestoreDbTaskTest {
         long myProfileId_old = myProfileId + 1;
         long workProfileId_old = myProfileId + 3;
 
-        MyModelDbController controller = new MyModelDbController(myProfileId);
+        ModelDbController controller = getModelDbController(myProfileId);
         mDb = controller.getDb();
         BackupManager bm = spy(new BackupManager(mContext));
         doReturn(myUserHandle()).when(bm).getUserForAncestralSerialNumber(eq(myProfileId_old));
@@ -226,7 +250,8 @@ public class RestoreDbTaskTest {
     @Test
     public void givenLauncherPrefsHasNoIds_whenRestoreAppWidgetIdsIfExists_thenIdsAreRemoved() {
         // When
-        mTask.restoreAppWidgetIdsIfExists(mContext, mMockController, mMockRestoreEventLogger);
+        mTask.restoreAppWidgetIdsIfExists(mContext, mMockController, mMockRestoreEventLogger,
+                this::getWidgetHostLazy);
         // Then
         assertThat(mPrefs.has(OLD_APP_WIDGET_IDS, APP_WIDGET_IDS)).isFalse();
     }
@@ -234,7 +259,7 @@ public class RestoreDbTaskTest {
     @Test
     public void givenNoPendingRestore_WhenRestoreAppWidgetIds_ThenRemoveNewWidgetIds() {
         // Given
-        AppWidgetHost expectedHost = new AppWidgetHost(mContext, APPWIDGET_HOST_ID);
+        AppWidgetHost expectedHost = getWidgetHostLazy();
         int[] expectedOldIds = generateOldWidgetIds(expectedHost);
         int[] expectedNewIds = generateNewWidgetIds(expectedHost, expectedOldIds);
         when(mMockController.getDb()).thenReturn(mMockDb);
@@ -242,7 +267,8 @@ public class RestoreDbTaskTest {
 
         // When
         setRestoredAppWidgetIds(mContext, expectedOldIds, expectedNewIds);
-        mTask.restoreAppWidgetIdsIfExists(mContext, mMockController, mMockRestoreEventLogger);
+        mTask.restoreAppWidgetIdsIfExists(mContext, mMockController, mMockRestoreEventLogger,
+                this::getWidgetHostLazy);
 
         // Then
         assertThat(expectedHost.getAppWidgetIds()).isEqualTo(expectedOldIds);
@@ -254,7 +280,7 @@ public class RestoreDbTaskTest {
     @Test
     public void givenRestoreWithNonExistingWidgets_WhenRestoreAppWidgetIds_ThenRemoveNewIds() {
         // Given
-        AppWidgetHost expectedHost = new AppWidgetHost(mContext, APPWIDGET_HOST_ID);
+        AppWidgetHost expectedHost = getWidgetHostLazy();
         int[] expectedOldIds = generateOldWidgetIds(expectedHost);
         int[] expectedNewIds = generateNewWidgetIds(expectedHost, expectedOldIds);
         when(mMockController.getDb()).thenReturn(mMockDb);
@@ -265,18 +291,19 @@ public class RestoreDbTaskTest {
 
         // When
         setRestoredAppWidgetIds(mContext, expectedOldIds, expectedNewIds);
-        mTask.restoreAppWidgetIdsIfExists(mContext, mMockController, mMockRestoreEventLogger);
+        mTask.restoreAppWidgetIdsIfExists(mContext, mMockController, mMockRestoreEventLogger,
+                this::getWidgetHostLazy);
 
         // Then
         assertThat(expectedHost.getAppWidgetIds()).isEqualTo(expectedOldIds);
         assertThat(mPrefs.has(OLD_APP_WIDGET_IDS, APP_WIDGET_IDS)).isFalse();
-        verify(mMockController, times(expectedOldIds.length)).update(any(), any(), any(), any());
+        verify(mMockController, times(expectedOldIds.length)).update(any(), any(), any());
     }
 
     @Test
     public void givenRestore_WhenRestoreAppWidgetIds_ThenAddNewIds() {
         // Given
-        AppWidgetHost expectedHost = new AppWidgetHost(mContext, APPWIDGET_HOST_ID);
+        AppWidgetHost expectedHost = getWidgetHostLazy();
         int[] expectedOldIds = generateOldWidgetIds(expectedHost);
         int[] expectedNewIds = generateNewWidgetIds(expectedHost, expectedOldIds);
         int[] allExpectedIds = IntStream.concat(
@@ -294,15 +321,16 @@ public class RestoreDbTaskTest {
 
         // When
         setRestoredAppWidgetIds(mContext, expectedOldIds, expectedNewIds);
-        mTask.restoreAppWidgetIdsIfExists(mContext, mMockController, mMockRestoreEventLogger);
+        mTask.restoreAppWidgetIdsIfExists(mContext, mMockController, mMockRestoreEventLogger,
+                this::getWidgetHostLazy);
 
         // Then
         assertThat(expectedHost.getAppWidgetIds()).isEqualTo(allExpectedIds);
         assertThat(mPrefs.has(OLD_APP_WIDGET_IDS, APP_WIDGET_IDS)).isFalse();
-        verify(mMockController, times(expectedOldIds.length)).update(any(), any(), any(), any());
+        verify(mMockController, times(expectedOldIds.length)).update(any(), any(), any());
     }
 
-    private void addIconsBulk(MyModelDbController controller,
+    private void addIconsBulk(ModelDbController controller,
             int count, int screen, long profileId) {
         int columns = LauncherAppState.getIDP(mContext).numColumns;
         String packageName = getInstrumentation().getContext().getPackageName();
@@ -320,7 +348,7 @@ public class RestoreDbTaskTest {
             values.put(LauncherSettings.Favorites.INTENT,
                     new Intent(Intent.ACTION_MAIN).setPackage(packageName).toUri(0));
 
-            controller.insert(TABLE_NAME, values);
+            controller.insert(values);
         }
     }
 
@@ -346,7 +374,7 @@ public class RestoreDbTaskTest {
     }
 
     private void runRemoveScreenIdGapsTest(int[] screenIds, int[] expectedScreenIds) {
-        mDb = new MyModelDbController(42).getDb();
+        mDb = getModelDbController(42).getDb();
         // Add some mock data
         for (int i = 0; i < screenIds.length; i++) {
             ContentValues values = new ContentValues();
@@ -397,25 +425,29 @@ public class RestoreDbTaskTest {
                 .map(id -> host.allocateAppWidgetId()).toArray();
     }
 
-    private class MyModelDbController extends ModelDbController {
-
-        public final LongSparseArray<UserHandle> users = new LongSparseArray<>();
-
-        MyModelDbController(long profileId) {
-            super(mContext);
-            users.put(profileId, myUserHandle());
-        }
-
-        @Override
-        public long getSerialNumberForUser(UserHandle user) {
-            int index = users.indexOfValue(user);
-            return index >= 0 ? users.keyAt(index) : -1;
-        }
-    }
-
     private void setRestoredAppWidgetIds(Context context, int[] oldIds, int[] newIds) {
         LauncherPrefs.get(context).putSync(
                 OLD_APP_WIDGET_IDS.to(IntArray.wrap(oldIds).toConcatString()),
                 APP_WIDGET_IDS.to(IntArray.wrap(newIds).toConcatString()));
+    }
+
+    private ModelDbController getModelDbController(long profileId) {
+        doReturn(profileId).when(mUserCacheSpy).getSerialNumberForUser(myUserHandle());
+        return ((TestComponent) mContext.getAppComponent()).getDbController();
+    }
+
+    @LauncherAppSingleton
+    @Component(modules = AllModulesForTest.class)
+    public interface TestComponent extends LauncherAppComponent {
+
+        ModelDbController getDbController();
+
+        @Component.Builder
+        interface Builder extends LauncherAppComponent.Builder {
+
+            @BindsInstance Builder bindUserCache(UserCache userCache);
+
+            TestComponent build();
+        }
     }
 }

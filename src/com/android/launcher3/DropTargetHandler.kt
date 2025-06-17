@@ -2,7 +2,7 @@ package com.android.launcher3
 
 import android.content.ComponentName
 import android.view.View
-import com.android.launcher3.BaseDraggingActivity.EVENT_RESUMED
+import com.android.launcher3.BaseActivity.EVENT_RESUMED
 import com.android.launcher3.DropTarget.DragObject
 import com.android.launcher3.LauncherConstants.ActivityCodes
 import com.android.launcher3.SecondaryDropTarget.DeferredOnComplete
@@ -66,10 +66,16 @@ class DropTargetHandler(launcher: Launcher) {
 
     fun onDeleteComplete(item: ItemInfo) {
         removeItemAndStripEmptyScreens(null /* view */, item)
+        AbstractFloatingView.closeOpenViews(
+            mLauncher,
+            false,
+            AbstractFloatingView.TYPE_WIDGET_RESIZE_FRAME,
+        )
         var pageItem: ItemInfo = item
-        if (item.container <= 0) {
-            val v = mLauncher.workspace.getHomescreenIconByItemId(item.container)
-            v?.let { pageItem = v.tag as ItemInfo }
+        if (item.container >= 0) {
+            mLauncher.workspace.getViewByItemId(item.container)?.let {
+                pageItem = it.tag as ItemInfo
+            }
         }
         val pageIds =
             if (pageItem.container == LauncherSettings.Favorites.CONTAINER_DESKTOP)

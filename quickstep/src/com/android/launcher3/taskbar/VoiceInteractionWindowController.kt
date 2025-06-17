@@ -22,7 +22,6 @@ import android.view.ViewTreeObserver
 import android.view.ViewTreeObserver.InternalInsetsInfo.TOUCHABLE_INSETS_REGION
 import android.view.WindowManager
 import android.view.WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
-import com.android.launcher3.util.DisplayController
 import com.android.launcher3.views.BaseDragLayer
 import com.android.systemui.animation.ViewRootSync
 import java.io.PrintWriter
@@ -41,8 +40,7 @@ private const val TEMP_BACKGROUND_WINDOW_TITLE = "VoiceInteractionTaskbarBackgro
 class VoiceInteractionWindowController(val context: TaskbarActivityContext) :
     TaskbarControllers.LoggableTaskbarController, TaskbarControllers.BackgroundRendererController {
 
-    private val isSeparateBackgroundEnabled =
-        !DisplayController.isTransientTaskbar(context) && !context.isPhoneMode
+    private val isSeparateBackgroundEnabled = !context.isTransientTaskbar && !context.isPhoneMode
     private val taskbarBackgroundRenderer = TaskbarBackgroundRenderer(context)
     private val nonTouchableInsetsComputer =
         ViewTreeObserver.OnComputeInternalInsetsListener {
@@ -97,7 +95,7 @@ class VoiceInteractionWindowController(val context: TaskbarActivityContext) :
         separateWindowLayoutParams =
             context.createDefaultWindowLayoutParams(
                 TYPE_APPLICATION_OVERLAY,
-                TEMP_BACKGROUND_WINDOW_TITLE
+                TEMP_BACKGROUND_WINDOW_TITLE,
             )
         separateWindowLayoutParams?.isSystemApplicationOverlay = true
     }
@@ -163,7 +161,7 @@ class VoiceInteractionWindowController(val context: TaskbarActivityContext) :
                 // First add the temporary window, then hide the overlapping taskbar background.
                 context.addWindowView(
                     separateWindowForTaskbarBackground,
-                    separateWindowLayoutParams
+                    separateWindowLayoutParams,
                 );
                 { controllers.taskbarDragLayerController.setIsBackgroundDrawnElsewhere(true) }
             } else {
@@ -179,7 +177,7 @@ class VoiceInteractionWindowController(val context: TaskbarActivityContext) :
                 ViewRootSync.synchronizeNextDraw(
                     separateWindowForTaskbarBackground!!,
                     context.dragLayer,
-                    onWindowsSynchronized
+                    onWindowsSynchronized,
                 )
             }
         }

@@ -17,6 +17,7 @@
 package com.android.launcher3;
 
 import static com.android.app.animation.Interpolators.SCROLL;
+import static com.android.launcher3.RemoveAnimationSettingsTracker.WINDOW_ANIMATION_SCALE_URI;
 import static com.android.launcher3.compat.AccessibilityManagerCompat.isAccessibilityEnabled;
 import static com.android.launcher3.compat.AccessibilityManagerCompat.isObservedEventType;
 import static com.android.launcher3.testing.shared.TestProtocol.SCROLL_FINISHED_MESSAGE;
@@ -33,7 +34,6 @@ import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.graphics.Rect;
 import android.os.Bundle;
-import android.provider.Settings;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.InputDevice;
@@ -718,12 +718,14 @@ public abstract class PagedView<T extends View & PageIndicator> extends ViewGrou
     }
 
     /**
-     * Queues the given callback to be run once {@code mPageScrolls} has been initialized.
+     * Run the given `callback` immediately once {@code mPageScrolls} has been initialized,
+     * otherwise queue the callback to `mOnPageScrollsInitializedCallbacks`.
      */
     public void runOnPageScrollsInitialized(Runnable callback) {
-        mOnPageScrollsInitializedCallbacks.add(callback);
         if (isPageScrollsInitialized()) {
-            onPageScrollsInitialized();
+            callback.run();
+        } else {
+            mOnPageScrollsInitializedCallbacks.add(callback);
         }
     }
 
@@ -1754,8 +1756,8 @@ public abstract class PagedView<T extends View & PageIndicator> extends ViewGrou
         }
 
         if (FeatureFlags.IS_STUDIO_BUILD && !Utilities.isRunningInTestHarness()) {
-            duration *= Settings.Global.getFloat(getContext().getContentResolver(),
-                    Settings.Global.WINDOW_ANIMATION_SCALE, 1);
+            duration *= RemoveAnimationSettingsTracker.INSTANCE.get(getContext()).getValue(
+                    WINDOW_ANIMATION_SCALE_URI);
         }
 
         whichPage = validateNewPage(whichPage);

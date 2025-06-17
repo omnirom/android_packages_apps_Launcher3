@@ -134,6 +134,7 @@ class GridSizeMigrationTest {
             var gridSizeMigrationLogic = GridSizeMigrationLogic()
             val idsInUse = mutableListOf<Int>()
             gridSizeMigrationLogic.migrateHotseat(
+                5,
                 idp.numDatabaseHotseatIcons,
                 srcReader,
                 destReader,
@@ -152,6 +153,7 @@ class GridSizeMigrationTest {
                 dbHelper,
                 srcReader,
                 destReader,
+                5,
                 idp.numDatabaseHotseatIcons,
                 Point(idp.numColumns, idp.numRows),
                 DeviceGridState(context),
@@ -273,34 +275,15 @@ class GridSizeMigrationTest {
         val readerGridA = DbReader(db, TMP_TABLE, context)
         val readerGridB = DbReader(db, TABLE_NAME, context)
         // migrate from A -> B
-        if (Flags.gridMigrationRefactor()) {
-            var gridSizeMigrationLogic = GridSizeMigrationLogic()
-            val idsInUse = mutableListOf<Int>()
-            gridSizeMigrationLogic.migrateHotseat(
-                idp.numDatabaseHotseatIcons,
-                readerGridA,
-                readerGridB,
-                dbHelper,
-                idsInUse,
-            )
-            gridSizeMigrationLogic.migrateWorkspace(
-                readerGridA,
-                readerGridB,
-                dbHelper,
-                Point(idp.numColumns, idp.numRows),
-                idsInUse,
-            )
-        } else {
-            GridSizeMigrationDBController.migrate(
-                dbHelper,
-                readerGridA,
-                readerGridB,
-                idp.numDatabaseHotseatIcons,
-                Point(idp.numColumns, idp.numRows),
-                DeviceGridState(context),
-                DeviceGridState(idp),
-            )
-        }
+        migrateGrid(
+            dbHelper,
+            readerGridA,
+            readerGridB,
+            5,
+            idp.numDatabaseHotseatIcons,
+            idp.numColumns,
+            idp.numRows,
+        )
 
         // Check hotseat items in grid B
         var c =
@@ -317,8 +300,8 @@ class GridSizeMigrationTest {
         // 2 1 3 4
         verifyHotseat(
             c,
-            idp,
             mutableListOf(testPackage2, testPackage1, testPackage3, testPackage4).toList(),
+            4,
         )
 
         // Check workspace items in grid B
@@ -348,7 +331,7 @@ class GridSizeMigrationTest {
         addItem(ITEM_TYPE_APPLICATION, 0, CONTAINER_DESKTOP, 0, 2, testPackage9)
 
         // migrate from B -> A
-        migrateGrid(dbHelper, readerGridB, readerGridA, 5, 5, 5)
+        migrateGrid(dbHelper, readerGridB, readerGridA, 4, 5, 5, 5)
 
         // Check hotseat items in grid A
         c =
@@ -362,11 +345,12 @@ class GridSizeMigrationTest {
                 null,
             ) ?: throw IllegalStateException()
         // Expected hotseat items in grid A
-        // 1 2 _ 3 4
+        // 1 2 4 3 4
         verifyHotseat(
             c,
-            idp,
-            mutableListOf(testPackage1, testPackage2, null, testPackage3, testPackage4).toList(),
+            mutableListOf(testPackage1, testPackage2, testPackage4, testPackage3, testPackage4)
+                .toList(),
+            5,
         )
 
         // Check workspace items in grid A
@@ -383,8 +367,8 @@ class GridSizeMigrationTest {
         locMap = parseLocMap(c)
         // Expected workspace items in grid A
         // _ _ _ _ _
-        // _ _ _ _ 5
-        // 9 _ 6 _ 7
+        // 9 _ _ _ 5
+        // _ _ 6 _ 7
         // _ _ 8 _ _
         // _ _ _ _ _
         assertThat(locMap.size.toLong()).isEqualTo(5)
@@ -394,7 +378,7 @@ class GridSizeMigrationTest {
         assertThat(locMap[testPackage7]).isEqualTo(Triple(0, 4, 2))
         assertThat(locMap[testPackage8]).isEqualTo(Triple(0, 2, 3))
         // Verify items that didn't exist in grid A are added in new screen
-        assertThat(locMap[testPackage9]).isEqualTo(Triple(0, 0, 2))
+        assertThat(locMap[testPackage9]).isEqualTo(Triple(0, 0, 1))
 
         // remove item from B
         db.delete(TMP_TABLE, "$_ID=7", null)
@@ -404,6 +388,7 @@ class GridSizeMigrationTest {
             dbHelper,
             readerGridA,
             readerGridB,
+            5,
             idp.numDatabaseHotseatIcons,
             idp.numColumns,
             idp.numRows,
@@ -424,8 +409,8 @@ class GridSizeMigrationTest {
         // 2 1 3 4
         verifyHotseat(
             c,
-            idp,
             mutableListOf(testPackage2, testPackage1, testPackage3, testPackage4).toList(),
+            4,
         )
 
         // Check workspace items in grid B
@@ -452,10 +437,234 @@ class GridSizeMigrationTest {
         assertThat(locMap[testPackage9]).isEqualTo(Triple(0, 0, 2))
     }
 
+    @Test
+    @Throws(Exception::class)
+    @EnableFlags(Flags.FLAG_GRID_MIGRATION_REFACTOR)
+    fun testHotseatMigrationToSmallerGridBackAndForthFlagOn() {
+        testHotseatMigrationToSmallerGridBackAndForth()
+    }
+
+    @Test
+    @Throws(Exception::class)
+    @DisableFlags(Flags.FLAG_GRID_MIGRATION_REFACTOR)
+    fun testHotseatMigrationToSmallerGridBackAndForthFlagOff() {
+        testHotseatMigrationToSmallerGridBackAndForth()
+    }
+
+    /** Old migration logic, should be modified once is not needed anymore */
+    @Throws(Exception::class)
+    fun testHotseatMigrationToSmallerGridBackAndForth() {
+        // Hotseat items in grid A
+        // 1 2 3 4 5
+        addItem(ITEM_TYPE_APPLICATION, 0, CONTAINER_HOTSEAT, 0, 0, testPackage1, 1, TMP_TABLE)
+        addItem(ITEM_TYPE_DEEP_SHORTCUT, 1, CONTAINER_HOTSEAT, 0, 0, testPackage2, 2, TMP_TABLE)
+        addItem(ITEM_TYPE_DEEP_SHORTCUT, 2, CONTAINER_HOTSEAT, 0, 0, testPackage3, 3, TMP_TABLE)
+        addItem(ITEM_TYPE_APPLICATION, 3, CONTAINER_HOTSEAT, 0, 0, testPackage4, 4, TMP_TABLE)
+        addItem(ITEM_TYPE_APPLICATION, 4, CONTAINER_HOTSEAT, 0, 0, testPackage5, 5, TMP_TABLE)
+
+        // Hotseat items in grid B
+        // 2 _ _ _
+        addItem(ITEM_TYPE_DEEP_SHORTCUT, 0, CONTAINER_HOTSEAT, 0, 0, testPackage2)
+
+        idp.numDatabaseHotseatIcons = 4
+        idp.numColumns = 4
+        idp.numRows = 4
+        val readerGridA = DbReader(db, TMP_TABLE, context)
+        val readerGridB = DbReader(db, TABLE_NAME, context)
+        // migrate from A -> B
+        migrateGrid(
+            dbHelper,
+            readerGridA,
+            readerGridB,
+            5,
+            idp.numDatabaseHotseatIcons,
+            idp.numColumns,
+            idp.numRows,
+        )
+        // Check hotseat items in grid B
+        var c =
+            db.query(
+                TABLE_NAME,
+                arrayOf(SCREEN, INTENT),
+                "container=$CONTAINER_HOTSEAT",
+                null,
+                SCREEN,
+                null,
+                null,
+            ) ?: throw IllegalStateException()
+        // Expected hotseat items in grid B
+        // 2 1 3 4
+        verifyHotseat(
+            c,
+            mutableListOf(testPackage2, testPackage1, testPackage3, testPackage4).toList(),
+            4,
+        )
+
+        // migrate from B -> A
+        migrateGrid(dbHelper, readerGridB, readerGridA, idp.numDatabaseHotseatIcons, 5, 5, 5)
+
+        // Check hotseat items in grid A
+        c =
+            db.query(
+                TMP_TABLE,
+                arrayOf(SCREEN, INTENT),
+                "container=$CONTAINER_HOTSEAT",
+                null,
+                SCREEN,
+                null,
+                null,
+            ) ?: throw IllegalStateException()
+        // Expected hotseat items in grid A
+        // 1 2 3 4 5
+        verifyHotseat(
+            c,
+            mutableListOf(testPackage1, testPackage2, testPackage3, testPackage4, testPackage5)
+                .toList(),
+            5,
+        )
+
+        // migrate from A -> B
+        migrateGrid(
+            dbHelper,
+            readerGridA,
+            readerGridB,
+            5,
+            idp.numDatabaseHotseatIcons,
+            idp.numColumns,
+            idp.numRows,
+        )
+
+        // Check hotseat items in grid B
+        c =
+            db.query(
+                TABLE_NAME,
+                arrayOf(SCREEN, INTENT),
+                "container=$CONTAINER_HOTSEAT",
+                null,
+                SCREEN,
+                null,
+                null,
+            ) ?: throw IllegalStateException()
+        // Expected hotseat items in grid B
+        // 2 1 3 4
+        verifyHotseat(
+            c,
+            mutableListOf(testPackage2, testPackage1, testPackage3, testPackage4).toList(),
+            4,
+        )
+    }
+
+    @Test
+    @Throws(Exception::class)
+    @EnableFlags(Flags.FLAG_GRID_MIGRATION_REFACTOR)
+    fun testMigrationToFullGridFlagOn() {
+        testMigrationToFullGrid()
+    }
+
+    @Test
+    @Throws(Exception::class)
+    @DisableFlags(Flags.FLAG_GRID_MIGRATION_REFACTOR)
+    fun testHotseatMigrationToFullGridFlagOff() {
+        testMigrationToFullGrid()
+    }
+
+    @Throws(Exception::class)
+    fun testMigrationToFullGrid() {
+        // Hotseat items in grid A
+        // 1 2 3 4 5
+        addItem(ITEM_TYPE_APPLICATION, 0, CONTAINER_HOTSEAT, 0, 0, testPackage1, 1, TMP_TABLE)
+        addItem(ITEM_TYPE_DEEP_SHORTCUT, 1, CONTAINER_HOTSEAT, 0, 0, testPackage2, 2, TMP_TABLE)
+        addItem(ITEM_TYPE_DEEP_SHORTCUT, 2, CONTAINER_HOTSEAT, 0, 0, testPackage3, 3, TMP_TABLE)
+        addItem(ITEM_TYPE_APPLICATION, 3, CONTAINER_HOTSEAT, 0, 0, testPackage4, 4, TMP_TABLE)
+        addItem(ITEM_TYPE_APPLICATION, 4, CONTAINER_HOTSEAT, 0, 0, testPackage5, 5, TMP_TABLE)
+
+        // Hotseat items in grid B
+        // 6 7 8 9
+        addItem(ITEM_TYPE_DEEP_SHORTCUT, 0, CONTAINER_HOTSEAT, 0, 0, testPackage6)
+        addItem(ITEM_TYPE_DEEP_SHORTCUT, 1, CONTAINER_HOTSEAT, 0, 0, testPackage7)
+        addItem(ITEM_TYPE_APPLICATION, 2, CONTAINER_HOTSEAT, 0, 0, testPackage8)
+        addItem(ITEM_TYPE_APPLICATION, 3, CONTAINER_HOTSEAT, 0, 0, testPackage9)
+
+        // Workspace items in grid A
+        // _ _ _ _ _
+        // 6 _ _ _ _
+        // _ _ _ _ _
+        // _ _ _ _ _
+        // _ _ _ _ _
+        addItem(ITEM_TYPE_APPLICATION, 0, CONTAINER_DESKTOP, 0, 1, testPackage6, 6, TMP_TABLE)
+
+        // Workspace items in grid B
+        // _ _ _ _
+        // 1 2 3 4
+        // _ _ _ _
+        // _ _ _ _
+        addItem(ITEM_TYPE_APPLICATION, 0, CONTAINER_DESKTOP, 0, 1, testPackage1)
+        addItem(ITEM_TYPE_APPLICATION, 0, CONTAINER_DESKTOP, 1, 1, testPackage2)
+        addItem(ITEM_TYPE_APPLICATION, 0, CONTAINER_DESKTOP, 2, 1, testPackage3)
+        addItem(ITEM_TYPE_APPLICATION, 0, CONTAINER_DESKTOP, 3, 1, testPackage4)
+
+        idp.numDatabaseHotseatIcons = 4
+        idp.numColumns = 4
+        idp.numRows = 4
+        val readerGridA = DbReader(db, TMP_TABLE, context)
+        val readerGridB = DbReader(db, TABLE_NAME, context)
+
+        // migrate from A -> B
+        migrateGrid(
+            dbHelper,
+            readerGridA,
+            readerGridB,
+            5,
+            idp.numDatabaseHotseatIcons,
+            idp.numColumns,
+            idp.numRows,
+        )
+
+        // Check hotseat items in grid B
+        var c =
+            db.query(
+                TABLE_NAME,
+                arrayOf(SCREEN, INTENT),
+                "container=$CONTAINER_HOTSEAT",
+                null,
+                SCREEN,
+                null,
+                null,
+            ) ?: throw IllegalStateException()
+        // Expected hotseat items in grid B
+        // 1 2 3 4
+        verifyHotseat(
+            c,
+            mutableListOf(testPackage1, testPackage2, testPackage3, testPackage4).toList(),
+            4,
+        )
+
+        // Check workspace items in grid B
+        c =
+            db.query(
+                TABLE_NAME,
+                arrayOf(SCREEN, CELLX, CELLY, INTENT),
+                "container=$CONTAINER_DESKTOP",
+                null,
+                null,
+                null,
+                null,
+            ) ?: throw IllegalStateException()
+        val locMap = parseLocMap(c)
+        // Expected workspace items in grid B
+        // _ _ _ _
+        // 6 _ _ _
+        // _ _ _ _
+        // _ _ _ _
+        assertThat(locMap.size.toLong()).isEqualTo(1)
+        assertThat(locMap[testPackage6]).isEqualTo(Triple(0, 0, 1))
+    }
+
     private fun migrateGrid(
         dbHelper: DatabaseHelper,
         srcReader: DbReader,
         destReader: DbReader,
+        srcHotseatSize: Int,
         destHotseatSize: Int,
         pointX: Int,
         pointY: Int,
@@ -464,7 +673,8 @@ class GridSizeMigrationTest {
             var gridSizeMigrationLogic = GridSizeMigrationLogic()
             val idsInUse = mutableListOf<Int>()
             gridSizeMigrationLogic.migrateHotseat(
-                idp.numDatabaseHotseatIcons,
+                srcHotseatSize,
+                destHotseatSize,
                 srcReader,
                 destReader,
                 dbHelper,
@@ -474,7 +684,7 @@ class GridSizeMigrationTest {
                 srcReader,
                 destReader,
                 dbHelper,
-                Point(idp.numColumns, idp.numRows),
+                Point(pointX, pointY),
                 idsInUse,
             )
         } else {
@@ -482,6 +692,7 @@ class GridSizeMigrationTest {
                 dbHelper,
                 srcReader,
                 destReader,
+                srcHotseatSize,
                 destHotseatSize,
                 Point(pointX, pointY),
                 DeviceGridState(idp),
@@ -490,8 +701,8 @@ class GridSizeMigrationTest {
         }
     }
 
-    private fun verifyHotseat(c: Cursor, idp: InvariantDeviceProfile, expected: List<String?>) {
-        assertThat(c.count).isEqualTo(idp.numDatabaseHotseatIcons)
+    private fun verifyHotseat(c: Cursor, expected: List<String?>, expectedCount: Int) {
+        assertThat(c.count).isEqualTo(expectedCount)
         val screenIndex = c.getColumnIndex(SCREEN)
         val intentIndex = c.getColumnIndex(INTENT)
         expected.forEachIndexed { idx, pkg ->
@@ -584,6 +795,7 @@ class GridSizeMigrationTest {
             dbHelper,
             srcReader,
             destReader,
+            4,
             idp.numDatabaseHotseatIcons,
             idp.numColumns,
             idp.numRows,
@@ -651,6 +863,7 @@ class GridSizeMigrationTest {
             dbHelper,
             srcReader,
             destReader,
+            6,
             idp.numDatabaseHotseatIcons,
             idp.numColumns,
             idp.numRows,
@@ -729,6 +942,7 @@ class GridSizeMigrationTest {
             dbHelper,
             srcReader,
             destReader,
+            2,
             idp.numDatabaseHotseatIcons,
             idp.numColumns,
             idp.numRows,
@@ -801,6 +1015,7 @@ class GridSizeMigrationTest {
             dbHelper,
             srcReader,
             destReader,
+            5,
             idp.numDatabaseHotseatIcons,
             idp.numColumns,
             idp.numRows,

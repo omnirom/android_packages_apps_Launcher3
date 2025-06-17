@@ -29,8 +29,6 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
 class WorkspaceItemSpaceFinderTest : AbstractWorkspaceModelTest() {
 
-    private val mItemSpaceFinder = WorkspaceItemSpaceFinder()
-
     @Before
     override fun setup() {
         super.setup()
@@ -42,15 +40,12 @@ class WorkspaceItemSpaceFinderTest : AbstractWorkspaceModelTest() {
     }
 
     private fun findSpace(spanX: Int, spanY: Int): NewItemSpace =
-        mItemSpaceFinder
-            .findSpaceForItem(
-                mAppState,
+        WorkspaceItemSpaceFinder(
                 mModelHelper.bgDataModel,
-                mExistingScreens,
-                mNewScreens,
-                spanX,
-                spanY,
+                mAppState.invariantDeviceProfile,
+                mModelHelper.model,
             )
+            .findSpaceForItem(mExistingScreens, mNewScreens, spanX, spanY)
             .let { NewItemSpace.fromIntArray(it) }
 
     private fun assertRegionVacant(newItemSpace: NewItemSpace, spanX: Int, spanY: Int) {

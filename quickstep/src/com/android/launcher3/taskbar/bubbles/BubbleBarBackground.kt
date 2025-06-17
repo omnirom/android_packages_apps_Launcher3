@@ -44,10 +44,13 @@ class BubbleBarBackground(context: Context, private var backgroundHeight: Float)
     private val arrowVisibleHeight: Float
 
     private val strokeAlpha: Int
+    private val strokeColor: Int
+    private val strokeColorDropTarget: Int
     private val shadowAlpha: Int
     private val shadowBlur: Float
     private val keyShadowDistance: Float
     private var arrowHeightFraction = 1f
+    private var isShowingDropTarget: Boolean = false
 
     var arrowPositionX: Float = 0f
         private set
@@ -100,7 +103,9 @@ class BubbleBarBackground(context: Context, private var backgroundHeight: Float)
         fillPaint.flags = Paint.ANTI_ALIAS_FLAG
         fillPaint.style = Paint.Style.FILL
         // configure stroke paint
-        strokePaint.color = context.getColor(R.color.taskbar_stroke)
+        strokeColor = context.getColor(R.color.taskbar_stroke)
+        strokeColorDropTarget = context.getColor(com.android.internal.R.color.system_primary_fixed)
+        strokePaint.color = strokeColor
         strokePaint.flags = Paint.ANTI_ALIAS_FLAG
         strokePaint.style = Paint.Style.STROKE
         strokePaint.strokeWidth = res.getDimension(R.dimen.transient_taskbar_stroke_width)
@@ -235,9 +240,25 @@ class BubbleBarBackground(context: Context, private var backgroundHeight: Float)
         return max(0f, getScaledArrowHeight() - (arrowHeight - arrowVisibleHeight))
     }
 
+    /** Set whether the background should show the drop target */
+    fun showDropTarget(isDropTarget: Boolean) {
+        if (isShowingDropTarget == isDropTarget) {
+            return
+        }
+        isShowingDropTarget = isDropTarget
+        val strokeColor = if (isDropTarget) strokeColorDropTarget else strokeColor
+        val alpha = if (isDropTarget) DRAG_STROKE_ALPHA else strokeAlpha
+        strokePaint.color = strokeColor
+        strokePaint.alpha = alpha
+        invalidateSelf()
+    }
+
+    fun isShowingDropTarget() = isShowingDropTarget
+
     companion object {
         private const val DARK_THEME_STROKE_ALPHA = 51
         private const val LIGHT_THEME_STROKE_ALPHA = 41
+        private const val DRAG_STROKE_ALPHA = 255
         private const val DARK_THEME_SHADOW_ALPHA = 51
         private const val LIGHT_THEME_SHADOW_ALPHA = 25
     }

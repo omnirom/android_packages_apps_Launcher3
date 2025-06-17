@@ -16,12 +16,13 @@
 package com.android.quickstep.util
 
 import com.android.launcher3.util.IntArray
-import com.android.quickstep.util.TaskGridNavHelper.CLEAR_ALL_PLACEHOLDER_ID
-import com.android.quickstep.util.TaskGridNavHelper.DIRECTION_DOWN
-import com.android.quickstep.util.TaskGridNavHelper.DIRECTION_LEFT
-import com.android.quickstep.util.TaskGridNavHelper.DIRECTION_RIGHT
-import com.android.quickstep.util.TaskGridNavHelper.DIRECTION_TAB
-import com.android.quickstep.util.TaskGridNavHelper.DIRECTION_UP
+import com.android.quickstep.util.TaskGridNavHelper.Companion.ADD_DESK_PLACEHOLDER_ID
+import com.android.quickstep.util.TaskGridNavHelper.Companion.CLEAR_ALL_PLACEHOLDER_ID
+import com.android.quickstep.util.TaskGridNavHelper.TaskNavDirection.DOWN
+import com.android.quickstep.util.TaskGridNavHelper.TaskNavDirection.LEFT
+import com.android.quickstep.util.TaskGridNavHelper.TaskNavDirection.RIGHT
+import com.android.quickstep.util.TaskGridNavHelper.TaskNavDirection.TAB
+import com.android.quickstep.util.TaskGridNavHelper.TaskNavDirection.UP
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 
@@ -34,8 +35,7 @@ class TaskGridNavHelperTest {
     */
     @Test
     fun equalLengthRows_noFocused_onTop_pressDown_goesToBottom() {
-        assertThat(getNextGridPage(currentPageTaskViewId = 1, DIRECTION_DOWN, delta = 1))
-            .isEqualTo(2)
+        assertThat(getNextGridPage(currentPageTaskViewId = 1, DOWN, delta = 1)).isEqualTo(2)
     }
 
     /*                      ↑----→
@@ -45,7 +45,7 @@ class TaskGridNavHelperTest {
     */
     @Test
     fun equalLengthRows_noFocused_onTop_pressUp_goesToBottom() {
-        assertThat(getNextGridPage(currentPageTaskViewId = 1, DIRECTION_UP, delta = 1)).isEqualTo(2)
+        assertThat(getNextGridPage(currentPageTaskViewId = 1, UP, delta = 1)).isEqualTo(2)
     }
 
     /*                      ↓----↑
@@ -56,8 +56,7 @@ class TaskGridNavHelperTest {
     */
     @Test
     fun equalLengthRows_noFocused_onBottom_pressDown_goesToTop() {
-        assertThat(getNextGridPage(currentPageTaskViewId = 2, DIRECTION_DOWN, delta = 1))
-            .isEqualTo(1)
+        assertThat(getNextGridPage(currentPageTaskViewId = 2, DOWN, delta = 1)).isEqualTo(1)
     }
 
     /*
@@ -67,7 +66,7 @@ class TaskGridNavHelperTest {
     */
     @Test
     fun equalLengthRows_noFocused_onBottom_pressUp_goesToTop() {
-        assertThat(getNextGridPage(currentPageTaskViewId = 2, DIRECTION_UP, delta = 1)).isEqualTo(1)
+        assertThat(getNextGridPage(currentPageTaskViewId = 2, UP, delta = 1)).isEqualTo(1)
     }
 
     /*
@@ -77,8 +76,7 @@ class TaskGridNavHelperTest {
     */
     @Test
     fun equalLengthRows_noFocused_onTop_pressLeft_goesLeft() {
-        assertThat(getNextGridPage(currentPageTaskViewId = 1, DIRECTION_LEFT, delta = 1))
-            .isEqualTo(3)
+        assertThat(getNextGridPage(currentPageTaskViewId = 1, LEFT, delta = 1)).isEqualTo(3)
     }
 
     /*
@@ -88,8 +86,7 @@ class TaskGridNavHelperTest {
     */
     @Test
     fun equalLengthRows_noFocused_onBottom_pressLeft_goesLeft() {
-        assertThat(getNextGridPage(currentPageTaskViewId = 2, DIRECTION_LEFT, delta = 1))
-            .isEqualTo(4)
+        assertThat(getNextGridPage(currentPageTaskViewId = 2, LEFT, delta = 1)).isEqualTo(4)
     }
 
     /*
@@ -99,8 +96,7 @@ class TaskGridNavHelperTest {
     */
     @Test
     fun equalLengthRows_noFocused_onTop_secondItem_pressRight_goesRight() {
-        assertThat(getNextGridPage(currentPageTaskViewId = 3, DIRECTION_RIGHT, delta = -1))
-            .isEqualTo(1)
+        assertThat(getNextGridPage(currentPageTaskViewId = 3, RIGHT, delta = -1)).isEqualTo(1)
     }
 
     /*
@@ -110,8 +106,7 @@ class TaskGridNavHelperTest {
     */
     @Test
     fun equalLengthRows_noFocused_onBottom_secondItem_pressRight_goesRight() {
-        assertThat(getNextGridPage(currentPageTaskViewId = 4, DIRECTION_RIGHT, delta = -1))
-            .isEqualTo(2)
+        assertThat(getNextGridPage(currentPageTaskViewId = 4, RIGHT, delta = -1)).isEqualTo(2)
     }
 
     /*
@@ -123,7 +118,7 @@ class TaskGridNavHelperTest {
     */
     @Test
     fun equalLengthRows_noFocused_onTop_pressRight_cycleToClearAll() {
-        assertThat(getNextGridPage(currentPageTaskViewId = 1, DIRECTION_RIGHT, delta = -1))
+        assertThat(getNextGridPage(currentPageTaskViewId = 1, RIGHT, delta = -1))
             .isEqualTo(CLEAR_ALL_PLACEHOLDER_ID)
     }
 
@@ -136,7 +131,7 @@ class TaskGridNavHelperTest {
     */
     @Test
     fun equalLengthRows_noFocused_onBottom_pressRight_cycleToClearAll() {
-        assertThat(getNextGridPage(currentPageTaskViewId = 2, DIRECTION_RIGHT, delta = -1))
+        assertThat(getNextGridPage(currentPageTaskViewId = 2, RIGHT, delta = -1))
             .isEqualTo(CLEAR_ALL_PLACEHOLDER_ID)
     }
 
@@ -148,7 +143,7 @@ class TaskGridNavHelperTest {
     */
     @Test
     fun equalLengthRows_noFocused_onTop_lastItem_pressLeft_toClearAll() {
-        assertThat(getNextGridPage(currentPageTaskViewId = 5, DIRECTION_LEFT, delta = 1))
+        assertThat(getNextGridPage(currentPageTaskViewId = 5, LEFT, delta = 1))
             .isEqualTo(CLEAR_ALL_PLACEHOLDER_ID)
     }
 
@@ -160,7 +155,7 @@ class TaskGridNavHelperTest {
     */
     @Test
     fun equalLengthRows_noFocused_onBottom_lastItem_pressLeft_toClearAll() {
-        assertThat(getNextGridPage(currentPageTaskViewId = 6, DIRECTION_LEFT, delta = 1))
+        assertThat(getNextGridPage(currentPageTaskViewId = 6, LEFT, delta = 1))
             .isEqualTo(CLEAR_ALL_PLACEHOLDER_ID)
     }
 
@@ -175,11 +170,7 @@ class TaskGridNavHelperTest {
     @Test
     fun equalLengthRows_noFocused_onClearAll_pressLeft_cycleToFirst() {
         assertThat(
-                getNextGridPage(
-                    currentPageTaskViewId = CLEAR_ALL_PLACEHOLDER_ID,
-                    DIRECTION_LEFT,
-                    delta = 1,
-                )
+                getNextGridPage(currentPageTaskViewId = CLEAR_ALL_PLACEHOLDER_ID, LEFT, delta = 1)
             )
             .isEqualTo(1)
     }
@@ -193,11 +184,7 @@ class TaskGridNavHelperTest {
     @Test
     fun equalLengthRows_noFocused_onClearAll_pressRight_toLastInBottom() {
         assertThat(
-                getNextGridPage(
-                    currentPageTaskViewId = CLEAR_ALL_PLACEHOLDER_ID,
-                    DIRECTION_RIGHT,
-                    delta = -1,
-                )
+                getNextGridPage(currentPageTaskViewId = CLEAR_ALL_PLACEHOLDER_ID, RIGHT, delta = -1)
             )
             .isEqualTo(6)
     }
@@ -213,7 +200,7 @@ class TaskGridNavHelperTest {
         assertThat(
                 getNextGridPage(
                     currentPageTaskViewId = FOCUSED_TASK_ID,
-                    DIRECTION_LEFT,
+                    LEFT,
                     delta = 1,
                     largeTileIds = listOf(FOCUSED_TASK_ID),
                 )
@@ -232,7 +219,7 @@ class TaskGridNavHelperTest {
         assertThat(
                 getNextGridPage(
                     currentPageTaskViewId = FOCUSED_TASK_ID,
-                    DIRECTION_UP,
+                    UP,
                     delta = 1,
                     largeTileIds = listOf(FOCUSED_TASK_ID),
                 )
@@ -253,7 +240,7 @@ class TaskGridNavHelperTest {
         assertThat(
                 getNextGridPage(
                     currentPageTaskViewId = FOCUSED_TASK_ID,
-                    DIRECTION_DOWN,
+                    DOWN,
                     delta = 1,
                     largeTileIds = listOf(FOCUSED_TASK_ID),
                 )
@@ -274,7 +261,7 @@ class TaskGridNavHelperTest {
         assertThat(
                 getNextGridPage(
                     currentPageTaskViewId = FOCUSED_TASK_ID,
-                    DIRECTION_RIGHT,
+                    RIGHT,
                     delta = -1,
                     largeTileIds = listOf(FOCUSED_TASK_ID),
                 )
@@ -296,7 +283,7 @@ class TaskGridNavHelperTest {
         assertThat(
                 getNextGridPage(
                     currentPageTaskViewId = CLEAR_ALL_PLACEHOLDER_ID,
-                    DIRECTION_LEFT,
+                    LEFT,
                     delta = 1,
                     largeTileIds = listOf(FOCUSED_TASK_ID),
                 )
@@ -315,7 +302,7 @@ class TaskGridNavHelperTest {
         assertThat(
                 getNextGridPage(
                     currentPageTaskViewId = 7,
-                    DIRECTION_DOWN,
+                    DOWN,
                     delta = 1,
                     topIds = IntArray.wrap(1, 3, 5, 7),
                 )
@@ -334,7 +321,7 @@ class TaskGridNavHelperTest {
         assertThat(
                 getNextGridPage(
                     /* topIds = */ currentPageTaskViewId = 7,
-                    DIRECTION_UP,
+                    UP,
                     delta = 1,
                     topIds = IntArray.wrap(1, 3, 5, 7),
                 )
@@ -352,7 +339,7 @@ class TaskGridNavHelperTest {
         assertThat(
                 getNextGridPage(
                     /* topIds = */ currentPageTaskViewId = 6,
-                    DIRECTION_LEFT,
+                    LEFT,
                     delta = 1,
                     topIds = IntArray.wrap(1, 3, 5, 7),
                 )
@@ -371,7 +358,7 @@ class TaskGridNavHelperTest {
         assertThat(
                 getNextGridPage(
                     /* topIds = */ currentPageTaskViewId = CLEAR_ALL_PLACEHOLDER_ID,
-                    DIRECTION_RIGHT,
+                    RIGHT,
                     delta = -1,
                     topIds = IntArray.wrap(1, 3, 5, 7),
                 )
@@ -390,7 +377,7 @@ class TaskGridNavHelperTest {
         assertThat(
                 getNextGridPage(
                     currentPageTaskViewId = CLEAR_ALL_PLACEHOLDER_ID,
-                    DIRECTION_RIGHT,
+                    RIGHT,
                     delta = -1,
                     bottomIds = IntArray.wrap(2, 4, 6, 7),
                 )
@@ -405,8 +392,7 @@ class TaskGridNavHelperTest {
     */
     @Test
     fun equalLengthRows_noFocused_onTop_pressTab_goesToBottom() {
-        assertThat(getNextGridPage(currentPageTaskViewId = 1, DIRECTION_TAB, delta = 1))
-            .isEqualTo(2)
+        assertThat(getNextGridPage(currentPageTaskViewId = 1, TAB, delta = 1)).isEqualTo(2)
     }
 
     /*
@@ -417,8 +403,7 @@ class TaskGridNavHelperTest {
     */
     @Test
     fun equalLengthRows_noFocused_onBottom_pressTab_goesToNextTop() {
-        assertThat(getNextGridPage(currentPageTaskViewId = 2, DIRECTION_TAB, delta = 1))
-            .isEqualTo(3)
+        assertThat(getNextGridPage(currentPageTaskViewId = 2, TAB, delta = 1)).isEqualTo(3)
     }
 
     /*
@@ -430,8 +415,7 @@ class TaskGridNavHelperTest {
     */
     @Test
     fun equalLengthRows_noFocused_onTop_pressTabWithShift_goesToPreviousBottom() {
-        assertThat(getNextGridPage(currentPageTaskViewId = 3, DIRECTION_TAB, delta = -1))
-            .isEqualTo(2)
+        assertThat(getNextGridPage(currentPageTaskViewId = 3, TAB, delta = -1)).isEqualTo(2)
     }
 
     /*
@@ -441,8 +425,36 @@ class TaskGridNavHelperTest {
     */
     @Test
     fun equalLengthRows_noFocused_onBottom_pressTabWithShift_goesToTop() {
-        assertThat(getNextGridPage(currentPageTaskViewId = 2, DIRECTION_TAB, delta = -1))
+        assertThat(getNextGridPage(currentPageTaskViewId = 2, TAB, delta = -1)).isEqualTo(1)
+    }
+
+    /*
+                   5   3  [1]
+        CLEAR_ALL
+                   6   4   2
+    */
+    @Test
+    fun equalLengthRows_noFocused_onTop_pressTabWithShift_noCycle_staysOnTop() {
+        assertThat(getNextGridPage(currentPageTaskViewId = 1, TAB, delta = -1, cycle = false))
             .isEqualTo(1)
+    }
+
+    /*
+                   5   3   1
+       [CLEAR_ALL]
+                   6   4   2
+    */
+    @Test
+    fun equalLengthRows_noFocused_onClearAll_pressTab_noCycle_staysOnClearAll() {
+        assertThat(
+                getNextGridPage(
+                    currentPageTaskViewId = CLEAR_ALL_PLACEHOLDER_ID,
+                    TAB,
+                    delta = 1,
+                    cycle = false,
+                )
+            )
+            .isEqualTo(CLEAR_ALL_PLACEHOLDER_ID)
     }
 
     /*
@@ -455,7 +467,7 @@ class TaskGridNavHelperTest {
         assertThat(
                 getNextGridPage(
                     currentPageTaskViewId = DESKTOP_TASK_ID,
-                    DIRECTION_LEFT,
+                    LEFT,
                     delta = 1,
                     largeTileIds = listOf(DESKTOP_TASK_ID, FOCUSED_TASK_ID),
                 )
@@ -473,7 +485,7 @@ class TaskGridNavHelperTest {
         assertThat(
                 getNextGridPage(
                     currentPageTaskViewId = FOCUSED_TASK_ID,
-                    DIRECTION_RIGHT,
+                    RIGHT,
                     delta = -1,
                     largeTileIds = listOf(DESKTOP_TASK_ID, FOCUSED_TASK_ID),
                 )
@@ -493,7 +505,7 @@ class TaskGridNavHelperTest {
         assertThat(
                 getNextGridPage(
                     currentPageTaskViewId = DESKTOP_TASK_ID,
-                    DIRECTION_RIGHT,
+                    RIGHT,
                     delta = -1,
                     largeTileIds = listOf(DESKTOP_TASK_ID, FOCUSED_TASK_ID),
                 )
@@ -514,7 +526,7 @@ class TaskGridNavHelperTest {
         assertThat(
                 getNextGridPage(
                     currentPageTaskViewId = CLEAR_ALL_PLACEHOLDER_ID,
-                    DIRECTION_LEFT,
+                    LEFT,
                     delta = 1,
                     largeTileIds = listOf(DESKTOP_TASK_ID, FOCUSED_TASK_ID),
                 )
@@ -533,7 +545,7 @@ class TaskGridNavHelperTest {
         assertThat(
                 getNextGridPage(
                     currentPageTaskViewId = 2,
-                    DIRECTION_RIGHT,
+                    RIGHT,
                     delta = -1,
                     largeTileIds = listOf(DESKTOP_TASK_ID, FOCUSED_TASK_ID),
                 )
@@ -552,7 +564,7 @@ class TaskGridNavHelperTest {
         assertThat(
                 getNextGridPage(
                     currentPageTaskViewId = 1,
-                    DIRECTION_RIGHT,
+                    RIGHT,
                     delta = -1,
                     largeTileIds = listOf(DESKTOP_TASK_ID, FOCUSED_TASK_ID),
                 )
@@ -571,7 +583,7 @@ class TaskGridNavHelperTest {
         assertThat(
                 getNextGridPage(
                     currentPageTaskViewId = DESKTOP_TASK_ID,
-                    DIRECTION_TAB,
+                    TAB,
                     delta = 1,
                     largeTileIds = listOf(DESKTOP_TASK_ID, FOCUSED_TASK_ID),
                 )
@@ -589,7 +601,7 @@ class TaskGridNavHelperTest {
         assertThat(
                 getNextGridPage(
                     currentPageTaskViewId = FOCUSED_TASK_ID,
-                    DIRECTION_LEFT,
+                    LEFT,
                     delta = 1,
                     topIds = IntArray(),
                     bottomIds = IntArray.wrap(2),
@@ -611,7 +623,7 @@ class TaskGridNavHelperTest {
         assertThat(
                 getNextGridPage(
                     currentPageTaskViewId = DESKTOP_TASK_ID,
-                    DIRECTION_TAB,
+                    TAB,
                     delta = -1,
                     largeTileIds = listOf(DESKTOP_TASK_ID, FOCUSED_TASK_ID),
                 )
@@ -619,16 +631,224 @@ class TaskGridNavHelperTest {
             .isEqualTo(CLEAR_ALL_PLACEHOLDER_ID)
     }
 
+    /*
+                        5   3   1→----|
+                                      ↓
+         CLEAR_ALL                   ADD_DESKTOP
+                        6   4   2
+    */
+    @Test
+    fun withAddDesktopButton_pressRightFromTop_goesToAddDesktopButton() {
+        assertThat(
+                getNextGridPage(
+                    currentPageTaskViewId = 1,
+                    RIGHT,
+                    delta = -1,
+                    hasAddDesktopButton = true,
+                )
+            )
+            .isEqualTo(ADD_DESK_PLACEHOLDER_ID)
+    }
+
+    /*
+                    5   3   1
+       CLEAR_ALL                 ADD_DESKTOP
+                                  ↑
+                    6   4   2→----↑
+    */
+    @Test
+    fun withAddDesktopButton_pressRightFromBottom_goesToAddDesktopButton() {
+        assertThat(
+                getNextGridPage(
+                    currentPageTaskViewId = 2,
+                    RIGHT,
+                    delta = -1,
+                    hasAddDesktopButton = true,
+                )
+            )
+            .isEqualTo(ADD_DESK_PLACEHOLDER_ID)
+    }
+
+    /*
+         ↓-------------------------------←|
+         |                                ↑
+         ↓      5   3   1                 |
+    CLEAR_ALL               ADD_DESKTOP--→
+                6   4   2
+    */
+    @Test
+    fun withAddDesktopButton_pressRightFromAddDesktopButton_goesToClearAllButton() {
+        assertThat(
+                getNextGridPage(
+                    currentPageTaskViewId = ADD_DESK_PLACEHOLDER_ID,
+                    RIGHT,
+                    delta = -1,
+                    hasAddDesktopButton = true,
+                )
+            )
+            .isEqualTo(CLEAR_ALL_PLACEHOLDER_ID)
+    }
+
+    /*
+           |→--------------------------------|
+           |                                 |
+           ↑                5   3   1        ↓
+           ←------CLEAR_ALL             ADD_DESKTOP
+
+                            6   4   2
+    */
+    @Test
+    fun withAddDesktopButton_pressLeftFromClearAllButton_goesToAddDesktopButton() {
+        assertThat(
+                getNextGridPage(
+                    currentPageTaskViewId = CLEAR_ALL_PLACEHOLDER_ID,
+                    LEFT,
+                    delta = 1,
+                    hasAddDesktopButton = true,
+                )
+            )
+            .isEqualTo(ADD_DESK_PLACEHOLDER_ID)
+    }
+
+    /*
+                        5   3   1
+                                   ←--↑
+        CLEAR_ALL                  ↓-→ADD_DESKTOP
+                        6   4   2
+    */
+    @Test
+    fun withAddDesktopButton_pressUpOnAddDesktop_stayOnAddDesktopButton() {
+        assertThat(
+                getNextGridPage(
+                    currentPageTaskViewId = ADD_DESK_PLACEHOLDER_ID,
+                    UP,
+                    delta = 1,
+                    hasAddDesktopButton = true,
+                )
+            )
+            .isEqualTo(ADD_DESK_PLACEHOLDER_ID)
+    }
+
+    /*
+                        5   3   1
+        CLEAR_ALL                  ↑--→ADD_DESKTOP
+                                   ↑←--↓
+                        6   4   2
+    */
+    @Test
+    fun withAddDesktopButton_pressDownOnAddDesktop_stayOnAddDesktopButton() {
+        assertThat(
+                getNextGridPage(
+                    currentPageTaskViewId = ADD_DESK_PLACEHOLDER_ID,
+                    DOWN,
+                    delta = 1,
+                    hasAddDesktopButton = true,
+                )
+            )
+            .isEqualTo(ADD_DESK_PLACEHOLDER_ID)
+    }
+
+    /*
+                        5   3   1
+           CLEAR_ALL                DESKTOP--→ADD_DESKTOP
+                        6   4   2
+    */
+    @Test
+    fun withAddDesktopButton_pressRightFromDesktopTask_goesToAddDesktopButton() {
+        assertThat(
+                getNextGridPage(
+                    currentPageTaskViewId = ADD_DESK_PLACEHOLDER_ID,
+                    LEFT,
+                    delta = 1,
+                    largeTileIds = listOf(DESKTOP_TASK_ID),
+                    hasAddDesktopButton = true,
+                )
+            )
+            .isEqualTo(DESKTOP_TASK_ID)
+    }
+
+    /*
+                        5   3   1
+           CLEAR_ALL                DESKTOP←--ADD_DESKTOP
+                        6   4   2
+    */
+    @Test
+    fun withAddDesktopButton_pressLeftFromAddDesktopButton_goesToDesktopTask() {
+        assertThat(
+                getNextGridPage(
+                    currentPageTaskViewId = DESKTOP_TASK_ID,
+                    RIGHT,
+                    delta = -1,
+                    largeTileIds = listOf(DESKTOP_TASK_ID),
+                    hasAddDesktopButton = true,
+                )
+            )
+            .isEqualTo(ADD_DESK_PLACEHOLDER_ID)
+    }
+
+    // Col offset:  0   1   2
+    //             -----------
+    // ID grid:     4   2   0  start
+    //         end [5]  3   1
+    @Test
+    fun gridTaskViewIdOffsetPairInTabOrderSequence_towardsStart() {
+        val expected = listOf(Pair(4, 0), Pair(3, 1), Pair(2, 1), Pair(1, 2), Pair(0, 2))
+        assertThat(
+                gridTaskViewIdOffsetPairInTabOrderSequence(
+                        initialTaskViewId = 5,
+                        towardsStart = true,
+                    )
+                    .toList()
+            )
+            .isEqualTo(expected)
+    }
+
+    // Col offset:  2   1   0
+    //             -----------
+    // ID grid:     4   2  [0] start
+    //          end 5   3   1
+    @Test
+    fun gridTaskViewIdOffsetPairInTabOrderSequence_towardsEnd() {
+        val expected = listOf(Pair(1, 0), Pair(2, 1), Pair(3, 1), Pair(4, 2), Pair(5, 2))
+        assertThat(
+                gridTaskViewIdOffsetPairInTabOrderSequence(
+                        initialTaskViewId = 0,
+                        towardsStart = false,
+                    )
+                    .toList()
+            )
+            .isEqualTo(expected)
+    }
+
     private fun getNextGridPage(
         currentPageTaskViewId: Int,
-        direction: Int,
+        direction: TaskGridNavHelper.TaskNavDirection,
         delta: Int,
         topIds: IntArray = IntArray.wrap(1, 3, 5),
         bottomIds: IntArray = IntArray.wrap(2, 4, 6),
         largeTileIds: List<Int> = emptyList(),
+        hasAddDesktopButton: Boolean = false,
+        cycle: Boolean = true,
     ): Int {
-        val taskGridNavHelper = TaskGridNavHelper(topIds, bottomIds, largeTileIds)
-        return taskGridNavHelper.getNextGridPage(currentPageTaskViewId, delta, direction, true)
+        val taskGridNavHelper =
+            TaskGridNavHelper(topIds, bottomIds, largeTileIds, hasAddDesktopButton)
+        return taskGridNavHelper.getNextGridPage(currentPageTaskViewId, delta, direction, cycle)
+    }
+
+    private fun gridTaskViewIdOffsetPairInTabOrderSequence(
+        initialTaskViewId: Int,
+        towardsStart: Boolean,
+        topIds: IntArray = IntArray.wrap(0, 2, 4),
+        bottomIds: IntArray = IntArray.wrap(1, 3, 5),
+        largeTileIds: List<Int> = emptyList(),
+        hasAddDesktopButton: Boolean = false,
+    ): Sequence<Pair<Int, Int>> {
+        val taskGridNavHelper =
+            TaskGridNavHelper(topIds, bottomIds, largeTileIds, hasAddDesktopButton)
+        return taskGridNavHelper.gridTaskViewIdOffsetPairInTabOrderSequence(
+            initialTaskViewId,
+            towardsStart,
+        )
     }
 
     private companion object {

@@ -16,7 +16,6 @@
 
 package com.android.quickstep.util;
 
-import static com.android.launcher3.config.FeatureFlags.enableSplitContextually;
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_KEYBOARD_SHORTCUT_SPLIT_LEFT_TOP;
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_KEYBOARD_SHORTCUT_SPLIT_RIGHT_BOTTOM;
 import static com.android.launcher3.util.Executors.MAIN_EXECUTOR;
@@ -30,6 +29,7 @@ import android.app.ActivityManager;
 import android.app.ActivityOptions;
 import android.graphics.Rect;
 import android.graphics.RectF;
+import android.window.TransitionInfo;
 
 import androidx.annotation.BinderThread;
 
@@ -40,7 +40,6 @@ import com.android.launcher3.uioverrides.QuickstepLauncher;
 import com.android.quickstep.OverviewComponentObserver;
 import com.android.quickstep.RecentsAnimationCallbacks;
 import com.android.quickstep.RecentsAnimationController;
-import com.android.quickstep.RecentsAnimationDeviceState;
 import com.android.quickstep.RecentsAnimationTargets;
 import com.android.quickstep.RecentsModel;
 import com.android.quickstep.SystemUiProxy;
@@ -55,18 +54,15 @@ public class SplitWithKeyboardShortcutController {
 
     private final QuickstepLauncher mLauncher;
     private final SplitSelectStateController mController;
-    private final RecentsAnimationDeviceState mDeviceState;
     private final OverviewComponentObserver mOverviewComponentObserver;
 
     private final int mSplitPlaceholderSize;
     private final int mSplitPlaceholderInset;
 
-    public SplitWithKeyboardShortcutController(QuickstepLauncher launcher,
-            SplitSelectStateController controller,
-            RecentsAnimationDeviceState deviceState) {
+    public SplitWithKeyboardShortcutController(
+            QuickstepLauncher launcher, SplitSelectStateController controller) {
         mLauncher = launcher;
         mController = controller;
-        mDeviceState = deviceState;
         mOverviewComponentObserver = OverviewComponentObserver.INSTANCE.get(launcher);
 
         mSplitPlaceholderSize = mLauncher.getResources().getDimensionPixelSize(
@@ -77,9 +73,8 @@ public class SplitWithKeyboardShortcutController {
 
     @BinderThread
     public void enterStageSplit(boolean leftOrTop) {
-        if (!enableSplitContextually() ||
-                // Do not enter stage split from keyboard shortcuts if the user is already in split
-                TopTaskTracker.INSTANCE.get(mLauncher).getRunningSplitTaskIds().length == 2) {
+        if (TopTaskTracker.INSTANCE.get(mLauncher).getRunningSplitTaskIds().length == 2) {
+            // Do not enter stage split from keyboard shortcuts if the user is already in split
             return;
         }
         RecentsAnimationCallbacks callbacks = new RecentsAnimationCallbacks(
@@ -104,10 +99,6 @@ public class SplitWithKeyboardShortcutController {
         });
     }
 
-    public void onDestroy() {
-        mDeviceState.destroy();
-    }
-
     private class SplitWithKeyboardShortcutRecentsAnimationListener implements
             RecentsAnimationCallbacks.RecentsAnimationListener {
 
@@ -122,7 +113,7 @@ public class SplitWithKeyboardShortcutController {
 
         @Override
         public void onRecentsAnimationStart(RecentsAnimationController controller,
-                RecentsAnimationTargets targets) {
+                RecentsAnimationTargets targets, TransitionInfo transitionInfo) {
             mController.setInitialTaskSelect(mRunningTaskInfo,
                     mLeftOrTop ? STAGE_POSITION_TOP_OR_LEFT : STAGE_POSITION_BOTTOM_OR_RIGHT,
                     null /* itemInfo */,

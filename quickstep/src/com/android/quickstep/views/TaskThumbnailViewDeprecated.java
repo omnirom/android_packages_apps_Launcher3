@@ -46,7 +46,6 @@ import androidx.core.graphics.ColorUtils;
 
 import com.android.launcher3.DeviceProfile;
 import com.android.launcher3.Utilities;
-import com.android.launcher3.util.MainThreadInitializedObject;
 import com.android.launcher3.util.SystemUiController;
 import com.android.launcher3.util.SystemUiController.SystemUiControllerFlags;
 import com.android.launcher3.util.ViewPool;
@@ -66,8 +65,6 @@ import java.util.Objects;
  */
 @Deprecated
 public class TaskThumbnailViewDeprecated extends View implements ViewPool.Reusable {
-    private static final MainThreadInitializedObject<FullscreenDrawParams> TEMP_PARAMS =
-            new MainThreadInitializedObject<>(FullscreenDrawParams::new);
 
     public static final Property<TaskThumbnailViewDeprecated, Float> DIM_ALPHA =
             new FloatProperty<TaskThumbnailViewDeprecated>("dimAlpha") {
@@ -145,8 +142,7 @@ public class TaskThumbnailViewDeprecated extends View implements ViewPool.Reusab
         mClearPaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.CLEAR));
         mContainer = RecentsViewContainer.containerFromContext(context);
         // Initialize with placeholder value. It is overridden later by TaskView
-        mFullscreenParams = TEMP_PARAMS.get(context);
-
+        mFullscreenParams = new FullscreenDrawParams(context, __ -> 0f, __ -> 0f);
         mDimColor = RecentsView.getForegroundScrimDimColor(context);
         mDimmingPaintAfterClearing.setColor(mDimColor);
     }
@@ -416,7 +412,12 @@ public class TaskThumbnailViewDeprecated extends View implements ViewPool.Reusab
                 thumbnailDataAspect, MAX_PCT_BEFORE_ASPECT_RATIOS_CONSIDERED_DIFFERENT);
     }
 
-    private boolean isThumbnailRotationDifferentFromTask() {
+    /**
+     * Returns whether or not the current thumbnail is a different orientation to the task.
+     * <p>
+     * Used to disable modal state when screenshot doesn't match the device orientation.
+     */
+    public boolean isThumbnailRotationDifferentFromTask() {
         RecentsView recents = mTaskView.getRecentsView();
         if (recents == null || mThumbnailData == null) {
             return false;

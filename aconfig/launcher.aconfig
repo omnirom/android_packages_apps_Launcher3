@@ -1,5 +1,5 @@
 package: "com.android.launcher3"
-container: "system"
+container: "system_ext"
 
 flag {
     name: "enable_expanding_pause_work_button"
@@ -62,13 +62,6 @@ flag {
     namespace: "launcher"
     description: "Enables taskbar pinning to allow user to switch between transient and persistent taskbar flavors."
     bug: "296231746"
-}
-
-flag {
-    name: "enable_taskbar_connected_displays"
-    namespace: "launcher"
-    description: "Enables connected displays in taskbar."
-    bug: "362720616"
 }
 
 flag {
@@ -242,7 +235,7 @@ flag {
 
 flag {
     name: "enable_fallback_overview_in_window"
-    namespace: "launcher"
+    namespace: "lse_desktop_experience"
     description: "Enables fallback recents opening inside of a window instead of an activity."
     bug: "292269949"
 }
@@ -315,6 +308,13 @@ flag {
     namespace: "launcher"
     description: "All Apps will be presented on a bottom sheet in handheld mode"
     bug: "374186088"
+}
+
+flag {
+    name: "all_apps_blur"
+    namespace: "launcher"
+    description: "Content behind the all apps panel in Launcher will be blurred."
+    bug: "400827727"
 }
 
 flag {
@@ -457,14 +457,14 @@ flag {
 
 flag {
     name: "enable_recents_window_proto_log"
-    namespace: "launcher"
+    namespace: "lse_desktop_experience"
     description: "Enables tracking recents window logs in ProtoLog"
     bug: "292269949"
 }
 
 flag {
     name: "enable_state_manager_proto_log"
-    namespace: "launcher"
+    namespace: "lse_desktop_experience"
     description: "Enables tracking state manager logs in ProtoLog"
     bug: "292269949"
 }
@@ -495,7 +495,7 @@ flag {
 
 flag {
     name: "enable_launcher_overview_in_window"
-    namespace: "launcher"
+    namespace: "lse_desktop_experience"
     description: "Enables launcher recents opening inside of a window instead of being hosted in launcher activity."
     bug: "292269949"
 }
@@ -525,13 +525,6 @@ flag {
 }
 
 flag {
-    name: "taskbar_recents_layout_transition"
-    namespace: "launcher"
-    description: "Enable Taskbar LayoutTransition for Recent Apps"
-    bug: "343521765"
-}
-
-flag {
     name: "enable_pinning_app_with_context_menu"
     namespace: "launcher"
     description: "Add options to pin/unpin to taskbar to app context menus."
@@ -543,4 +536,171 @@ flag {
   namespace: "launcher"
   description: "Enable launcher icon shape customizations"
   bug: "348708061"
+}
+
+flag {
+  name: "predictive_back_to_home_polish"
+  namespace: "launcher"
+  description: "Enables workspace reveal animation for predictive back-to-home"
+  bug: "382453424"
+  metadata {
+    purpose: PURPOSE_BUGFIX
+  }
+}
+
+flag {
+  name: "predictive_back_to_home_blur"
+  namespace: "launcher"
+  description: "Adds blur for predictive back-to-home"
+  bug: "342178850"
+  metadata {
+    purpose: PURPOSE_BUGFIX
+  }
+}
+
+flag {
+  name: "enable_launcher_visual_refresh"
+  namespace: "launcher"
+  description: "Adds refresh for font family, app longpress menu icons, and pagination dots"
+  bug: "395145453"
+}
+
+flag {
+  name: "gsf_res"
+  namespace: "launcher"
+  description: "Adds refresh for font family. Needs to be fixed to be used in resources."
+  bug: "395145453"
+  is_fixed_read_only: true
+  metadata {
+    purpose: PURPOSE_BUGFIX
+  }
+}
+
+flag {
+  name: "restore_archived_shortcuts"
+  namespace: "launcher"
+  description: "Makes sure pre-archived pinned shortcuts also get restored"
+  bug: "375414891"
+  metadata {
+    purpose: PURPOSE_BUGFIX
+  }
+}
+
+flag {
+  name: "restore_archived_app_icons_from_db"
+  namespace: "launcher"
+  description: "Restores pre-archived icons from db when available, mimicing promise icons"
+  bug: "391913214"
+  metadata {
+    purpose: PURPOSE_BUGFIX
+  }
+}
+
+flag {
+  name: "enable_mouse_interaction_changes"
+  namespace: "launcher"
+  description: "Changes mouse interaction behavior"
+  bug: "388897603"
+}
+
+flag {
+  name: "enable_alt_tab_kqs_on_connected_displays"
+  namespace: "lse_desktop_experience"
+  description: "Enable Alt + Tab KQS support on connected displays"
+  bug: "394007677"
+}
+
+flag {
+  name: "expressive_theme_in_taskbar_and_navigation"
+  namespace: "launcher"
+  description: "Enables the expressive theme and GSF font styles for Taskbar and Gesture Navigation"
+  bug: "394613212"
+  metadata {
+    purpose: PURPOSE_BUGFIX
+  }
+}
+
+flag {
+  name: "enable_strict_mode"
+  namespace: "launcher"
+  description: "Enable Strict Mode for the Launcher app"
+  bug: "394651876"
+}
+
+flag {
+  name: "extendible_theme_manager"
+  namespace: "launcher"
+  description: "Enables custom theme manager in Launcher"
+  bug: "381897614"
+}
+
+flag {
+  name: "enable_alt_tab_kqs_flatenning"
+  namespace: "lse_desktop_experience"
+  description: "Enable Alt + Tab KQS view to show apps in flattened structure"
+  bug: "382769617"
+}
+
+flag {
+  name: "enable_gesture_nav_on_connected_displays"
+  namespace: "lse_desktop_experience"
+  description: "Enables gesture navigation handling on connected displays"
+  bug: "382130680"
+}
+
+flag {
+  name: "enable_taskbar_behind_shade"
+  namespace: "lse_desktop_experience"
+  description: "Keeps taskbar behind notification shade when its pulled down"
+  bug: "343194358"
+  metadata {
+    purpose: PURPOSE_BUGFIX
+  }
+}
+
+flag {
+  name: "enable_scalability_for_desktop_experience"
+  namespace: "launcher"
+  description: "Enable more grid scale options on the launcher for desktop experience"
+  bug: "375491272"
+}
+
+flag {
+  name: "enable_gesture_nav_horizontal_touch_slop"
+  namespace: "launcher"
+  description: "Enables horizontal touch slop checking in non-vertical fling navigation gestures"
+  bug: "394364217"
+  metadata {
+    purpose: PURPOSE_BUGFIX
+  }
+}
+
+flag {
+  name: "sync_app_launch_with_taskbar_stash"
+  namespace: "launcher"
+  description: "Syncs the two animations (app launch, taskbar stash) so they play at the same time."
+  bug: "319162553"
+  metadata {
+    purpose: PURPOSE_BUGFIX
+  }
+}
+
+flag {
+  name: "remove_apps_refresh_on_right_click"
+  namespace: "launcher"
+  description: "Remove predicted apps refresh on right click"
+  bug: "343650193"
+  metadata {
+    purpose: PURPOSE_BUGFIX
+  }
+}
+
+flag {
+  name: "enable_taskbar_for_direct_boot"
+  namespace: "launcher"
+  description: "Initializes parts of Taskbar before onUserUnlocked"
+  bug: "324485921"
+  metadata {
+    purpose: PURPOSE_BUGFIX
+  }
 }

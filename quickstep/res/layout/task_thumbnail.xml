@@ -15,7 +15,6 @@
 -->
 <com.android.quickstep.task.thumbnail.TaskThumbnailView
     xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/snapshot"
     android:layout_width="match_parent"
     android:layout_height="match_parent" >
@@ -53,10 +52,7 @@
         android:id="@+id/splash_icon"
         android:layout_width="@dimen/task_thumbnail_splash_icon_size"
         android:layout_height="@dimen/task_thumbnail_splash_icon_size"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_gravity="center"
         android:scaleType="fitCenter"
         android:alpha="0"
         android:importantForAccessibility="no" />

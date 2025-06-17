@@ -21,18 +21,25 @@ import android.os.VibrationEffect
 import android.os.VibrationEffect.Composition
 import android.os.Vibrator
 import com.android.launcher3.dagger.ApplicationContext
-import com.android.launcher3.util.MainThreadInitializedObject
-import com.android.launcher3.util.SafeCloseable
+import com.android.launcher3.dagger.LauncherAppSingleton
+import com.android.launcher3.util.DaggerSingletonObject
 import com.android.launcher3.util.VibratorWrapper
 import com.android.quickstep.DeviceConfigWrapper.Companion.get
+import com.android.quickstep.dagger.QuickstepBaseAppComponent
+import javax.inject.Inject
 import kotlin.math.pow
 
 /** Manages haptics relating to Contextual Search invocations. */
+@LauncherAppSingleton
 class ContextualSearchHapticManager
-internal constructor(@ApplicationContext private val context: Context) : SafeCloseable {
+@Inject
+internal constructor(
+    @ApplicationContext private val context: Context,
+    private val contextualSearchStateManager: ContextualSearchStateManager,
+    private val vibratorWrapper: VibratorWrapper,
+) {
 
     private var searchEffect = createSearchEffect()
-    private var contextualSearchStateManager = ContextualSearchStateManager.INSTANCE[context]
 
     private fun createSearchEffect() =
         if (
@@ -50,7 +57,7 @@ internal constructor(@ApplicationContext private val context: Context) : SafeClo
 
     /** Indicates that search has been invoked. */
     fun vibrateForSearch() {
-        searchEffect.let { VibratorWrapper.INSTANCE[context].vibrate(it) }
+        searchEffect.let { vibratorWrapper.vibrate(it) }
     }
 
     /** Indicates that search will be invoked if the current gesture is maintained. */
@@ -93,13 +100,13 @@ internal constructor(@ApplicationContext private val context: Context) : SafeClo
                     composition.addPrimitive(Composition.PRIMITIVE_LOW_TICK, scale)
                 }
             }
-            VibratorWrapper.INSTANCE[context].vibrate(composition.compose())
+            vibratorWrapper.vibrate(composition.compose())
         }
     }
 
-    override fun close() {}
-
     companion object {
-        @JvmField val INSTANCE = MainThreadInitializedObject { ContextualSearchHapticManager(it) }
+        @JvmField
+        val INSTANCE =
+            DaggerSingletonObject(QuickstepBaseAppComponent::getContextualSearchHapticManager)
     }
 }

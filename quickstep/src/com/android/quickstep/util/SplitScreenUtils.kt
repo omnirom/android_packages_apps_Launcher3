@@ -33,38 +33,34 @@ class SplitScreenUtils {
         // TODO(b/254378592): Remove these methods when the two classes are reunited
         /** Converts the shell version of SplitBounds to the launcher version */
         @JvmStatic
-        fun convertShellSplitBoundsToLauncher(
-            shellSplitBounds: SplitBounds?
-        ): SplitConfigurationOptions.SplitBounds? {
-            return if (shellSplitBounds == null) {
-                null
-            } else {
-                SplitConfigurationOptions.SplitBounds(
-                    shellSplitBounds.leftTopBounds,
-                    shellSplitBounds.rightBottomBounds,
-                    shellSplitBounds.leftTopTaskId,
-                    shellSplitBounds.rightBottomTaskId,
-                    shellSplitBounds.snapPosition
-                )
-            }
-        }
+        fun convertShellSplitBoundsToLauncher(shellSplitBounds: SplitBounds) =
+            SplitConfigurationOptions.SplitBounds(
+                shellSplitBounds.leftTopBounds,
+                shellSplitBounds.rightBottomBounds,
+                shellSplitBounds.leftTopTaskId,
+                shellSplitBounds.rightBottomTaskId,
+                shellSplitBounds.snapPosition,
+            )
 
         /**
          * Given a TransitionInfo, generates the tree structure for those changes and extracts out
-         * the top most root and it's two immediate children.
-         * Changes can be provided in any order.
+         * the top most root and it's two immediate children. Changes can be provided in any order.
          *
-         * @return a [Pair] where first -> top most split root,
-         *         second -> [List] of 2, leftTop/bottomRight stage roots
+         * @return a [Pair] where first -> top most split root, second -> [List] of 2,
+         *   leftTop/bottomRight stage roots
          */
-        fun extractTopParentAndChildren(transitionInfo: TransitionInfo):
-                Pair<Change, List<Change>>? {
+        fun extractTopParentAndChildren(
+            transitionInfo: TransitionInfo
+        ): Pair<Change, List<Change>>? {
             val parentToChildren = mutableMapOf<Change, MutableList<Change>>()
             val hasParent = mutableSetOf<Change>()
             // filter out anything that isn't opening and the divider
-            val taskChanges: List<Change> = transitionInfo.changes
-                    .filter { change -> (change.mode == TRANSIT_OPEN ||
-                            change.mode == TRANSIT_TO_FRONT) && change.flags < FLAG_FIRST_CUSTOM}
+            val taskChanges: List<Change> =
+                transitionInfo.changes
+                    .filter { change ->
+                        (change.mode == TRANSIT_OPEN || change.mode == TRANSIT_TO_FRONT) &&
+                            change.flags < FLAG_FIRST_CUSTOM
+                    }
                     .toList()
 
             // 1. Build Parent-Child Relationships
@@ -73,8 +69,8 @@ class SplitScreenUtils {
                 //  startAnimation() and we can know the precise taskIds of launching tasks.
                 change.parent?.let { parent ->
                     parentToChildren
-                            .getOrPut(transitionInfo.getChange(parent)!!) { mutableListOf() }
-                            .add(change)
+                        .getOrPut(transitionInfo.getChange(parent)!!) { mutableListOf() }
+                        .add(change)
                     hasParent.add(change)
                 }
             }

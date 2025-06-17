@@ -18,7 +18,6 @@ package com.android.launcher3.widget;
 
 import static android.view.accessibility.AccessibilityNodeInfo.ACTION_CLICK;
 
-import static com.android.launcher3.Flags.enableWidgetTapToAdd;
 import static com.android.launcher3.LauncherSettings.Favorites.CONTAINER_WIDGETS_TRAY;
 import static com.android.launcher3.widget.util.WidgetSizes.getWidgetItemSizePx;
 
@@ -152,22 +151,22 @@ public class WidgetCell extends LinearLayout {
         mWidgetTextContainer = findViewById(R.id.widget_text_container);
         mWidgetAddButton = findViewById(R.id.widget_add_button);
 
-        if (enableWidgetTapToAdd()) {
-
-            setAccessibilityDelegate(new AccessibilityDelegate() {
-                @Override
-                public void onInitializeAccessibilityNodeInfo(View host,
-                        AccessibilityNodeInfo info) {
-                    super.onInitializeAccessibilityNodeInfo(host, info);
-                    String accessibilityLabel = getResources().getString(mWidgetAddButton.isShown()
-                            ? R.string.widget_cell_tap_to_hide_add_button_label
-                            : R.string.widget_cell_tap_to_show_add_button_label);
+        setAccessibilityDelegate(new AccessibilityDelegate() {
+            @Override
+            public void onInitializeAccessibilityNodeInfo(View host,
+                    AccessibilityNodeInfo info) {
+                super.onInitializeAccessibilityNodeInfo(host, info);
+                if (hasOnClickListeners()) {
+                    String accessibilityLabel = getResources().getString(
+                            mWidgetAddButton.isShown()
+                                    ? R.string.widget_cell_tap_to_hide_add_button_label
+                                    : R.string.widget_cell_tap_to_show_add_button_label);
                     info.addAction(new AccessibilityNodeInfo.AccessibilityAction(ACTION_CLICK,
                             accessibilityLabel));
                 }
-            });
-            mWidgetAddButton.setVisibility(INVISIBLE);
-        }
+            }
+        });
+        mWidgetAddButton.setVisibility(INVISIBLE);
     }
 
     public void setRemoteViewsPreview(RemoteViews view) {
@@ -208,9 +207,7 @@ public class WidgetCell extends LinearLayout {
         showDescription(true);
         showDimensions(true);
 
-        if (enableWidgetTapToAdd()) {
-            hideAddButton(/* animate= */ false);
-        }
+        hideAddButton(/* animate= */ false);
 
         if (mActiveRequest != null) {
             mActiveRequest.cancel();

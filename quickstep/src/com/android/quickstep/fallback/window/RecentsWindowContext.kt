@@ -18,53 +18,51 @@ package com.android.quickstep.fallback.window
 
 import android.content.Context
 import android.graphics.PixelFormat
-import android.view.ContextThemeWrapper
+import android.view.Display
 import android.view.ViewGroup
 import android.view.WindowManager
 import android.view.WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS
 import android.view.WindowManager.LayoutParams.PRIVATE_FLAG_CONSUME_IME_INSETS
 import com.android.launcher3.DeviceProfile
 import com.android.launcher3.InvariantDeviceProfile
+import com.android.launcher3.util.BaseContext
 import com.android.launcher3.util.Themes
-import com.android.launcher3.views.ActivityContext
-import com.android.launcher3.views.BaseDragLayer
-import com.android.quickstep.fallback.RecentsDragLayer
 
 /**
  * Window context for the Overview overlays.
+ *
  * <p>
  * Overlays have their own window and need a window context.
  */
-open class RecentsWindowContext(windowContext: Context) :
-    ContextThemeWrapper(windowContext, Themes.getActivityThemeRes(windowContext)), ActivityContext {
+abstract class RecentsWindowContext(windowContext: Context, wallpaperColorHints: Int) :
+    BaseContext(
+        base = windowContext,
+        themeResId = Themes.getActivityThemeRes(windowContext, wallpaperColorHints),
+        destroyOnDetach = false,
+    ) {
 
     private var deviceProfile: DeviceProfile? = null
-    private var dragLayer: RecentsDragLayer<RecentsWindowManager> = RecentsDragLayer(this, null)
-    private val deviceProfileChangeListeners:
-        MutableList<DeviceProfile.OnDeviceProfileChangeListener> =
-        ArrayList()
 
     private val windowTitle: String = "RecentsWindow"
 
     protected var windowLayoutParams: WindowManager.LayoutParams? =
         createDefaultWindowLayoutParams(
-            WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY, windowTitle)
+            WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
+            windowTitle,
+        )
 
-    override fun getDragLayer(): BaseDragLayer<RecentsWindowManager> {
-        return dragLayer
+    fun initDeviceProfile() {
+        deviceProfile =
+            if (displayId == Display.DEFAULT_DISPLAY)
+                InvariantDeviceProfile.INSTANCE[this].getDeviceProfile(this)
+            else InvariantDeviceProfile.INSTANCE[this].createDeviceProfileForSecondaryDisplay(this)
     }
 
     override fun getDeviceProfile(): DeviceProfile {
         if (deviceProfile == null) {
-            deviceProfile = InvariantDeviceProfile.INSTANCE[this].getDeviceProfile(this)
-                .copy(this)
+            initDeviceProfile()
         }
         return deviceProfile!!
-    }
-
-    override fun getOnDeviceProfileChangeListeners():
-        List<DeviceProfile.OnDeviceProfileChangeListener> {
-        return deviceProfileChangeListeners
     }
 
     /**
@@ -73,7 +71,10 @@ open class RecentsWindowContext(windowContext: Context) :
      * @param type The window type to pass to the created WindowManager.LayoutParams.
      * @param title The window title to pass to the created WindowManager.LayoutParams.
      */
-    fun createDefaultWindowLayoutParams(type: Int, title: String): WindowManager.LayoutParams {
+    private fun createDefaultWindowLayoutParams(
+        type: Int,
+        title: String,
+    ): WindowManager.LayoutParams {
         var windowFlags =
             (WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS or
                 WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS or

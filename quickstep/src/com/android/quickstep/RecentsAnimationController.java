@@ -36,6 +36,7 @@ import com.android.launcher3.util.RunnableList;
 import com.android.quickstep.util.ActiveGestureProtoLogProxy;
 import com.android.systemui.animation.TransitionAnimator;
 import com.android.systemui.shared.recents.model.ThumbnailData;
+import com.android.systemui.shared.system.ActivityManagerWrapper;
 import com.android.systemui.shared.system.InteractionJankMonitorWrapper;
 import com.android.systemui.shared.system.RecentsAnimationControllerCompat;
 import com.android.wm.shell.recents.IRecentsAnimationController;
@@ -71,7 +72,7 @@ public class RecentsAnimationController {
      * currently being animated.
      */
     public ThumbnailData screenshotTask(int taskId) {
-        return mController.screenshotTask(taskId);
+        return ActivityManagerWrapper.getInstance().takeTaskThumbnail(taskId);
     }
 
     /**

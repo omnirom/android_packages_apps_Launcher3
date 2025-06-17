@@ -23,12 +23,12 @@
     <string name="recent_task_option_freeform" msgid="48863056265284071">"មុខងារទម្រង់សេរី"</string>
     <string name="recent_task_option_desktop" msgid="8280879717125435668">"ដែសថប"</string>
     <string name="recent_task_option_external_display" msgid="4533840664313389484">"ផ្លាស់ទីទៅផ្ទាំងអេក្រង់ខាងក្រៅ"</string>
+    <string name="recent_task_option_close" msgid="942942499021777264">"បិទ"</string>
     <string name="recent_task_desktop" msgid="8081113562549637334">"អេក្រង់ដើម"</string>
     <string name="recents_empty_message" msgid="7040467240571714191">"មិនមានធាតុថ្មីៗទេ"</string>
     <string name="accessibility_app_usage_settings" msgid="6312864233673544149">"ការកំណត់​ការប្រើប្រាស់​កម្មវិធី"</string>
     <string name="recents_clear_all" msgid="5328176793634888831">"សម្អាត​ទាំងអស់"</string>
     <string name="accessibility_recent_apps" msgid="4058661986695117371">"កម្មវិធី​ថ្មីៗ"</string>
-    <string name="task_view_closed" msgid="9170038230110856166">"បានបិទ​កិច្ចការ"</string>
     <string name="task_contents_description_with_remaining_time" msgid="4479688746574672685">"<xliff:g id="TASK_DESCRIPTION">%1$s</xliff:g>, <xliff:g id="REMAINING_TIME">%2$s</xliff:g>"</string>
     <string name="shorter_duration_less_than_one_minute" msgid="4722015666335015336">"&lt; 1 នាទី"</string>
     <string name="time_left_for_app" msgid="3111996412933644358">"នៅសល់ <xliff:g id="TIME">%1$s</xliff:g> ទៀត​នៅថ្ងៃនេះ"</string>
@@ -47,6 +47,7 @@
     <string name="hotsaet_tip_prediction_enabled" msgid="2233554377501347650">"បានបើក​ការណែនាំ​កម្មវិធី"</string>
     <string name="hotsaet_tip_prediction_disabled" msgid="1506426298884658491">"បានបិទ​ការណែនាំ​កម្មវិធី"</string>
     <string name="hotseat_prediction_content_description" msgid="4582028296938078419">"កម្មវិធី​ដែលបាន​ព្យាករ៖ <xliff:g id="TITLE">%1$s</xliff:g>"</string>
+    <string name="gesture_tutorial_title" msgid="2750751261768388354">"មេរៀនអំពីការរុករក​ដោយប្រើចលនា"</string>
     <string name="gesture_tutorial_rotation_prompt_title" msgid="7537946781362766964">"បង្វិលឧបករណ៍របស់អ្នក"</string>
     <string name="gesture_tutorial_rotation_prompt" msgid="1664493449851960691">"សូមបង្វិលឧបករណ៍របស់អ្នក ដើម្បីបញ្ចប់មេរៀនអំពីការរុករកដោយប្រើចលនា"</string>
     <string name="back_gesture_feedback_swipe_too_far_from_edge" msgid="4175100312909721217">"ត្រូវប្រាកដថា​អ្នកអូសពី​គែមខាងស្ដាំ ឬ​ខាងឆ្វេង"</string>
@@ -58,7 +59,6 @@
     <string name="back_gesture_tutorial_confirm_subtitle" msgid="5181305411668713250">"ដើម្បីប្ដូរកម្រិត​រំញោចនឹង​ចលនាថយក្រោយ សូមចូលទៅកាន់​ការកំណត់"</string>
     <string name="back_gesture_intro_title" msgid="19551256430224428">"អូស​ដើម្បី​ថយក្រោយ"</string>
     <string name="back_gesture_intro_subtitle" msgid="7912576483031802797">"ដើម្បី​ត្រឡប់ទៅ​អេក្រង់​មុនវិញ សូមអូស​ពីគែម​ខាងឆ្វេង ឬខាងស្ដាំ​ទៅផ្នែកកណ្ដាល​នៃអេក្រង់​។"</string>
-    <string name="back_gesture_spoken_intro_subtitle" msgid="2162043199263088592">"ដើម្បី​ត្រឡប់​ទៅ​អេក្រង់​ចុងក្រោយ​វិញ អូស​ដោយ​ប្រើ​ម្រាមដៃពីរ​ពី​គែម​ខាង​ឆ្វេង ឬ​ខាង​ស្ដាំ​ទៅផ្នែក​​កណ្ដាលនៃ​អេក្រង់។"</string>
     <string name="back_gesture_tutorial_title" msgid="1944737946101059789">"ថយ​ក្រោយ"</string>
     <string name="back_gesture_tutorial_subtitle" msgid="6639993416000920142">"អូសពីគែមខាងឆ្វេង ឬខាងស្ដាំទៅផ្នែកកណ្ដាលនៃអេក្រង់"</string>
     <string name="home_gesture_feedback_swipe_too_far_from_edge" msgid="4816365433160895458">"ត្រូវប្រាកដថា​អ្នកអូសឡើងលើ​ពីគែមខាងក្រោម​នៃអេក្រង់"</string>
@@ -68,7 +68,6 @@
     <string name="home_gesture_feedback_complete_without_follow_up" msgid="2978063221383413443">"អ្នក​បានបញ្ចប់​ចលនា​ចូលទៅកាន់​ទំព័រដើម​ហើយ"</string>
     <string name="home_gesture_intro_title" msgid="836590312858441830">"អូស​ដើម្បីចូល​ទៅកាន់​អេក្រង់ដើម"</string>
     <string name="home_gesture_intro_subtitle" msgid="2632238748497975326">"អូស​ឡើងលើ​ពីផ្នែកខាងក្រោម​នៃ​អេក្រង់របស់អ្នក។ ចលនា​នេះ​នាំ​អ្នក​ទៅ​អេក្រង់ដើម​ជានិច្ច។"</string>
-    <string name="home_gesture_spoken_intro_subtitle" msgid="1030987707382031750">"អូសឡើងលើដោយប្រើម្រាមដៃពីរពីផ្នែកខាងក្រោមនៃ​អេក្រង់។ ចលនានេះ​តែងតែ​នាំអ្នក​ទៅ​អេក្រង់​ដើម​ជា​និច្ច។"</string>
     <string name="home_gesture_tutorial_title" msgid="3126834347496917376">"ទៅអេក្រង់ដើម"</string>
     <string name="home_gesture_tutorial_subtitle" msgid="7245995490408668778">"អូសឡើងលើពី​ផ្នែកខាងក្រោមនៃ​អេក្រង់របស់អ្នក"</string>
     <string name="home_gesture_tutorial_success" msgid="1736295017642244751">"ធ្វើបានល្អ!"</string>
@@ -79,7 +78,6 @@
     <string name="overview_gesture_feedback_complete_without_follow_up" msgid="2903050864432331629">"អ្នក​បានបញ្ចប់​ចលនា​ប្ដូរកម្មវិធី​ហើយ"</string>
     <string name="overview_gesture_intro_title" msgid="2902054412868489378">"អូស​ដើម្បីប្ដូរ​កម្មវិធី"</string>
     <string name="overview_gesture_intro_subtitle" msgid="4968091015637850859">"ដើម្បីប្ដូររវាងកម្មវិធី សូមអូសឡើងលើពីផ្នែកខាងក្រោមនៃអេក្រង់របស់អ្នក រួចចុចឱ្យជាប់ បន្ទាប់មកដកដៃចេញ។"</string>
-    <string name="overview_gesture_spoken_intro_subtitle" msgid="3853371838260201751">"ដើម្បីប្ដូរកម្មវិធី អូសឡើងលើ​ដោយប្រើម្រាមដៃពីរពី​ផ្នែក​ខាងក្រោមនៃ​អេក្រង់របស់អ្នក សង្កត់ ហើយ​លែងវិញ។"</string>
     <string name="overview_gesture_tutorial_title" msgid="4125835002668708720">"ប្ដូរ​កម្មវិធី"</string>
     <string name="overview_gesture_tutorial_subtitle" msgid="5253549754058973071">"អូស​ឡើងលើ​ពី​ផ្នែកខាងក្រោម​នៃ​អេក្រង់​របស់អ្នក រួចចុចឱ្យជាប់ បន្ទាប់មកដកដៃចេញ"</string>
     <string name="overview_gesture_tutorial_success" msgid="1910267697807973076">"ល្អណាស់!"</string>
@@ -134,8 +132,6 @@
     <string name="taskbar_a11y_shown_title" msgid="6842833581088937713">"បានបង្ហាញរបារកិច្ចការ"</string>
     <string name="taskbar_a11y_shown_with_bubbles_left_title" msgid="4242431789851790046">"បានបង្ហាញរបារកិច្ចការ និងផ្ទាំងអណ្ដែតនៅខាងឆ្វេង"</string>
     <string name="taskbar_a11y_shown_with_bubbles_right_title" msgid="8219065376188180113">"បានបង្ហាញរបារកិច្ចការ និងផ្ទាំងអណ្ដែតនៅខាងស្ដាំ"</string>
-    <string name="taskbar_a11y_hidden_title" msgid="9154903639589659284">"បានលាក់របារកិច្ចការ"</string>
-    <string name="taskbar_a11y_hidden_with_bubbles_title" msgid="7397395993149508087">"បានលាក់របារកិច្ចការ និងផ្ទាំងអណ្ដែត"</string>
     <string name="taskbar_phone_a11y_title" msgid="4933360237131229395">"របាររុករក"</string>
     <string name="always_show_taskbar" msgid="3608801276107751229">"បង្ហាញរបារកិច្ចការជានិច្ច"</string>
     <string name="change_navigation_mode" msgid="9088393078736808968">"ប្ដូរ​មុខងាររុករក"</string>
@@ -143,9 +139,15 @@
     <string name="taskbar_overflow_a11y_title" msgid="7960342079198820179">"ម៉ឺនុយបន្ថែមរបារកិច្ចការ"</string>
     <string name="move_drop_target_top_or_left" msgid="2988702185049595807">"ផ្លាស់ទីទៅខាងលើ/ឆ្វេង"</string>
     <string name="move_drop_target_bottom_or_right" msgid="5431393418797620162">"ផ្លាស់ទីទៅខាងក្រោម/ស្ដាំ"</string>
+    <string name="open_app_as_a_bubble" msgid="6642626287247807473">"បើកកម្មវិធីជាផ្ទាំងសារ"</string>
+    <string name="quick_switch_pane_title" msgid="4677158207760585812">"កម្មវិធី​ថ្មីៗ"</string>
+    <string name="quick_switch_content_description" msgid="2851244536728720005">"បញ្ជីកម្មវិធីថ្មីៗ"</string>
     <string name="quick_switch_overflow" msgid="3679780650881041632">"{count,plural, =1{កម្មវិធីច្រើនទៀត}other{កម្មវិធីច្រើនទៀត}}"</string>
     <string name="quick_switch_desktop" msgid="8393802056024499749">"អេក្រង់ដើម"</string>
     <string name="quick_switch_split_task" msgid="5598194724255333896">"<xliff:g id="APP_NAME_1">%1$s</xliff:g> និង <xliff:g id="APP_NAME_2">%2$s</xliff:g>"</string>
+    <string name="quick_switch_task_with_position_in_parent" msgid="4968670948331508951">"<xliff:g id="TASK_DESCRIPTION">%1$s</xliff:g> ធាតុទី <xliff:g id="INDEX_IN_PARENT">%2$d</xliff:g> នៃ <xliff:g id="TOTAL_TASKS">%3$d</xliff:g>"</string>
+    <string name="quick_switch_scroll_arrow_left" msgid="6527033155534184309">"រំកិលទៅឆ្វេង"</string>
+    <string name="quick_switch_scroll_arrow_right" msgid="7319779291086916348">"រំកិលទៅស្ដាំ"</string>
     <string name="bubble_bar_bubble_fallback_description" msgid="7811684548953452009">"ផ្ទាំងសារ"</string>
     <string name="bubble_bar_overflow_description" msgid="8617628132733151708">"ម៉ឺនុយបន្ថែម"</string>
     <string name="bubble_bar_bubble_description" msgid="1882466152448446446">"<xliff:g id="NOTIFICATION_TITLE">%1$s</xliff:g> ពី <xliff:g id="APP_NAME">%2$s</xliff:g>"</string>
@@ -156,4 +158,9 @@
     <string name="bubble_bar_accessibility_announce_expand" msgid="1503192695527477102">"ពង្រីក <xliff:g id="BUBBLE_DESCRIPTION">%1$s</xliff:g>"</string>
     <string name="bubble_bar_accessibility_announce_collapse" msgid="928284600086798791">"បង្រួម <xliff:g id="BUBBLE_DESCRIPTION">%1$s</xliff:g>"</string>
     <string name="search_gesture_feature_title" msgid="1294044108313175306">"គូររង្វង់ដើម្បីស្វែងរក"</string>
+    <string name="header_app_icon_description" msgid="2184625881433608027">"រូបកម្មវិធី"</string>
+    <string name="header_default_app_title" msgid="8308052350689531566">"ចំណងជើងកម្មវិធី"</string>
+    <string name="header_close_icon_description" msgid="5400033616675911319">"ប៊ូតុងបិទ"</string>
+    <string name="pin_to_taskbar" msgid="6607778046321626950">"ខ្ទាស់ទៅរបារកិច្ចការ"</string>
+    <string name="unpin_from_taskbar" msgid="2178811773165572676">"ដកខ្ទាស់ពីរបារកិច្ចការ"</string>
 </resources>

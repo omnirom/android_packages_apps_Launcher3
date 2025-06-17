@@ -16,6 +16,7 @@
 
 package com.android.launcher3.model;
 
+import static com.android.launcher3.icons.cache.CacheLookupFlag.DEFAULT_LOOKUP_FLAG;
 import static com.android.launcher3.model.data.AppInfo.COMPONENT_KEY_COMPARATOR;
 import static com.android.launcher3.model.data.AppInfo.EMPTY_ARRAY;
 
@@ -33,6 +34,7 @@ import androidx.annotation.Nullable;
 
 import com.android.launcher3.AppFilter;
 import com.android.launcher3.compat.AlphabeticIndexCompat;
+import com.android.launcher3.dagger.LauncherAppSingleton;
 import com.android.launcher3.icons.IconCache;
 import com.android.launcher3.model.BgDataModel.Callbacks;
 import com.android.launcher3.model.data.AppInfo;
@@ -52,11 +54,13 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
+import javax.inject.Inject;
+
 
 /**
  * Stores the list of all applications for the all apps view.
  */
-@SuppressWarnings("NewApi")
+@LauncherAppSingleton
 public class AllAppsList {
 
     private static final String TAG = "AllAppsList";
@@ -69,10 +73,10 @@ public class AllAppsList {
     public final ArrayList<AppInfo> data = new ArrayList<>(DEFAULT_APPLICATIONS_NUMBER);
 
     @NonNull
-    private IconCache mIconCache;
+    private final IconCache mIconCache;
 
     @NonNull
-    private AppFilter mAppFilter;
+    private final AppFilter mAppFilter;
 
     private boolean mDataChanged = false;
     private Consumer<AppInfo> mRemoveListener = NO_OP_CONSUMER;
@@ -91,6 +95,7 @@ public class AllAppsList {
     /**
      * Boring constructor.
      */
+    @Inject
     public AllAppsList(IconCache iconCache, AppFilter appFilter) {
         mIconCache = iconCache;
         mAppFilter = appFilter;
@@ -151,7 +156,7 @@ public class AllAppsList {
             return;
         }
         if (loadIcon) {
-            mIconCache.getTitleAndIcon(info, activityInfo, false /* useLowResIcon */);
+            mIconCache.getTitleAndIcon(info, activityInfo, DEFAULT_LOOKUP_FLAG);
             info.sectionName = mIndex.computeSectionName(info.title);
         } else {
             info.title = "";
@@ -177,7 +182,7 @@ public class AllAppsList {
         AppInfo promiseAppInfo = new AppInfo(installInfo);
 
         if (loadIcon) {
-            mIconCache.getTitleAndIcon(promiseAppInfo, promiseAppInfo.usingLowResIcon());
+            mIconCache.getTitleAndIcon(promiseAppInfo, promiseAppInfo.getMatchingLookupFlag());
             promiseAppInfo.sectionName = mIndex.computeSectionName(promiseAppInfo.title);
         } else {
             promiseAppInfo.title = "";
@@ -338,7 +343,7 @@ public class AllAppsList {
                 } else {
                     Intent launchIntent = AppInfo.makeLaunchIntent(info);
 
-                    mIconCache.getTitleAndIcon(applicationInfo, info, false /* useLowResIcon */);
+                    mIconCache.getTitleAndIcon(applicationInfo, info, DEFAULT_LOOKUP_FLAG);
                     applicationInfo.sectionName = mIndex.computeSectionName(applicationInfo.title);
                     applicationInfo.intent = launchIntent;
                     AppInfo.updateRuntimeFlagsForActivityTarget(applicationInfo, info,

@@ -31,7 +31,6 @@ import androidx.annotation.VisibleForTesting;
 
 import com.android.launcher3.anim.AnimatedFloat;
 import com.android.launcher3.taskbar.bubbles.BubbleControllers;
-import com.android.launcher3.util.DisplayController;
 import com.android.quickstep.SystemUiProxy;
 import com.android.systemui.shared.system.QuickStepContract.SystemUiStateFlags;
 
@@ -93,7 +92,8 @@ public class TaskbarScrimViewController implements TaskbarControllers.LoggableTa
             // There is no scrim for the bar in the phone mode.
             return;
         }
-        if (isBubbleBarEnabled() && DisplayController.isTransientTaskbar(mActivity)) {
+        boolean isTransient = mActivity.isTransientTaskbar();
+        if (isBubbleBarEnabled() && isTransient) {
             // These scrims aren't used if bubble bar & transient taskbar are active.
             return;
         }
@@ -112,7 +112,7 @@ public class TaskbarScrimViewController implements TaskbarControllers.LoggableTa
         boolean showScrimForBubbles = bubblesExpanded
                 && !mTaskbarVisible
                 && isBubbleControllersPresented
-                && !DisplayController.isTransientTaskbar(mActivity)
+                && !mActivity.isTransientTaskbar()
                 && !bubbleControllers.bubbleStashController.isBubblesShowingOnHome();
         return bubblesExpanded && !mControllers.navbarButtonsViewController.isImeVisible()
                 && !isShadeVisible
@@ -122,8 +122,8 @@ public class TaskbarScrimViewController implements TaskbarControllers.LoggableTa
     }
 
     private float computeScrimAlpha() {
-        final boolean isPersistentTaskBarVisible =
-                mTaskbarVisible && !DisplayController.isTransientTaskbar(mScrimView.getContext());
+        boolean isTransient = mActivity.isTransientTaskbar();
+        final boolean isPersistentTaskBarVisible = mTaskbarVisible && !isTransient;
         final boolean manageMenuExpanded =
                 (mSysUiStateFlags & SYSUI_STATE_BUBBLES_MANAGE_MENU_EXPANDED) != 0;
         if (isPersistentTaskBarVisible && manageMenuExpanded) {

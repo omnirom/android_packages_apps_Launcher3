@@ -23,7 +23,6 @@ import androidx.test.filters.SmallTest;
 import com.android.launcher3.Launcher;
 import com.android.launcher3.LauncherState;
 import com.android.launcher3.util.BaseLauncherActivityTest;
-import com.android.launcher3.util.rule.ScreenRecordRule.ScreenRecord;
 import com.android.launcher3.views.ActivityContext;
 
 import org.junit.Test;
@@ -64,7 +63,6 @@ public class KeyboardFocusTest extends BaseLauncherActivityTest<Launcher> {
     }
 
     @Test
-    @ScreenRecord  //b/378167329
     public void testAllAppsExitSearchAndFocusSearchResults() {
         loadLauncherSync();
         goToState(LauncherState.ALL_APPS);

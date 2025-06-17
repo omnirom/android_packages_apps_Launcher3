@@ -25,9 +25,9 @@ import android.platform.test.rule.DeviceProduct
 import android.platform.test.rule.LimitDevicesRule
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.android.launcher3.AppFilter
 import com.android.launcher3.DeviceProfile
 import com.android.launcher3.InvariantDeviceProfile
-import com.android.launcher3.LauncherAppState
 import com.android.launcher3.icons.IconCache
 import com.android.launcher3.model.data.PackageItemInfo
 import com.android.launcher3.pm.UserCache
@@ -43,7 +43,6 @@ import com.android.launcher3.widget.WidgetSections.NO_CATEGORY
 import com.google.common.truth.Truth.assertThat
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
-import java.util.function.Predicate
 import org.junit.Assert.fail
 import org.junit.Before
 import org.junit.Rule
@@ -63,9 +62,7 @@ class WidgetsModelTest {
     @Rule @JvmField val mockitoRule: MockitoRule = MockitoJUnit.rule()
 
     @Mock private lateinit var appWidgetManager: AppWidgetManager
-    @Mock private lateinit var app: LauncherAppState
     @Mock private lateinit var iconCacheMock: IconCache
-    @Mock private lateinit var widgetsFilterDataProvider: WidgetsFilterDataProvider
 
     private lateinit var context: Context
     private lateinit var idp: InvariantDeviceProfile
@@ -95,9 +92,6 @@ class WidgetsModelTest {
 
         whenever(iconCacheMock.getTitleNoCache(any<LauncherAppWidgetProviderInfo>()))
             .thenReturn("title")
-        whenever(app.iconCache).thenReturn(iconCacheMock)
-        whenever(app.context).thenReturn(context)
-        whenever(app.invariantDeviceProfile).thenReturn(idp)
 
         val widgetToCategoryEntry: Map.Entry<ComponentName, IntSet> =
             WidgetSections.getWidgetsToCategory(context).entries.first()
@@ -119,22 +113,28 @@ class WidgetsModelTest {
                     // A widget in different package (none of that app's widgets are in widget
                     // sections xml)
                     createAppWidgetProviderInfo(AppBTestWidgetComponent),
+                    // A widget in different app that is meant to be hidden from picker
+                    createAppWidgetProviderInfo(
+                        AppCPinOnlyTestWidgetComponent,
+                        /*hideFromPicker=*/ true,
+                    ),
                 )
             )
 
         val userCache = spy(UserCache.INSTANCE.get(context))
         whenever(userCache.userProfiles).thenReturn(listOf(UserHandle.CURRENT))
 
-        underTest = WidgetsModel()
+        underTest = WidgetsModel(context, idp, iconCacheMock, AppFilter(context))
     }
 
     @Test
-    fun widgetsByPackage_treatsWidgetSectionsAsSeparatePackageItems() {
+    fun widgetsByPackageForPicker_treatsWidgetSectionsAsSeparatePackageItems() {
         loadWidgets()
 
-        val packages: Map<PackageItemInfo, List<WidgetItem>> = underTest.widgetsByPackageItem
+        val packages: Map<PackageItemInfo, List<WidgetItem>> =
+            underTest.widgetsByPackageItemForPicker
 
-        // expect 3 package items
+        // expect 3 package items (no app C as its widget is hidden from picker)
         // one for the custom section with widget from appA
         // one for package section for second widget from appA (that wasn't listed in xml)
         // and one for package section for appB
@@ -167,6 +167,13 @@ class WidgetsModelTest {
         assertThat(appBPackageSection).hasSize(1)
         val widgetsInAppBSection = appBPackageSection.entries.first().value
         assertThat(widgetsInAppBSection).hasSize(1)
+
+        // No App C's package section - as the only widget hosted by it is hidden in picker
+        val appCPackageSection =
+            packageSections.filter {
+                it.key.packageName == AppCPinOnlyTestWidgetComponent.packageName
+            }
+        assertThat(appCPackageSection).isEmpty()
     }
 
     @Test
@@ -175,7 +182,29 @@ class WidgetsModelTest {
 
         val widgetsByComponentKey: Map<ComponentKey, WidgetItem> = underTest.widgetsByComponentKey
 
+        // Has all widgets including ones not visible in picker
+        assertThat(widgetsByComponentKey).hasSize(4)
+        widgetsByComponentKey.forEach { entry ->
+            assertThat(entry.key).isEqualTo(entry.value as ComponentKey)
+        }
+    }
+
+    @Test
+    fun widgetComponentMapForPicker_excludesWidgetsHiddenInPicker() {
+        loadWidgets()
+
+        val widgetsByComponentKey: Map<ComponentKey, WidgetItem> =
+            underTest.widgetsByComponentKeyForPicker
+
+        // Has all widgets excluding the appC's widget.
         assertThat(widgetsByComponentKey).hasSize(3)
+        assertThat(
+                widgetsByComponentKey.filter {
+                    it.key.componentName == AppCPinOnlyTestWidgetComponent
+                }
+            )
+            .isEmpty()
+        // widgets mapped correctly
         widgetsByComponentKey.forEach { entry ->
             assertThat(entry.key).isEqualTo(entry.value as ComponentKey)
         }
@@ -189,7 +218,7 @@ class WidgetsModelTest {
     }
 
     @Test
-    fun getWidgetsByPackageItem_returnsACopyOfMap() {
+    fun getWidgetsByPackageItemForPicker_returnsACopyOfMap() {
         loadWidgets()
 
         val latch = CountDownLatch(1)
@@ -198,13 +227,13 @@ class WidgetsModelTest {
 
             // each "widgetsByPackageItem" read returns a different copy of the map held internally.
             // Modifying one shouldn't impact another.
-            for ((_, _) in underTest.widgetsByPackageItem.entries) {
-                underTest.widgetsByPackageItem.clear()
+            for ((_, _) in underTest.widgetsByPackageItemForPicker.entries) {
+                underTest.widgetsByPackageItemForPicker.clear()
                 if (update) { // trigger update
                     update = false
                     // Similarly, model could update its code independently while a client is
                     // iterating on the list.
-                    underTest.update(app, /* packageUser= */ null)
+                    underTest.update(/* packageUser= */ null)
                 }
             }
 
@@ -217,31 +246,10 @@ class WidgetsModelTest {
         // No exception
     }
 
-    @Test
-    fun updateWidgetFilters_setsFiltersCorrectly() {
-        val testDefaultWidgetFilter = Predicate<WidgetItem> { w -> w.widgetInfo != null }
-        whenever(widgetsFilterDataProvider.getDefaultWidgetsFilter())
-            .thenReturn(testDefaultWidgetFilter)
-        val testPredicatedWidgetFilter = Predicate<WidgetItem> { w -> w.widgetInfo != null }
-        whenever(widgetsFilterDataProvider.getPredictedWidgetsFilter())
-            .thenReturn(testPredicatedWidgetFilter)
-
-        underTest.updateWidgetFilters(widgetsFilterDataProvider)
-
-        assertThat(underTest.defaultWidgetsFilter).isEqualTo(testDefaultWidgetFilter)
-        assertThat(underTest.predictedWidgetsFilter).isEqualTo(testPredicatedWidgetFilter)
-    }
-
-    @Test
-    fun widgetFilters_nullInitially() {
-        assertThat(underTest.defaultWidgetsFilter).isNull()
-        assertThat(underTest.predictedWidgetsFilter).isNull()
-    }
-
     private fun loadWidgets() {
         val latch = CountDownLatch(1)
         Executors.MODEL_EXECUTOR.execute {
-            underTest.update(app, /* packageUser= */ null)
+            underTest.update(/* packageUser= */ null)
             latch.countDown()
         }
         if (!latch.await(LOAD_WIDGETS_TIMEOUT_SECONDS, TimeUnit.SECONDS)) {
@@ -255,6 +263,9 @@ class WidgetsModelTest {
 
         private val AppBTestWidgetComponent: ComponentName =
             ComponentName.createRelative("com.test.package", "TestProvider")
+
+        private val AppCPinOnlyTestWidgetComponent: ComponentName =
+            ComponentName.createRelative("com.testC.package", "PinOnlyTestProvider")
 
         private const val LOAD_WIDGETS_TIMEOUT_SECONDS = 2L
     }

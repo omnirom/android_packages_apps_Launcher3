@@ -18,6 +18,7 @@ package com.android.quickstep.util
 
 import android.animation.AnimatorSet
 import android.content.Context
+import com.android.launcher3.Flags
 import com.android.launcher3.LauncherAnimationRunner.AnimationResult
 import com.android.launcher3.anim.AnimatorListeners.forEndCallback
 import com.android.launcher3.util.RunnableList
@@ -36,14 +37,20 @@ class AnimatorBackState(private val springAnim: RectFSpringAnim?, private val an
     BackAnimState {
 
     override fun addOnAnimCompleteCallback(r: Runnable) {
-        val springAnimWait = RunnableList()
-        springAnim?.addAnimatorListener(forEndCallback(springAnimWait::executeAllAndDestroy))
-            ?: springAnimWait.executeAllAndDestroy()
-
         val animWait = RunnableList()
-        anim?.addListener(
-            forEndCallback(Runnable { springAnimWait.add(animWait::executeAllAndDestroy) })
-        ) ?: springAnimWait.add(animWait::executeAllAndDestroy)
+        if (Flags.predictiveBackToHomePolish()) {
+            springAnim?.addAnimatorListener(forEndCallback(animWait::executeAllAndDestroy))
+                ?: anim?.addListener(forEndCallback(animWait::executeAllAndDestroy))
+                ?: animWait.executeAllAndDestroy()
+        } else {
+            val springAnimWait = RunnableList()
+            springAnim?.addAnimatorListener(forEndCallback(springAnimWait::executeAllAndDestroy))
+                ?: springAnimWait.executeAllAndDestroy()
+
+            anim?.addListener(
+                forEndCallback(Runnable { springAnimWait.add(animWait::executeAllAndDestroy) })
+            ) ?: springAnimWait.add(animWait::executeAllAndDestroy)
+        }
         animWait.add(r)
     }
 

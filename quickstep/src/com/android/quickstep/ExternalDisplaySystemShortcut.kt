@@ -25,6 +25,7 @@ import com.android.quickstep.views.RecentsView
 import com.android.quickstep.views.RecentsViewContainer
 import com.android.quickstep.views.TaskContainer
 import com.android.window.flags.Flags
+import com.android.wm.shell.shared.desktopmode.DesktopModeCompatPolicy
 import com.android.wm.shell.shared.desktopmode.DesktopModeStatus
 
 /** A menu item that allows the user to move the current app into external display. */
@@ -66,18 +67,32 @@ class ExternalDisplaySystemShortcut(
                     container: RecentsViewContainer,
                     taskContainer: TaskContainer,
                 ): List<ExternalDisplaySystemShortcut>? {
-                    return if (
-                        DesktopModeStatus.canEnterDesktopMode(container.asContext()) &&
-                            Flags.moveToExternalDisplayShortcut()
-                    )
-                        listOf(
-                            ExternalDisplaySystemShortcut(
-                                container,
-                                abstractFloatingViewHelper,
-                                taskContainer,
+                    val context = container.asContext()
+                    val taskKey = taskContainer.task.key
+                    val desktopModeCompatPolicy = DesktopModeCompatPolicy(context)
+                    return when {
+                        !DesktopModeStatus.canEnterDesktopMode(context) -> null
+
+                        !Flags.moveToExternalDisplayShortcut() -> null
+
+                        desktopModeCompatPolicy.isTopActivityExemptFromDesktopWindowing(
+                            taskKey.baseActivity?.packageName,
+                            taskKey.numActivities,
+                            taskKey.isTopActivityNoDisplay,
+                            taskKey.isActivityStackTransparent,
+                            taskKey.userId,
+                        ) -> null
+
+                        else -> {
+                            listOf(
+                                ExternalDisplaySystemShortcut(
+                                    container,
+                                    abstractFloatingViewHelper,
+                                    taskContainer,
+                                )
                             )
-                        )
-                    else null
+                        }
+                    }
                 }
 
                 override fun showForGroupedTask() = true

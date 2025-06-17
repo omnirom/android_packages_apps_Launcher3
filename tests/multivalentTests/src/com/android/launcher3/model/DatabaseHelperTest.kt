@@ -11,6 +11,7 @@ import com.android.launcher3.LauncherSettings.Favorites.TMP_TABLE
 import com.android.launcher3.LauncherSettings.Favorites.addTableToDb
 import com.android.launcher3.pm.UserCache
 import com.android.launcher3.provider.LauncherDbUtils
+import com.android.launcher3.util.ModelTestExtensions
 import java.util.function.ToLongFunction
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -33,7 +34,7 @@ class DatabaseHelperTest {
 
     @Before
     fun setUp() {
-        db = FactitiousDbController(context, INSERTION_SQL).inMemoryDb
+        db = ModelTestExtensions.createInMemoryDb(INSERTION_SQL)
     }
 
     @After

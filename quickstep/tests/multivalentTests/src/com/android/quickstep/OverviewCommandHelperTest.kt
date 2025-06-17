@@ -17,6 +17,7 @@
 package com.android.quickstep
 
 import android.platform.test.flag.junit.SetFlagsRule
+import android.view.Display.DEFAULT_DISPLAY
 import androidx.test.filters.SmallTest
 import com.android.launcher3.Flags
 import com.android.launcher3.util.LauncherMultivalentJUnit
@@ -25,6 +26,7 @@ import com.android.launcher3.util.rule.setFlags
 import com.android.quickstep.OverviewCommandHelper.CommandInfo
 import com.android.quickstep.OverviewCommandHelper.CommandInfo.CommandStatus
 import com.android.quickstep.OverviewCommandHelper.CommandType
+import com.android.quickstep.fallback.window.RecentsDisplayModel
 import com.google.common.truth.Truth.assertThat
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
@@ -41,9 +43,9 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Mockito.doAnswer
 import org.mockito.Mockito.spy
-import org.mockito.Mockito.`when`
 import org.mockito.kotlin.any
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 @SmallTest
 @RunWith(LauncherMultivalentJUnit::class)
@@ -57,18 +59,40 @@ class OverviewCommandHelperTest {
 
     private var pendingCallbacksWithDelays = mutableListOf<Long>()
 
+    private val recentsDisplayModel: RecentsDisplayModel = mock()
+    private val defaultDisplayResource: RecentsDisplayModel.RecentsDisplayResource = mock()
+    private val secondaryDisplayResource: RecentsDisplayModel.RecentsDisplayResource = mock()
+    private val executeCommandDisplayIds = mutableListOf<Int>()
+
+    private fun setupDefaultDisplay() {
+        whenever(defaultDisplayResource.displayId).thenReturn(DEFAULT_DISPLAY)
+        whenever(recentsDisplayModel.activeDisplayResources)
+            .thenReturn(listOf(defaultDisplayResource))
+    }
+
+    private fun setupMultipleDisplays() {
+        whenever(defaultDisplayResource.displayId).thenReturn(DEFAULT_DISPLAY)
+        whenever(secondaryDisplayResource.displayId).thenReturn(1)
+        whenever(recentsDisplayModel.activeDisplayResources)
+            .thenReturn(listOf(defaultDisplayResource, secondaryDisplayResource))
+    }
+
     @Suppress("UNCHECKED_CAST")
     @Before
     fun setup() {
         setFlagsRule.setFlags(true, Flags.FLAG_ENABLE_OVERVIEW_COMMAND_HELPER_TIMEOUT)
+
+        setupDefaultDisplay()
 
         sut =
             spy(
                 OverviewCommandHelper(
                     touchInteractionService = mock(),
                     overviewComponentObserver = mock(),
-                    taskAnimationManager = mock(),
-                    dispatcherProvider = TestDispatcherProvider(dispatcher)
+                    dispatcherProvider = TestDispatcherProvider(dispatcher),
+                    recentsDisplayModel = recentsDisplayModel,
+                    focusState = mock(),
+                    taskbarManager = mock(),
                 )
             )
 
@@ -84,6 +108,8 @@ class OverviewCommandHelperTest {
                         }
                     }
                 }
+                val commandInfo = invocation.arguments[0] as CommandInfo
+                executeCommandDisplayIds.add(commandInfo.displayId)
                 delayInMillis == null // if no callback to execute, returns success
             }
             .`when`(sut)
@@ -173,7 +199,61 @@ class OverviewCommandHelperTest {
             assertThat(commandInfo2.status).isEqualTo(CommandStatus.COMPLETED)
         }
 
+    @Test
+    fun whenAllDisplaysCommandIsAdded_singleCommandProcessedForDefaultDisplay() =
+        testScope.runTest {
+            executeCommandDisplayIds.clear()
+            // Add command to queue
+            val commandInfo: CommandInfo = sut.addCommandsForAllDisplays(CommandType.HOME)!!
+            assertThat(commandInfo.status).isEqualTo(CommandStatus.IDLE)
+            runCurrent()
+            assertThat(commandInfo.status).isEqualTo(CommandStatus.COMPLETED)
+            assertThat(executeCommandDisplayIds).containsExactly(DEFAULT_DISPLAY)
+        }
+
+    @Test
+    fun whenAllDisplaysCommandIsAdded_multipleCommandsProcessedForMultipleDisplays() =
+        testScope.runTest {
+            setupMultipleDisplays()
+            executeCommandDisplayIds.clear()
+            // Add command to queue
+            val commandInfo: CommandInfo = sut.addCommandsForAllDisplays(CommandType.HOME)!!
+            assertThat(commandInfo.status).isEqualTo(CommandStatus.IDLE)
+            runCurrent()
+            assertThat(commandInfo.status).isEqualTo(CommandStatus.COMPLETED)
+            assertThat(executeCommandDisplayIds)
+                .containsExactly(DEFAULT_DISPLAY, EXTERNAL_DISPLAY_ID)
+        }
+
+    @Test
+    fun whenAllExceptDisplayCommandIsAdded_otherDisplayProcessed() =
+        testScope.runTest {
+            setupMultipleDisplays()
+            executeCommandDisplayIds.clear()
+            // Add command to queue
+            val commandInfo: CommandInfo =
+                sut.addCommandsForDisplaysExcept(CommandType.HOME, DEFAULT_DISPLAY)!!
+            assertThat(commandInfo.status).isEqualTo(CommandStatus.IDLE)
+            runCurrent()
+            assertThat(commandInfo.status).isEqualTo(CommandStatus.COMPLETED)
+            assertThat(executeCommandDisplayIds).containsExactly(EXTERNAL_DISPLAY_ID)
+        }
+
+    @Test
+    fun whenSingleDisplayCommandIsAdded_thatDisplayIsProcessed() =
+        testScope.runTest {
+            executeCommandDisplayIds.clear()
+            val displayId = 5
+            // Add command to queue
+            val commandInfo: CommandInfo = sut.addCommand(CommandType.HOME, displayId)!!
+            assertThat(commandInfo.status).isEqualTo(CommandStatus.IDLE)
+            runCurrent()
+            assertThat(commandInfo.status).isEqualTo(CommandStatus.COMPLETED)
+            assertThat(executeCommandDisplayIds).containsExactly(displayId)
+        }
+
     private companion object {
         const val QUEUE_TIMEOUT = 5001L
+        const val EXTERNAL_DISPLAY_ID = 1
     }
 }

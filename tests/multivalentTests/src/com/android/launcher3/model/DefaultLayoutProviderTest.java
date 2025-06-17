@@ -16,6 +16,8 @@
 
 package com.android.launcher3.model;
 
+import static com.android.launcher3.LauncherSettings.Favorites.CONTAINER_DESKTOP;
+import static com.android.launcher3.LauncherSettings.Favorites.CONTAINER_HOTSEAT;
 import static com.android.launcher3.util.LauncherModelHelper.TEST_ACTIVITY;
 import static com.android.launcher3.util.LauncherModelHelper.TEST_PACKAGE;
 
@@ -42,6 +44,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.util.List;
+
 /**
  * Tests for layout parser for remote layout
  */
@@ -63,14 +67,23 @@ public class DefaultLayoutProviderTest {
         mModelHelper.destroy();
     }
 
+    private List<ItemInfo> getWorkspaceItems() {
+        return mModelHelper
+                .getBgDataModel()
+                .itemsIdMap
+                .stream()
+                .filter(i -> i.container == CONTAINER_DESKTOP || i.container == CONTAINER_HOTSEAT)
+                .toList();
+    }
+
     @Test
     public void testCustomProfileLoaded_with_icon_on_hotseat() throws Exception {
         writeLayoutAndLoad(new LauncherLayoutBuilder().atHotseat(0)
                 .putApp(TEST_PACKAGE, TEST_ACTIVITY));
 
         // Verify one item in hotseat
-        assertEquals(1, mModelHelper.getBgDataModel().workspaceItems.size());
-        ItemInfo info = mModelHelper.getBgDataModel().workspaceItems.get(0);
+        assertEquals(1, getWorkspaceItems().size());
+        ItemInfo info = getWorkspaceItems().get(0);
         assertEquals(LauncherSettings.Favorites.CONTAINER_HOTSEAT, info.container);
         assertEquals(LauncherSettings.Favorites.ITEM_TYPE_APPLICATION, info.itemType);
     }
@@ -84,8 +97,8 @@ public class DefaultLayoutProviderTest {
                 .build());
 
         // Verify folder
-        assertEquals(1, mModelHelper.getBgDataModel().workspaceItems.size());
-        ItemInfo info = mModelHelper.getBgDataModel().workspaceItems.get(0);
+        assertEquals(1, getWorkspaceItems().size());
+        ItemInfo info = getWorkspaceItems().get(0);
         assertEquals(LauncherSettings.Favorites.ITEM_TYPE_FOLDER, info.itemType);
         assertEquals(3, ((FolderInfo) info).getContents().size());
     }
@@ -99,8 +112,8 @@ public class DefaultLayoutProviderTest {
                 .build());
 
         // Verify folder
-        assertEquals(1, mModelHelper.getBgDataModel().workspaceItems.size());
-        ItemInfo info = mModelHelper.getBgDataModel().workspaceItems.get(0);
+        assertEquals(1, getWorkspaceItems().size());
+        ItemInfo info = getWorkspaceItems().get(0);
         assertEquals(LauncherSettings.Favorites.ITEM_TYPE_FOLDER, info.itemType);
         assertEquals(3, ((FolderInfo) info).getContents().size());
         assertEquals("CustomFolder", info.title.toString());
@@ -124,8 +137,8 @@ public class DefaultLayoutProviderTest {
                 .putWidget(pendingAppPkg, "PlaceholderWidget", 2, 2));
 
         // Verify widget
-        assertEquals(1, mModelHelper.getBgDataModel().appWidgets.size());
-        ItemInfo info = mModelHelper.getBgDataModel().appWidgets.get(0);
+        assertEquals(1, getWorkspaceItems().size());
+        ItemInfo info = getWorkspaceItems().get(0);
         assertEquals(LauncherSettings.Favorites.ITEM_TYPE_APPWIDGET, info.itemType);
         assertEquals(2, info.spanX);
         assertEquals(2, info.spanY);
@@ -138,8 +151,8 @@ public class DefaultLayoutProviderTest {
                 .putShortcut(TEST_PACKAGE, "shortcut2"));
 
         // Verify one item in hotseat
-        assertEquals(1, mModelHelper.getBgDataModel().workspaceItems.size());
-        ItemInfo info = mModelHelper.getBgDataModel().workspaceItems.get(0);
+        assertEquals(1, getWorkspaceItems().size());
+        ItemInfo info = getWorkspaceItems().get(0);
         assertEquals(LauncherSettings.Favorites.CONTAINER_HOTSEAT, info.container);
         assertEquals(LauncherSettings.Favorites.ITEM_TYPE_DEEP_SHORTCUT, info.itemType);
     }
@@ -154,8 +167,8 @@ public class DefaultLayoutProviderTest {
                 .build());
 
         // Verify folder
-        assertEquals(1, mModelHelper.getBgDataModel().workspaceItems.size());
-        FolderInfo info = (FolderInfo) mModelHelper.getBgDataModel().workspaceItems.get(0);
+        assertEquals(1, getWorkspaceItems().size());
+        FolderInfo info = (FolderInfo) getWorkspaceItems().get(0);
         assertEquals(3, info.getContents().size());
 
         // Verify last icon

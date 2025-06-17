@@ -19,14 +19,21 @@ package com.android.launcher3.widget
 import android.content.Context
 import com.android.launcher3.BuildConfig
 import com.android.launcher3.Launcher
-import com.android.launcher3.LauncherAppState
 import com.android.launcher3.backuprestore.LauncherRestoreEventLogger.RestoreError
+import com.android.launcher3.dagger.ApplicationContext
 import com.android.launcher3.logging.FileLog
 import com.android.launcher3.model.data.LauncherAppWidgetInfo
 import com.android.launcher3.qsb.QsbContainerView
+import javax.inject.Inject
+import javax.inject.Named
 
 /** Utility class for handling widget inflation taking into account all the restore state updates */
-class WidgetInflater(private val context: Context) {
+class WidgetInflater
+@Inject
+constructor(
+    @ApplicationContext private val context: Context,
+    @Named("SAFE_MODE") private val isSafeModeEnabled: Boolean,
+) {
 
     private val widgetHelper = WidgetManagerHelper(context)
 
@@ -41,9 +48,8 @@ class WidgetInflater(private val context: Context) {
                 )
             }
         }
-        if (LauncherAppState.INSTANCE.get(context).isSafeModeEnabled) {
-            return InflationResult(TYPE_PENDING)
-        }
+        if (isSafeModeEnabled) return InflationResult(TYPE_PENDING)
+
         val appWidgetInfo: LauncherAppWidgetProviderInfo?
         var removalReason = ""
         @RestoreError var logReason = RestoreError.OTHER_WIDGET_INFLATION_FAIL

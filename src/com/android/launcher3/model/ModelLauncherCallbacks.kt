@@ -114,7 +114,7 @@ class ModelLauncherCallbacks(private var taskExecutor: Consumer<ModelUpdateTask>
     override fun onUpdateSessionDisplay(key: PackageUserKey, info: SessionInfo) {
         /** Updates the icons and label of all pending icons for the provided package name. */
         taskExecutor.accept { controller, _, _ ->
-            controller.app.iconCache.updateSessionCache(key, info)
+            controller.iconCache.updateSessionCache(key, info)
         }
         taskExecutor.accept(
             CacheDataUpdatedTask(
@@ -128,7 +128,7 @@ class ModelLauncherCallbacks(private var taskExecutor: Consumer<ModelUpdateTask>
     override fun onInstallSessionCreated(sessionInfo: PackageInstallInfo) {
         if (FeatureFlags.PROMISE_APPS_IN_ALL_APPS.get()) {
             taskExecutor.accept { taskController, _, apps ->
-                apps.addPromiseApp(taskController.app.context, sessionInfo)
+                apps.addPromiseApp(taskController.context, sessionInfo)
                 taskController.bindApplicationsIfNeeded()
             }
         }

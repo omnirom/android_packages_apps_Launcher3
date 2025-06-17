@@ -18,13 +18,17 @@ package com.android.launcher3.model.data
 
 import android.content.ComponentName
 import android.content.Intent
+import android.os.Process
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.android.launcher3.Flags.enableRefactorTaskThumbnail
+import com.android.launcher3.dagger.LauncherAppComponent
+import com.android.launcher3.dagger.LauncherAppSingleton
 import com.android.launcher3.model.data.ItemInfoWithIcon.FLAG_NOT_PINNABLE
 import com.android.launcher3.model.data.TaskViewItemInfo.Companion.createTaskViewAtom
 import com.android.launcher3.pm.UserCache
-import com.android.launcher3.util.MainThreadInitializedObject.SandboxContext
+import com.android.launcher3.util.AllModulesForTest
+import com.android.launcher3.util.SandboxContext
 import com.android.launcher3.util.SplitConfigurationOptions
 import com.android.launcher3.util.TransformingTouchDelegate
 import com.android.launcher3.util.UserIconInfo
@@ -41,6 +45,9 @@ import com.android.quickstep.views.TaskViewType
 import com.android.systemui.shared.recents.model.Task
 import com.android.systemui.shared.recents.model.Task.TaskKey
 import com.google.common.truth.Truth.assertThat
+import dagger.BindsInstance
+import dagger.Component
+import org.junit.After
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -66,8 +73,15 @@ class TaskViewItemInfoTest {
         whenever(recentsView.indexOfChild(taskView)).thenReturn(TASK_VIEW_INDEX)
         whenever(userInfo.isPrivate).thenReturn(false)
         whenever(userCache.getUserInfo(any())).thenReturn(userInfo)
-        context.putObject(UserCache.INSTANCE, userCache)
-        RecentsDependencies.initialize(context)
+        context.initDaggerComponent(
+            DaggerTaskViewItemInfoTest_TestComponent.builder().bindUserCache(userCache)
+        )
+        RecentsDependencies.maybeInitialize(context)
+    }
+
+    @After
+    fun tearDown() {
+        RecentsDependencies.destroy(context)
     }
 
     @Test
@@ -76,7 +90,7 @@ class TaskViewItemInfoTest {
         whenever(taskView.type).thenReturn(TaskViewType.SINGLE)
         whenever(taskView.taskContainers).thenReturn(taskContainers)
 
-        val taskViewItemInfo = TaskViewItemInfo(taskContainers[0])
+        val taskViewItemInfo = TaskViewItemInfo(taskContainers[0].taskView, taskContainers[0])
 
         assertThat(taskViewItemInfo.taskViewAtom)
             .isEqualTo(
@@ -97,7 +111,7 @@ class TaskViewItemInfoTest {
         whenever(taskView.type).thenReturn(TaskViewType.GROUPED)
         whenever(taskView.taskContainers).thenReturn(taskContainers)
 
-        val taskViewItemInfo = TaskViewItemInfo(taskContainers[0])
+        val taskViewItemInfo = TaskViewItemInfo(taskContainers[0].taskView, taskContainers[0])
 
         assertThat(taskViewItemInfo.taskViewAtom)
             .isEqualTo(
@@ -122,7 +136,7 @@ class TaskViewItemInfoTest {
         whenever(taskView.type).thenReturn(TaskViewType.DESKTOP)
         whenever(taskView.taskContainers).thenReturn(taskContainers)
 
-        val taskViewItemInfo = TaskViewItemInfo(taskContainers[0])
+        val taskViewItemInfo = TaskViewItemInfo(taskContainers[0].taskView, taskContainers[0])
 
         assertThat(taskViewItemInfo.taskViewAtom)
             .isEqualTo(
@@ -143,7 +157,7 @@ class TaskViewItemInfoTest {
         whenever(taskView.taskContainers).thenReturn(taskContainers)
         whenever(userInfo.isPrivate).thenReturn(true)
 
-        val taskViewItemInfo = TaskViewItemInfo(taskContainers[0])
+        val taskViewItemInfo = TaskViewItemInfo(taskContainers[0].taskView, taskContainers[0])
 
         assertThat(taskViewItemInfo.taskViewAtom)
             .isEqualTo(
@@ -156,6 +170,25 @@ class TaskViewItemInfoTest {
             )
         assertThat(taskViewItemInfo.runtimeStatusFlags and FLAG_NOT_PINNABLE)
             .isEqualTo(FLAG_NOT_PINNABLE)
+    }
+
+    @Test
+    fun emptyDesktopTask() {
+        whenever(taskView.type).thenReturn(TaskViewType.DESKTOP)
+
+        val taskViewItemInfo = TaskViewItemInfo(taskView = taskView, taskContainer = null)
+
+        assertThat(taskViewItemInfo.taskViewAtom)
+            .isEqualTo(
+                createTaskViewAtom(
+                    type = 2,
+                    index = TASK_VIEW_INDEX,
+                    componentName = "",
+                    cardinality = 0,
+                )
+            )
+        assertThat(taskViewItemInfo.user).isEqualTo(Process.myUserHandle())
+        assertThat(taskViewItemInfo.intent).isNotNull()
     }
 
     private fun createTask(id: Int) =
@@ -174,6 +207,17 @@ class TaskViewItemInfoTest {
             showWindowsView = null,
             overlayFactory,
         )
+    }
+
+    @LauncherAppSingleton
+    @Component(modules = [AllModulesForTest::class])
+    interface TestComponent : LauncherAppComponent {
+        @Component.Builder
+        interface Builder : LauncherAppComponent.Builder {
+            @BindsInstance fun bindUserCache(userCache: UserCache): Builder
+
+            override fun build(): TestComponent
+        }
     }
 
     companion object {

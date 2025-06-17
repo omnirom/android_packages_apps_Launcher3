@@ -16,55 +16,38 @@
 
 package com.android.launcher3.model
 
-import android.content.Context
-import androidx.annotation.WorkerThread
-import com.android.launcher3.R
-import com.android.launcher3.util.ResourceBasedOverride
+import com.android.launcher3.dagger.LauncherAppSingleton
 import java.util.function.Predicate
+import javax.inject.Inject
 
 /** Helper for the widgets model to load the filters that can be applied to available widgets. */
-open class WidgetsFilterDataProvider(val context: Context) : ResourceBasedOverride {
+@LauncherAppSingleton
+open class WidgetsFilterDataProvider @Inject constructor() {
+
+    /** Filter that should be applied to the widget predictions */
+    open val predictedWidgetsFilter: Predicate<WidgetItem>? = null
+
     /**
-     * Start regular periodic refresh of widget filtering data starting now (if not started
-     * already).
+     * Filter that should be applied to the widgets list to see which widgets can be shown by
+     * default.
      */
-    @WorkerThread
-    open fun initPeriodicDataRefresh(callback: WidgetsFilterLoadedCallback? = null) {
-        // no-op
+    open val defaultWidgetsFilter: Predicate<WidgetItem>? = null
+
+    protected val listeners = mutableListOf<WidgetsFilterLoadedCallback>()
+
+    /** Adds a callback for listening to filter changes */
+    fun addFilterChangeCallback(callback: WidgetsFilterLoadedCallback) {
+        listeners.add(callback)
     }
 
-    /**
-     * Returns a filter that should be applied to the widget predictions.
-     *
-     * @return null if no filter needs to be applied
-     */
-    @WorkerThread open fun getPredictedWidgetsFilter(): Predicate<WidgetItem>? = null
-
-    /**
-     * Returns a filter that should be applied to the widgets list to see which widgets can be shown
-     * by default.
-     *
-     * @return null if no separate "default" list is supported
-     */
-    @WorkerThread open fun getDefaultWidgetsFilter(): Predicate<WidgetItem>? = null
-
-    /** Called when filter data provider is no longer needed. */
-    open fun destroy() {}
-
-    companion object {
-        /** Returns a new instance of the [WidgetsFilterDataProvider] based on resource override. */
-        fun newInstance(context: Context?): WidgetsFilterDataProvider {
-            return ResourceBasedOverride.Overrides.getObject(
-                WidgetsFilterDataProvider::class.java,
-                context,
-                R.string.widgets_filter_data_provider_class,
-            )
-        }
+    /** Removes a previously added callback */
+    fun removeFilterChangeCallback(callback: WidgetsFilterLoadedCallback) {
+        listeners.remove(callback)
     }
-}
 
-/** Interface for the model callback to be invoked when filters are loaded. */
-interface WidgetsFilterLoadedCallback {
-    /** Method called back when widget filters are loaded */
-    fun onWidgetsFilterLoaded()
+    /** Interface for the model callback to be invoked when filters are loaded. */
+    interface WidgetsFilterLoadedCallback {
+        /** Method called back when widget filters are loaded */
+        fun onWidgetsFilterLoaded()
+    }
 }

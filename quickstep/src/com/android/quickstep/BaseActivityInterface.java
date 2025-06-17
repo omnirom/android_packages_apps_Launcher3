@@ -86,8 +86,8 @@ public abstract class BaseActivityInterface<STATE_TYPE extends BaseState<STATE_T
         if (endTarget != null) {
             // We were on our way to this state when we got canceled, end there instead.
             startState = stateFromGestureEndTarget(endTarget);
-            DesktopVisibilityController controller = getDesktopVisibilityController();
-            if (controller != null && controller.areDesktopTasksVisible()
+            if (DesktopVisibilityController.INSTANCE.get(activity)
+                    .isInDesktopModeAndNotInOverview(activity.getDisplayId())
                     && endTarget == LAST_TASK) {
                 // When we are cancelling the transition and going back to last task, move to
                 // rest state instead when desktop tasks are visible.

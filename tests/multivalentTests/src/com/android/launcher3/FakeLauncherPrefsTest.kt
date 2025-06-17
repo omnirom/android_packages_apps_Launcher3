@@ -18,10 +18,14 @@ package com.android.launcher3
 
 import androidx.test.core.app.ApplicationProvider.getApplicationContext
 import androidx.test.platform.app.InstrumentationRegistry.getInstrumentation
+import com.android.launcher3.util.DaggerSingletonTracker
 import com.android.launcher3.util.LauncherMultivalentJUnit
 import com.google.common.truth.Truth.assertThat
+import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.mockito.Mock
+import org.mockito.MockitoAnnotations
 
 private val TEST_CONSTANT_ITEM = LauncherPrefs.nonRestorableItem("TEST_BOOLEAN_ITEM", false)
 
@@ -36,7 +40,15 @@ private val TEST_CONTEXTUAL_ITEM =
 
 @RunWith(LauncherMultivalentJUnit::class)
 class FakeLauncherPrefsTest {
-    private val launcherPrefs = FakeLauncherPrefs(getApplicationContext())
+
+    @Mock lateinit var lifeCycle: DaggerSingletonTracker
+    private lateinit var launcherPrefs: FakeLauncherPrefs
+
+    @Before
+    fun setup() {
+        MockitoAnnotations.initMocks(this)
+        launcherPrefs = FakeLauncherPrefs(getApplicationContext(), lifeCycle)
+    }
 
     @Test
     fun testGet_constantItemNotInPrefs_returnsDefaultValue() {
@@ -128,7 +140,7 @@ class FakeLauncherPrefsTest {
         val listener = LauncherPrefChangeListener { changedKey = it }
         launcherPrefs.addListener(listener, TEST_CONSTANT_ITEM)
 
-        launcherPrefs.removeListener(listener)
+        launcherPrefs.removeListener(listener, TEST_CONSTANT_ITEM)
         getInstrumentation().runOnMainSync { launcherPrefs.put(TEST_CONSTANT_ITEM, true) }
         assertThat(changedKey).isNull()
     }

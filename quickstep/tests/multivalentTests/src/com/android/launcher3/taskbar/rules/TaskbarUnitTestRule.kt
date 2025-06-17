@@ -24,17 +24,17 @@ import android.provider.Settings.Secure.USER_SETUP_COMPLETE
 import android.provider.Settings.Secure.getUriFor
 import androidx.test.platform.app.InstrumentationRegistry
 import com.android.launcher3.LauncherAppState
-import com.android.launcher3.statehandlers.DesktopVisibilityController
 import com.android.launcher3.taskbar.TaskbarActivityContext
 import com.android.launcher3.taskbar.TaskbarControllers
 import com.android.launcher3.taskbar.TaskbarManager
 import com.android.launcher3.taskbar.TaskbarNavButtonController.TaskbarNavButtonCallbacks
-import com.android.launcher3.taskbar.TaskbarViewController
+import com.android.launcher3.taskbar.TaskbarUIController
 import com.android.launcher3.taskbar.bubbles.BubbleControllers
 import com.android.launcher3.taskbar.rules.TaskbarUnitTestRule.InjectController
 import com.android.launcher3.util.Executors.UI_HELPER_EXECUTOR
 import com.android.launcher3.util.TestUtil
 import com.android.quickstep.AllAppsActionManager
+import com.android.quickstep.fallback.window.RecentsDisplayModel
 import java.lang.reflect.Field
 import java.lang.reflect.ParameterizedType
 import java.util.Locale
@@ -73,6 +73,7 @@ import org.junit.runners.model.Statement
 class TaskbarUnitTestRule(
     private val testInstance: Any,
     private val context: TaskbarWindowSandboxContext,
+    private val controllerInjectionCallback: () -> Unit = {},
 ) : TestRule {
 
     private val instrumentation = InstrumentationRegistry.getInstrumentation()
@@ -111,11 +112,16 @@ class TaskbarUnitTestRule(
                                     PendingIntent(IIntentSender.Default())
                                 },
                                 object : TaskbarNavButtonCallbacks {},
-                                DesktopVisibilityController(context),
+                                RecentsDisplayModel.INSTANCE.get(context),
                             ) {
-                            override fun recreateTaskbar() {
-                                super.recreateTaskbar()
-                                if (currentActivityContext != null) injectControllers()
+                            override fun recreateTaskbars() {
+                                super.recreateTaskbars()
+                                if (currentActivityContext != null) {
+                                    injectControllers()
+                                    // TODO(b/346394875): we should test a non-default uiController.
+                                    activityContext.setUIController(TaskbarUIController.DEFAULT)
+                                    controllerInjectionCallback.invoke()
+                                }
                             }
                         }
                     }
@@ -124,28 +130,26 @@ class TaskbarUnitTestRule(
                     // Needs to be set on window context instead of sandbox context, because it does
                     // does not propagate between them. However, this change will impact created
                     // TaskbarActivityContext instances, since they wrap the window context.
-                    taskbarManager.windowContext.resources.configuration.setLayoutDirection(
+                    // TODO: iterate through all window contexts and do this.
+                    taskbarManager.primaryWindowContext.resources.configuration.setLayoutDirection(
                         RTL_LOCALE
                     )
                 }
 
                 try {
-                    TaskbarViewController.enableModelLoadingForTests(false)
-
                     // Required to complete initialization.
                     instrumentation.runOnMainSync { taskbarManager.onUserUnlocked() }
 
                     base.evaluate()
                 } finally {
                     instrumentation.runOnMainSync { taskbarManager.destroy() }
-                    TaskbarViewController.enableModelLoadingForTests(true)
                 }
             }
         }
     }
 
     /** Simulates Taskbar recreation lifecycle. */
-    fun recreateTaskbar() = instrumentation.runOnMainSync { taskbarManager.recreateTaskbar() }
+    fun recreateTaskbar() = instrumentation.runOnMainSync { taskbarManager.recreateTaskbars() }
 
     private fun injectControllers() {
         val bubbleControllerTypes =

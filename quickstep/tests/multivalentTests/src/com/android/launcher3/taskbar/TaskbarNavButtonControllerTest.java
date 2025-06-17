@@ -40,7 +40,6 @@ import android.view.inputmethod.Flags;
 import androidx.test.platform.app.InstrumentationRegistry;
 import androidx.test.runner.AndroidJUnit4;
 
-import com.android.launcher3.contextualeducation.ContextualEduStatsManager;
 import com.android.launcher3.logging.StatsLogManager;
 import com.android.launcher3.taskbar.TaskbarNavButtonController.TaskbarNavButtonCallbacks;
 import com.android.quickstep.SystemUiProxy;
@@ -63,9 +62,6 @@ public class TaskbarNavButtonControllerTest {
 
     @Mock
     SystemUiProxy mockSystemUiProxy;
-
-    @Mock
-    ContextualEduStatsManager mockContextualEduStatsManager;
 
     @Mock
     TouchInteractionService mockService;
@@ -118,7 +114,6 @@ public class TaskbarNavButtonControllerTest {
                 mockService,
                 mCallbacks,
                 mockSystemUiProxy,
-                mockContextualEduStatsManager,
                 mockHandler,
                 mockContextualSearchInvoker);
     }
@@ -132,8 +127,8 @@ public class TaskbarNavButtonControllerTest {
     @Test
     public void testPressBack_updateContextualEduData() {
         mNavButtonController.onButtonClick(BUTTON_BACK, mockView);
-        verify(mockContextualEduStatsManager, times(1))
-                .updateEduStats(/* isTrackpad= */ eq(false), eq(GestureType.BACK));
+        verify(mockSystemUiProxy, times(1))
+                .updateContextualEduStats(/* isTrackpad= */ eq(false), eq(GestureType.BACK));
     }
 
     @Test
@@ -223,8 +218,8 @@ public class TaskbarNavButtonControllerTest {
     @Test
     public void testPressHome_updateContextualEduData() {
         mNavButtonController.onButtonClick(BUTTON_HOME, mockView);
-        verify(mockContextualEduStatsManager, times(1))
-                .updateEduStats(/* isTrackpad= */ eq(false), eq(GestureType.HOME));
+        verify(mockSystemUiProxy, times(1))
+                .updateContextualEduStats(/* isTrackpad= */ eq(false), eq(GestureType.HOME));
     }
 
     @Test
@@ -236,8 +231,8 @@ public class TaskbarNavButtonControllerTest {
     @Test
     public void testPressRecents_updateContextualEduData() {
         mNavButtonController.onButtonClick(BUTTON_RECENTS, mockView);
-        verify(mockContextualEduStatsManager, times(1))
-                .updateEduStats(/* isTrackpad= */ eq(false), eq(GestureType.OVERVIEW));
+        verify(mockSystemUiProxy, times(1))
+                .updateContextualEduStats(/* isTrackpad= */ eq(false), eq(GestureType.OVERVIEW));
     }
 
     @Test

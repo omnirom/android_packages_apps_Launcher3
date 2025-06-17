@@ -38,10 +38,10 @@ import android.graphics.PointF;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.VelocityTracker;
+import android.window.TransitionInfo;
 
 import androidx.annotation.UiThread;
 
-import com.android.launcher3.Flags;
 import com.android.launcher3.R;
 import com.android.launcher3.Utilities;
 import com.android.launcher3.testing.TestLogging;
@@ -58,6 +58,7 @@ import com.android.quickstep.RecentsAnimationDeviceState;
 import com.android.quickstep.RecentsAnimationTargets;
 import com.android.quickstep.RotationTouchHelper;
 import com.android.quickstep.TaskAnimationManager;
+import com.android.quickstep.util.ActiveGestureProtoLogProxy;
 import com.android.quickstep.util.CachedEventDispatcher;
 import com.android.quickstep.util.MotionPauseDetector;
 import com.android.quickstep.util.NavBarPosition;
@@ -125,11 +126,17 @@ public class OtherActivityInputConsumer extends ContextWrapper implements InputC
     // The callback called upon finishing the recents transition if it was force-canceled
     private Runnable mForceFinishRecentsTransitionCallback;
 
-    public OtherActivityInputConsumer(Context base, RecentsAnimationDeviceState deviceState,
-            TaskAnimationManager taskAnimationManager, GestureState gestureState,
-            boolean isDeferredDownTarget, Consumer<OtherActivityInputConsumer> onCompleteCallback,
-            InputMonitorCompat inputMonitorCompat, InputEventReceiver inputEventReceiver,
-            boolean disableHorizontalSwipe, Factory handlerFactory) {
+    public OtherActivityInputConsumer(
+            Context base,
+            RecentsAnimationDeviceState deviceState,
+            TaskAnimationManager taskAnimationManager,
+            GestureState gestureState,
+            boolean isDeferredDownTarget,
+            Consumer<OtherActivityInputConsumer> onCompleteCallback,
+            InputMonitorCompat inputMonitorCompat,
+            InputEventReceiver inputEventReceiver,
+            boolean disableHorizontalSwipe,
+            Factory handlerFactory) {
         super(base);
         mDeviceState = deviceState;
         mNavBarPosition = mDeviceState.getNavBarPosition();
@@ -156,13 +163,17 @@ public class OtherActivityInputConsumer extends ContextWrapper implements InputC
         mPassedPilferInputSlop = mPassedWindowMoveSlop = continuingPreviousGesture;
         mStartDisplacement = continuingPreviousGesture ? 0 : -mTouchSlop;
         mDisableHorizontalSwipe = !mPassedPilferInputSlop && disableHorizontalSwipe;
-        mRotationTouchHelper = mDeviceState.getRotationTouchHelper();
-
+        mRotationTouchHelper = RotationTouchHelper.INSTANCE.get(this);
     }
 
     @Override
     public int getType() {
         return TYPE_OTHER_ACTIVITY;
+    }
+
+    @Override
+    public int getDisplayId() {
+        return mGestureState.getDisplayId();
     }
 
     @Override
@@ -294,15 +305,15 @@ public class OtherActivityInputConsumer extends ContextWrapper implements InputC
                 float upDist = -displacement;
                 boolean isTrackpadGesture = mGestureState.isTrackpadGesture();
                 float squaredHypot = squaredHypot(displacementX, displacementY);
-                boolean isInExtendedSlopRegion = !mGestureState.isInExtendedSlopRegion();
+                boolean isInExtendedSlopRegion = mGestureState.isInExtendedSlopRegion();
                 boolean passedSlop = isTrackpadGesture
                         || (squaredHypot >= mSquaredTouchSlop
-                        && isInExtendedSlopRegion);
+                        && !isInExtendedSlopRegion);
                 if (DEBUG) {
                     Log.d(TAG, "ACTION_MOVE: passedSlop=" + passedSlop
                             + " ( " + isTrackpadGesture
                             + " || (" + squaredHypot + " >= " + mSquaredTouchSlop
-                            + " && " + isInExtendedSlopRegion + " ))");
+                            + " && " + !isInExtendedSlopRegion + " ))");
                 }
 
                 if (!mPassedSlopOnThisGesture && passedSlop) {
@@ -414,6 +425,8 @@ public class OtherActivityInputConsumer extends ContextWrapper implements InputC
         mMotionPauseDetector.setIsTrackpadGesture(mGestureState.isTrackpadGesture());
         mInteractionHandler.initWhenReady(
                 "OtherActivityInputConsumer.startTouchTrackingForWindowAnimation");
+        ActiveGestureProtoLogProxy.logGestureStartSwipeHandler(
+                mInteractionHandler.getClass().getSimpleName());
 
         if (DEBUG) {
             Log.d(TAG, "startTouchTrackingForWindowAnimation: isRecentsAnimationRunning="
@@ -426,11 +439,7 @@ public class OtherActivityInputConsumer extends ContextWrapper implements InputC
             mTaskAnimationManager.notifyRecentsAnimationState(mInteractionHandler);
             notifyGestureStarted(true /*isLikelyToStartNewTask*/);
         } else {
-            // todo differentiate intent based on if we are on home or in app for overview in window
-            boolean useHomeIntentForWindow = Flags.enableFallbackOverviewInWindow()
-                    || Flags.enableLauncherOverviewInWindow();
-            Intent intent = new Intent(useHomeIntentForWindow ? mInteractionHandler.getHomeIntent()
-                : mInteractionHandler.getLaunchIntent());
+            Intent intent = new Intent(mInteractionHandler.getLaunchIntent());
             intent.putExtra(INTENT_EXTRA_LOG_TRACE_ID, mGestureState.getGestureId());
             mActiveCallbacks = mTaskAnimationManager.startRecentsAnimation(mGestureState, intent,
                     mInteractionHandler);
@@ -472,7 +481,8 @@ public class OtherActivityInputConsumer extends ContextWrapper implements InputC
                                 : velocityYPxPerMs;
                 mInteractionHandler.updateDisplacement(getDisplacement(ev) - mStartDisplacement);
                 mInteractionHandler.onGestureEnded(velocityPxPerMs,
-                        new PointF(velocityXPxPerMs, velocityYPxPerMs));
+                        new PointF(velocityXPxPerMs, velocityYPxPerMs),
+                        Math.abs(mDownPos.x - mLastPos.x) > mTouchSlop);
             }
         } else {
             // Since we start touch tracking on DOWN, we may reach this state without actually
@@ -511,6 +521,8 @@ public class OtherActivityInputConsumer extends ContextWrapper implements InputC
             mVelocityTracker = null;
         }
         mMotionPauseDetector.clear();
+        // Clear ref to recents view and launcher activity on action up or cancel to avoid leak
+        mRecentsViewDispatcher.clearConsumer();
     }
 
     @Override
@@ -574,8 +586,9 @@ public class OtherActivityInputConsumer extends ContextWrapper implements InputC
     private static class FinishImmediatelyHandler
             implements RecentsAnimationCallbacks.RecentsAnimationListener {
 
+        @Override
         public void onRecentsAnimationStart(RecentsAnimationController controller,
-                RecentsAnimationTargets targets) {
+                RecentsAnimationTargets targets, TransitionInfo transitionInfo) {
             if (DEBUG) {
                 Log.d(TAG, "FinishImmediatelyHandler: queuing callback");
             }

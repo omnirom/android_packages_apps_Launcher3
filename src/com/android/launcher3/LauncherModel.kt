@@ -15,26 +15,28 @@
  */
 package com.android.launcher3
 
-import android.app.admin.DevicePolicyManager
 import android.content.Context
 import android.content.Intent
 import android.content.pm.ShortcutInfo
 import android.os.UserHandle
 import android.text.TextUtils
-import android.util.Log
 import android.util.Pair
 import androidx.annotation.WorkerThread
 import com.android.launcher3.celllayout.CellPosMapper
+import com.android.launcher3.dagger.ApplicationContext
+import com.android.launcher3.dagger.LauncherAppSingleton
 import com.android.launcher3.icons.IconCache
 import com.android.launcher3.model.AddWorkspaceItemsTask
 import com.android.launcher3.model.AllAppsList
-import com.android.launcher3.model.BaseLauncherBinder
+import com.android.launcher3.model.BaseLauncherBinder.BaseLauncherBinderFactory
 import com.android.launcher3.model.BgDataModel
 import com.android.launcher3.model.CacheDataUpdatedTask
 import com.android.launcher3.model.ItemInstallQueue
 import com.android.launcher3.model.LoaderTask
+import com.android.launcher3.model.LoaderTask.LoaderTaskFactory
 import com.android.launcher3.model.ModelDbController
 import com.android.launcher3.model.ModelDelegate
+import com.android.launcher3.model.ModelInitializer
 import com.android.launcher3.model.ModelLauncherCallbacks
 import com.android.launcher3.model.ModelTaskController
 import com.android.launcher3.model.ModelWriter
@@ -42,59 +44,52 @@ import com.android.launcher3.model.PackageUpdatedTask
 import com.android.launcher3.model.ReloadStringCacheTask
 import com.android.launcher3.model.ShortcutsChangedTask
 import com.android.launcher3.model.UserLockStateChangedTask
-import com.android.launcher3.model.WidgetsFilterDataProvider
+import com.android.launcher3.model.UserManagerState
+import com.android.launcher3.model.WorkspaceItemSpaceFinder
 import com.android.launcher3.model.data.ItemInfo
 import com.android.launcher3.model.data.WorkspaceItemInfo
 import com.android.launcher3.pm.UserCache
 import com.android.launcher3.shortcuts.ShortcutRequest
-import com.android.launcher3.testing.shared.TestProtocol.sDebugTracing
+import com.android.launcher3.util.DaggerSingletonTracker
 import com.android.launcher3.util.Executors.MAIN_EXECUTOR
 import com.android.launcher3.util.Executors.MODEL_EXECUTOR
-import com.android.launcher3.util.PackageManagerHelper
 import com.android.launcher3.util.PackageUserKey
 import com.android.launcher3.util.Preconditions
 import java.io.FileDescriptor
 import java.io.PrintWriter
 import java.util.concurrent.CancellationException
 import java.util.function.Consumer
+import javax.inject.Inject
+import javax.inject.Named
+import javax.inject.Provider
 
 /**
  * Maintains in-memory state of the Launcher. It is expected that there should be only one
  * LauncherModel object held in a static. Also provide APIs for updating the database state for the
  * Launcher.
  */
-class LauncherModel(
-    private val context: Context,
-    private val mApp: LauncherAppState,
+@LauncherAppSingleton
+class LauncherModel
+@Inject
+constructor(
+    @ApplicationContext private val context: Context,
+    private val taskControllerProvider: Provider<ModelTaskController>,
     private val iconCache: IconCache,
-    private val widgetsFilterDataProvider: WidgetsFilterDataProvider,
-    appFilter: AppFilter,
-    mPmHelper: PackageManagerHelper,
-    isPrimaryInstance: Boolean,
+    private val prefs: LauncherPrefs,
+    private val installQueue: ItemInstallQueue,
+    @Named("ICONS_DB") dbFileName: String?,
+    initializer: ModelInitializer,
+    lifecycle: DaggerSingletonTracker,
+    val modelDelegate: ModelDelegate,
+    private val mBgAllAppsList: AllAppsList,
+    private val mBgDataModel: BgDataModel,
+    private val loaderFactory: LoaderTaskFactory,
+    private val binderFactory: BaseLauncherBinderFactory,
+    private val spaceFinderFactory: Provider<WorkspaceItemSpaceFinder>,
+    val modelDbController: ModelDbController,
 ) {
 
     private val mCallbacksList = ArrayList<BgDataModel.Callbacks>(1)
-
-    // < only access in worker thread >
-    private val mBgAllAppsList = AllAppsList(iconCache, appFilter)
-
-    /**
-     * All the static data should be accessed on the background thread, A lock should be acquired on
-     * this object when accessing any data from this model.
-     */
-    private val mBgDataModel = BgDataModel()
-
-    val modelDelegate: ModelDelegate =
-        ModelDelegate.newInstance(
-            context,
-            mApp,
-            mPmHelper,
-            mBgAllAppsList,
-            mBgDataModel,
-            isPrimaryInstance,
-        )
-
-    val modelDbController = ModelDbController(context)
 
     private val mLock = Any()
 
@@ -128,24 +123,27 @@ class LauncherModel(
         }
     }
 
+    init {
+        if (!dbFileName.isNullOrEmpty()) {
+            initializer.initialize(this)
+        }
+        lifecycle.addCloseable { destroy() }
+        modelDelegate.init(this, mBgAllAppsList, mBgDataModel)
+    }
+
     fun newModelCallbacks() = ModelLauncherCallbacks(this::enqueueModelUpdateTask)
 
     /** Adds the provided items to the workspace. */
     fun addAndBindAddedWorkspaceItems(itemList: List<Pair<ItemInfo?, Any?>?>) {
         callbacks.forEach { it.preAddApps() }
-        enqueueModelUpdateTask(AddWorkspaceItemsTask(itemList))
+        enqueueModelUpdateTask(AddWorkspaceItemsTask(itemList, spaceFinderFactory.get()))
     }
 
     fun getWriter(
         verifyChanges: Boolean,
         cellPosMapper: CellPosMapper?,
         owner: BgDataModel.Callbacks?,
-    ) = ModelWriter(mApp.context, this, mBgDataModel, verifyChanges, cellPosMapper, owner)
-
-    /** Returns the [WidgetsFilterDataProvider] that manages widget filters. */
-    fun getWidgetsFilterDataProvider(): WidgetsFilterDataProvider {
-        return widgetsFilterDataProvider
-    }
+    ) = ModelWriter(context, this, mBgDataModel, verifyChanges, cellPosMapper, owner)
 
     /** Called when the icon for an app changes, outside of package event */
     @WorkerThread
@@ -167,22 +165,11 @@ class LauncherModel(
     /** Called when the model is destroyed */
     fun destroy() {
         mModelDestroyed = true
-        MODEL_EXECUTOR.execute {
-            modelDelegate.destroy()
-            widgetsFilterDataProvider.destroy()
-        }
+        MODEL_EXECUTOR.execute { modelDelegate.destroy() }
     }
 
-    fun onBroadcastIntent(intent: Intent) {
-        if (DEBUG_RECEIVER || sDebugTracing) Log.d(TAG, "onReceive intent=$intent")
-        when (intent.action) {
-            Intent.ACTION_LOCALE_CHANGED,
-            LauncherAppState.ACTION_FORCE_ROLOAD ->
-                // If we have changed locale we need to clear out the labels in all apps/workspace.
-                forceReload()
-            DevicePolicyManager.ACTION_DEVICE_POLICY_RESOURCE_UPDATED ->
-                enqueueModelUpdateTask(ReloadStringCacheTask(this.modelDelegate))
-        }
+    fun reloadStringCache() {
+        enqueueModelUpdateTask(ReloadStringCacheTask(this.modelDelegate))
     }
 
     /**
@@ -213,7 +200,7 @@ class LauncherModel(
             UserCache.ACTION_PROFILE_UNLOCKED ->
                 enqueueModelUpdateTask(UserLockStateChangedTask(user, true))
             Intent.ACTION_MANAGED_PROFILE_REMOVED -> {
-                LauncherPrefs.get(mApp.context).put(LauncherPrefs.WORK_EDU_STEP, 0)
+                prefs.put(LauncherPrefs.WORK_EDU_STEP, 0)
                 forceReload()
             }
             UserCache.ACTION_PROFILE_ADDED,
@@ -242,6 +229,13 @@ class LauncherModel(
             mModelLoaded = false
         }
         rebindCallbacks()
+    }
+
+    /** Reloads the model if it is already in use */
+    fun reloadIfActive() {
+        val wasActive: Boolean
+        synchronized(mLock) { wasActive = mModelLoaded || stopLoader() }
+        if (wasActive) forceReload()
     }
 
     /** Rebinds all existing callbacks with already loaded model */
@@ -291,7 +285,7 @@ class LauncherModel(
 
     private fun startLoader(newCallbacks: Array<BgDataModel.Callbacks>): Boolean {
         // Enable queue before starting loader. It will get disabled in Launcher#finishBindingItems
-        ItemInstallQueue.INSTANCE.get(context).pauseModelPush(ItemInstallQueue.FLAG_LOADER_RUNNING)
+        installQueue.pauseModelPush(ItemInstallQueue.FLAG_LOADER_RUNNING)
         synchronized(mLock) {
             // If there is already one running, tell it to stop.
             val wasRunning = stopLoader()
@@ -302,8 +296,7 @@ class LauncherModel(
                 // Clear any pending bind-runnables from the synchronized load process.
                 callbacksList.forEach { MAIN_EXECUTOR.execute(it::clearPendingBinds) }
 
-                val launcherBinder =
-                    BaseLauncherBinder(mApp, mBgDataModel, mBgAllAppsList, callbacksList)
+                val launcherBinder = binderFactory.createBinder(callbacksList)
                 if (bindDirectly) {
                     // Divide the set of loaded items into those that we are binding synchronously,
                     // and everything else that is to be bound normally (asynchronously).
@@ -315,19 +308,12 @@ class LauncherModel(
                     launcherBinder.bindWidgets()
                     return true
                 } else {
-                    mLoaderTask =
-                        LoaderTask(
-                            mApp,
-                            mBgAllAppsList,
-                            mBgDataModel,
-                            this.modelDelegate,
-                            launcherBinder,
-                            widgetsFilterDataProvider,
-                        )
+                    val task = loaderFactory.newLoaderTask(launcherBinder, UserManagerState())
+                    mLoaderTask = task
 
                     // Always post the loader task, instead of running directly
                     // (even on same thread) so that we exit any nested synchronized blocks
-                    MODEL_EXECUTOR.post(mLoaderTask)
+                    MODEL_EXECUTOR.post(task)
                 }
             }
         }
@@ -423,15 +409,7 @@ class LauncherModel(
     /** Called when the labels for the widgets has updated in the icon cache. */
     fun onWidgetLabelsUpdated(updatedPackages: HashSet<String?>, user: UserHandle) {
         enqueueModelUpdateTask { taskController, dataModel, _ ->
-            dataModel.widgetsModel.onPackageIconsUpdated(updatedPackages, user, mApp)
-            taskController.bindUpdatedWidgets(dataModel)
-        }
-    }
-
-    /** Called when the widget filters are refreshed and available to bind to the model. */
-    fun onWidgetFiltersLoaded() {
-        enqueueModelUpdateTask { taskController, dataModel, _ ->
-            dataModel.widgetsModel.updateWidgetFilters(widgetsFilterDataProvider)
+            dataModel.widgetsModel.onPackageIconsUpdated(updatedPackages, user)
             taskController.bindUpdatedWidgets(dataModel)
         }
     }
@@ -445,11 +423,7 @@ class LauncherModel(
                 // Loader has not yet run.
                 return@execute
             }
-            task.execute(
-                ModelTaskController(mApp, mBgDataModel, mBgAllAppsList, this, MAIN_EXECUTOR),
-                mBgDataModel,
-                mBgAllAppsList,
-            )
+            task.execute(taskControllerProvider.get(), mBgDataModel, mBgAllAppsList)
         }
     }
 
@@ -476,7 +450,7 @@ class LauncherModel(
 
     fun refreshAndBindWidgetsAndShortcuts(packageUser: PackageUserKey?) {
         enqueueModelUpdateTask { taskController, dataModel, _ ->
-            dataModel.widgetsModel.update(taskController.app, packageUser)
+            dataModel.widgetsModel.update(packageUser)
             taskController.bindUpdatedWidgets(dataModel)
         }
     }
@@ -507,8 +481,6 @@ class LauncherModel(
         }
 
     companion object {
-        private const val DEBUG_RECEIVER = false
-
         const val TAG = "Launcher.Model"
     }
 }

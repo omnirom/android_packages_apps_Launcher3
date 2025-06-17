@@ -22,6 +22,7 @@ import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCH
 import android.content.Context;
 import android.text.TextUtils;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.View;
 
 import com.android.launcher3.accessibility.LauncherAccessibilityDelegate;
@@ -131,6 +132,10 @@ public class DeleteDropTarget extends ButtonDropTarget {
         ItemInfo item = d.dragInfo;
         if (canRemove(item)) {
             mDropTargetHandler.onDeleteComplete(item);
+        } else if (mText == getResources().getText(R.string.remove_drop_target_label)) {
+            Log.wtf("b/379606516", "If the drop target text is 'remove', then"
+                    + " users should always be able to delete the item from launcher's db."
+                    + " Invalid drag ItemInfo: " + item);
         }
     }
 

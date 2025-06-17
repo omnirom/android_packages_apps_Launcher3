@@ -144,6 +144,14 @@ open class SystemApiWrapper @Inject constructor(@ApplicationContext context: Con
     override fun isNonResizeableActivity(lai: LauncherActivityInfo) =
         lai.activityInfo.resizeMode == ActivityInfo.RESIZE_MODE_UNRESIZEABLE
 
+    override fun supportsMultiInstance(lai: LauncherActivityInfo): Boolean {
+        return try {
+            super.supportsMultiInstance(lai) || lai.supportsMultiInstance()
+        } catch (e: Exception) {
+            false
+        }
+    }
+
     /**
      * Starts an Activity which can be used to set this Launcher as the HOME app, via a consent
      * screen. In case the consent screen cannot be shown, or the user does not set current Launcher
@@ -192,4 +200,9 @@ open class SystemApiWrapper @Inject constructor(@ApplicationContext context: Con
 
     override fun getApplicationInfoHash(appInfo: ApplicationInfo): String =
         (appInfo.sourceDir?.hashCode() ?: 0).toString() + " " + appInfo.longVersionCode
+
+    override fun getRoundIconRes(appInfo: ApplicationInfo) = appInfo.roundIconRes
+
+    override fun isFileDrawable(shortcutInfo: ShortcutInfo) =
+        shortcutInfo.hasIconFile() || shortcutInfo.hasIconUri()
 }

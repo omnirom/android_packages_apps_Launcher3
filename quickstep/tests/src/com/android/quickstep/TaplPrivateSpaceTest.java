@@ -23,6 +23,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeFalse;
 
+import android.os.Process;
 import android.util.Log;
 
 import androidx.test.ext.junit.runners.AndroidJUnit4;
@@ -74,8 +75,9 @@ public class TaplPrivateSpaceTest extends AbstractQuickStepTest {
     }
 
     private void createAndStartPrivateProfileUser() {
-        String createUserOutput = executeShellCommand("pm create-user --profileOf 0 --user-type "
-                + "android.os.usertype.profile.PRIVATE " + PRIVATE_PROFILE_NAME);
+        int myUserId = Process.myUserHandle().getIdentifier();
+        String createUserOutput = executeShellCommand("pm create-user --profileOf " + myUserId
+                + " --user-type android.os.usertype.profile.PRIVATE " + PRIVATE_PROFILE_NAME);
         updatePrivateProfileSetupSuccessful("pm create-user", createUserOutput);
         String[] tokens = createUserOutput.split("\\s+");
         mProfileUserId = Integer.parseInt(tokens[tokens.length - 1]);
@@ -163,7 +165,6 @@ public class TaplPrivateSpaceTest extends AbstractQuickStepTest {
     }
 
     @Test
-    @ScreenRecordRule.ScreenRecord // b/355466672
     public void testPrivateSpaceLockingBehaviour() throws IOException {
         assumeFalse(mLauncher.isTablet()); // b/367258373
         // Scroll to the bottom of All Apps

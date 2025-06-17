@@ -30,6 +30,7 @@ import com.android.launcher3.icons.BaseIconFactory.IconOptions
 import com.android.launcher3.icons.cache.BaseIconCache
 import com.android.launcher3.icons.cache.CachingLogic
 import com.android.launcher3.shortcuts.ShortcutKey
+import com.android.launcher3.util.ApiWrapper
 import com.android.launcher3.util.ApplicationInfoWrapper
 import com.android.launcher3.util.PackageUserKey
 import com.android.launcher3.util.Themes
@@ -112,7 +113,17 @@ object CacheableShortcutCachingLogic : CachingLogic<CacheableShortcutInfo> {
                 ?.let { d ->
                     li.createBadgedIconBitmap(
                         d,
-                        IconOptions().setExtractedColor(Themes.getColorAccent(context)),
+                        IconOptions()
+                            .setExtractedColor(Themes.getColorAccent(context))
+                            .setSourceHint(
+                                getSourceHint(info, cache)
+                                    .copy(
+                                        isFileDrawable =
+                                            ApiWrapper.INSTANCE[context].isFileDrawable(
+                                                info.shortcutInfo
+                                            )
+                                    )
+                            ),
                     )
                 } ?: BitmapInfo.LOW_RES_INFO
         }

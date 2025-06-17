@@ -19,6 +19,7 @@ import static android.view.MotionEvent.ACTION_HOVER_ENTER;
 import static android.view.MotionEvent.ACTION_HOVER_EXIT;
 import static android.view.View.ALPHA;
 
+import static com.android.launcher3.AbstractFloatingView.TYPE_ACTION_POPUP;
 import static com.android.launcher3.AbstractFloatingView.TYPE_FOLDER;
 import static com.android.launcher3.taskbar.TaskbarAutohideSuspendController.FLAG_AUTOHIDE_SUSPEND_HOVERING_ICONS;
 
@@ -98,20 +99,18 @@ public class TaskbarHoverToolTipController implements View.OnHoverListener {
 
     @Override
     public boolean onHover(View v, MotionEvent event) {
-        boolean isFolderOpen = AbstractFloatingView.hasOpenView(mActivity, TYPE_FOLDER);
         // If hover leaves a taskbar icon animate the tooltip closed.
         if (event.getAction() == ACTION_HOVER_EXIT) {
             mHoverToolTipView.close(/* animate= */ false);
             mActivity.setAutohideSuspendFlag(FLAG_AUTOHIDE_SUSPEND_HOVERING_ICONS, false);
-        } else if (!isFolderOpen && event.getAction() == ACTION_HOVER_ENTER) {
-            // Do not reveal if any floating views such as folders or edu pop-ups are open.
-            revealHoverToolTip();
+        } else if (event.getAction() == ACTION_HOVER_ENTER) {
+            maybeRevealHoverToolTip();
             mActivity.setAutohideSuspendFlag(FLAG_AUTOHIDE_SUSPEND_HOVERING_ICONS, true);
         }
-        return true;
+        return false;
     }
 
-    private void revealHoverToolTip() {
+    private void maybeRevealHoverToolTip() {
         if (mHoverView == null || mToolTipText == null) {
             return;
         }
@@ -122,6 +121,12 @@ public class TaskbarHoverToolTipController implements View.OnHoverListener {
         if (mHoverView instanceof FolderIcon && !((FolderIcon) mHoverView).getIconVisible()) {
             return;
         }
+        // Do not reveal if floating views such as folders or app pop-ups are open,
+        // as these views will overlap and not look great.
+        if (AbstractFloatingView.hasOpenView(mActivity, TYPE_FOLDER | TYPE_ACTION_POPUP)) {
+            return;
+        }
+
         Rect iconViewBounds = Utilities.getViewBounds(mHoverView);
         mHoverToolTipView.showAtLocation(mToolTipText, iconViewBounds.centerX(),
                 mTaskbarView.getTop() - mYOffset, /* shouldAutoClose= */ false);

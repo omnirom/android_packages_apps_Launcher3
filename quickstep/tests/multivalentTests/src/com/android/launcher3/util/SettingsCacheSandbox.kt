@@ -17,19 +17,22 @@
 package com.android.launcher3.util
 
 import android.net.Uri
+import com.android.launcher3.util.SettingsCache.OnChangeListener
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doAnswer
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
-/**
- * Provides a sandboxed [SettingsCache] for testing.
- *
- * Note that listeners registered to [cache] will never be invoked.
- */
+/** Provides [SettingsCache] sandboxed from system settings for testing. */
 class SettingsCacheSandbox {
     private val values = mutableMapOf<Uri, Int>()
+    private val listeners = mutableMapOf<Uri, MutableSet<OnChangeListener>>()
 
-    /** Fake cache that delegates [SettingsCache.getValue] to [values]. */
+    /**
+     * Fake cache that delegates:
+     * - [SettingsCache.getValue] to [values]
+     * - [SettingsCache.mListenerMap] to [listeners].
+     */
     val cache =
         mock<SettingsCache> {
             on { getValue(any<Uri>()) } doAnswer { mock.getValue(it.getArgument(0), 1) }
@@ -37,11 +40,22 @@ class SettingsCacheSandbox {
                 {
                     values.getOrDefault(it.getArgument(0), it.getArgument(1)) == 1
                 }
+
+            doAnswer {
+                    listeners.getOrPut(it.getArgument(0)) { mutableSetOf() }.add(it.getArgument(1))
+                }
+                .whenever(mock)
+                .register(any(), any())
+            doAnswer { listeners[it.getArgument(0)]?.remove(it.getArgument(1)) }
+                .whenever(mock)
+                .unregister(any(), any())
         }
 
     operator fun get(key: Uri): Int? = values[key]
 
     operator fun set(key: Uri, value: Int) {
+        if (value == values[key]) return
         values[key] = value
+        listeners[key]?.forEach { it.onSettingsChanged(value == 1) }
     }
 }

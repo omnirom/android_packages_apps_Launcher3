@@ -18,6 +18,7 @@ package com.android.launcher3.model.data
 
 import android.content.Context
 import android.content.Intent
+import android.os.Process
 import androidx.annotation.VisibleForTesting
 import androidx.annotation.VisibleForTesting.Companion.PRIVATE
 import com.android.launcher3.Flags.privateSpaceRestrictAccessibilityDrag
@@ -26,34 +27,40 @@ import com.android.launcher3.logger.LauncherAtom
 import com.android.launcher3.pm.UserCache
 import com.android.quickstep.TaskUtils
 import com.android.quickstep.views.TaskContainer
+import com.android.quickstep.views.TaskView
 
-class TaskViewItemInfo(taskContainer: TaskContainer) : WorkspaceItemInfo() {
+class TaskViewItemInfo(taskView: TaskView, taskContainer: TaskContainer?) : WorkspaceItemInfo() {
     @VisibleForTesting(otherwise = PRIVATE) val taskViewAtom: LauncherAtom.TaskView
 
     init {
         itemType = LauncherSettings.Favorites.ITEM_TYPE_TASK
         container = LauncherSettings.Favorites.CONTAINER_TASKSWITCHER
-        val componentKey = TaskUtils.getLaunchComponentKeyForTask(taskContainer.task.key)
-        user = componentKey.user
-        intent = Intent().setComponent(componentKey.componentName)
-        title = taskContainer.task.title
-        if (privateSpaceRestrictAccessibilityDrag()) {
-            if (
-                UserCache.getInstance(taskContainer.taskView.context)
-                    .getUserInfo(componentKey.user)
-                    .isPrivate
-            ) {
-                runtimeStatusFlags = runtimeStatusFlags or ItemInfoWithIcon.FLAG_NOT_PINNABLE
+        val componentName: String
+        if (taskContainer != null) {
+            val componentKey = TaskUtils.getLaunchComponentKeyForTask(taskContainer.task.key)
+            user = componentKey.user
+            intent = Intent().setComponent(componentKey.componentName)
+            title = taskContainer.task.title
+            if (privateSpaceRestrictAccessibilityDrag()) {
+                if (
+                    UserCache.getInstance(taskView.context).getUserInfo(componentKey.user).isPrivate
+                ) {
+                    runtimeStatusFlags = runtimeStatusFlags or ItemInfoWithIcon.FLAG_NOT_PINNABLE
+                }
             }
+            componentName = componentKey.componentName.flattenToShortString()
+        } else {
+            user = Process.myUserHandle()
+            intent = Intent()
+            componentName = ""
         }
 
         taskViewAtom =
             createTaskViewAtom(
-                type = taskContainer.taskView.type.ordinal,
-                index =
-                    taskContainer.taskView.recentsView?.indexOfChild(taskContainer.taskView) ?: -1,
-                componentName = componentKey.componentName.flattenToShortString(),
-                cardinality = taskContainer.taskView.taskContainers.size,
+                type = taskView.type.ordinal,
+                index = taskView.recentsView?.indexOfChild(taskView) ?: -1,
+                componentName,
+                cardinality = taskView.taskContainers.size,
             )
     }
 

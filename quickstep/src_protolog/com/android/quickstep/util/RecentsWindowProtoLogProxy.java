@@ -16,14 +16,16 @@
 
 package com.android.quickstep.util;
 
-import static com.android.launcher3.Flags.enableRecentsWindowProtoLog;
 import static com.android.quickstep.util.QuickstepProtoLogGroup.RECENTS_WINDOW;
 import static com.android.quickstep.util.QuickstepProtoLogGroup.isProtoLogInitialized;
+
+import android.window.DesktopModeFlags;
 
 import androidx.annotation.NonNull;
 
 import com.android.internal.protolog.ProtoLog;
 import com.android.internal.protolog.common.IProtoLogGroup;
+import com.android.launcher3.Flags;
 
 /**
  * Proxy class used for Recents Window ProtoLog support.
@@ -35,19 +37,20 @@ import com.android.internal.protolog.common.IProtoLogGroup;
  * method. Or, if an existing entry needs to be modified, simply update it here.
  */
 public class RecentsWindowProtoLogProxy {
-
+    private static final DesktopModeFlags.DesktopModeFlag ENABLE_RECENTS_WINDOW_PROTO_LOG =
+            new DesktopModeFlags.DesktopModeFlag(Flags::enableRecentsWindowProtoLog, true);
     public static void logOnStateSetStart(@NonNull String stateName) {
-        if (!enableRecentsWindowProtoLog() || !isProtoLogInitialized()) return;
+        if (!ENABLE_RECENTS_WINDOW_PROTO_LOG.isTrue() || !isProtoLogInitialized()) return;
         ProtoLog.d(RECENTS_WINDOW, "onStateSetStart: %s", stateName);
     }
 
     public static void logOnStateSetEnd(@NonNull String stateName) {
-        if (!enableRecentsWindowProtoLog() || !isProtoLogInitialized()) return;
+        if (!ENABLE_RECENTS_WINDOW_PROTO_LOG.isTrue() || !isProtoLogInitialized()) return;
         ProtoLog.d(RECENTS_WINDOW, "onStateSetEnd: %s", stateName);
     }
 
     public static void logStartRecentsWindow(boolean isShown, boolean windowViewIsNull) {
-        if (!enableRecentsWindowProtoLog() || !isProtoLogInitialized()) return;
+        if (!ENABLE_RECENTS_WINDOW_PROTO_LOG.isTrue() || !isProtoLogInitialized()) return;
         ProtoLog.d(RECENTS_WINDOW,
                 "Starting recents window: isShow= %b, windowViewIsNull=%b",
                 isShown,
@@ -55,7 +58,7 @@ public class RecentsWindowProtoLogProxy {
     }
 
     public static void logCleanup(boolean isShown) {
-        if (!enableRecentsWindowProtoLog() || !isProtoLogInitialized()) return;
+        if (!ENABLE_RECENTS_WINDOW_PROTO_LOG.isTrue() || !isProtoLogInitialized()) return;
         ProtoLog.d(RECENTS_WINDOW, "Cleaning up recents window: isShow= %b", isShown);
     }
 }

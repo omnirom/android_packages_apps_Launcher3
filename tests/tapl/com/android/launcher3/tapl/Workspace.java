@@ -29,6 +29,7 @@ import static com.android.launcher3.testing.shared.TestProtocol.OVERVIEW_STATE_O
 import static junit.framework.TestCase.assertNotNull;
 import static junit.framework.TestCase.assertTrue;
 
+import android.content.Intent;
 import android.graphics.Point;
 import android.graphics.Rect;
 import android.os.SystemClock;
@@ -44,9 +45,7 @@ import androidx.test.uiautomator.UiDevice;
 import androidx.test.uiautomator.UiObject2;
 import androidx.test.uiautomator.Until;
 
-import com.android.launcher3.testing.shared.HotseatCellCenterRequest;
 import com.android.launcher3.testing.shared.TestProtocol;
-import com.android.launcher3.testing.shared.WorkspaceCellCenterRequest;
 
 import java.util.List;
 import java.util.Map;
@@ -59,7 +58,7 @@ import java.util.stream.Collectors;
  */
 public final class Workspace extends Home {
     private static final int FLING_STEPS = 10;
-    private static final int DEFAULT_DRAG_STEPS = 10;
+    private static final int DEFAULT_DRAG_STEPS = 20;
     private static final String DROP_BAR_RES_ID = "drop_target_bar";
     private static final String DELETE_TARGET_TEXT_ID = "delete_target_text";
     private static final String UNINSTALL_TARGET_TEXT_ID = "uninstall_target_text";
@@ -499,20 +498,23 @@ public final class Workspace extends Home {
     }
 
     static Point getCellCenter(LauncherInstrumentation launcher, int cellX, int cellY) {
-        return launcher.getTestInfo(WorkspaceCellCenterRequest.builder().setCellX(cellX).setCellY(
-                cellY).build()).getParcelable(TestProtocol.TEST_INFO_RESPONSE_FIELD);
+        return getCellCenter(launcher, cellX, cellY, 1, 1);
     }
 
     static Point getCellCenter(LauncherInstrumentation launcher, int cellX, int cellY, int spanX,
             int spanY) {
-        return launcher.getTestInfo(WorkspaceCellCenterRequest.builder().setCellX(cellX)
-                .setCellY(cellY).setSpanX(spanX).setSpanY(spanY).build())
+        return launcher.getTestInfo(
+                new Intent(TestProtocol.REQUEST_WORKSPACE_CELL_CENTER)
+                        .putExtra(TestProtocol.TEST_INFO_PARAM_CELL_SPAN,
+                                new Rect(cellX, cellY, cellX + spanX, cellY + spanY)))
                 .getParcelable(TestProtocol.TEST_INFO_RESPONSE_FIELD);
     }
 
-    static Point getHotseatCellCenter(LauncherInstrumentation launcher, int cellInd) {
-        return launcher.getTestInfo(HotseatCellCenterRequest.builder()
-                .setCellInd(cellInd).build()).getParcelable(TestProtocol.TEST_INFO_RESPONSE_FIELD);
+    static Point getHotseatCellCenter(LauncherInstrumentation launcher, int cellIndex) {
+        return launcher.getTestInfo(
+                new Intent(TestProtocol.REQUEST_HOTSEAT_CELL_CENTER)
+                        .putExtra(TestProtocol.TEST_INFO_PARAM_INDEX, cellIndex))
+                .getParcelable(TestProtocol.TEST_INFO_RESPONSE_FIELD);
     }
 
     /** Returns the number of rows and columns in the workspace */
@@ -607,7 +609,7 @@ public final class Workspace extends Home {
                 launcher,
                 launchable,
                 destSupplier,
-                /* isDecelerating= */ false,
+                /* isDecelerating= */ !isDraggingToFolder,
                 () -> launcher.expectEvent(TestProtocol.SEQUENCE_MAIN, LONG_CLICK_EVENT),
                 /* expectDropEvents= */ null,
                 /* startsActivity = */ false,
@@ -680,7 +682,7 @@ public final class Workspace extends Home {
 
             launcher.movePointer(dragStart, targetDest,
                     DEFAULT_DRAG_STEPS, isDecelerating, downTime, SystemClock.uptimeMillis(),
-                    false, LauncherInstrumentation.GestureScope.DONT_EXPECT_PILFER);
+                    !isDraggingToFolder, LauncherInstrumentation.GestureScope.DONT_EXPECT_PILFER);
 
             dropDraggedIcon(launcher, targetDest, downTime, expectDropEvents, startsActivity);
         }
@@ -841,7 +843,9 @@ public final class Workspace extends Home {
 
     @Override
     protected String getSwipeHeightRequestName() {
-        return TestProtocol.REQUEST_HOME_TO_OVERVIEW_SWIPE_HEIGHT;
+        return mLauncher.isRecentsWindowEnabled()
+                ? super.getSwipeHeightRequestName()
+                : TestProtocol.REQUEST_HOME_TO_OVERVIEW_SWIPE_HEIGHT;
     }
 
     @Override

@@ -22,7 +22,6 @@ import android.content.Intent;
 import android.content.pm.LauncherApps;
 import android.os.UserHandle;
 
-import com.android.launcher3.LauncherAppState;
 import com.android.launcher3.LauncherModel;
 import com.android.launcher3.util.ApplicationInfoWrapper;
 import com.android.launcher3.util.PackageUserKey;
@@ -43,9 +42,10 @@ public class SdCardAvailableReceiver extends BroadcastReceiver {
     private final Context mContext;
     private final Set<PackageUserKey> mPackages;
 
-    public SdCardAvailableReceiver(LauncherAppState app, Set<PackageUserKey> packages) {
-        mModel = app.getModel();
-        mContext = app.getContext();
+    public SdCardAvailableReceiver(
+            Context context, LauncherModel model, Set<PackageUserKey> packages) {
+        mContext = context;
+        mModel = model;
         mPackages = packages;
     }
 

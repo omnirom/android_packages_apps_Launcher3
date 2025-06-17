@@ -56,9 +56,8 @@ object InputConsumerUtils {
 
     @JvmStatic
     fun <S : BaseState<S>, T> newConsumer(
-        baseContext: Context,
-        tisContext: Context,
-        resetGestureInputConsumer: ResetGestureInputConsumer?,
+        context: Context,
+        userUnlocked: Boolean,
         overviewComponentObserver: OverviewComponentObserver,
         deviceState: RecentsAnimationDeviceState,
         previousGestureState: GestureState,
@@ -77,7 +76,12 @@ object InputConsumerUtils {
         val bubbleControllers = tac?.bubbleControllers
         if (bubbleControllers != null && BubbleBarInputConsumer.isEventOnBubbles(tac, event)) {
             val consumer: InputConsumer =
-                BubbleBarInputConsumer(tisContext, bubbleControllers, inputMonitorCompat)
+                BubbleBarInputConsumer(
+                    context,
+                    gestureState.displayId,
+                    bubbleControllers,
+                    inputMonitorCompat,
+                )
             logInputConsumerSelectionReason(
                 consumer,
                 newCompoundString("event is on bubbles, creating new input consumer"),
@@ -88,7 +92,7 @@ object InputConsumerUtils {
         if (progressProxy != null) {
             val consumer: InputConsumer =
                 ProgressDelegateInputConsumer(
-                    tisContext,
+                    context,
                     taskAnimationManager,
                     gestureState,
                     inputMonitorCompat,
@@ -109,7 +113,7 @@ object InputConsumerUtils {
             if (gestureState.isTrackpadGesture) deviceState.canStartTrackpadGesture()
             else deviceState.canStartSystemGesture()
 
-        if (!get(tisContext).isUserUnlocked) {
+        if (!get(context).isUserUnlocked) {
             val reasonString = newCompoundString("device locked")
             val consumer =
                 if (canStartSystemGesture) {
@@ -117,8 +121,9 @@ object InputConsumerUtils {
                     // launched while device is locked even after exiting direct boot mode (e.g.
                     // camera).
                     createDeviceLockedInputConsumer(
-                        tisContext,
-                        resetGestureInputConsumer,
+                        context,
+                        userUnlocked,
+                        taskbarManager,
                         deviceState,
                         gestureState,
                         taskAnimationManager,
@@ -127,7 +132,10 @@ object InputConsumerUtils {
                     )
                 } else {
                     getDefaultInputConsumer(
-                        resetGestureInputConsumer,
+                        gestureState.displayId,
+                        userUnlocked,
+                        taskAnimationManager,
+                        taskbarManager,
                         reasonString.append("%scannot start system gesture", SUBSTRING_PREFIX),
                     )
                 }
@@ -148,8 +156,9 @@ object InputConsumerUtils {
                 )
             base =
                 newBaseConsumer<S, T>(
-                    tisContext,
-                    resetGestureInputConsumer,
+                    context,
+                    userUnlocked,
+                    taskbarManager,
                     overviewComponentObserver,
                     deviceState,
                     previousGestureState,
@@ -168,7 +177,14 @@ object InputConsumerUtils {
                     "cannot start system gesture and recents " +
                         "animation was not running, trying to use default input consumer"
                 )
-            base = getDefaultInputConsumer(resetGestureInputConsumer, reasonString)
+            base =
+                getDefaultInputConsumer(
+                    gestureState.displayId,
+                    userUnlocked,
+                    taskAnimationManager,
+                    taskbarManager,
+                    reasonString,
+                )
         }
         if (deviceState.isGesturalNavMode || gestureState.isTrackpadGesture) {
             handleOrientationSetup(base)
@@ -186,7 +202,7 @@ object InputConsumerUtils {
                 )
                 base =
                     tryCreateAssistantInputConsumer(
-                        tisContext,
+                        context,
                         deviceState,
                         inputMonitorCompat,
                         base,
@@ -213,7 +229,7 @@ object InputConsumerUtils {
                     )
                     base =
                         TaskbarUnstashInputConsumer(
-                            tisContext,
+                            context,
                             base,
                             inputMonitorCompat,
                             tac,
@@ -233,11 +249,18 @@ object InputConsumerUtils {
                                 SUBSTRING_PREFIX,
                             )
                     // Bubbles can handle home gesture itself.
-                    base = getDefaultInputConsumer(resetGestureInputConsumer, reasonString)
+                    base =
+                        getDefaultInputConsumer(
+                            gestureState.displayId,
+                            userUnlocked,
+                            taskAnimationManager,
+                            taskbarManager,
+                            reasonString,
+                        )
                 }
             }
 
-            val navHandle = tac?.navHandle ?: SystemUiProxy.INSTANCE[tisContext]
+            val navHandle = tac?.navHandle ?: SystemUiProxy.INSTANCE[context]
             if (
                 canStartSystemGesture &&
                     !previousGestureState.isRecentsAnimationRunning &&
@@ -256,7 +279,7 @@ object InputConsumerUtils {
                 reasonString.append("using NavHandleLongPressInputConsumer")
                 base =
                     NavHandleLongPressInputConsumer(
-                        tisContext,
+                        context,
                         base,
                         inputMonitorCompat,
                         deviceState,
@@ -275,7 +298,14 @@ object InputConsumerUtils {
                                 SUBSTRING_PREFIX,
                             )
                     // Bubbles can handle home gesture itself.
-                    base = getDefaultInputConsumer(resetGestureInputConsumer, reasonString)
+                    base =
+                        getDefaultInputConsumer(
+                            gestureState.displayId,
+                            userUnlocked,
+                            taskAnimationManager,
+                            taskbarManager,
+                            reasonString,
+                        )
                 }
             }
 
@@ -286,7 +316,13 @@ object InputConsumerUtils {
                             "%ssystem dialog is showing, using SysUiOverlayInputConsumer",
                             SUBSTRING_PREFIX,
                         )
-                base = SysUiOverlayInputConsumer(baseContext, deviceState, inputMonitorCompat)
+                base =
+                    SysUiOverlayInputConsumer(
+                        context,
+                        gestureState.displayId,
+                        deviceState,
+                        inputMonitorCompat,
+                    )
             }
 
             if (
@@ -300,7 +336,13 @@ object InputConsumerUtils {
                             "%sTrackpad 3-finger gesture, using TrackpadStatusBarInputConsumer",
                             SUBSTRING_PREFIX,
                         )
-                base = TrackpadStatusBarInputConsumer(baseContext, base, inputMonitorCompat)
+                base =
+                    TrackpadStatusBarInputConsumer(
+                        context,
+                        gestureState.displayId,
+                        base,
+                        inputMonitorCompat,
+                    )
             }
 
             if (deviceState.isScreenPinningActive) {
@@ -312,7 +354,7 @@ object InputConsumerUtils {
                         )
                 // Note: we only allow accessibility to wrap this, and it replaces the previous
                 // base input consumer (which should be NO_OP anyway since topTaskLocked == true).
-                base = ScreenPinnedInputConsumer(tisContext, gestureState)
+                base = ScreenPinnedInputConsumer(context, gestureState)
             }
 
             if (deviceState.canTriggerOneHandedAction(event)) {
@@ -323,7 +365,14 @@ object InputConsumerUtils {
                     reasonPrefix,
                     SUBSTRING_PREFIX,
                 )
-                base = OneHandedModeInputConsumer(tisContext, deviceState, base, inputMonitorCompat)
+                base =
+                    OneHandedModeInputConsumer(
+                        context,
+                        gestureState.displayId,
+                        deviceState,
+                        base,
+                        inputMonitorCompat,
+                    )
             }
 
             if (deviceState.isAccessibilityMenuAvailable) {
@@ -335,9 +384,9 @@ object InputConsumerUtils {
                 )
                 base =
                     AccessibilityInputConsumer(
-                        tisContext,
+                        context,
+                        gestureState.displayId,
                         deviceState,
-                        gestureState,
                         base,
                         inputMonitorCompat,
                     )
@@ -351,7 +400,14 @@ object InputConsumerUtils {
                             "%sscreen pinning is active, trying to use default input consumer",
                             SUBSTRING_PREFIX,
                         )
-                base = getDefaultInputConsumer(resetGestureInputConsumer, reasonString)
+                base =
+                    getDefaultInputConsumer(
+                        gestureState.displayId,
+                        userUnlocked,
+                        taskAnimationManager,
+                        taskbarManager,
+                        reasonString,
+                    )
             }
 
             if (deviceState.canTriggerOneHandedAction(event)) {
@@ -362,7 +418,14 @@ object InputConsumerUtils {
                     reasonPrefix,
                     SUBSTRING_PREFIX,
                 )
-                base = OneHandedModeInputConsumer(tisContext, deviceState, base, inputMonitorCompat)
+                base =
+                    OneHandedModeInputConsumer(
+                        context,
+                        gestureState.displayId,
+                        deviceState,
+                        base,
+                        inputMonitorCompat,
+                    )
             }
         }
         logInputConsumerSelectionReason(base, reasonString)
@@ -381,7 +444,7 @@ object InputConsumerUtils {
             context,
             deviceState,
             inputMonitorCompat,
-            InputConsumer.NO_OP,
+            InputConsumer.createNoOpInputConsumer(gestureState.displayId),
             gestureState,
             motionEvent,
             CompoundString.NO_OP,
@@ -420,7 +483,8 @@ object InputConsumerUtils {
     @JvmStatic
     fun <S : BaseState<S>, T> newBaseConsumer(
         context: Context,
-        resetGestureInputConsumer: ResetGestureInputConsumer?,
+        userUnlocked: Boolean,
+        taskbarManager: TaskbarManager,
         overviewComponentObserver: OverviewComponentObserver,
         deviceState: RecentsAnimationDeviceState,
         previousGestureState: GestureState,
@@ -437,7 +501,8 @@ object InputConsumerUtils {
             // This handles apps showing over the lockscreen (e.g. camera)
             return createDeviceLockedInputConsumer(
                 context,
-                resetGestureInputConsumer,
+                userUnlocked,
+                taskbarManager,
                 deviceState,
                 gestureState,
                 taskAnimationManager,
@@ -485,13 +550,15 @@ object InputConsumerUtils {
             (com.android.launcher3.Flags.useActivityOverlay() &&
                 runningTask != null &&
                 runningTask.isHomeTask &&
-                overviewComponentObserver.isHomeAndOverviewSame &&
+                overviewComponentObserver.isHomeAndOverviewSameActivity &&
                 !launcherResumedThroughShellTransition &&
                 !previousGestureState.isRecentsAnimationRunning)
 
         return if (gestureState.getContainerInterface<S, T>().isInLiveTileMode()) {
             createOverviewInputConsumer<S, T>(
-                resetGestureInputConsumer,
+                userUnlocked,
+                taskAnimationManager,
+                taskbarManager,
                 deviceState,
                 inputMonitorCompat,
                 previousGestureState,
@@ -504,7 +571,10 @@ object InputConsumerUtils {
             )
         } else if (runningTask == null) {
             getDefaultInputConsumer(
-                resetGestureInputConsumer,
+                gestureState.displayId,
+                userUnlocked,
+                taskAnimationManager,
+                taskbarManager,
                 reasonString.append("%srunning task == null", SUBSTRING_PREFIX),
             )
         } else if (
@@ -513,7 +583,9 @@ object InputConsumerUtils {
                 forceOverviewInputConsumer
         ) {
             createOverviewInputConsumer<S, T>(
-                resetGestureInputConsumer,
+                userUnlocked,
+                taskAnimationManager,
+                taskbarManager,
                 deviceState,
                 inputMonitorCompat,
                 previousGestureState,
@@ -535,7 +607,10 @@ object InputConsumerUtils {
             )
         } else if (deviceState.isGestureBlockedTask(runningTask) || launcherChildActivityResumed) {
             getDefaultInputConsumer(
-                resetGestureInputConsumer,
+                gestureState.displayId,
+                userUnlocked,
+                taskAnimationManager,
+                taskbarManager,
                 reasonString.append(
                     if (launcherChildActivityResumed)
                         "%sis launcher child-task, trying to use default input consumer"
@@ -562,7 +637,8 @@ object InputConsumerUtils {
 
     private fun createDeviceLockedInputConsumer(
         context: Context,
-        resetGestureInputConsumer: ResetGestureInputConsumer?,
+        userUnlocked: Boolean,
+        taskbarManager: TaskbarManager,
         deviceState: RecentsAnimationDeviceState,
         gestureState: GestureState,
         taskAnimationManager: TaskAnimationManager,
@@ -587,7 +663,10 @@ object InputConsumerUtils {
             )
         } else {
             getDefaultInputConsumer(
-                resetGestureInputConsumer,
+                gestureState.displayId,
+                userUnlocked,
+                taskAnimationManager,
+                taskbarManager,
                 reasonString.append(
                     if (deviceState.isFullyGesturalNavMode || gestureState.isTrackpadGesture)
                         "%srunning task == null, trying to use default input consumer"
@@ -601,7 +680,9 @@ object InputConsumerUtils {
     }
 
     private fun <S : BaseState<S>, T> createOverviewInputConsumer(
-        resetGestureInputConsumer: ResetGestureInputConsumer?,
+        userUnlocked: Boolean,
+        taskAnimationManager: TaskAnimationManager,
+        taskbarManager: TaskbarManager,
         deviceState: RecentsAnimationDeviceState,
         inputMonitorCompat: InputMonitorCompat,
         previousGestureState: GestureState,
@@ -612,7 +693,10 @@ object InputConsumerUtils {
         val container: T =
             gestureState.getContainerInterface<S, T>().getCreatedContainer()
                 ?: return getDefaultInputConsumer(
-                    resetGestureInputConsumer,
+                    gestureState.displayId,
+                    userUnlocked,
+                    taskAnimationManager,
+                    taskbarManager,
                     reasonString.append(
                         "%sactivity == null, trying to use default input consumer",
                         SUBSTRING_PREFIX,
@@ -664,24 +748,34 @@ object InputConsumerUtils {
     }
 
     /** Returns the [ResetGestureInputConsumer] if user is unlocked, else NO_OP. */
-    private fun getDefaultInputConsumer(
-        resetGestureInputConsumer: ResetGestureInputConsumer?,
+    @JvmStatic
+    fun getDefaultInputConsumer(
+        displayId: Int,
+        userUnlocked: Boolean,
+        taskAnimationManager: TaskAnimationManager?,
+        taskbarManager: TaskbarManager?,
         reasonString: CompoundString,
     ): InputConsumer {
-        return if (resetGestureInputConsumer != null) {
+        return if (userUnlocked && taskAnimationManager != null && taskbarManager != null) {
             reasonString.append(
-                "%smResetGestureInputConsumer initialized, using ResetGestureInputConsumer",
+                "%sResetGestureInputConsumer available, using ResetGestureInputConsumer",
                 SUBSTRING_PREFIX,
             )
-            resetGestureInputConsumer
+            ResetGestureInputConsumer(displayId, taskAnimationManager) {
+                taskbarManager.getTaskbarForDisplay(displayId)
+            }
         } else {
             reasonString.append(
-                "%smResetGestureInputConsumer not initialized, using no-op input consumer",
+                "%s${
+                    if (userUnlocked) "user is locked"
+                    else if (taskAnimationManager == null) "taskAnimationManager is null"
+                    else "taskbarManager is null"
+                }, using no-op input consumer",
                 SUBSTRING_PREFIX,
             )
-            // mResetGestureInputConsumer isn't initialized until onUserUnlocked(), so reset to
+            // ResetGestureInputConsumer isn't available until onUserUnlocked(), so reset to
             // NO_OP until then (we never want these to be null).
-            InputConsumer.NO_OP
+            InputConsumer.createNoOpInputConsumer(displayId)
         }
     }
 

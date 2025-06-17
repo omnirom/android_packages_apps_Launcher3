@@ -20,7 +20,6 @@ package com.android.quickstep.recents.data
  * Container to hold [com.android.launcher3.DeviceProfile] related to Recents.
  *
  * @property isLargeScreen whether the current device posture has a large screen
+ * @property canEnterDesktopMode whether the current device can enter Desktop UI mode
  */
-data class RecentsDeviceProfile(
-    val isLargeScreen: Boolean,
-)
+data class RecentsDeviceProfile(val isLargeScreen: Boolean, val canEnterDesktopMode: Boolean)

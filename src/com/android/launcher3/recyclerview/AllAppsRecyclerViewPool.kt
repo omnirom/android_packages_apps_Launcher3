@@ -18,6 +18,7 @@ package com.android.launcher3.recyclerview
 
 import android.content.Context
 import android.util.Log
+import android.view.ContextThemeWrapper
 import android.view.InflateException
 import androidx.annotation.VisibleForTesting
 import androidx.annotation.VisibleForTesting.Companion.PROTECTED
@@ -33,8 +34,6 @@ import com.android.launcher3.util.Executors.MAIN_EXECUTOR
 import com.android.launcher3.util.Executors.VIEW_PREINFLATION_EXECUTOR
 import com.android.launcher3.util.Themes
 import com.android.launcher3.views.ActivityContext
-import com.android.launcher3.views.ActivityContext.ActivityContextDelegate
-import java.lang.IllegalStateException
 
 const val PREINFLATE_ICONS_ROW_COUNT = 4
 const val EXTRA_ICONS_COUNT = 2
@@ -80,11 +79,9 @@ class AllAppsRecyclerViewPool<T> : RecycledViewPool() where T : Context, T : Act
         // create a separate AssetManager obj internally to avoid lock contention with
         // AssetManager obj that is associated with the launcher context on the main thread.
         val allAppsPreInflationContext =
-            ActivityContextDelegate(
-                context.createConfigurationContext(context.resources.configuration),
-                Themes.getActivityThemeRes(context),
-                context,
-            )
+            ContextThemeWrapper(context, Themes.getActivityThemeRes(context)).apply {
+                applyOverrideConfiguration(context.resources.configuration)
+            }
 
         // Because we perform onCreateViewHolder() on worker thread, we need a separate
         // adapter/inflator object as they are not thread-safe. Note that the adapter

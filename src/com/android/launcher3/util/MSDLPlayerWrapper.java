@@ -16,8 +16,6 @@
 
 package com.android.launcher3.util;
 
-import static com.android.launcher3.util.Executors.UI_HELPER_EXECUTOR;
-
 import android.content.Context;
 import android.os.Vibrator;
 
@@ -50,7 +48,9 @@ public class MSDLPlayerWrapper {
     @Inject
     public MSDLPlayerWrapper(@ApplicationContext Context context) {
         Vibrator vibrator = context.getSystemService(Vibrator.class);
-        mMSDLPlayer = MSDLPlayer.Companion.createPlayer(vibrator, UI_HELPER_EXECUTOR, null);
+        mMSDLPlayer = MSDLPlayer.Companion.createPlayer(vibrator,
+                java.util.concurrent.Executors.newSingleThreadExecutor(),
+                null /* useHapticFeedbackForToken */);
     }
 
     /** Perform MSDL feedback for a token with interaction properties */

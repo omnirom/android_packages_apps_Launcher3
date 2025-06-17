@@ -215,8 +215,7 @@ public class AppInfo extends ItemInfoWithIcon implements WorkspaceItemFactory {
                 PackageManagerHelper.getLoadingProgress(lai),
                 PackageInstallInfo.STATUS_INSTALLED_DOWNLOADING);
         info.setNonResizeable(apiWrapper.isNonResizeableActivity(lai));
-        info.setSupportsMultiInstance(
-                pmHelper.supportsMultiInstance(lai.getComponentName()));
+        info.setSupportsMultiInstance(apiWrapper.supportsMultiInstance(lai));
         return (oldProgressLevel != info.getProgressLevel())
                 || (oldRuntimeStatusFlags != info.runtimeStatusFlags);
     }

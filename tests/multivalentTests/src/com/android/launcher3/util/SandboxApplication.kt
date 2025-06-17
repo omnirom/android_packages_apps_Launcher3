@@ -27,7 +27,6 @@ import android.os.UserHandle
 import android.view.Display
 import androidx.test.core.app.ApplicationProvider
 import com.android.launcher3.util.LauncherModelHelper.SandboxModelContext
-import com.android.launcher3.util.MainThreadInitializedObject.ObjectSandbox
 import org.junit.Rule
 import org.junit.rules.ExternalResource
 import org.junit.rules.TestRule
@@ -48,6 +47,7 @@ import org.junit.runners.model.Statement
 class SandboxApplication private constructor(private val base: SandboxApplicationWrapper) :
     SandboxModelContext(base), TestRule {
 
+    @JvmOverloads
     constructor(
         base: Context = ApplicationProvider.getApplicationContext()
     ) : this(SandboxApplicationWrapper(base))
@@ -68,7 +68,7 @@ class SandboxApplication private constructor(private val base: SandboxApplicatio
         // Defer to the true application to decide whether to clean up. For instance, we do not want
         // to cleanup under Robolectric.
         val app = ApplicationProvider.getApplicationContext<Context>()
-        return if (app is ObjectSandbox) app.shouldCleanUpOnDestroy() else true
+        return (app as? SandboxContext)?.shouldCleanUpOnDestroy() ?: true
     }
 
     override fun apply(statement: Statement, description: Description): Statement {

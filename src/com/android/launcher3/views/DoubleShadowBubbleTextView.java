@@ -25,6 +25,7 @@ import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.text.Spannable;
 import android.text.SpannableString;
+import android.text.TextUtils;
 import android.text.style.ImageSpan;
 import android.util.AttributeSet;
 import android.util.Log;
@@ -102,7 +103,7 @@ public class DoubleShadowBubbleTextView extends BubbleTextView {
 
     @Override
     public void onDraw(Canvas canvas) {
-        if (shouldDrawAppContrastTile()) {
+        if (shouldDrawAppContrastTile() && !TextUtils.isEmpty(getText())) {
             drawAppContrastTile(canvas);
         }
         // If text is transparent or shadow alpha is 0, don't draw any shadow

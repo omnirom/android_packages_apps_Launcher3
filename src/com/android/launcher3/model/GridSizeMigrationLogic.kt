@@ -21,7 +21,6 @@ import android.graphics.Point
 import android.util.Log
 import androidx.annotation.VisibleForTesting
 import com.android.launcher3.Flags
-import com.android.launcher3.Flags.oneGridSpecs
 import com.android.launcher3.LauncherPrefs
 import com.android.launcher3.LauncherPrefs.Companion.get
 import com.android.launcher3.LauncherPrefs.Companion.getPrefs
@@ -30,11 +29,18 @@ import com.android.launcher3.LauncherSettings.Favorites.TABLE_NAME
 import com.android.launcher3.LauncherSettings.Favorites.TMP_TABLE
 import com.android.launcher3.Utilities
 import com.android.launcher3.config.FeatureFlags
+import com.android.launcher3.logging.FileLog
+import com.android.launcher3.logging.StatsLogManager
+import com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_ROW_SHIFT_GRID_MIGRATION
+import com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_ROW_SHIFT_ONE_GRID_MIGRATION
+import com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_STANDARD_GRID_MIGRATION
+import com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_STANDARD_ONE_GRID_MIGRATION
 import com.android.launcher3.model.GridSizeMigrationDBController.DbReader
+import com.android.launcher3.model.GridSizeMigrationDBController.isOneGridMigration
 import com.android.launcher3.provider.LauncherDbUtils.SQLiteTransaction
 import com.android.launcher3.provider.LauncherDbUtils.copyTable
 import com.android.launcher3.provider.LauncherDbUtils.dropTable
-import com.android.launcher3.provider.LauncherDbUtils.shiftTableByXCells
+import com.android.launcher3.provider.LauncherDbUtils.shiftWorkspaceByXCells
 import com.android.launcher3.util.CellAndSpan
 import com.android.launcher3.util.GridOccupancy
 import com.android.launcher3.util.IntArray
@@ -52,45 +58,55 @@ class GridSizeMigrationLogic {
         target: DatabaseHelper,
         source: SQLiteDatabase,
         isDestNewDb: Boolean,
+        modelDelegate: ModelDelegate,
     ) {
         if (!GridSizeMigrationDBController.needsToMigrate(srcDeviceState, destDeviceState)) {
             return
         }
 
-        val isFirstLoad = get(context).get(LauncherPrefs.IS_FIRST_LOAD_AFTER_RESTORE)
-        Log.d(
+        val statsLogManager: StatsLogManager = StatsLogManager.newInstance(context)
+
+        val isAfterRestore = get(context).get(LauncherPrefs.IS_FIRST_LOAD_AFTER_RESTORE)
+        FileLog.d(
             TAG,
-            "Begin grid migration. First load: $isFirstLoad\n srcDeviceState: " +
+            "Begin grid migration. isAfterRestore: $isAfterRestore\nsrcDeviceState: " +
                 "$srcDeviceState\ndestDeviceState: $destDeviceState\nisDestNewDb: $isDestNewDb",
         )
 
-        // This is a special case where if the grid is the same amount of columns but a larger
-        // amount of rows we simply copy over the source grid to the destination grid, rather
-        // than undergoing the general grid migration.
-        if (shouldMigrateToStrictlyTallerGrid(isDestNewDb, srcDeviceState, destDeviceState)) {
-            Log.d(TAG, "Migrating to strictly taller grid")
+        val shouldMigrateToStrtictlyTallerGrid =
+            shouldMigrateToStrictlyTallerGrid(isDestNewDb, srcDeviceState, destDeviceState)
+        if (shouldMigrateToStrtictlyTallerGrid) {
             copyTable(source, TABLE_NAME, target.writableDatabase, TABLE_NAME, context)
-            if (oneGridSpecs()) {
-                val destReader = DbReader(target.writableDatabase, TABLE_NAME, context)
-                val shouldShiftCells = shouldShiftCells(destReader, srcDeviceState.rows)
-                if (shouldShiftCells) {
-                    shiftTableByXCells(
-                        target.writableDatabase,
-                        (destDeviceState.rows - srcDeviceState.rows),
-                        TABLE_NAME,
-                    )
-                }
-            }
-            // Save current configuration, so that the migration does not run again.
-            destDeviceState.writeToPrefs(context)
-            return
+        } else {
+            copyTable(source, TABLE_NAME, target.writableDatabase, TMP_TABLE, context)
         }
-
-        copyTable(source, TABLE_NAME, target.writableDatabase, TMP_TABLE, context)
 
         val migrationStartTime = System.currentTimeMillis()
         try {
             SQLiteTransaction(target.writableDatabase).use { t ->
+                // We want to add the extra row(s) to the top of the screen, so we shift the grid
+                // down.
+                if (shouldMigrateToStrtictlyTallerGrid) {
+                    Log.d(TAG, "Migrating to strictly taller grid")
+                    if (Flags.oneGridSpecs()) {
+                        shiftWorkspaceByXCells(
+                            target.writableDatabase,
+                            (destDeviceState.rows - srcDeviceState.rows),
+                            TABLE_NAME,
+                        )
+                    }
+                    // Save current configuration, so that the migration does not run again.
+                    destDeviceState.writeToPrefs(context)
+                    t.commit()
+
+                    if (isOneGridMigration(srcDeviceState, destDeviceState)) {
+                        statsLogManager.logger().log(LAUNCHER_ROW_SHIFT_ONE_GRID_MIGRATION)
+                    }
+                    statsLogManager.logger().log(LAUNCHER_ROW_SHIFT_GRID_MIGRATION)
+
+                    return
+                }
+
                 val srcReader = DbReader(t.db, TMP_TABLE, context)
                 val destReader = DbReader(t.db, TABLE_NAME, context)
 
@@ -104,15 +120,27 @@ class GridSizeMigrationLogic {
                 val idsInUse = mutableListOf<Int>()
 
                 // Migrate hotseat.
-                migrateHotseat(destDeviceState.numHotseat, srcReader, destReader, target, idsInUse)
+                migrateHotseat(
+                    srcDeviceState.numHotseat,
+                    destDeviceState.numHotseat,
+                    srcReader,
+                    destReader,
+                    target,
+                    idsInUse,
+                )
                 // Migrate workspace.
                 migrateWorkspace(srcReader, destReader, target, targetSize, idsInUse)
 
                 dropTable(t.db, TMP_TABLE)
                 t.commit()
+
+                if (isOneGridMigration(srcDeviceState, destDeviceState)) {
+                    statsLogManager.logger().log(LAUNCHER_STANDARD_ONE_GRID_MIGRATION)
+                }
+                statsLogManager.logger().log(LAUNCHER_STANDARD_GRID_MIGRATION)
             }
         } catch (e: Exception) {
-            Log.e(TAG, "Error during grid migration", e)
+            FileLog.e(TAG, "Error during grid migration", e)
         } finally {
             Log.v(
                 TAG,
@@ -122,25 +150,16 @@ class GridSizeMigrationLogic {
 
             // Save current configuration, so that the migration does not run again.
             destDeviceState.writeToPrefs(context)
-        }
-    }
 
-    private fun shouldShiftCells(destReader: DbReader, srcGridRowCount: Int): Boolean {
-        val workspaceItems = destReader.loadAllWorkspaceEntries()
-        val firstPageItemsRowPosSum =
-            workspaceItems.sumOf { entry -> if (entry.screenId == 0) entry.cellY else 0 }
-        val firstPageWorkspaceItemsCount = workspaceItems.count { entry -> entry.screenId == 0 }
-        if (firstPageWorkspaceItemsCount == 0) {
-            return false
+            // Notify if we've migrated successfully
+            modelDelegate.gridMigrationComplete(srcDeviceState, destDeviceState)
         }
-        val srcGridMidPoint = srcGridRowCount / 2f
-        val firstPageItemPosAvg = firstPageItemsRowPosSum / firstPageWorkspaceItemsCount.toFloat()
-        return (firstPageItemPosAvg >= srcGridMidPoint)
     }
 
     /** Handles hotseat migration. */
     @VisibleForTesting
     fun migrateHotseat(
+        srcHotseatSize: Int,
         destHotseatSize: Int,
         srcReader: DbReader,
         destReader: DbReader,
@@ -150,17 +169,24 @@ class GridSizeMigrationLogic {
         val srcHotseatItems = srcReader.loadHotseatEntries()
         val dstHotseatItems = destReader.loadHotseatEntries()
 
-        val hotseatToBeAdded = getItemsToBeAdded(srcHotseatItems, dstHotseatItems)
-        val toBeRemoved = IntArray()
-        toBeRemoved.addAll(getItemsToBeRemoved(srcHotseatItems, dstHotseatItems))
+        // We want to filter out the hotseat items that are placed beyond the size of the source
+        // grid as we always want to keep those extra items from the destination grid.
+        var filteredDstHotseatItems = dstHotseatItems
+        if (srcHotseatSize < destHotseatSize) {
+            filteredDstHotseatItems =
+                filteredDstHotseatItems.filter { entry -> entry.screenId < srcHotseatSize }
+        }
+
+        val itemsToBeAdded = getItemsToBeAdded(srcHotseatItems, filteredDstHotseatItems)
+        val itemsToBeRemoved = getItemsToBeRemoved(srcHotseatItems, filteredDstHotseatItems)
 
         if (DEBUG) {
             Log.d(
                 TAG,
                 """Start hotseat migration:
-            |Removing Hotseat Items: [${dstHotseatItems.filter { toBeRemoved.contains(it.id) }
+            |Removing Hotseat Items: [${filteredDstHotseatItems.filter { itemsToBeRemoved.contains(it.id) }
                 .joinToString(",\n") { it.toString() }}]
-            |Adding Hotseat Items: [${hotseatToBeAdded
+            |Adding Hotseat Items: [${itemsToBeAdded
                 .joinToString(",\n") { it.toString() }}]
             |"""
                     .trimMargin(),
@@ -168,17 +194,19 @@ class GridSizeMigrationLogic {
         }
 
         // Removes the items that we need to remove from the destination DB.
-        if (!toBeRemoved.isEmpty) {
+        if (!itemsToBeRemoved.isEmpty) {
             GridSizeMigrationDBController.removeEntryFromDb(
                 destReader.mDb,
                 destReader.mTableName,
-                toBeRemoved,
+                itemsToBeRemoved,
             )
         }
 
+        val remainingDstHotseatItems = destReader.loadHotseatEntries()
+
         placeHotseatItems(
-            hotseatToBeAdded,
-            dstHotseatItems,
+            itemsToBeAdded,
+            remainingDstHotseatItems,
             destHotseatSize,
             helper,
             srcReader,
@@ -258,9 +286,10 @@ class GridSizeMigrationLogic {
             )
         }
 
+        val remainingDstWorkspaceItems = destReader.loadAllWorkspaceEntries()
         placeWorkspaceItems(
             workspaceToBeAdded,
-            dstWorkspaceItems,
+            remainingDstWorkspaceItems,
             targetSize.x,
             targetSize.y,
             helper,
@@ -366,7 +395,7 @@ class GridSizeMigrationLogic {
         srcDeviceState: DeviceGridState,
         destDeviceState: DeviceGridState,
     ): Boolean {
-        return isDestNewDb &&
+        return (Flags.oneGridSpecs() || isDestNewDb) &&
             srcDeviceState.columns == destDeviceState.columns &&
             srcDeviceState.rows < destDeviceState.rows
     }

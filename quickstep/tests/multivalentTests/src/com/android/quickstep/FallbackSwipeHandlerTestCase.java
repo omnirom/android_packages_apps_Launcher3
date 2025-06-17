@@ -44,12 +44,12 @@ public class FallbackSwipeHandlerTestCase extends AbsSwipeUpHandlerTestCase<
             long touchTimeMs, boolean continuingLastGesture) {
         return new FallbackSwipeHandler(
                 mContext,
-                mRecentsAnimationDeviceState,
                 mTaskAnimationManager,
                 mGestureState,
                 touchTimeMs,
                 continuingLastGesture,
-                mInputConsumerController);
+                mInputConsumerController,
+                mMSDLPlayerWrapper);
     }
 
     @NonNull

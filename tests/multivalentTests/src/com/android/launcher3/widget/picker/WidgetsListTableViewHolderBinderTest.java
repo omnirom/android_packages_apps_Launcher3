@@ -15,7 +15,6 @@
  */
 package com.android.launcher3.widget.picker;
 
-import static androidx.test.core.app.ApplicationProvider.getApplicationContext;
 import static androidx.test.platform.app.InstrumentationRegistry.getInstrumentation;
 
 import static com.google.common.truth.Truth.assertThat;
@@ -50,6 +49,7 @@ import com.android.launcher3.icons.cache.CachedObject;
 import com.android.launcher3.model.WidgetItem;
 import com.android.launcher3.model.data.PackageItemInfo;
 import com.android.launcher3.util.ActivityContextWrapper;
+import com.android.launcher3.util.SandboxApplication;
 import com.android.launcher3.util.WidgetUtils;
 import com.android.launcher3.widget.DatabaseWidgetPreviewLoader;
 import com.android.launcher3.widget.LauncherAppWidgetProviderInfo;
@@ -57,6 +57,7 @@ import com.android.launcher3.widget.WidgetCell;
 import com.android.launcher3.widget.model.WidgetsListContentEntry;
 
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -71,6 +72,7 @@ public final class WidgetsListTableViewHolderBinderTest {
     private static final String TEST_PACKAGE = "com.google.test";
     private static final String APP_NAME = "Test app";
 
+    @Rule public SandboxApplication app = new SandboxApplication();
     private Context mContext;
     private WidgetsListTableViewHolderBinder mViewHolderBinder;
     private InvariantDeviceProfile mTestProfile;
@@ -85,8 +87,8 @@ public final class WidgetsListTableViewHolderBinderTest {
     @Before
     public void setUp() {
         MockitoAnnotations.initMocks(this);
-        mContext = new ActivityContextWrapper(getApplicationContext());
-        mTestProfile = new InvariantDeviceProfile();
+        mContext = new ActivityContextWrapper(app);
+        mTestProfile = InvariantDeviceProfile.INSTANCE.get(app);
         mTestProfile.numRows = 5;
         mTestProfile.numColumns = 5;
 

@@ -46,6 +46,8 @@
             android:layout_width="@dimen/rounded_button_width"
             android:layout_height="@dimen/rounded_button_width"
             android:layout_marginTop="@dimen/work_edu_card_button_margin_top"
+            android:clickable="true"
+            android:contentDescription="@string/accessibility_close"
             android:gravity="center"
             android:background="@drawable/inset_rounded_action_button">
             <ImageButton
@@ -54,7 +56,7 @@
                 android:clickable="false"
                 android:scaleType="centerInside"
                 android:layout_gravity="center"
-                android:contentDescription="@string/accessibility_close"
+                android:importantForAccessibility="no"
                 android:background="@android:color/transparent"
                 android:src="@drawable/ic_close_work_edu" />
         </FrameLayout>

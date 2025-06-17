@@ -20,11 +20,12 @@ import android.animation.AnimatorTestRule
 import android.platform.test.annotations.DisableFlags
 import android.platform.test.annotations.EnableFlags
 import android.platform.test.flag.junit.SetFlagsRule
-import android.view.KeyEvent
 import android.view.View.GONE
 import android.view.View.VISIBLE
+import androidx.test.core.app.ApplicationProvider
 import androidx.test.platform.app.InstrumentationRegistry.getInstrumentation
 import com.android.launcher3.taskbar.bubbles.stashing.BubbleStashController
+import com.android.launcher3.taskbar.rules.SandboxParams
 import com.android.launcher3.taskbar.rules.TaskbarModeRule
 import com.android.launcher3.taskbar.rules.TaskbarModeRule.Mode.PINNED
 import com.android.launcher3.taskbar.rules.TaskbarModeRule.Mode.TRANSIENT
@@ -44,6 +45,10 @@ import com.google.common.truth.Truth.assertThat
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.mockito.kotlin.anyOrNull
+import org.mockito.kotlin.doAnswer
+import org.mockito.kotlin.spy
+import org.mockito.kotlin.whenever
 
 @RunWith(LauncherMultivalentJUnit::class)
 @EmulatedDevices(["pixelTablet2023"])
@@ -51,16 +56,14 @@ class TaskbarScrimViewControllerTest {
     @get:Rule(order = 0) val setFlagsRule = SetFlagsRule()
     @get:Rule(order = 1)
     val context =
-        TaskbarWindowSandboxContext.create { builder ->
-            builder.bindSystemUiProxy(
-                object : SystemUiProxy(this) {
-                    override fun onBackEvent(backEvent: KeyEvent?) {
-                        super.onBackEvent(backEvent)
-                        backPressed = true
-                    }
+        TaskbarWindowSandboxContext.create(
+            SandboxParams({
+                spy(SystemUiProxy(ApplicationProvider.getApplicationContext())) {
+                    doAnswer { backPressed = true }.whenever(it).onBackEvent(anyOrNull())
                 }
-            )
-        }
+            })
+        )
+
     @get:Rule(order = 2) val taskbarModeRule = TaskbarModeRule(context)
     @get:Rule(order = 3) val animatorTestRule = AnimatorTestRule(this)
     @get:Rule(order = 4) val taskbarUnitTestRule = TaskbarUnitTestRule(this, context)

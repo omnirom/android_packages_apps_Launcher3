@@ -47,6 +47,7 @@ import android.view.View;
 import android.view.ViewDebug;
 import android.view.ViewGroup;
 import android.view.accessibility.AccessibilityEvent;
+import android.view.accessibility.AccessibilityNodeInfo;
 
 import androidx.annotation.IntDef;
 import androidx.annotation.Nullable;
@@ -170,6 +171,7 @@ public class CellLayout extends ViewGroup {
 
     private boolean mDragging = false;
     public boolean mHasOnLayoutBeenCalled = false;
+    private boolean mPlayDragHaptics = false;
 
     private final TimeInterpolator mEaseOutInterpolator;
     protected final ShortcutAndWidgetContainer mShortcutsAndWidgets;
@@ -529,9 +531,11 @@ public class CellLayout extends ViewGroup {
 
         for (int i = 0; i < mDelegatedCellDrawings.size(); i++) {
             DelegatedCellDrawing cellDrawing = mDelegatedCellDrawings.get(i);
-            cellToPoint(cellDrawing.mDelegateCellX, cellDrawing.mDelegateCellY, mTempLocation);
             canvas.save();
-            canvas.translate(mTempLocation[0], mTempLocation[1]);
+            if (cellDrawing.mDelegateCellX >= 0 && cellDrawing.mDelegateCellY >= 0) {
+                cellToPoint(cellDrawing.mDelegateCellX, cellDrawing.mDelegateCellY, mTempLocation);
+                canvas.translate(mTempLocation[0], mTempLocation[1]);
+            }
             cellDrawing.drawUnderItem(canvas);
             canvas.restore();
         }
@@ -660,9 +664,11 @@ public class CellLayout extends ViewGroup {
 
         for (int i = 0; i < mDelegatedCellDrawings.size(); i++) {
             DelegatedCellDrawing bg = mDelegatedCellDrawings.get(i);
-            cellToPoint(bg.mDelegateCellX, bg.mDelegateCellY, mTempLocation);
             canvas.save();
-            canvas.translate(mTempLocation[0], mTempLocation[1]);
+            if (bg.mDelegateCellX >= 0 && bg.mDelegateCellY >= 0) {
+                cellToPoint(bg.mDelegateCellX, bg.mDelegateCellY, mTempLocation);
+                canvas.translate(mTempLocation[0], mTempLocation[1]);
+            }
             bg.drawOverItem(canvas);
             canvas.restore();
         }
@@ -780,6 +786,12 @@ public class CellLayout extends ViewGroup {
                 Log.d(TAG, "Adding view to ShortcutsAndWidgetsContainer: " + child);
             }
             mShortcutsAndWidgets.addView(child, index, lp);
+
+            // Whenever an app is added, if Accessibility service is enabled, focus on that app.
+            if (mActivity instanceof Launcher) {
+                child.setTag(R.id.perform_a11y_action_on_launcher_state_normal_tag,
+                        AccessibilityNodeInfo.ACTION_ACCESSIBILITY_FOCUS);
+            }
 
             if (markCells) markCellsAsOccupiedForView(child);
 
@@ -1160,7 +1172,8 @@ public class CellLayout extends ViewGroup {
             DropTarget.DragObject dragObject) {
         if (mDragCell[0] != cellX || mDragCell[1] != cellY || mDragCellSpan[0] != spanX
                 || mDragCellSpan[1] != spanY) {
-            if (Flags.msdlFeedback()) {
+            determineIfDragHapticsPlay();
+            if (mPlayDragHaptics && Flags.msdlFeedback()) {
                 mMSDLPlayerWrapper.playToken(MSDLToken.DRAG_INDICATOR_DISCRETE);
             }
             mDragCell[0] = cellX;
@@ -1185,6 +1198,14 @@ public class CellLayout extends ViewGroup {
                 dragObject.stateAnnouncer.announce(getItemMoveDescription(cellX, cellY));
             }
 
+        }
+    }
+
+    private void determineIfDragHapticsPlay() {
+        if (mDragCell[0] != -1 || mDragCell[1] != -1
+                || mDragCellSpan[0] != -1 || mDragCellSpan[1] != -1) {
+            // The nearest cell is known and we can play haptics
+            mPlayDragHaptics = true;
         }
     }
 
@@ -1789,6 +1810,7 @@ public class CellLayout extends ViewGroup {
      * @param child The child that is being dropped
      */
     void onDropChild(View child) {
+        mPlayDragHaptics = false;
         if (child != null) {
             CellLayoutLayoutParams
                     lp = (CellLayoutLayoutParams) child.getLayoutParams();
@@ -1816,13 +1838,19 @@ public class CellLayout extends ViewGroup {
                 + (int) Math.ceil(getUnusedHorizontalSpace() / 2f);
         final int vStartPadding = getPaddingTop();
 
-        int x = hStartPadding + (cellX * mBorderSpace.x) + (cellX * cellWidth);
+        int x = hStartPadding + (cellX * mBorderSpace.x) + (cellX * cellWidth)
+                + getTranslationXForCell(cellX, cellY);
         int y = vStartPadding + (cellY * mBorderSpace.y) + (cellY * cellHeight);
 
         int width = cellHSpan * cellWidth + ((cellHSpan - 1) * mBorderSpace.x);
         int height = cellVSpan * cellHeight + ((cellVSpan - 1) * mBorderSpace.y);
 
         resultRect.set(x, y, x + width, y + height);
+    }
+
+    /** Enables successors to provide an X adjustment for the cell. */
+    protected int getTranslationXForCell(int cellX, int cellY) {
+        return 0;
     }
 
     public void markCellsAsOccupiedForView(View view) {

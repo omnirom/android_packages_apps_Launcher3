@@ -189,11 +189,11 @@ constructor(
                 SplitBannerConfig.SPLIT_GRID_BANNER_LARGE
             // For landscape grid, for 30% width we only show icon, otherwise show icon and time
             task.key.id == splitBounds.leftTopTaskId ->
-                if (splitBounds.leftTaskPercent < THRESHOLD_LEFT_ICON_ONLY)
+                if (splitBounds.leftTopTaskPercent < THRESHOLD_LEFT_ICON_ONLY)
                     SplitBannerConfig.SPLIT_GRID_BANNER_SMALL
                 else SplitBannerConfig.SPLIT_GRID_BANNER_LARGE
             else ->
-                if (splitBounds.leftTaskPercent > THRESHOLD_RIGHT_ICON_ONLY)
+                if (splitBounds.leftTopTaskPercent > THRESHOLD_RIGHT_ICON_ONLY)
                     SplitBannerConfig.SPLIT_GRID_BANNER_SMALL
                 else SplitBannerConfig.SPLIT_GRID_BANNER_LARGE
         }

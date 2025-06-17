@@ -12,6 +12,7 @@ import android.view.WindowInsets;
 import com.android.launcher3.graphics.SysUiScrim;
 import com.android.launcher3.statemanager.StatefulContainer;
 import com.android.launcher3.util.window.WindowManagerProxy;
+import com.android.launcher3.views.ActivityContext;
 
 import java.util.Collections;
 import java.util.List;
@@ -36,7 +37,7 @@ public class LauncherRootView extends InsettableFrameLayout {
 
     public LauncherRootView(Context context, AttributeSet attrs) {
         super(context, attrs);
-        mStatefulContainer = StatefulContainer.fromContext(context);
+        mStatefulContainer = ActivityContext.lookupContext(context);
         mSysUiScrim = new SysUiScrim(this);
     }
 
@@ -54,7 +55,7 @@ public class LauncherRootView extends InsettableFrameLayout {
     @Override
     public WindowInsets onApplyWindowInsets(WindowInsets insets) {
         mStatefulContainer.handleConfigurationChanged(
-                mStatefulContainer.getContext().getResources().getConfiguration());
+                mStatefulContainer.asContext().getResources().getConfiguration());
         return updateInsets(insets);
     }
 

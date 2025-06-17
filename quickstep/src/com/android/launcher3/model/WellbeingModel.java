@@ -109,9 +109,9 @@ public final class WellbeingModel implements SafeCloseable {
                 ? Executors.UI_HELPER_EXECUTOR.getLooper()
                 : Executors.getPackageExecutor(mWellbeingProviderPkg).getLooper());
         mWellbeingAppChangeReceiver =
-                new SimpleBroadcastReceiver(mWorkerHandler, t -> restartObserver());
+                new SimpleBroadcastReceiver(context, mWorkerHandler, t -> restartObserver());
         mAppAddRemoveReceiver =
-                new SimpleBroadcastReceiver(mWorkerHandler, this::onAppPackageChanged);
+                new SimpleBroadcastReceiver(context, mWorkerHandler, this::onAppPackageChanged);
 
 
         mContentObserver = new ContentObserver(mWorkerHandler) {
@@ -148,8 +148,8 @@ public final class WellbeingModel implements SafeCloseable {
     public void close() {
         if (!TextUtils.isEmpty(mWellbeingProviderPkg)) {
             mWorkerHandler.post(() -> {
-                mWellbeingAppChangeReceiver.unregisterReceiverSafely(mContext);
-                mAppAddRemoveReceiver.unregisterReceiverSafely(mContext);
+                mWellbeingAppChangeReceiver.unregisterReceiverSafely();
+                mAppAddRemoveReceiver.unregisterReceiverSafely();
                 mContext.getContentResolver().unregisterContentObserver(mContentObserver);
             });
         }

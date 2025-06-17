@@ -39,10 +39,11 @@ import com.android.app.animation.Interpolators;
 import com.android.launcher3.R;
 import com.android.launcher3.Utilities;
 import com.android.launcher3.anim.PendingAnimation;
-import com.android.launcher3.config.FeatureFlags;
 import com.android.launcher3.statemanager.StateManager;
 import com.android.quickstep.util.AnimUtils;
 import com.android.quickstep.util.SplitSelectStateController;
+import com.android.wm.shell.shared.TypefaceUtils;
+import com.android.wm.shell.shared.TypefaceUtils.FontFamily;
 
 /**
  * A rounded rectangular component containing a single TextView.
@@ -126,33 +127,32 @@ public class SplitInstructionsView extends LinearLayout {
         TextView cancelTextView = findViewById(R.id.split_instructions_text_cancel);
         TextView instructionTextView = findViewById(R.id.split_instructions_text);
 
-        if (FeatureFlags.enableSplitContextually()) {
-            cancelTextView.setVisibility(VISIBLE);
-            cancelTextView.setOnClickListener((v) -> exitSplitSelection());
-            instructionTextView.setText(R.string.toast_contextual_split_select_app);
+        cancelTextView.setVisibility(VISIBLE);
+        cancelTextView.setOnClickListener((v) -> exitSplitSelection());
+        instructionTextView.setText(R.string.toast_contextual_split_select_app);
+        TypefaceUtils.setTypeface(instructionTextView, FontFamily.GSF_BODY_MEDIUM);
 
-            // After layout, expand touch target of cancel button to meet minimum a11y measurements.
-            post(() -> {
-                int minTouchSize = getResources()
-                        .getDimensionPixelSize(settingslib_preferred_minimum_touch_target);
-                Rect r = new Rect();
-                cancelTextView.getHitRect(r);
+        // After layout, expand touch target of cancel button to meet minimum a11y measurements.
+        post(() -> {
+            int minTouchSize = getResources()
+                    .getDimensionPixelSize(settingslib_preferred_minimum_touch_target);
+            Rect r = new Rect();
+            cancelTextView.getHitRect(r);
 
-                if (r.width() < minTouchSize) {
-                    // add 1 to ensure ceiling on int division
-                    int expandAmount = (minTouchSize + 1 - r.width()) / 2;
-                    r.left -= expandAmount;
-                    r.right += expandAmount;
-                }
-                if (r.height() < minTouchSize) {
-                    int expandAmount = (minTouchSize + 1 - r.height()) / 2;
-                    r.top -= expandAmount;
-                    r.bottom += expandAmount;
-                }
+            if (r.width() < minTouchSize) {
+                // add 1 to ensure ceiling on int division
+                int expandAmount = (minTouchSize + 1 - r.width()) / 2;
+                r.left -= expandAmount;
+                r.right += expandAmount;
+            }
+            if (r.height() < minTouchSize) {
+                int expandAmount = (minTouchSize + 1 - r.height()) / 2;
+                r.top -= expandAmount;
+                r.bottom += expandAmount;
+            }
 
-                setTouchDelegate(new TouchDelegate(r, cancelTextView));
-            });
-        }
+            setTouchDelegate(new TouchDelegate(r, cancelTextView));
+        });
 
         // Set accessibility title, will be announced by a11y tools.
         instructionTextView.setAccessibilityPaneTitle(instructionTextView.getText());

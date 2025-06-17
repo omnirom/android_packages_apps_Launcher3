@@ -110,13 +110,16 @@ public class PopupPopulator {
     public static <T extends Context & ActivityContext> Runnable createUpdateRunnable(
             final T context,
             final ItemInfo originalInfo,
-            final Handler uiHandler, final PopupContainerWithArrow container,
-            final List<DeepShortcutView> shortcutViews) {
+            final Handler uiHandler,
+            final PopupContainerWithArrow container,
+            final List<DeepShortcutView> shortcutViews
+    ) {
         final ComponentName activity = originalInfo.getTargetComponent();
         final UserHandle user = originalInfo.user;
+        final String targetPackage = originalInfo.getTargetPackage();
         return () -> {
             ApplicationInfoWrapper infoWrapper =
-                    new ApplicationInfoWrapper(context, originalInfo.getTargetPackage(), user);
+                    new ApplicationInfoWrapper(context, targetPackage, user);
             List<ShortcutInfo> shortcuts = new ShortcutRequest(context, user)
                     .withContainer(activity)
                     .query(ShortcutRequest.PUBLISHED);

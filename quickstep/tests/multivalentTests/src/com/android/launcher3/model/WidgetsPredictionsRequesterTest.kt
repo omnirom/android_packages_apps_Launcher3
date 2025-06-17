@@ -16,6 +16,8 @@
 
 package com.android.launcher3.model
 
+import android.app.prediction.AppPredictionManager
+import android.app.prediction.AppPredictor
 import android.app.prediction.AppTarget
 import android.app.prediction.AppTargetEvent
 import android.app.prediction.AppTargetId
@@ -36,9 +38,15 @@ import com.android.launcher3.model.WidgetPredictionsRequester.filterPredictions
 import com.android.launcher3.model.WidgetPredictionsRequester.notOnUiSurfaceFilter
 import com.android.launcher3.util.ActivityContextWrapper
 import com.android.launcher3.util.ComponentKey
+import com.android.launcher3.util.Executors
+import com.android.launcher3.util.Executors.MODEL_EXECUTOR
+import com.android.launcher3.util.TestUtil
 import com.android.launcher3.util.WidgetUtils.createAppWidgetProviderInfo
 import com.android.launcher3.widget.LauncherAppWidgetProviderInfo
+import com.android.launcher3.widget.PendingAddWidgetInfo
 import com.google.common.truth.Truth.assertThat
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 import java.util.function.Predicate
 import junit.framework.Assert.assertNotNull
 import org.junit.Before
@@ -46,6 +54,9 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Mock
 import org.mockito.MockitoAnnotations
+import org.mockito.kotlin.any
+import org.mockito.kotlin.doAnswer
+import org.mockito.kotlin.whenever
 
 @RunWith(AndroidJUnit4::class)
 class WidgetsPredictionsRequesterTest {
@@ -67,11 +78,26 @@ class WidgetsPredictionsRequesterTest {
 
     @Mock private lateinit var iconCache: IconCache
 
+    @Mock private lateinit var apmMock: AppPredictionManager
+
+    @Mock private lateinit var predictorMock: AppPredictor
+
     @Before
     fun setUp() {
         MockitoAnnotations.initMocks(this)
         mUserHandle = myUserHandle()
-        context = ActivityContextWrapper(ApplicationProvider.getApplicationContext())
+
+        whenever(apmMock.createAppPredictionSession(any())).thenReturn(predictorMock)
+
+        context =
+            object : ActivityContextWrapper(ApplicationProvider.getApplicationContext()) {
+                override fun getSystemService(name: String): Any? {
+                    if (name == "app_prediction") {
+                        return apmMock
+                    }
+                    return super.getSystemService(name)
+                }
+            }
         testInvariantProfile = LauncherAppState.getIDP(context)
         deviceProfile = testInvariantProfile.getDeviceProfile(context).copy(context)
 
@@ -114,19 +140,65 @@ class WidgetsPredictionsRequesterTest {
                 buildExpectedAppTargetEvent(
                     /*pkg=*/ APP_1_PACKAGE_NAME,
                     /*providerClassName=*/ APP_1_PROVIDER_A_CLASS_NAME,
-                    /*user=*/ mUserHandle
+                    /*user=*/ mUserHandle,
                 ),
                 buildExpectedAppTargetEvent(
                     /*pkg=*/ APP_1_PACKAGE_NAME,
                     /*providerClassName=*/ APP_1_PROVIDER_B_CLASS_NAME,
-                    /*user=*/ mUserHandle
+                    /*user=*/ mUserHandle,
                 ),
                 buildExpectedAppTargetEvent(
                     /*pkg=*/ APP_2_PACKAGE_NAME,
                     /*providerClassName=*/ APP_2_PROVIDER_1_CLASS_NAME,
-                    /*user=*/ mUserHandle
-                )
+                    /*user=*/ mUserHandle,
+                ),
             )
+    }
+
+    @Test
+    fun request_invokesCallbackWithPredictedItems() {
+        TestUtil.runOnExecutorSync(MODEL_EXECUTOR) {
+            val underTest = WidgetPredictionsRequester(context, TEST_UI_SURFACE, allWidgets)
+            val existingWidgets = arrayListOf(widget1aInfo, widget1bInfo)
+            val predictions =
+                listOf(
+                    // (existing) already on surface
+                    AppTarget(
+                        AppTargetId(APP_1_PACKAGE_NAME),
+                        APP_1_PACKAGE_NAME,
+                        APP_1_PROVIDER_B_CLASS_NAME,
+                        mUserHandle,
+                    ),
+                    // eligible
+                    AppTarget(
+                        AppTargetId(APP_2_PACKAGE_NAME),
+                        APP_2_PACKAGE_NAME,
+                        APP_2_PROVIDER_1_CLASS_NAME,
+                        mUserHandle,
+                    ),
+                )
+            doAnswer {
+                    underTest.onTargetsAvailable(predictions)
+                    null
+                }
+                .whenever(predictorMock)
+                .requestPredictionUpdate()
+            val testCountDownLatch = CountDownLatch(1)
+            val listener =
+                WidgetPredictionsRequester.WidgetPredictionsListener { itemInfos ->
+                    if (itemInfos.size == 1 && itemInfos[0] is PendingAddWidgetInfo) {
+                        // only one item was eligible.
+                        testCountDownLatch.countDown()
+                    } else {
+                        println("Unexpected prediction items found: ${itemInfos.size}")
+                    }
+                }
+
+            underTest.request(existingWidgets, listener)
+            TestUtil.runOnExecutorSync(Executors.MAIN_EXECUTOR) {}
+
+            assertThat(testCountDownLatch.await(TEST_TIMEOUT, TimeUnit.SECONDS)).isTrue()
+        }
     }
 
     @Test
@@ -141,15 +213,15 @@ class WidgetsPredictionsRequesterTest {
                     AppTargetId(APP_1_PACKAGE_NAME),
                     APP_1_PACKAGE_NAME,
                     APP_1_PROVIDER_B_CLASS_NAME,
-                    mUserHandle
+                    mUserHandle,
                 ),
                 // eligible
                 AppTarget(
                     AppTargetId(APP_2_PACKAGE_NAME),
                     APP_2_PACKAGE_NAME,
                     APP_2_PROVIDER_1_CLASS_NAME,
-                    mUserHandle
-                )
+                    mUserHandle,
+                ),
             )
 
         // only 2 was eligible
@@ -167,27 +239,27 @@ class WidgetsPredictionsRequesterTest {
                     AppTargetId(APP_1_PACKAGE_NAME),
                     APP_1_PACKAGE_NAME,
                     "$APP_1_PACKAGE_NAME.SomeActivity",
-                    mUserHandle
+                    mUserHandle,
                 ),
                 AppTarget(
                     AppTargetId(APP_2_PACKAGE_NAME),
                     APP_2_PACKAGE_NAME,
                     "$APP_2_PACKAGE_NAME.SomeActivity2",
-                    mUserHandle
+                    mUserHandle,
                 ),
             )
 
         assertThat(filterPredictions(predictions, allWidgets, filter)).isEmpty()
     }
 
-    private fun createWidgetItem(
-        providerInfo: AppWidgetProviderInfo,
-    ): WidgetItem {
+    private fun createWidgetItem(providerInfo: AppWidgetProviderInfo): WidgetItem {
         val widgetInfo = LauncherAppWidgetProviderInfo.fromProviderInfo(context, providerInfo)
         return WidgetItem(widgetInfo, testInvariantProfile, iconCache, context)
     }
 
     companion object {
+        const val TEST_TIMEOUT = 3L
+
         const val TEST_UI_SURFACE = "widgets_test"
         const val BUNDLE_KEY_ADDED_APP_WIDGETS = "added_app_widgets"
 
@@ -203,13 +275,13 @@ class WidgetsPredictionsRequesterTest {
         private fun buildExpectedAppTargetEvent(
             pkg: String,
             providerClassName: String,
-            userHandle: UserHandle
+            userHandle: UserHandle,
         ): AppTargetEvent {
             val appTarget =
                 AppTarget.Builder(
                         /*id=*/ AppTargetId("widget:$pkg"),
                         /*packageName=*/ pkg,
-                        /*user=*/ userHandle
+                        /*user=*/ userHandle,
                     )
                     .setClassName(providerClassName)
                     .build()

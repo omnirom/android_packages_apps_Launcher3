@@ -77,6 +77,8 @@ public class TaskbarSharedState {
 
     public List<BubbleInfo> bubbleInfoItems;
 
+    public List<BubbleInfo> suppressedBubbleInfoItems;
+
     /** Returns whether there are a saved bubbles. */
     public boolean hasSavedBubbles() {
         return bubbleInfoItems != null && !bubbleInfoItems.isEmpty();

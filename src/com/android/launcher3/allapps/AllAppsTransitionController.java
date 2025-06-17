@@ -34,6 +34,7 @@ import static com.android.launcher3.util.SystemUiController.FLAG_LIGHT_NAV;
 import static com.android.launcher3.util.SystemUiController.UI_STATE_ALL_APPS;
 
 import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
 import android.animation.ObjectAnimator;
 import android.util.FloatProperty;
 import android.view.HapticFeedbackConstants;
@@ -289,7 +290,8 @@ public class AllAppsTransitionController
     private void onScaleProgressChanged() {
         final float scaleProgress = mAllAppScale.value;
         SCALE_PROPERTY.set(mLauncher.getAppsView(), scaleProgress);
-        if (!mLauncher.getAppsView().isSearching() || !mLauncher.getDeviceProfile().isTablet) {
+        if (!mLauncher.getAppsView().isSearching()
+                || !mLauncher.getDeviceProfile().shouldShowAllAppsOnSheet()) {
             mLauncher.getScrimView().setScrimHeaderScale(scaleProgress);
         }
 
@@ -365,6 +367,12 @@ public class AllAppsTransitionController
         Interpolator verticalProgressInterpolator = config.getInterpolator(ANIM_VERTICAL_PROGRESS,
                 config.isUserControlled() ? LINEAR : DECELERATE_1_7);
         Animator anim = createSpringAnimation(mProgress, targetProgress);
+        anim.addListener(new AnimatorListenerAdapter() {
+            @Override
+            public void onAnimationCancel(Animator animation) {
+                setProgress(targetProgress);
+            }
+        });
         anim.setInterpolator(verticalProgressInterpolator);
         builder.add(anim);
 

@@ -18,9 +18,7 @@ package com.android.quickstep.recents.data
 
 class FakeRecentsDeviceProfileRepository : RecentsDeviceProfileRepository {
     private var recentsDeviceProfile =
-        RecentsDeviceProfile(
-            isLargeScreen = false,
-        )
+        RecentsDeviceProfile(isLargeScreen = false, canEnterDesktopMode = false)
 
     override fun getRecentsDeviceProfile() = recentsDeviceProfile
 

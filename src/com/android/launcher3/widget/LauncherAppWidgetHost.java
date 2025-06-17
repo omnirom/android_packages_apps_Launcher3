@@ -16,8 +16,6 @@
 
 package com.android.launcher3.widget;
 
-import static com.android.launcher3.widget.LauncherWidgetHolder.APPWIDGET_HOST_ID;
-
 import android.appwidget.AppWidgetHost;
 import android.appwidget.AppWidgetProviderInfo;
 import android.content.Context;
@@ -26,49 +24,18 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
 
-import com.android.launcher3.LauncherAppState;
-import com.android.launcher3.util.Executors;
-import com.android.launcher3.widget.LauncherWidgetHolder.ProviderChangedListener;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.function.IntConsumer;
-
 /**
  * Specific {@link AppWidgetHost} that creates our {@link LauncherAppWidgetHostView}
  * which correctly captures all long-press events. This ensures that users can
  * always pick up and move widgets.
  */
-class LauncherAppWidgetHost extends AppWidgetHost {
-    @NonNull
-    private final List<ProviderChangedListener> mProviderChangeListeners;
-
-    @NonNull
-    private final Context mContext;
-
-    @Nullable
-    private final IntConsumer mAppWidgetRemovedCallback;
+class LauncherAppWidgetHost extends ListenableAppWidgetHost {
 
     @Nullable
     private ListenableHostView mViewToRecycle;
 
-    public LauncherAppWidgetHost(@NonNull Context context,
-            @Nullable IntConsumer appWidgetRemovedCallback,
-            List<ProviderChangedListener> providerChangeListeners) {
-        super(context, APPWIDGET_HOST_ID);
-        mContext = context;
-        mAppWidgetRemovedCallback = appWidgetRemovedCallback;
-        mProviderChangeListeners = providerChangeListeners;
-    }
-
-    @Override
-    protected void onProvidersChanged() {
-        if (!mProviderChangeListeners.isEmpty()) {
-            for (LauncherWidgetHolder.ProviderChangedListener callback :
-                    new ArrayList<>(mProviderChangeListeners)) {
-                callback.notifyWidgetProvidersChanged();
-            }
-        }
+    LauncherAppWidgetHost(@NonNull Context context, int appWidgetId) {
+        super(context, appWidgetId);
     }
 
     /**
@@ -91,35 +58,6 @@ class LauncherAppWidgetHost extends AppWidgetHost {
                 mViewToRecycle != null ? mViewToRecycle : new ListenableHostView(context);
         mViewToRecycle = null;
         return result;
-    }
-
-    /**
-     * Called when the AppWidget provider for a AppWidget has been upgraded to a new apk.
-     */
-    @Override
-    protected void onProviderChanged(int appWidgetId, @NonNull AppWidgetProviderInfo appWidget) {
-        LauncherAppWidgetProviderInfo info = LauncherAppWidgetProviderInfo.fromProviderInfo(
-                mContext, appWidget);
-        super.onProviderChanged(appWidgetId, info);
-        // The super method updates the dimensions of the providerInfo. Update the
-        // launcher spans accordingly.
-        info.initSpans(mContext, LauncherAppState.getIDP(mContext));
-    }
-
-    /**
-     * Called on an appWidget is removed for a widgetId
-     *
-     * @param appWidgetId TODO: make this override when SDK is updated
-     */
-    @Override
-    public void onAppWidgetRemoved(int appWidgetId) {
-        if (mAppWidgetRemovedCallback == null) {
-            return;
-        }
-        // Route the call via model thread, in case it comes while a loader-bind is in progress
-        Executors.MODEL_EXECUTOR.execute(
-                () -> Executors.MAIN_EXECUTOR.execute(
-                        () -> mAppWidgetRemovedCallback.accept(appWidgetId)));
     }
 
     /**

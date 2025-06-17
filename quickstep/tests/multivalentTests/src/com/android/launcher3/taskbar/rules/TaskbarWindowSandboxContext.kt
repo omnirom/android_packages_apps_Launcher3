@@ -22,26 +22,32 @@ import android.hardware.display.DisplayManager
 import android.hardware.display.VirtualDisplay
 import android.view.Display.DEFAULT_DISPLAY
 import androidx.test.core.app.ApplicationProvider
-import com.android.launcher3.FakeLauncherPrefs
 import com.android.launcher3.LauncherPrefs
+import com.android.launcher3.dagger.ApplicationContext
 import com.android.launcher3.dagger.LauncherAppComponent
 import com.android.launcher3.dagger.LauncherAppSingleton
-import com.android.launcher3.util.MainThreadInitializedObject.ObjectSandbox
+import com.android.launcher3.statehandlers.DesktopVisibilityController
+import com.android.launcher3.util.AllModulesMinusWMProxy
+import com.android.launcher3.util.DaggerSingletonTracker
+import com.android.launcher3.util.DisplayController
+import com.android.launcher3.util.FakePrefsModule
 import com.android.launcher3.util.SandboxApplication
 import com.android.launcher3.util.SettingsCache
 import com.android.launcher3.util.SettingsCacheSandbox
+import com.android.launcher3.util.window.WindowManagerProxy
 import com.android.quickstep.SystemUiProxy
+import dagger.Binds
 import dagger.BindsInstance
 import dagger.Component
+import dagger.Module
+import dagger.Provides
+import javax.inject.Inject
 import org.junit.rules.ExternalResource
 import org.junit.rules.RuleChain
 import org.junit.rules.TestRule
 import org.junit.runner.Description
 import org.junit.runners.model.Statement
-
-/** Include additional bindings when building a [TaskbarSandboxComponent]. */
-typealias TaskbarComponentBinder =
-    TaskbarWindowSandboxContext.(TaskbarSandboxComponent.Builder) -> Unit
+import org.mockito.kotlin.spy
 
 /**
  * [SandboxApplication] for running Taskbar tests.
@@ -53,8 +59,8 @@ class TaskbarWindowSandboxContext
 private constructor(
     private val base: SandboxApplication,
     val virtualDisplay: VirtualDisplay,
-    private val componentBinder: TaskbarComponentBinder?,
-) : ContextWrapper(base), ObjectSandbox by base, TestRule {
+    private val params: SandboxParams,
+) : ContextWrapper(base), TestRule {
 
     val settingsCacheSandbox = SettingsCacheSandbox()
 
@@ -68,13 +74,10 @@ private constructor(
             override fun before() {
                 val context = this@TaskbarWindowSandboxContext
                 val builder =
-                    DaggerTaskbarSandboxComponent.builder()
-                        .bindSystemUiProxy(SystemUiProxy(context))
+                    params.builderBase
+                        .bindSystemUiProxy(params.systemUiProxyProvider.invoke(context))
                         .bindSettingsCache(settingsCacheSandbox.cache)
-                componentBinder?.invoke(context, builder)
                 base.initDaggerComponent(builder)
-
-                putObject(LauncherPrefs.INSTANCE, FakeLauncherPrefs(context))
             }
         }
 
@@ -89,10 +92,9 @@ private constructor(
         private const val VIRTUAL_DISPLAY_NAME = "TaskbarSandboxDisplay"
 
         /** Creates a [SandboxApplication] for Taskbar tests. */
-        fun create(componentBinder: TaskbarComponentBinder? = null): TaskbarWindowSandboxContext {
+        fun create(params: SandboxParams = SandboxParams()): TaskbarWindowSandboxContext {
             val base = ApplicationProvider.getApplicationContext<Context>()
             val displayManager = checkNotNull(base.getSystemService(DisplayManager::class.java))
-
             // Create virtual display to avoid clashing with Taskbar on default display.
             val virtualDisplay =
                 base.resources.displayMetrics.let {
@@ -109,15 +111,60 @@ private constructor(
             return TaskbarWindowSandboxContext(
                 SandboxApplication(base.createDisplayContext(virtualDisplay.display)),
                 virtualDisplay,
-                componentBinder,
+                params,
             )
         }
     }
 }
 
+/** A wrapper over display controller which allows modifying the underlying info */
 @LauncherAppSingleton
-@Component
+class DisplayControllerSpy
+@Inject
+constructor(
+    @ApplicationContext context: Context,
+    wmProxy: WindowManagerProxy,
+    prefs: LauncherPrefs,
+    lifecycle: DaggerSingletonTracker,
+) : DisplayController(context, wmProxy, prefs, lifecycle) {
+
+    var infoModifier: ((Info) -> Info)? = null
+
+    override fun getInfo(): Info = infoModifier?.invoke(super.getInfo()) ?: super.getInfo()
+}
+
+@Module
+abstract class DisplayControllerModule {
+    @Binds abstract fun bindDisplayController(controller: DisplayControllerSpy): DisplayController
+}
+
+@Module
+object DesktopVisibilityControllerModule {
+    @JvmStatic
+    @Provides
+    @LauncherAppSingleton
+    fun provideDesktopVisibilityController(
+        @ApplicationContext context: Context,
+        systemUiProxy: SystemUiProxy,
+        lifecycleTracker: DaggerSingletonTracker,
+    ): DesktopVisibilityController {
+        return spy(DesktopVisibilityController(context, systemUiProxy, lifecycleTracker))
+    }
+}
+
+@LauncherAppSingleton
+@Component(
+    modules =
+        [
+            AllModulesMinusWMProxy::class,
+            FakePrefsModule::class,
+            DisplayControllerModule::class,
+            TaskbarSandboxModule::class,
+            DesktopVisibilityControllerModule::class,
+        ]
+)
 interface TaskbarSandboxComponent : LauncherAppComponent {
+
     @Component.Builder
     interface Builder : LauncherAppComponent.Builder {
         @BindsInstance fun bindSystemUiProxy(proxy: SystemUiProxy): Builder
@@ -127,3 +174,9 @@ interface TaskbarSandboxComponent : LauncherAppComponent {
         override fun build(): TaskbarSandboxComponent
     }
 }
+
+/** Include additional bindings when building a [TaskbarSandboxComponent]. */
+data class SandboxParams(
+    val systemUiProxyProvider: (Context) -> SystemUiProxy = { SystemUiProxy(it) },
+    val builderBase: TaskbarSandboxComponent.Builder = DaggerTaskbarSandboxComponent.builder(),
+)

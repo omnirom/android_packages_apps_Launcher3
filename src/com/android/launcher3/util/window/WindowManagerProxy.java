@@ -27,7 +27,6 @@ import static com.android.launcher3.testing.shared.ResourceUtils.NAV_BAR_INTERAC
 import static com.android.launcher3.testing.shared.ResourceUtils.STATUS_BAR_HEIGHT;
 import static com.android.launcher3.testing.shared.ResourceUtils.STATUS_BAR_HEIGHT_LANDSCAPE;
 import static com.android.launcher3.testing.shared.ResourceUtils.STATUS_BAR_HEIGHT_PORTRAIT;
-import static com.android.launcher3.util.MainThreadInitializedObject.forOverride;
 import static com.android.launcher3.util.RotationUtils.deltaRotation;
 import static com.android.launcher3.util.RotationUtils.rotateRect;
 import static com.android.launcher3.util.RotationUtils.rotateSize;
@@ -52,37 +51,33 @@ import androidx.annotation.NonNull;
 import androidx.annotation.VisibleForTesting;
 
 import com.android.launcher3.R;
+import com.android.launcher3.dagger.LauncherAppSingleton;
+import com.android.launcher3.dagger.LauncherBaseAppComponent;
 import com.android.launcher3.testing.shared.ResourceUtils;
-import com.android.launcher3.util.MainThreadInitializedObject;
+import com.android.launcher3.util.DaggerSingletonObject;
 import com.android.launcher3.util.NavigationMode;
-import com.android.launcher3.util.ResourceBasedOverride;
-import com.android.launcher3.util.SafeCloseable;
 import com.android.launcher3.util.WindowBounds;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.inject.Inject;
+
 /**
  * Utility class for mocking some window manager behaviours
  */
-public class WindowManagerProxy implements ResourceBasedOverride, SafeCloseable {
+@LauncherAppSingleton
+public class WindowManagerProxy {
 
     private static final String TAG = "WindowManagerProxy";
     public static final int MIN_TABLET_WIDTH = 600;
 
-    public static final MainThreadInitializedObject<WindowManagerProxy> INSTANCE =
-            forOverride(WindowManagerProxy.class, R.string.window_manager_proxy_class);
+    public static final DaggerSingletonObject<WindowManagerProxy> INSTANCE =
+            new DaggerSingletonObject<>(LauncherBaseAppComponent::getWmProxy);
 
     protected final boolean mTaskbarDrawnInProcess;
 
-    /**
-     * Creates a new instance of proxy, applying any overrides
-     */
-    public static WindowManagerProxy newInstance(Context context) {
-        return Overrides.getObject(WindowManagerProxy.class, context,
-                R.string.window_manager_proxy_class);
-    }
-
+    @Inject
     public WindowManagerProxy() {
         this(false);
     }
@@ -114,7 +109,7 @@ public class WindowManagerProxy implements ResourceBasedOverride, SafeCloseable 
     /**
      * Returns if we are in desktop mode or not.
      */
-    public boolean isInDesktopMode() {
+    public boolean isInDesktopMode(int displayId) {
         return false;
     }
 
@@ -122,6 +117,14 @@ public class WindowManagerProxy implements ResourceBasedOverride, SafeCloseable 
      * Returns if the pinned taskbar should be shown when home is visible.
      */
     public boolean showLockedTaskbarOnHome(Context displayInfoContext) {
+        return false;
+    }
+
+    /**
+     * Returns whether the display is a freeform display for which taskbar should be pinned
+     * and showing desktop tasks.
+     */
+    public boolean showDesktopTaskbarForFreeformDisplay(Context displayInfoContext) {
         return false;
     }
 
@@ -483,9 +486,6 @@ public class WindowManagerProxy implements ResourceBasedOverride, SafeCloseable 
         return NavigationMode.NO_BUTTON;
     }
 
-    @Override
-    public void close() { }
-
     /**
      * @see DisplayCutout#getSafeInsets
      */
@@ -493,4 +493,60 @@ public class WindowManagerProxy implements ResourceBasedOverride, SafeCloseable 
         return new Rect(cutout.getSafeInsetLeft(), cutout.getSafeInsetTop(),
                 cutout.getSafeInsetRight(), cutout.getSafeInsetBottom());
     }
+
+    /** Registers a listener for Taskbar changes in Desktop Mode.  */
+    public void registerDesktopVisibilityListener(DesktopVisibilityListener listener) { }
+
+    /** Removes a previously registered listener for Taskbar changes in Desktop Mode.  */
+    public void unregisterDesktopVisibilityListener(DesktopVisibilityListener listener) { }
+
+    /** A listener for when the user enters/exits Desktop Mode.  */
+    public interface DesktopVisibilityListener {
+        /**
+         * Called when the desktop mode state on the display whose ID is `displayId` changes.
+         *
+         * @param displayId The ID of the display for which this notification is triggering.
+         * @param isInDesktopModeAndNotInOverview True if a desktop is currently active on the given
+         *                                        display, and Overview is currently inactive.
+         */
+        default void onIsInDesktopModeChanged(int displayId,
+                boolean isInDesktopModeAndNotInOverview) {
+        }
+
+        /**
+         * Called whenever the conditions that allow the creation of desks change.
+         *
+         * @param canCreateDesks whether it is possible to create new desks.
+         */
+        default void onCanCreateDesksChanged(boolean canCreateDesks) {
+        }
+
+        /**
+         * Called when a new desk is added.
+         *
+         * @param displayId The ID of the display on which the desk was added.
+         * @param deskId The ID of the newly added desk.
+         */
+        default void onDeskAdded(int displayId, int deskId) {}
+
+        /**
+         * Called when an existing desk is removed.
+         *
+         * @param displayId The ID of the display on which the desk was removed.
+         * @param deskId The ID of the desk that was removed.
+         */
+        default void onDeskRemoved(int displayId, int deskId) {}
+
+        /**
+         * Called when the active desk changes.
+         *
+         * @param displayId The ID of the display on which the desk activation change is happening.
+         * @param newActiveDesk The ID of the new active desk or -1 if no desk is active anymore
+         *                      (i.e. exit desktop mode).
+         * @param oldActiveDesk The ID of the desk that was previously active, or -1 if no desk was
+         *                      active before.
+         */
+        default void onActiveDeskChanged(int displayId, int newActiveDesk, int oldActiveDesk) {}
+    }
+
 }

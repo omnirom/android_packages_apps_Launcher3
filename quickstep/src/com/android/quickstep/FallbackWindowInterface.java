@@ -31,7 +31,7 @@ import androidx.annotation.Nullable;
 
 import com.android.launcher3.DeviceProfile;
 import com.android.launcher3.statemanager.StateManager;
-import com.android.launcher3.taskbar.FallbackTaskbarUIController;
+import com.android.launcher3.taskbar.TaskbarUIController;
 import com.android.launcher3.util.DisplayController;
 import com.android.quickstep.GestureState.GestureEndTarget;
 import com.android.quickstep.fallback.RecentsState;
@@ -51,31 +51,11 @@ import java.util.function.Predicate;
  */
 public final class FallbackWindowInterface extends BaseWindowInterface{
 
-    private static FallbackWindowInterface INSTANCE;
-
     private final RecentsWindowManager mRecentsWindowManager;
 
-    /**
-     * This is only null before init() or after destroy()
-     */
-    @Nullable
-    public static FallbackWindowInterface getInstance(){
-        return INSTANCE;
-    }
-
-    public static void init(RecentsWindowManager recentsWindowManager) {
-        if (INSTANCE == null) {
-            INSTANCE = new FallbackWindowInterface(recentsWindowManager);
-        }
-    }
-
-    private FallbackWindowInterface(RecentsWindowManager recentsWindowManager) {
+    public FallbackWindowInterface(RecentsWindowManager recentsWindowManager) {
         super(DEFAULT, BACKGROUND_APP);
         mRecentsWindowManager = recentsWindowManager;
-    }
-
-    public void destroy() {
-        INSTANCE = null;
     }
 
     /** 2 */
@@ -100,10 +80,9 @@ public final class FallbackWindowInterface extends BaseWindowInterface{
 
     /** 6 */
     @Override
-    public BaseWindowInterface.AnimationFactory prepareRecentsUI(RecentsAnimationDeviceState
-            deviceState, boolean activityVisible,
+    public BaseWindowInterface.AnimationFactory prepareRecentsUI(boolean activityVisible,
             Consumer<AnimatorControllerWithResistance> callback) {
-        notifyRecentsOfOrientation(deviceState.getRotationTouchHelper());
+        notifyRecentsOfOrientation();
         BaseWindowInterface.DefaultAnimationFactory factory =
                 new BaseWindowInterface.DefaultAnimationFactory(callback);
         factory.initBackgroundStateUI();
@@ -125,14 +104,9 @@ public final class FallbackWindowInterface extends BaseWindowInterface{
     }
 
     @Override
-    public FallbackTaskbarUIController getTaskbarController() {
+    public TaskbarUIController getTaskbarController() {
         RecentsWindowManager manager = getCreatedContainer();
-        if (manager == null) {
-            return null;
-        }
-        return null;
-        // todo b/365775636: pass a taskbar implementation
-        // return manager.getTaskbarUIController();
+        return manager == null ? null : manager.getTaskbarUIController();
     }
 
     @Override
@@ -173,12 +147,12 @@ public final class FallbackWindowInterface extends BaseWindowInterface{
     }
 
     @Override
-    public void onExitOverview(RotationTouchHelper deviceState, Runnable exitRunnable) {
+    public void onExitOverview(Runnable exitRunnable) {
         final StateManager<RecentsState, RecentsWindowManager> stateManager =
                 getCreatedContainer().getStateManager();
         if (stateManager.getState() == HOME) {
             exitRunnable.run();
-            notifyRecentsOfOrientation(deviceState);
+            notifyRecentsOfOrientation();
             return;
         }
 
@@ -189,7 +163,7 @@ public final class FallbackWindowInterface extends BaseWindowInterface{
                         // Are we going from Recents to Workspace?
                         if (toState == HOME) {
                             exitRunnable.run();
-                            notifyRecentsOfOrientation(deviceState);
+                            notifyRecentsOfOrientation();
                             stateManager.removeStateListener(this);
                         }
                     }
@@ -228,24 +202,22 @@ public final class FallbackWindowInterface extends BaseWindowInterface{
         }
     }
 
-    private void notifyRecentsOfOrientation(RotationTouchHelper rotationTouchHelper) {
+    private void notifyRecentsOfOrientation() {
         // reset layout on swipe to home
-        RecentsView recentsView = getCreatedContainer().getOverviewPanel();
-        recentsView.setLayoutRotation(rotationTouchHelper.getCurrentActiveRotation(),
-                rotationTouchHelper.getDisplayRotation());
+        ((RecentsView) getCreatedContainer().getOverviewPanel()).reapplyActiveRotation();
     }
 
     @Override
-    public @Nullable Animator getParallelAnimationToLauncher(GestureEndTarget endTarget,
+    public @Nullable Animator getParallelAnimationToGestureEndTarget(GestureEndTarget endTarget,
             long duration, RecentsAnimationCallbacks callbacks) {
-        FallbackTaskbarUIController uiController = getTaskbarController();
-        Animator superAnimator = super.getParallelAnimationToLauncher(
+        TaskbarUIController uiController = getTaskbarController();
+        Animator superAnimator = super.getParallelAnimationToGestureEndTarget(
                 endTarget, duration, callbacks);
         if (uiController == null) {
             return superAnimator;
         }
-        RecentsState toState = stateFromGestureEndTarget(endTarget);
-        Animator taskbarAnimator = uiController.createAnimToRecentsState(toState, duration);
+        Animator taskbarAnimator = uiController.getParallelAnimationToGestureEndTarget(
+                endTarget, duration, callbacks);
         if (taskbarAnimator == null) {
             return superAnimator;
         }

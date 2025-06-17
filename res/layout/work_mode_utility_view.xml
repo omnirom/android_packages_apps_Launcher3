@@ -14,6 +14,7 @@
   ~ limitations under the License.
   -->
 <com.android.launcher3.allapps.WorkUtilityView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/work_utility_view"
     android:layout_height="wrap_content"
     android:layout_width="wrap_content"
     android:orientation="vertical"
@@ -25,6 +26,7 @@
         android:layout_height="@dimen/work_scheduler_size"
         android:layout_marginBottom="@dimen/work_scheduler_bottom_margin"
         android:contentDescription="@string/work_scheduler_button_content_description"
+        android:elevation="@dimen/work_fab_elevation"
         android:src="@drawable/ic_schedule"
         android:layout_gravity="end"
         android:background="@drawable/work_scheduler_background" />

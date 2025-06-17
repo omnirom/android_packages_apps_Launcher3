@@ -20,6 +20,7 @@ import android.app.Application;
 import com.android.launcher3.dagger.DaggerLauncherAppComponent;
 import com.android.launcher3.dagger.LauncherAppComponent;
 import com.android.launcher3.dagger.LauncherBaseAppComponent;
+import com.android.launcher3.util.TraceHelper;
 
 /**
  * Main application class for Launcher
@@ -41,7 +42,8 @@ public class LauncherApplication extends Application {
                 if (mAppComponent == null) {
                     // Initialize the dagger component on demand as content providers can get
                     // accessed before the Launcher application (b/36917845#comment4)
-                    initDaggerComponent(DaggerLauncherAppComponent.builder());
+                    initDaggerComponent(DaggerLauncherAppComponent.builder()
+                            .iconsDbName(LauncherFiles.APP_ICONS_DB));
                 }
             }
         }
@@ -55,7 +57,11 @@ public class LauncherApplication extends Application {
     /**
      * Init with the desired dagger component.
      */
-    public void initDaggerComponent(LauncherAppComponent.Builder componentBuilder) {
-        mAppComponent = componentBuilder.appContext(this).build();
+    public void initDaggerComponent(LauncherBaseAppComponent.Builder componentBuilder) {
+        mAppComponent = componentBuilder
+                .appContext(this)
+                .setSafeModeEnabled(TraceHelper.allowIpcs(
+                        "isSafeMode", () -> getPackageManager().isSafeMode()))
+                .build();
     }
 }

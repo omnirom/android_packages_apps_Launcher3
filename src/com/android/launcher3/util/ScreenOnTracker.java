@@ -46,34 +46,31 @@ public class ScreenOnTracker implements SafeCloseable {
     private final SimpleBroadcastReceiver mReceiver;
     private final CopyOnWriteArrayList<ScreenOnListener> mListeners = new CopyOnWriteArrayList<>();
 
-    private final Context mContext;
     private boolean mIsScreenOn;
 
     @Inject
     ScreenOnTracker(@ApplicationContext Context context, DaggerSingletonTracker tracker) {
         // Assume that the screen is on to begin with
-        mContext = context;
-        mReceiver = new SimpleBroadcastReceiver(UI_HELPER_EXECUTOR, this::onReceive);
+        mReceiver = new SimpleBroadcastReceiver(context, UI_HELPER_EXECUTOR, this::onReceive);
         init(tracker);
     }
 
     @VisibleForTesting
     ScreenOnTracker(@ApplicationContext Context context, SimpleBroadcastReceiver receiver,
             DaggerSingletonTracker tracker) {
-        mContext = context;
         mReceiver = receiver;
         init(tracker);
     }
 
     private void init(DaggerSingletonTracker tracker) {
         mIsScreenOn = true;
-        mReceiver.register(mContext, ACTION_SCREEN_ON, ACTION_SCREEN_OFF, ACTION_USER_PRESENT);
+        mReceiver.register(ACTION_SCREEN_ON, ACTION_SCREEN_OFF, ACTION_USER_PRESENT);
         tracker.addCloseable(this);
     }
 
     @Override
     public void close() {
-        mReceiver.unregisterReceiverSafely(mContext);
+        mReceiver.unregisterReceiverSafely();
     }
 
     @VisibleForTesting

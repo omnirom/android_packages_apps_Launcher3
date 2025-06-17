@@ -77,7 +77,8 @@ public class BackgroundAppState extends OverviewState {
         return super.getVisibleElements(launcher)
                 & ~OVERVIEW_ACTIONS
                 & ~CLEAR_ALL_BUTTON
-                & ~VERTICAL_SWIPE_INDICATOR;
+                & ~VERTICAL_SWIPE_INDICATOR
+                & ~ADD_DESK_BUTTON;
     }
 
     @Override
@@ -93,6 +94,11 @@ public class BackgroundAppState extends OverviewState {
     @Override
     public boolean detachDesktopCarousel() {
         return enableDesktopWindowingCarouselDetach();
+    }
+
+    @Override
+    public boolean showExplodedDesktopView() {
+        return false;
     }
 
     @Override

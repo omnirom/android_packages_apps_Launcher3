@@ -127,10 +127,10 @@ public final class SplitConfigurationOptions {
         /** This rect represents the actual gap between the two apps */
         public final Rect visualDividerBounds;
         // This class is orientation-agnostic, so we compute both for later use
-        public final float topTaskPercent;
-        public final float leftTaskPercent;
-        public final float dividerWidthPercent;
-        public final float dividerHeightPercent;
+        private final float topTaskPercent;
+        private final float leftTaskPercent;
+        private final float dividerWidthPercent;
+        private final float dividerHeightPercent;
         public final int snapPosition;
 
         /**
@@ -188,6 +188,39 @@ public final class SplitConfigurationOptions {
             topTaskPercent = leftTopBounds.height() / totalHeight;
             dividerWidthPercent = visualDividerBounds.width() / totalWidth;
             dividerHeightPercent = visualDividerBounds.height() / totalHeight;
+        }
+
+        /**
+         * Returns the percentage size of the left/top task (compared to the full width/height of
+         * the split pair). E.g. if the left task is 4 units wide, the divider is 2 units, and the
+         * right task is 4 units, this method will return 0.4f.
+         */
+        public float getLeftTopTaskPercent() {
+            // topTaskPercent and leftTaskPercent are defined at creation time, and are not updated
+            // on device rotate, so we have to check appsStackedVertically to return the right
+            // creation-time measurements.
+            return appsStackedVertically ? topTaskPercent : leftTaskPercent;
+        }
+
+        /**
+         * Returns the percentage size of the divider's thickness (compared to the full width/height
+         * of the split pair). E.g. if the left task is 4 units wide, the divider is 2 units, and
+         * the right task is 4 units, this method will return 0.2f.
+         */
+        public float getDividerPercent() {
+            // dividerHeightPercent and dividerWidthPercent are defined at creation time, and are
+            // not updated on device rotate, so we have to check appsStackedVertically to return
+            // the right creation-time measurements.
+            return appsStackedVertically ? dividerHeightPercent : dividerWidthPercent;
+        }
+
+        /**
+         * Returns the percentage size of the right/bottom task (compared to the full width/height
+         * of the split pair). E.g. if the left task is 4 units wide, the divider is 2 units, and
+         * the right task is 4 units, this method will return 0.4f.
+         */
+        public float getRightBottomTaskPercent() {
+            return 1 - (getLeftTopTaskPercent() + getDividerPercent());
         }
 
         @Override

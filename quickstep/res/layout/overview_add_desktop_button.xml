@@ -16,9 +16,11 @@
 -->
 <com.android.quickstep.views.AddDesktopButton
     xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:launcher="http://schemas.android.com/apgk/res-auto"
+    xmlns:launcher="http://schemas.android.com/apk/res-auto"
     android:id="@+id/add_desktop_button"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
+    android:layout_width="@dimen/add_desktop_button_size"
+    android:layout_height="@dimen/add_desktop_button_size"
     android:src="@drawable/ic_desktop_add"
+    android:background="@drawable/bg_overview_add_desktop_button"
+    launcher:focusBorderColor="@color/materialColorOutline"
     android:padding="10dp" />

@@ -18,6 +18,7 @@ package com.android.launcher3.taskbar.bubbles.stashing
 
 import android.animation.Animator
 import android.animation.AnimatorSet
+import android.animation.ValueAnimator
 import android.content.Context
 import android.graphics.Rect
 import android.view.MotionEvent
@@ -31,6 +32,12 @@ import com.android.app.animation.Interpolators.LINEAR
 import com.android.launcher3.R
 import com.android.launcher3.anim.AnimatedFloat
 import com.android.launcher3.anim.SpringAnimationBuilder
+import com.android.launcher3.taskbar.BarsLocationAnimatorHelper.FADE_IN_ANIM_ALPHA_DURATION_MS
+import com.android.launcher3.taskbar.BarsLocationAnimatorHelper.FADE_OUT_ANIM_ALPHA_DELAY_MS
+import com.android.launcher3.taskbar.BarsLocationAnimatorHelper.FADE_OUT_ANIM_ALPHA_DURATION_MS
+import com.android.launcher3.taskbar.BarsLocationAnimatorHelper.FADE_OUT_ANIM_POSITION_DURATION_MS
+import com.android.launcher3.taskbar.BarsLocationAnimatorHelper.inShiftX
+import com.android.launcher3.taskbar.BarsLocationAnimatorHelper.outShift
 import com.android.launcher3.taskbar.TaskbarInsetsController
 import com.android.launcher3.taskbar.TaskbarStashController.TASKBAR_STASH_ALPHA_START_DELAY
 import com.android.launcher3.taskbar.TaskbarStashController.TRANSIENT_TASKBAR_STASH_ALPHA_DURATION
@@ -44,6 +51,7 @@ import com.android.launcher3.taskbar.bubbles.stashing.BubbleStashController.Task
 import com.android.launcher3.util.MultiPropertyFactory
 import com.android.wm.shell.shared.animation.PhysicsAnimator
 import com.android.wm.shell.shared.bubbles.BubbleBarLocation
+import com.android.wm.shell.shared.bubbles.ContextUtils.isRtl
 import kotlin.math.max
 
 class TransientBubbleStashController(
@@ -187,6 +195,11 @@ class TransientBubbleStashController(
     }
 
     override fun showBubbleBarImmediate(bubbleBarTranslationY: Float) {
+        showBubbleBarImmediateVisually(bubbleBarTranslationY)
+        onIsStashedChanged()
+    }
+
+    private fun showBubbleBarImmediateVisually(bubbleBarTranslationY: Float) {
         bubbleStashedHandleViewController?.setTranslationYForSwipe(0f)
         stashHandleViewAlpha?.value = 0f
         this.bubbleBarTranslationYAnimator.updateValue(bubbleBarTranslationY)
@@ -197,10 +210,14 @@ class TransientBubbleStashController(
         bubbleBarBackgroundScaleY.updateValue(1f)
         isStashed = false
         bubbleBarViewController.setHiddenForStashed(false)
-        onIsStashedChanged()
     }
 
     override fun stashBubbleBarImmediate() {
+        stashBubbleBarImmediateVisually()
+        onIsStashedChanged()
+    }
+
+    private fun stashBubbleBarImmediateVisually() {
         bubbleStashedHandleViewController?.setTranslationYForSwipe(0f)
         stashHandleViewAlpha?.value = 1f
         this.bubbleBarTranslationYAnimator.updateValue(getStashTranslation())
@@ -212,7 +229,6 @@ class TransientBubbleStashController(
         bubbleBarBackgroundScaleY.updateValue(getStashScaleY())
         isStashed = true
         bubbleBarViewController.setHiddenForStashed(true)
-        onIsStashedChanged()
     }
 
     override fun getTouchableHeight(): Int =
@@ -247,12 +263,62 @@ class TransientBubbleStashController(
         updateStashedAndExpandedState(stash = true, expand = false)
     }
 
+    override fun stashBubbleBarToLocation(
+        fromLocation: BubbleBarLocation,
+        toLocation: BubbleBarLocation,
+    ) {
+        if (fromLocation.isSameSideWith(toLocation)) {
+            updateStashedAndExpandedState(
+                stash = true,
+                expand = false,
+                updateTouchRegionOnEnd = false,
+            )
+            return
+        }
+        cancelAnimation()
+        animator =
+            AnimatorSet().apply {
+                playSequentially(
+                    bubbleBarViewController.animateBubbleBarLocationOut(toLocation),
+                    createHandleInAnimator(location = toLocation),
+                )
+                start()
+            }
+    }
+
     override fun showBubbleBar(expandBubbles: Boolean, bubbleBarGesture: Boolean) {
         updateStashedAndExpandedState(
             stash = false,
             expand = expandBubbles,
             bubbleBarGesture = bubbleBarGesture,
         )
+    }
+
+    override fun showBubbleBarAtLocation(
+        fromLocation: BubbleBarLocation,
+        toLocation: BubbleBarLocation,
+    ) {
+        if (fromLocation.isSameSideWith(toLocation)) {
+            updateStashedAndExpandedState(
+                stash = false,
+                expand = false,
+                updateTouchRegionOnEnd = false,
+            )
+            return
+        }
+        cancelAnimation()
+        val bubbleBarInAnimation =
+            bubbleBarViewController.animateBubbleBarLocationIn(fromLocation, toLocation).apply {
+                doOnStart { showBubbleBarImmediateVisually(bubbleBarTranslationY) }
+            }
+        animator =
+            AnimatorSet().apply {
+                playSequentially(
+                    createHandleOutAnimator(location = toLocation),
+                    bubbleBarInAnimation,
+                )
+                start()
+            }
     }
 
     override fun getDiffBetweenHandleAndBarCenters(): Float {
@@ -392,7 +458,7 @@ class TransientBubbleStashController(
             bubbleBarAlpha.value = 1f
         }
         animatorSet.doOnEnd {
-            animator = null
+            cancelAnimation()
             controllersAfterInitAction.runAfterInit {
                 if (isStashed) {
                     bubbleBarAlpha.value = 0f
@@ -486,6 +552,7 @@ class TransientBubbleStashController(
         stash: Boolean,
         expand: Boolean,
         bubbleBarGesture: Boolean = false,
+        updateTouchRegionOnEnd: Boolean = true,
     ) {
         if (bubbleBarViewController.isHiddenForNoBubbles) {
             // If there are no bubbles the bar and handle are invisible, nothing to do here.
@@ -498,11 +565,13 @@ class TransientBubbleStashController(
             // notify the view controller that the stash state is about to change so that it can
             // cancel an ongoing animation if there is one.
             bubbleBarViewController.onStashStateChanging()
-            animator?.cancel()
+            cancelAnimation()
             animator =
                 createStashAnimator(isStashed, BAR_STASH_DURATION).apply {
                     updateBarVisibility(isStashed)
-                    updateTouchRegionOnAnimationEnd()
+                    if (updateTouchRegionOnEnd) {
+                        updateTouchRegionOnAnimationEnd()
+                    }
                     start()
                 }
         }
@@ -511,6 +580,19 @@ class TransientBubbleStashController(
             bubbleBarViewController.setExpanded(expand, maybeShowEdu)
         }
     }
+
+    private fun cancelAnimation() {
+        animator?.cancel()
+        animator = null
+    }
+
+    override fun getHandleViewAlpha(): MultiPropertyFactory<View>.MultiProperty? =
+        // only return handle alpha if the bubble bar is stashed and has bubbles
+        if (isStashed && bubbleBarViewController.hasBubbles()) {
+            stashHandleViewAlpha
+        } else {
+            null
+        }
 
     private fun Animator.updateTouchRegionOnAnimationEnd(): Animator {
         doOnEnd { onIsStashedChanged() }
@@ -524,6 +606,49 @@ class TransientBubbleStashController(
             doOnStart { bubbleBarViewController.setHiddenForStashed(false) }
         }
         return this
+    }
+
+    // TODO(b/399678274) add tests
+    private fun createHandleInAnimator(location: BubbleBarLocation): Animator? {
+        val stashHandleViewController = bubbleStashedHandleViewController ?: return null
+        val handleAlpha = stashHandleViewController.stashedHandleAlpha.get(0)
+        val shift = context.inShiftX
+        val startX = if (location.isOnLeft(context.isRtl)) shift else -shift
+        val handleTranslationX =
+            ValueAnimator.ofFloat(startX, 0f).apply {
+                addUpdateListener { v ->
+                    stashHandleViewController.setTranslationX(v.animatedValue as Float)
+                }
+                duration = FADE_IN_ANIM_ALPHA_DURATION_MS
+            }
+        val handleAlphaAnimation =
+            handleAlpha.animateToValue(1f).apply { duration = FADE_IN_ANIM_ALPHA_DURATION_MS }
+        return AnimatorSet().apply {
+            playTogether(handleTranslationX, handleAlphaAnimation)
+            doOnStart { stashBubbleBarImmediateVisually() }
+        }
+    }
+
+    private fun createHandleOutAnimator(location: BubbleBarLocation): Animator? {
+        val stashHandleViewController = bubbleStashedHandleViewController ?: return null
+        val handleAlpha = stashHandleViewController.stashedHandleAlpha.get(0)
+        val shift = context.outShift
+        val endX = if (location.isOnLeft(context.isRtl)) -shift else shift
+        val handleTranslationX =
+            ValueAnimator.ofFloat(0f, endX).apply {
+                addUpdateListener { v ->
+                    stashHandleViewController.setTranslationX(v.animatedValue as Float)
+                }
+                duration = FADE_OUT_ANIM_POSITION_DURATION_MS
+                // in case item dropped to the opposite side - need to clear translation
+                doOnEnd { stashHandleViewController.setTranslationX(0f) }
+            }
+        val handleAlphaAnimation =
+            handleAlpha.animateToValue(0f).apply {
+                duration = FADE_OUT_ANIM_ALPHA_DURATION_MS
+                startDelay = FADE_OUT_ANIM_ALPHA_DELAY_MS
+            }
+        return AnimatorSet().apply { playTogether(handleTranslationX, handleAlphaAnimation) }
     }
 
     private fun Animator.setBubbleBarPivotDuringAnim(pivotX: Float, pivotY: Float): Animator {
@@ -540,5 +665,10 @@ class TransientBubbleStashController(
             }
         }
         return this
+    }
+
+    private fun BubbleBarLocation.isSameSideWith(anotherLocation: BubbleBarLocation): Boolean {
+        val isRtl = context.isRtl
+        return this.isOnLeft(isRtl) == anotherLocation.isOnLeft(isRtl)
     }
 }

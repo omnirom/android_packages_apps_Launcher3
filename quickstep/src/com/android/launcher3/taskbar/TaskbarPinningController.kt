@@ -57,7 +57,11 @@ class TaskbarPinningController(private val context: TaskbarActivityContext) :
                     return
                 }
                 val shouldPinTaskbar =
-                    if (controllers.taskbarDesktopModeController.areDesktopTasksVisible) {
+                    if (
+                        controllers.taskbarDesktopModeController.isInDesktopModeAndNotInOverview(
+                            context.displayId
+                        )
+                    ) {
                         !launcherPrefs.get(TASKBAR_PINNING_IN_DESKTOP_MODE)
                     } else {
                         !launcherPrefs.get(TASKBAR_PINNING)
@@ -137,7 +141,11 @@ class TaskbarPinningController(private val context: TaskbarActivityContext) :
     @VisibleForTesting
     fun recreateTaskbarAndUpdatePinningValue() {
         updateIsAnimatingTaskbarPinningAndNotifyTaskbarDragLayer(false)
-        if (controllers.taskbarDesktopModeController.areDesktopTasksVisible) {
+        if (
+            controllers.taskbarDesktopModeController.isInDesktopModeAndNotInOverview(
+                context.displayId
+            )
+        ) {
             launcherPrefs.put(
                 TASKBAR_PINNING_IN_DESKTOP_MODE,
                 !launcherPrefs.get(TASKBAR_PINNING_IN_DESKTOP_MODE),

@@ -24,7 +24,6 @@ import android.content.pm.ActivityInfo;
 import android.os.Process;
 
 import androidx.annotation.Nullable;
-import androidx.test.InstrumentationRegistry;
 import androidx.test.uiautomator.UiDevice;
 
 import com.android.systemui.shared.system.PackageManagerWrapper;
@@ -92,8 +91,9 @@ public class ShellCommandRule implements TestRule {
      * Grants the launcher permission to bind widgets.
      */
     public static ShellCommandRule grantWidgetBind() {
-        return new ShellCommandRule("appwidget grantbind --package "
-                + InstrumentationRegistry.getTargetContext().getPackageName(), null);
+        return new ShellCommandRule(String.format("appwidget grantbind --package %s --user %d",
+                getInstrumentation().getTargetContext().getPackageName(),
+                Process.myUserHandle().getIdentifier()), null);
     }
 
     /**

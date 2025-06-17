@@ -15,6 +15,8 @@
  */
 package com.android.launcher3;
 
+import static android.view.accessibility.AccessibilityEvent.TYPE_VIEW_ACCESSIBILITY_FOCUSED;
+
 import static androidx.recyclerview.widget.RecyclerView.NO_POSITION;
 
 import android.view.KeyEvent;
@@ -48,7 +50,11 @@ public class QuickstepAccessibilityDelegate extends LauncherAccessibilityDelegat
     public void onPopulateAccessibilityEvent(View view, AccessibilityEvent event) {
         super.onPopulateAccessibilityEvent(view, event);
         // Scroll to the position if focused view in main allapps list and not completely visible.
-        scrollToPositionIfNeeded(view);
+        // Gate based on TYPE_VIEW_ACCESSIBILITY_FOCUSED for unintended scrolling with external
+        // mouse.
+        if (event.getEventType() == TYPE_VIEW_ACCESSIBILITY_FOCUSED) {
+            scrollToPositionIfNeeded(view);
+        }
     }
 
     private void scrollToPositionIfNeeded(View view) {

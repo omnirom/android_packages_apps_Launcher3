@@ -18,6 +18,8 @@ package com.android.quickstep.fallback;
 import static com.android.app.animation.Interpolators.FINAL_FRAME;
 import static com.android.app.animation.Interpolators.INSTANT;
 import static com.android.app.animation.Interpolators.LINEAR;
+import static com.android.launcher3.Flags.enableDesktopExplodedView;
+import static com.android.launcher3.Flags.enableGridOnlyOverview;
 import static com.android.launcher3.Flags.enableLargeDesktopWindowingTile;
 import static com.android.launcher3.states.StateAnimationConfig.ANIM_OVERVIEW_MODAL;
 import static com.android.launcher3.states.StateAnimationConfig.ANIM_OVERVIEW_SCALE;
@@ -36,6 +38,7 @@ import static com.android.quickstep.views.RecentsView.TASK_PRIMARY_SPLIT_TRANSLA
 import static com.android.quickstep.views.RecentsView.TASK_SECONDARY_SPLIT_TRANSLATION;
 import static com.android.quickstep.views.RecentsView.TASK_SECONDARY_TRANSLATION;
 import static com.android.quickstep.views.RecentsView.TASK_THUMBNAIL_SPLASH_ALPHA;
+import static com.android.quickstep.views.RecentsViewUtils.DESK_EXPLODE_PROGRESS;
 import static com.android.quickstep.views.TaskView.FLAG_UPDATE_ALL;
 
 import android.util.FloatProperty;
@@ -49,6 +52,7 @@ import com.android.launcher3.anim.PendingAnimation;
 import com.android.launcher3.anim.PropertySetter;
 import com.android.launcher3.statemanager.StateManager.StateHandler;
 import com.android.launcher3.states.StateAnimationConfig;
+import com.android.quickstep.views.AddDesktopButton;
 import com.android.quickstep.views.ClearAllButton;
 import com.android.quickstep.views.RecentsView;
 import com.android.quickstep.views.RecentsViewContainer;
@@ -95,8 +99,13 @@ public class FallbackRecentsStateController implements StateHandler<RecentsState
     private void setProperties(RecentsState state, StateAnimationConfig config,
             PropertySetter setter) {
         float clearAllButtonAlpha = state.hasClearAllButton() ? 1 : 0;
-        setter.setFloat(mRecentsView.getClearAllButton(), ClearAllButton.VISIBILITY_ALPHA,
-                clearAllButtonAlpha, LINEAR);
+        setter.setFloat(mRecentsView.getClearAllButton(),
+                ClearAllButton.VISIBILITY_ALPHA, clearAllButtonAlpha, LINEAR);
+        if (mRecentsView.getAddDeskButton() != null) {
+            float addDeskButtonAlpha = state.hasAddDeskButton() ? 1 : 0;
+            setter.setFloat(mRecentsView.getAddDeskButton(), AddDesktopButton.VISIBILITY_ALPHA,
+                    addDeskButtonAlpha, LINEAR);
+        }
         float overviewButtonAlpha = state.hasOverviewActions() ? 1 : 0;
         setter.setFloat(mRecentsViewContainer.getActionsView().getVisibilityAlpha(),
                 AnimatedFloat.VALUE, overviewButtonAlpha, LINEAR);
@@ -110,7 +119,9 @@ public class FallbackRecentsStateController implements StateHandler<RecentsState
                 config.getInterpolator(ANIM_OVERVIEW_TRANSLATE_Y, LINEAR));
 
         setter.setFloat(mRecentsView, TASK_MODALNESS, state.getOverviewModalness(),
-                config.getInterpolator(ANIM_OVERVIEW_MODAL, LINEAR));
+                config.getInterpolator(ANIM_OVERVIEW_MODAL,
+                        enableGridOnlyOverview() && !state.isRecentsViewVisible() ? FINAL_FRAME
+                                : LINEAR));
         setter.setFloat(mRecentsView, FULLSCREEN_PROGRESS, state.isFullScreen() ? 1 : 0, LINEAR);
         boolean showAsGrid =
                 state.displayOverviewTasksAsGrid(mRecentsViewContainer.getDeviceProfile());
@@ -123,20 +134,24 @@ public class FallbackRecentsStateController implements StateHandler<RecentsState
                     state.detachDesktopCarousel() ? 1f : 0f,
                     getOverviewInterpolator(state));
         }
+        if (enableDesktopExplodedView()) {
+            setter.setFloat(mRecentsView, DESK_EXPLODE_PROGRESS,
+                    state.showExplodedDesktopView() ? 1f : 0f,
+                    getOverviewInterpolator(state));
+        }
 
         setter.setViewBackgroundColor(mRecentsViewContainer.getScrimView(),
                 state.getScrimColor(mRecentsViewContainer.asContext()),
                 config.getInterpolator(ANIM_SCRIM_FADE, LINEAR));
         if (isSplitSelectionState(state)) {
-            int duration =
-                    state.getTransitionDuration(mRecentsViewContainer.asContext(), true);
+            int duration = state.getTransitionDuration(mRecentsViewContainer, true);
             // TODO (b/246851887): Pass in setter as a NO_ANIM PendingAnimation instead
             PendingAnimation pa = new PendingAnimation(duration);
             mRecentsView.createSplitSelectInitAnimation(pa, duration);
             setter.add(pa.buildAnim());
         }
 
-        Pair<FloatProperty<RecentsView>, FloatProperty<RecentsView>> taskViewsFloat =
+        Pair<FloatProperty<RecentsView<?, ?>>, FloatProperty<RecentsView<?, ?>>> taskViewsFloat =
                 mRecentsView.getPagedOrientationHandler().getSplitSelectTaskOffset(
                         TASK_PRIMARY_SPLIT_TRANSLATION, TASK_SECONDARY_SPLIT_TRANSLATION,
                         mRecentsViewContainer.getDeviceProfile());

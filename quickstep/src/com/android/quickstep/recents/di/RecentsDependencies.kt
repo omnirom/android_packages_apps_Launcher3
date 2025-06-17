@@ -18,7 +18,6 @@ package com.android.quickstep.recents.di
 
 import android.content.Context
 import android.util.Log
-import android.view.View
 import com.android.launcher3.util.coroutines.DispatcherProvider
 import com.android.launcher3.util.coroutines.ProductionDispatchers
 import com.android.quickstep.RecentsModel
@@ -26,25 +25,20 @@ import com.android.quickstep.recents.data.RecentTasksRepository
 import com.android.quickstep.recents.data.TaskVisualsChangedDelegate
 import com.android.quickstep.recents.data.TaskVisualsChangedDelegateImpl
 import com.android.quickstep.recents.data.TasksRepository
-import com.android.quickstep.recents.usecase.GetThumbnailPositionUseCase
-import com.android.quickstep.recents.usecase.GetThumbnailUseCase
-import com.android.quickstep.recents.usecase.SysUiStatusNavFlagsUseCase
+import com.android.quickstep.recents.domain.usecase.GetSysUiStatusNavFlagsUseCase
+import com.android.quickstep.recents.domain.usecase.GetTaskUseCase
+import com.android.quickstep.recents.domain.usecase.GetThumbnailPositionUseCase
+import com.android.quickstep.recents.domain.usecase.IsThumbnailValidUseCase
+import com.android.quickstep.recents.domain.usecase.OrganizeDesktopTasksUseCase
 import com.android.quickstep.recents.viewmodel.RecentsViewData
-import com.android.quickstep.task.thumbnail.SplashAlphaUseCase
-import com.android.quickstep.task.thumbnail.TaskThumbnailViewData
-import com.android.quickstep.task.viewmodel.TaskContainerData
-import com.android.quickstep.task.viewmodel.TaskOverlayViewModel
-import com.android.quickstep.task.viewmodel.TaskThumbnailViewModel
-import com.android.quickstep.task.viewmodel.TaskThumbnailViewModelImpl
-import com.android.systemui.shared.recents.model.Task
+import com.android.systemui.shared.recents.utilities.PreviewPositionHelper.PreviewPositionHelperFactory
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 
 internal typealias RecentsScopeId = String
 
-class RecentsDependencies private constructor(private val appContext: Context) {
+class RecentsDependencies private constructor(appContext: Context) {
     private val scopes = mutableMapOf<RecentsScopeId, RecentsDependenciesScope>()
 
     init {
@@ -52,16 +46,21 @@ class RecentsDependencies private constructor(private val appContext: Context) {
     }
 
     /**
-     * This function initialised the default scope with RecentsView dependencies. These dependencies
-     * are used multiple times and should be a singleton to share across Recents classes.
+     * This function initialises the default scope with RecentsView dependencies. Some dependencies
+     * are global while others are per-RecentsView. The scope is used to differentiate between
+     * RecentsViews.
      */
     private fun startDefaultScope(appContext: Context) {
+        Log.d(TAG, "startDefaultScope")
         createScope(DEFAULT_SCOPE_ID).apply {
             set(RecentsViewData::class.java.simpleName, RecentsViewData())
+            val dispatcherProvider: DispatcherProvider = ProductionDispatchers
             val recentsCoroutineScope =
-                CoroutineScope(SupervisorJob() + Dispatchers.Main + CoroutineName("RecentsView"))
+                CoroutineScope(
+                    SupervisorJob() + dispatcherProvider.unconfined + CoroutineName("RecentsView")
+                )
             set(CoroutineScope::class.java.simpleName, recentsCoroutineScope)
-            set(DispatcherProvider::class.java.simpleName, ProductionDispatchers)
+            set(DispatcherProvider::class.java.simpleName, dispatcherProvider)
             val recentsModel = RecentsModel.INSTANCE.get(appContext)
             val taskVisualsChangedDelegate =
                 TaskVisualsChangedDelegateImpl(
@@ -84,6 +83,32 @@ class RecentsDependencies private constructor(private val appContext: Context) {
                 }
             set(RecentTasksRepository::class.java.simpleName, recentTasksRepository)
         }
+    }
+
+    /**
+     * This function initialises a scope associated with the dependencies of a single RecentsView.
+     *
+     * @param viewContext the Context associated with a RecentsView.
+     * @return the scope id associated with the new RecentsDependenciesScope.
+     */
+    fun createRecentsViewScope(viewContext: Context): String {
+        val scopeId = viewContext.hashCode().toString()
+        Log.d(TAG, "createRecentsViewScope $scopeId")
+        val scope =
+            createScope(scopeId).apply {
+                set(RecentsViewData::class.java.simpleName, RecentsViewData())
+                val dispatcherProvider: DispatcherProvider =
+                    get<DispatcherProvider>(DEFAULT_SCOPE_ID)
+                val recentsCoroutineScope =
+                    CoroutineScope(
+                        SupervisorJob() +
+                            dispatcherProvider.unconfined +
+                            CoroutineName("RecentsView$scopeId")
+                    )
+                set(CoroutineScope::class.java.simpleName, recentsCoroutineScope)
+            }
+        scope.linkTo(getScope(DEFAULT_SCOPE_ID))
+        return scopeId
     }
 
     inline fun <reified T> inject(
@@ -170,56 +195,17 @@ class RecentsDependencies private constructor(private val appContext: Context) {
         log("linked scopes: ${getScope(scopeId).scopeIdsLinked}")
         val instance: Any =
             when (modelClass) {
-                RecentTasksRepository::class.java -> {
-                    with(RecentsModel.INSTANCE.get(appContext)) {
-                        TasksRepository(
-                            this,
-                            thumbnailCache,
-                            iconCache,
-                            get(),
-                            get(),
-                            ProductionDispatchers,
-                        )
-                    }
-                }
-                RecentsViewData::class.java -> RecentsViewData()
-                TaskContainerData::class.java -> TaskContainerData()
-                TaskThumbnailViewData::class.java -> TaskThumbnailViewData()
-                TaskThumbnailViewModel::class.java ->
-                    TaskThumbnailViewModelImpl(
-                        recentsViewData = inject(),
-                        taskContainerData = inject(scopeId),
-                        dispatcherProvider = inject(),
-                        getThumbnailPositionUseCase = inject(),
-                        tasksRepository = inject(),
-                        splashAlphaUseCase = inject(scopeId),
-                    )
-                TaskOverlayViewModel::class.java -> {
-                    val task = extras["Task"] as Task
-                    TaskOverlayViewModel(
-                        task = task,
-                        recentsViewData = inject(),
-                        recentTasksRepository = inject(),
-                        getThumbnailPositionUseCase = inject(),
-                    )
-                }
-                GetThumbnailUseCase::class.java -> GetThumbnailUseCase(taskRepository = inject())
-                SysUiStatusNavFlagsUseCase::class.java ->
-                    SysUiStatusNavFlagsUseCase(taskRepository = inject())
+                IsThumbnailValidUseCase::class.java ->
+                    IsThumbnailValidUseCase(rotationStateRepository = inject(scopeId))
+                GetTaskUseCase::class.java -> GetTaskUseCase(repository = inject(scopeId))
+                GetSysUiStatusNavFlagsUseCase::class.java -> GetSysUiStatusNavFlagsUseCase()
                 GetThumbnailPositionUseCase::class.java ->
                     GetThumbnailPositionUseCase(
-                        deviceProfileRepository = inject(),
-                        rotationStateRepository = inject(),
-                        tasksRepository = inject(),
+                        deviceProfileRepository = inject(scopeId),
+                        rotationStateRepository = inject(scopeId),
+                        previewPositionHelperFactory = PreviewPositionHelperFactory(),
                     )
-                SplashAlphaUseCase::class.java ->
-                    SplashAlphaUseCase(
-                        recentsViewData = inject(),
-                        taskContainerData = inject(scopeId),
-                        taskThumbnailViewData = inject(scopeId),
-                        tasksRepository = inject(),
-                        rotationStateRepository = inject(),
-                    )
+                OrganizeDesktopTasksUseCase::class.java -> OrganizeDesktopTasksUseCase()
                 else -> {
                     log("Factory for ${modelClass.simpleName} not defined!", Log.ERROR)
                     error("Factory for ${modelClass.simpleName} not defined!")
@@ -250,32 +236,59 @@ class RecentsDependencies private constructor(private val appContext: Context) {
     }
 
     companion object {
-        private const val DEFAULT_SCOPE_ID = "RecentsDependencies::GlobalScope"
+        const val DEFAULT_SCOPE_ID = "RecentsDependencies::GlobalScope"
         private const val TAG = "RecentsDependencies"
         private const val DEBUG = false
 
-        @Volatile private lateinit var instance: RecentsDependencies
+        @Volatile private var instance: RecentsDependencies? = null
 
-        fun initialize(view: View): RecentsDependencies = initialize(view.context)
+        private fun initialize(context: Context): RecentsDependencies {
+            Log.d(TAG, "initializing")
+            synchronized(this) {
+                val newInstance = RecentsDependencies(context.applicationContext)
+                instance = newInstance
+                return newInstance
+            }
+        }
 
-        fun initialize(context: Context): RecentsDependencies {
-            synchronized(this) { instance = RecentsDependencies(context.applicationContext) }
-            return instance
+        fun maybeInitialize(context: Context): RecentsDependencies {
+            return instance ?: initialize(context)
         }
 
         fun getInstance(): RecentsDependencies {
-            if (!Companion::instance.isInitialized) {
-                throw UninitializedPropertyAccessException(
-                    "Recents dependencies are not initialized. " +
-                        "Call `RecentsDependencies.initialize` before using this container."
-                )
-            }
             return instance
+                ?: throw UninitializedPropertyAccessException(
+                    "Recents dependencies are not initialized. " +
+                        "Call `RecentsDependencies.maybeInitialize` before using this container."
+                )
         }
 
-        fun destroy() {
-            instance.scopes.clear()
-            instance.startDefaultScope(instance.appContext)
+        @JvmStatic
+        fun destroy(viewContext: Context) {
+            synchronized(this) {
+                val localInstance = instance ?: return
+                val scopeId = viewContext.hashCode().toString()
+                val scope = localInstance.scopes[scopeId]
+                if (scope == null) {
+                    Log.e(
+                        TAG,
+                        "Trying to destroy an unknown scope. Scopes: ${localInstance.scopes.size}",
+                    )
+                    return
+                }
+                scope.close()
+                localInstance.scopes.remove(scopeId)
+                if (DEBUG) {
+                    Log.d(TAG, "destroyed $scopeId", Exception("Printing stack trace"))
+                } else {
+                    Log.d(TAG, "destroyed $scopeId")
+                }
+                if (localInstance.scopes.size == 1) {
+                    // Only the default scope left - destroy this too.
+                    instance = null
+                    Log.d(TAG, "also destroyed default scope")
+                }
+            }
         }
     }
 }

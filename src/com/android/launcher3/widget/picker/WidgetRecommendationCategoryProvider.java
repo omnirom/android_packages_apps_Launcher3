@@ -35,19 +35,7 @@ import com.android.launcher3.util.ResourceBasedOverride;
  * own implementation. Method {@code getWidgetRecommendationCategory} is called per widget to get
  * the category.</p>
  */
-public class WidgetRecommendationCategoryProvider implements ResourceBasedOverride {
-    private static final String TAG = "WidgetRecommendationCategoryProvider";
-
-    /**
-     * Retrieve instance of this object that can be overridden in runtime based on the build
-     * variant of the application.
-     */
-    public static WidgetRecommendationCategoryProvider newInstance(Context context) {
-        Preconditions.assertWorkerThread();
-        return Overrides.getObject(
-                WidgetRecommendationCategoryProvider.class, context.getApplicationContext(),
-                R.string.widget_recommendation_category_provider_class);
-    }
+public class WidgetRecommendationCategoryProvider {
 
     /**
      * Returns a {@link WidgetRecommendationCategory} for the provided widget item that can be used

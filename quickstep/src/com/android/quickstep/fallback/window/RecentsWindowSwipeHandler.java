@@ -49,6 +49,7 @@ import android.view.Surface;
 import android.view.SurfaceControl;
 import android.view.SurfaceControl.Transaction;
 import android.view.animation.Interpolator;
+import android.window.TransitionInfo;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -62,10 +63,10 @@ import com.android.launcher3.anim.PendingAnimation;
 import com.android.launcher3.anim.SpringAnimationBuilder;
 import com.android.launcher3.states.StateAnimationConfig;
 import com.android.launcher3.util.DisplayController;
+import com.android.launcher3.util.MSDLPlayerWrapper;
 import com.android.quickstep.AbsSwipeUpHandler;
 import com.android.quickstep.GestureState;
 import com.android.quickstep.RecentsAnimationController;
-import com.android.quickstep.RecentsAnimationDeviceState;
 import com.android.quickstep.RecentsAnimationTargets;
 import com.android.quickstep.TaskAnimationManager;
 import com.android.quickstep.fallback.FallbackRecentsView;
@@ -100,6 +101,8 @@ public class RecentsWindowSwipeHandler extends AbsSwipeUpHandler<RecentsWindowMa
     private static StaticMessageReceiver sMessageReceiver = null;
 
     private FallbackHomeAnimationFactory mActiveAnimationFactory;
+    private final RecentsDisplayModel mRecentsDisplayModel;
+
     private final boolean mRunningOverHome;
 
     private final Matrix mTmpMatrix = new Matrix();
@@ -107,13 +110,13 @@ public class RecentsWindowSwipeHandler extends AbsSwipeUpHandler<RecentsWindowMa
 
     private boolean mAppCanEnterPip;
 
-    public RecentsWindowSwipeHandler(Context context, RecentsAnimationDeviceState deviceState,
-            TaskAnimationManager taskAnimationManager, GestureState gestureState, long touchTimeMs,
-            boolean continuingLastGesture, InputConsumerController inputConsumer,
-            RecentsWindowManager recentsWindowManager) {
-        super(context, deviceState, taskAnimationManager, gestureState, touchTimeMs,
-                continuingLastGesture, inputConsumer, recentsWindowManager);
+    public RecentsWindowSwipeHandler(Context context, TaskAnimationManager taskAnimationManager,
+            GestureState gestureState, long touchTimeMs, boolean continuingLastGesture,
+            InputConsumerController inputConsumer, MSDLPlayerWrapper msdlPlayerWrapper) {
+        super(context, taskAnimationManager, gestureState, touchTimeMs,
+                continuingLastGesture, inputConsumer, msdlPlayerWrapper);
 
+        mRecentsDisplayModel = RecentsDisplayModel.getINSTANCE().get(context);
         mRunningOverHome = mGestureState.getRunningTask() != null
                 && mGestureState.getRunningTask().isHomeTask();
 
@@ -122,8 +125,8 @@ public class RecentsWindowSwipeHandler extends AbsSwipeUpHandler<RecentsWindowMa
 
     @Override
     public void onRecentsAnimationStart(RecentsAnimationController controller,
-            RecentsAnimationTargets targets) {
-        super.onRecentsAnimationStart(controller, targets);
+            RecentsAnimationTargets targets, @Nullable TransitionInfo transitionInfo) {
+        super.onRecentsAnimationStart(controller, targets, transitionInfo);
         initTransformParams();
     }
 
@@ -159,7 +162,11 @@ public class RecentsWindowSwipeHandler extends AbsSwipeUpHandler<RecentsWindowMa
         boolean fromHomeToHome = mRunningOverHome
                 && endTarget == GestureState.GestureEndTarget.HOME;
         if (fromHomeToHome) {
-            mRecentsWindowManager.startHome(/* finishRecentsAnimation= */ false);
+            RecentsWindowManager manager =
+                    mRecentsDisplayModel.getRecentsWindowManager(mGestureState.getDisplayId());
+            if (manager != null) {
+                manager.startHome(/* finishRecentsAnimation= */ false);
+            }
         }
         super.animateGestureEnd(
                 startShift,
@@ -215,19 +222,24 @@ public class RecentsWindowSwipeHandler extends AbsSwipeUpHandler<RecentsWindowMa
     @Override
     protected void finishRecentsControllerToHome(Runnable callback) {
         final Runnable recentsCallback;
+        // TODO(b/404866791): check if this is actually necessary for this recents-in-window class
         if (mAppCanEnterPip) {
             // Make sure Launcher is resumed after auto-enter-pip transition to actually trigger
             // the PiP task appearing.
             recentsCallback = () -> {
                 callback.run();
-                mRecentsWindowManager.startHome();
+                RecentsWindowManager manager =
+                        mRecentsDisplayModel.getRecentsWindowManager(mGestureState.getDisplayId());
+                if (manager != null) {
+                    manager.startHome();
+                }
             };
         } else {
             recentsCallback = callback;
         }
         mRecentsView.cleanupRemoteTargets();
         mRecentsAnimationController.finish(
-                mAppCanEnterPip /* toRecents */, recentsCallback, true /* sendUserLeaveHint */);
+                true /* toRecents */, recentsCallback, true /* sendUserLeaveHint */);
     }
 
     @Override
@@ -245,8 +257,8 @@ public class RecentsWindowSwipeHandler extends AbsSwipeUpHandler<RecentsWindowMa
         if (mRunningOverHome) {
             if (DisplayController.getNavigationMode(mContext).hasGestures) {
                 mRecentsView.onGestureAnimationStartOnHome(
-                        mGestureState.getRunningTask().getPlaceholderTasks(),
-                        mDeviceState.getRotationTouchHelper());
+                        mGestureState.getRunningTask().getPlaceholderGroupedTaskInfo(
+                                /* splitTaskIds = */ null));
             }
         } else {
             super.notifyGestureAnimationStartToRecents();
@@ -272,7 +284,7 @@ public class RecentsWindowSwipeHandler extends AbsSwipeUpHandler<RecentsWindowMa
         private final AnimatedFloat mHomeAlpha = new AnimatedFloat(this::updateAppTransforms);
         private final AnimatedFloat mVerticalShiftForScale =
                 new AnimatedFloat(this::updateAppTransforms);
-        private final AnimatedFloat mRecentsAlpha = new AnimatedFloat(this:: updateAppTransforms);
+        private final AnimatedFloat mRecentsAlpha = new AnimatedFloat(this::updateAppTransforms);
 
         private final RectF mTargetRect = new RectF();
         private SurfaceControl mSurfaceControl;
