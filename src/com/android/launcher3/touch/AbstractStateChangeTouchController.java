@@ -16,6 +16,7 @@
 package com.android.launcher3.touch;
 
 import static com.android.app.animation.Interpolators.scrollInterpolatorForVelocity;
+import static com.android.launcher3.Flags.enableMouseInteractionChanges;
 import static com.android.launcher3.LauncherAnimUtils.SUCCESS_TRANSITION_PROGRESS;
 import static com.android.launcher3.LauncherAnimUtils.TABLET_BOTTOM_SHEET_SUCCESS_TRANSITION_PROGRESS;
 import static com.android.launcher3.LauncherAnimUtils.newCancelListener;
@@ -33,6 +34,7 @@ import static com.android.launcher3.util.window.RefreshRateTracker.getSingleFram
 
 import android.animation.Animator.AnimatorListener;
 import android.animation.ValueAnimator;
+import android.view.InputDevice;
 import android.view.MotionEvent;
 
 import com.android.launcher3.Launcher;
@@ -40,13 +42,11 @@ import com.android.launcher3.LauncherAnimUtils;
 import com.android.launcher3.LauncherState;
 import com.android.launcher3.Utilities;
 import com.android.launcher3.anim.AnimatorPlaybackController;
-import com.android.launcher3.contextualeducation.ContextualEduStatsManager;
 import com.android.launcher3.logger.LauncherAtom;
 import com.android.launcher3.logging.StatsLogManager;
 import com.android.launcher3.states.StateAnimationConfig;
 import com.android.launcher3.util.FlingBlockCheck;
 import com.android.launcher3.util.TouchController;
-import com.android.systemui.contextualeducation.GestureType;
 
 /**
  * TouchController for handling state changes
@@ -109,7 +109,9 @@ public abstract class AbstractStateChangeTouchController
                 ignoreSlopWhenSettling = true;
             } else {
                 directionsToDetectScroll = getSwipeDirection();
-                if (directionsToDetectScroll == 0) {
+                boolean ignoreMouseScroll = ev.getSource() == InputDevice.SOURCE_MOUSE
+                        && enableMouseInteractionChanges();
+                if (directionsToDetectScroll == 0 || ignoreMouseScroll) {
                     mNoIntercept = true;
                     return false;
                 }
@@ -390,7 +392,6 @@ public abstract class AbstractStateChangeTouchController
         } else {
             logReachedState(mToState);
         }
-        updateContextualEduStats(targetState);
     }
 
     protected void goToTargetState(LauncherState targetState) {
@@ -404,18 +405,6 @@ public abstract class AbstractStateChangeTouchController
         }
         mLauncher.getRootView().getSysUiScrim().getSysUIMultiplier().animateToValue(1f)
                 .setDuration(0).start();
-    }
-
-    private void updateContextualEduStats(LauncherState targetState) {
-        if (targetState == OVERVIEW) {
-            ContextualEduStatsManager.INSTANCE.get(
-                    mLauncher).updateEduStats(mDetector.isTrackpadGesture(), GestureType.OVERVIEW);
-        } else if (targetState == ALL_APPS && !mDetector.isTrackpadGesture()) {
-            // Only update if it is touch gesture as trackpad gesture is not relevant for all apps
-            // which only provides keyboard education.
-            ContextualEduStatsManager.INSTANCE.get(
-                    mLauncher).updateEduStats(/* isTrackpadGesture= */ false, GestureType.ALL_APPS);
-        }
     }
 
     private void logReachedState(LauncherState targetState) {

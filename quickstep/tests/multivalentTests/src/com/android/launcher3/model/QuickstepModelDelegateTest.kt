@@ -19,7 +19,6 @@ import android.app.prediction.AppPredictor
 import android.app.prediction.AppTarget
 import android.app.prediction.AppTargetEvent
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import com.android.launcher3.LauncherAppState
 import com.android.launcher3.LauncherSettings.Favorites.CONTAINER_HOTSEAT_PREDICTION
 import com.android.launcher3.LauncherSettings.Favorites.CONTAINER_PREDICTION
 import com.android.launcher3.LauncherSettings.Favorites.CONTAINER_WALLPAPERS
@@ -54,12 +53,18 @@ class QuickstepModelDelegateTest {
     fun setUp() {
         MockitoAnnotations.initMocks(this)
         modelHelper = LauncherModelHelper()
-        underTest = QuickstepModelDelegate(modelHelper.sandboxContext)
+        underTest =
+            QuickstepModelDelegate(
+                modelHelper.sandboxContext,
+                modelHelper.sandboxContext.appComponent.idp,
+                modelHelper.sandboxContext.appComponent.packageManagerHelper,
+                "", /* dbFileName */
+            )
         underTest.mAllAppsState.predictor = allAppsPredictor
         underTest.mHotseatState.predictor = hotseatPredictor
         underTest.mWidgetsRecommendationState.predictor = widgetRecommendationPredictor
-        underTest.mApp = LauncherAppState.getInstance(modelHelper.sandboxContext)
-        underTest.mDataModel = BgDataModel()
+        underTest.mModel = modelHelper.model
+        underTest.mDataModel = BgDataModel(WidgetsModel(modelHelper.sandboxContext))
     }
 
     @After

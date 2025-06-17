@@ -16,8 +16,6 @@
 
 package com.android.launcher3.util;
 
-import static android.view.WindowManager.PROPERTY_SUPPORTS_MULTI_INSTANCE_SYSTEM_UI;
-
 import static com.android.launcher3.model.data.ItemInfoWithIcon.FLAG_INSTALL_SESSION_ACTIVE;
 
 import android.content.ActivityNotFoundException;
@@ -41,7 +39,6 @@ import androidx.annotation.Nullable;
 
 import com.android.launcher3.PendingAddItemInfo;
 import com.android.launcher3.R;
-import com.android.launcher3.Utilities;
 import com.android.launcher3.dagger.ApplicationContext;
 import com.android.launcher3.dagger.LauncherAppSingleton;
 import com.android.launcher3.dagger.LauncherBaseAppComponent;
@@ -77,15 +74,11 @@ public class PackageManagerHelper {
     @NonNull
     private final LauncherApps mLauncherApps;
 
-    private final String[] mLegacyMultiInstanceSupportedApps;
-
     @Inject
     public PackageManagerHelper(@ApplicationContext final Context context) {
         mContext = context;
         mPm = context.getPackageManager();
         mLauncherApps = Objects.requireNonNull(context.getSystemService(LauncherApps.class));
-        mLegacyMultiInstanceSupportedApps = mContext.getResources().getStringArray(
-                    R.array.config_appsSupportMultiInstancesSplit);
     }
 
     /**
@@ -190,39 +183,6 @@ public class PackageManagerHelper {
     /** Returns the incremental download progress for the given shortcut's app. */
     public static int getLoadingProgress(LauncherActivityInfo info) {
         return (int) (100 * info.getLoadingProgress());
-    }
-
-    /**
-     * Returns whether the given component or its application has the multi-instance property set.
-     */
-    public boolean supportsMultiInstance(@NonNull ComponentName component) {
-        // Check the legacy hardcoded allowlist first
-        for (String pkg : mLegacyMultiInstanceSupportedApps) {
-            if (pkg.equals(component.getPackageName())) {
-                return true;
-            }
-        }
-
-        // Check app multi-instance properties after V
-        if (!Utilities.ATLEAST_V) {
-            return false;
-        }
-
-        try {
-            // Check if the component has the multi-instance property
-            return mPm.getProperty(PROPERTY_SUPPORTS_MULTI_INSTANCE_SYSTEM_UI, component)
-                    .getBoolean();
-        } catch (PackageManager.NameNotFoundException e1) {
-            try {
-                // Check if the application has the multi-instance property
-                return mPm.getProperty(PROPERTY_SUPPORTS_MULTI_INSTANCE_SYSTEM_UI,
-                                component.getPackageName())
-                    .getBoolean();
-            } catch (PackageManager.NameNotFoundException e2) {
-                // Fall through
-            }
-        }
-        return false;
     }
 
     /**

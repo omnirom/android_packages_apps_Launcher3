@@ -18,8 +18,10 @@ package com.android.launcher3.model
 import android.annotation.SuppressLint
 import android.appwidget.AppWidgetProviderInfo
 import android.content.ComponentName
+import android.content.Context
 import android.content.Intent
 import android.content.pm.LauncherApps
+import android.content.pm.LauncherApps.ShortcutQuery
 import android.content.pm.PackageInstaller
 import android.content.pm.ShortcutInfo
 import android.graphics.Point
@@ -28,11 +30,11 @@ import android.util.Log
 import android.util.LongSparseArray
 import com.android.launcher3.Flags
 import com.android.launcher3.InvariantDeviceProfile
-import com.android.launcher3.LauncherAppState
 import com.android.launcher3.LauncherSettings.Favorites
 import com.android.launcher3.backuprestore.LauncherRestoreEventLogger.RestoreError
-import com.android.launcher3.config.FeatureFlags
 import com.android.launcher3.icons.CacheableShortcutInfo
+import com.android.launcher3.icons.IconCache
+import com.android.launcher3.icons.cache.CacheLookupFlag.Companion.DEFAULT_LOOKUP_FLAG
 import com.android.launcher3.logging.FileLog
 import com.android.launcher3.model.data.AppInfo
 import com.android.launcher3.model.data.AppPairInfo
@@ -44,6 +46,7 @@ import com.android.launcher3.model.data.WorkspaceItemInfo
 import com.android.launcher3.pm.PackageInstallInfo
 import com.android.launcher3.pm.UserCache
 import com.android.launcher3.shortcuts.ShortcutKey
+import com.android.launcher3.shortcuts.ShortcutRequest
 import com.android.launcher3.util.ApiWrapper
 import com.android.launcher3.util.ApplicationInfoWrapper
 import com.android.launcher3.util.ComponentKey
@@ -68,7 +71,10 @@ class WorkspaceItemProcessor(
     private val launcherApps: LauncherApps,
     private val pendingPackages: MutableSet<PackageUserKey>,
     private val shortcutKeyToPinnedShortcuts: Map<ShortcutKey, ShortcutInfo>,
-    private val app: LauncherAppState,
+    private val context: Context,
+    private val idp: InvariantDeviceProfile,
+    private val iconCache: IconCache,
+    private val isSafeMode: Boolean,
     private val bgDataModel: BgDataModel,
     private val widgetProvidersMap: MutableMap<ComponentKey, AppWidgetProviderInfo?>,
     private val installingPkgs: HashMap<PackageUserKey, PackageInstaller.SessionInfo>,
@@ -80,9 +86,7 @@ class WorkspaceItemProcessor(
     private val allDeepShortcuts: MutableList<CacheableShortcutInfo>,
 ) {
 
-    private val isSafeMode = app.isSafeModeEnabled
     private val tempPackageKey = PackageUserKey(null, null)
-    private val iconCache = app.iconCache
 
     /**
      * This is the entry point for processing 1 workspace item. This method is like the midfielder
@@ -157,7 +161,7 @@ class WorkspaceItemProcessor(
             )
             return
         }
-        val appInfoWrapper = ApplicationInfoWrapper(app.context, targetPkg, c.user)
+        val appInfoWrapper = ApplicationInfoWrapper(context, targetPkg, c.user)
         var validTarget = launcherApps.isPackageEnabled(targetPkg, c.user)
 
         // If it's a deep shortcut, we'll use pinned shortcuts to restore it
@@ -192,27 +196,42 @@ class WorkspaceItemProcessor(
         if (intent.`package` == null) {
             intent.`package` = targetPkg
         }
+
+        val isPreArchivedShortcut =
+            Flags.restoreArchivedShortcuts() &&
+                appInfoWrapper.isArchived() &&
+                c.itemType == Favorites.ITEM_TYPE_DEEP_SHORTCUT &&
+                c.restoreFlag != 0
+
         // else if cn == null => can't infer much, leave it
         // else if !validPkg => could be restored icon or missing sd-card
         when {
-            !TextUtils.isEmpty(targetPkg) && !validTarget -> {
+            !TextUtils.isEmpty(targetPkg) && (!validTarget || isPreArchivedShortcut) -> {
                 // Points to a valid app (superset of cn != null) but the apk
                 // is not available.
                 when {
-                    c.restoreFlag != 0 -> {
+                    c.restoreFlag != 0 || isPreArchivedShortcut -> {
                         // Package is not yet available but might be
                         // installed later.
-                        FileLog.d(TAG, "package not yet restored: $targetPkg")
+                        FileLog.d(
+                            TAG,
+                            "package not yet restored: $targetPkg, itemType=${c.itemType}" +
+                                ", isPreArchivedShortcut=$isPreArchivedShortcut" +
+                                ", restoreFlag=${c.restoreFlag}",
+                        )
                         tempPackageKey.update(targetPkg, c.user)
                         when {
                             c.hasRestoreFlag(WorkspaceItemInfo.FLAG_RESTORE_STARTED) -> {
                                 // Restore has started once.
                             }
-                            installingPkgs.containsKey(tempPackageKey) -> {
+                            installingPkgs.containsKey(tempPackageKey) || isPreArchivedShortcut -> {
                                 // App restore has started. Update the flag
                                 c.restoreFlag =
                                     c.restoreFlag or WorkspaceItemInfo.FLAG_RESTORE_STARTED
-                                FileLog.d(TAG, "restore started for installing app: $targetPkg")
+                                FileLog.d(
+                                    TAG,
+                                    "restore started for installing app: $targetPkg, itemType=${c.itemType}",
+                                )
                                 c.updater().put(Favorites.RESTORED, c.restoreFlag).commit()
                             }
                             else -> {
@@ -251,9 +270,18 @@ class WorkspaceItemProcessor(
             }
         }
         if (c.restoreFlag and WorkspaceItemInfo.FLAG_SUPPORTS_WEB_UI != 0) {
+            FileLog.d(
+                TAG,
+                "restore flag set AND WorkspaceItemInfo.FLAG_SUPPORTS_WEB_UI != 0, setting valid target to false: $targetPkg, itemType=${c.itemType}, restoreFlag=${c.restoreFlag}",
+            )
             validTarget = false
         }
-        if (validTarget) {
+        if (validTarget && !isPreArchivedShortcut) {
+            FileLog.d(
+                TAG,
+                "valid target true, marking restored: $targetPkg," +
+                    " itemType=${c.itemType}, restoreFlag=${c.restoreFlag}",
+            )
             // The shortcut points to a valid target (either no target
             // or something which is ready to be used)
             c.markRestored()
@@ -263,14 +291,15 @@ class WorkspaceItemProcessor(
         when {
             c.restoreFlag != 0 -> {
                 // Already verified above that user is same as default user
-                info = c.getRestoredItemInfo(intent)
+                info = c.getRestoredItemInfo(intent, isPreArchivedShortcut)
             }
             c.itemType == Favorites.ITEM_TYPE_APPLICATION ->
                 info = c.getAppShortcutInfo(intent, allowMissingTarget, useLowResIcon, false)
             c.itemType == Favorites.ITEM_TYPE_DEEP_SHORTCUT -> {
                 val key = ShortcutKey.fromIntent(intent, c.user)
                 if (unlockedUsers[c.serialNumber]) {
-                    val pinnedShortcut = shortcutKeyToPinnedShortcuts[key]
+                    val pinnedShortcut =
+                        shortcutKeyToPinnedShortcuts[key] ?: retryDeepShortcutById(key)
                     if (pinnedShortcut == null) {
                         // The shortcut is no longer valid.
                         c.markDeleted(
@@ -279,11 +308,11 @@ class WorkspaceItemProcessor(
                         )
                         return
                     }
-                    info = WorkspaceItemInfo(pinnedShortcut, app.context)
+                    info = WorkspaceItemInfo(pinnedShortcut, context)
                     // If the pinned deep shortcut is no longer published,
                     // use the last saved icon instead of the default.
                     val csi = CacheableShortcutInfo(pinnedShortcut, appInfoWrapper)
-                    iconCache.getShortcutIcon(info, csi, c::loadIcon)
+                    iconCache.getShortcutIcon(info, csi, c::loadIconFromDb)
                     if (appInfoWrapper.isSuspended()) {
                         info.runtimeStatusFlags =
                             info.runtimeStatusFlags or ItemInfoWithIcon.FLAG_DISABLED_SUSPENDED
@@ -342,7 +371,7 @@ class WorkspaceItemProcessor(
                     info,
                     activityInfo,
                     userCache.getUserInfo(c.user),
-                    ApiWrapper.INSTANCE[app.context],
+                    ApiWrapper.INSTANCE[context],
                     pmHelper,
                 )
             }
@@ -376,30 +405,39 @@ class WorkspaceItemProcessor(
     }
 
     /**
+     * It is possible that the data was cleared from ShortcutManager after it was restored. In that
+     * instance, the Launcher would have a valid Shortcut id, but ShortcutManager wouldn't recognize
+     * it as valid. Here we retry by querying ShortcutManager by package name and shortcut id.
+     */
+    private fun retryDeepShortcutById(key: ShortcutKey): ShortcutInfo? {
+        FileLog.d(TAG, "retryDeepShortcutById: package=${key.packageName}, shortcutId=${key.id}")
+        return launcherApps
+            .getShortcuts(
+                ShortcutQuery().apply {
+                    setPackage(key.packageName)
+                    setShortcutIds(listOf(key.id))
+                    setQueryFlags(ShortcutRequest.ALL)
+                },
+                key.user,
+            )
+            ?.firstOrNull()
+    }
+
+    /**
      * Loads CollectionInfo information from the database and formats it. This function runs while
      * LoaderTask is still active; some of the processing for folder content items is done after all
      * the items in the workspace have been loaded. The loaded and formatted CollectionInfo is then
      * stored in the BgDataModel.
      */
     private fun processFolderOrAppPair() {
-        var collection = bgDataModel.findOrMakeFolder(c.id)
+        var collection = c.findOrMakeFolder(c.id, bgDataModel)
         // If we generated a placeholder Folder before this point, it may need to be replaced with
         // an app pair.
         if (c.itemType == Favorites.ITEM_TYPE_APP_PAIR && collection is FolderInfo) {
-            if (!FeatureFlags.enableAppPairs()) {
-                // If app pairs are not enabled, stop loading.
-                Log.e(TAG, "app pairs flag is off, did not load app pair")
-                return
-            }
-
-            val folderInfo: FolderInfo = collection
             val newAppPair = AppPairInfo()
             // Move the placeholder's contents over to the new app pair.
-            folderInfo.getContents().forEach(newAppPair::add)
+            collection.getContents().forEach(newAppPair::add)
             collection = newAppPair
-            // Remove the placeholder and add the app pair into the data model.
-            bgDataModel.collections.remove(c.id)
-            bgDataModel.collections.put(c.id, collection)
         }
 
         c.applyCommonProperties(collection)
@@ -486,15 +524,14 @@ class WorkspaceItemProcessor(
             WidgetInflater.TYPE_PENDING -> {
                 tempPackageKey.update(component.packageName, c.user)
                 val si = installingPkgs[tempPackageKey]
-
+                val isArchived =
+                    ApplicationInfoWrapper(context, component.packageName, c.user).isArchived()
                 if (
                     !c.hasRestoreFlag(LauncherAppWidgetInfo.FLAG_RESTORE_STARTED) &&
                         !isSafeMode &&
                         (si == null) &&
                         (lapi == null) &&
-                        !(Flags.enableSupportForArchiving() &&
-                            ApplicationInfoWrapper(app.context, component.packageName, c.user)
-                                .isArchived())
+                        !isArchived
                 ) {
                     // Restore never started
                     c.markDeleted(
@@ -517,17 +554,23 @@ class WorkspaceItemProcessor(
                     if (si == null) 0 else (si.getProgress() * 100).toInt()
                 appWidgetInfo.pendingItemInfo =
                     WidgetsModel.newPendingItemInfo(
-                        app.context,
+                        context,
                         appWidgetInfo.providerName,
                         appWidgetInfo.user,
                     )
-                iconCache.getTitleAndIconForApp(appWidgetInfo.pendingItemInfo, false)
+                val iconLookupFlag =
+                    if (isArchived && Flags.restoreArchivedAppIconsFromDb()) {
+                        DEFAULT_LOOKUP_FLAG.withSkipAddToMemCache()
+                    } else {
+                        DEFAULT_LOOKUP_FLAG
+                    }
+                iconCache.getTitleAndIconForApp(appWidgetInfo.pendingItemInfo, iconLookupFlag)
             }
             WidgetInflater.TYPE_REAL ->
                 WidgetSizes.updateWidgetSizeRangesAsync(
                     appWidgetInfo.appWidgetId,
                     lapi,
-                    app.context,
+                    context,
                     appWidgetInfo.spanX,
                     appWidgetInfo.spanY,
                 )
@@ -550,10 +593,10 @@ class WorkspaceItemProcessor(
                         " appWidgetId: ${c.appWidgetId}," +
                         " component=${component}",
                 )
-                logWidgetInfo(app.invariantDeviceProfile, lapi)
+                logWidgetInfo(idp, lapi)
             }
         }
-        c.checkAndAddItem(appWidgetInfo, bgDataModel)
+        c.checkAndAddItem(appWidgetInfo, bgDataModel, memoryLogger)
     }
 
     companion object {

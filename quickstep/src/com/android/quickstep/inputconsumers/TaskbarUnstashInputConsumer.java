@@ -89,10 +89,14 @@ public class TaskbarUnstashInputConsumer extends DelegateInputConsumer {
     // Velocity defined as dp per s
     private float mTaskbarSlowVelocityYThreshold;
 
-    public TaskbarUnstashInputConsumer(Context context, InputConsumer delegate,
-            InputMonitorCompat inputMonitor, TaskbarActivityContext taskbarActivityContext,
-            OverviewCommandHelper overviewCommandHelper, GestureState gestureState) {
-        super(delegate, inputMonitor);
+    public TaskbarUnstashInputConsumer(
+            Context context,
+            InputConsumer delegate,
+            InputMonitorCompat inputMonitor,
+            TaskbarActivityContext taskbarActivityContext,
+            OverviewCommandHelper overviewCommandHelper,
+            GestureState gestureState) {
+        super(gestureState.getDisplayId(), delegate, inputMonitor);
         mTaskbarActivityContext = taskbarActivityContext;
         mOverviewCommandHelper = overviewCommandHelper;
         mTouchSlop = ViewConfiguration.get(context).getScaledTouchSlop();

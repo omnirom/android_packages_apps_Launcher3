@@ -25,10 +25,13 @@ import android.view.View
 import android.widget.FrameLayout
 import androidx.core.view.updateLayoutParams
 import com.android.launcher3.DeviceProfile
+import com.android.launcher3.Flags
 import com.android.launcher3.Utilities
+import com.android.launcher3.util.MSDLPlayerWrapper
 import com.android.launcher3.util.MultiValueAlpha
 import com.android.launcher3.views.ActivityContext
 import com.android.quickstep.util.RecentsOrientedState
+import com.google.android.msdl.data.model.MSDLToken
 
 /**
  * A view which draws a drawable stretched to fit its size. Unlike ImageView, it avoids relayout
@@ -39,26 +42,44 @@ class IconView : View, TaskViewIcon {
     private var drawable: Drawable? = null
     private var drawableWidth = 0
     private var drawableHeight = 0
+    private var msdlPlayerWrapper: MSDLPlayerWrapper? = null
 
-    constructor(context: Context) : super(context)
+    constructor(context: Context) : super(context) {
+        setUpHaptics()
+    }
 
-    constructor(context: Context, attrs: AttributeSet?) : super(context, attrs)
+    constructor(context: Context, attrs: AttributeSet?) : super(context, attrs) {
+        setUpHaptics()
+    }
 
     constructor(
         context: Context,
         attrs: AttributeSet?,
         defStyleAttr: Int,
-    ) : super(context, attrs, defStyleAttr)
+    ) : super(context, attrs, defStyleAttr) {
+        setUpHaptics()
+    }
 
     init {
         multiValueAlpha.setUpdateVisibility(true)
+    }
+
+    private fun setUpHaptics() {
+        msdlPlayerWrapper = MSDLPlayerWrapper.INSTANCE.get(context)
+        // Haptics are handled by the MSDLPlayerWrapper
+        isHapticFeedbackEnabled = !Flags.msdlFeedback() || msdlPlayerWrapper == null
+    }
+
+    override fun setOnLongClickListener(l: OnLongClickListener?) {
+        super.setOnLongClickListener(l?.withFeedback())
     }
 
     /** Sets a [Drawable] to be displayed. */
     override fun setDrawable(d: Drawable?) {
         drawable?.callback = null
 
-        drawable = d
+        // Copy drawable so that mutations below do not affect other users of the drawable
+        drawable = d?.constantState?.newDrawable()?.mutate()
         drawable?.let {
             it.callback = this
             setDrawableSizeInternal(width, height)
@@ -117,6 +138,10 @@ class IconView : View, TaskViewIcon {
         multiValueAlpha[INDEX_MODAL_ALPHA].setValue(alpha)
     }
 
+    override fun setFlexSplitAlpha(alpha: Float) {
+        multiValueAlpha[INDEX_FLEX_SPLIT_ALPHA].setValue(alpha)
+    }
+
     /**
      * Set the tint color of the icon, useful for scrimming or dimming.
      *
@@ -136,7 +161,7 @@ class IconView : View, TaskViewIcon {
             taskIconMargin = deviceProfile.overviewTaskMarginPx,
             taskIconHeight = deviceProfile.overviewTaskIconSizePx,
             thumbnailTopMargin = deviceProfile.overviewTaskThumbnailTopMarginPx,
-            isRtl = layoutDirection == LAYOUT_DIRECTION_RTL
+            isRtl = layoutDirection == LAYOUT_DIRECTION_RTL,
         )
         updateLayoutParams<FrameLayout.LayoutParams> {
             height = deviceProfile.overviewTaskIconSizePx
@@ -151,9 +176,20 @@ class IconView : View, TaskViewIcon {
 
     override fun asView(): View = this
 
+    private fun OnLongClickListener.withFeedback(): OnLongClickListener {
+        val delegate = this
+        return OnLongClickListener { v: View ->
+            if (Flags.msdlFeedback()) {
+                msdlPlayerWrapper?.playToken(MSDLToken.LONG_PRESS)
+            }
+            delegate.onLongClick(v)
+        }
+    }
+
     companion object {
-        private const val NUM_ALPHA_CHANNELS = 2
+        private const val NUM_ALPHA_CHANNELS = 3
         private const val INDEX_CONTENT_ALPHA = 0
         private const val INDEX_MODAL_ALPHA = 1
+        private const val INDEX_FLEX_SPLIT_ALPHA = 2
     }
 }

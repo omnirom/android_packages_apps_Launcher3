@@ -15,6 +15,8 @@
  */
 package com.android.quickstep;
 
+import static android.view.Display.DEFAULT_DISPLAY;
+
 import static com.android.launcher3.util.DisplayController.CHANGE_ACTIVE_SCREEN;
 import static com.android.launcher3.util.DisplayController.CHANGE_ALL;
 import static com.android.launcher3.util.DisplayController.CHANGE_ROTATION;
@@ -22,35 +24,40 @@ import static com.android.launcher3.util.DisplayController.CHANGE_ROTATION;
 import android.content.Context;
 import android.view.MotionEvent;
 
+import com.android.launcher3.dagger.ApplicationContext;
+import com.android.launcher3.dagger.LauncherAppSingleton;
+import com.android.launcher3.util.DaggerSingletonObject;
+import com.android.launcher3.util.DaggerSingletonTracker;
 import com.android.launcher3.util.DisplayController;
-import com.android.launcher3.util.MainThreadInitializedObject;
-import com.android.launcher3.util.SafeCloseable;
+import com.android.quickstep.dagger.QuickstepBaseAppComponent;
 
+import javax.inject.Inject;
+
+@LauncherAppSingleton
 public class SimpleOrientationTouchTransformer implements
-        DisplayController.DisplayInfoChangeListener, SafeCloseable {
+        DisplayController.DisplayInfoChangeListener {
 
-    public static final MainThreadInitializedObject<SimpleOrientationTouchTransformer> INSTANCE =
-            new MainThreadInitializedObject<>(SimpleOrientationTouchTransformer::new);
+    public static final DaggerSingletonObject<SimpleOrientationTouchTransformer> INSTANCE =
+            new DaggerSingletonObject<>(
+                    QuickstepBaseAppComponent::getSimpleOrientationTouchTransformer);
 
-    private final Context mContext;
     private OrientationRectF mOrientationRectF;
     private OrientationRectF mTouchingOrientationRectF;
     private int mViewRotation;
+    private final int mDisplayId;
 
-    public SimpleOrientationTouchTransformer(Context context) {
-        this(context, DisplayController.INSTANCE.get(context));
-    }
+    @Inject
+    public SimpleOrientationTouchTransformer(@ApplicationContext Context context,
+            DisplayController displayController,
+            DaggerSingletonTracker tracker) {
+        // TODO (b/398195845): make sure non-default displays don't get affected by default display
+        // changes.
+        mDisplayId = DEFAULT_DISPLAY;
+        displayController.addChangeListenerForDisplay(this, mDisplayId);
+        tracker.addCloseable(
+                () -> displayController.removeChangeListenerForDisplay(this, mDisplayId));
 
-    @androidx.annotation.VisibleForTesting
-    public SimpleOrientationTouchTransformer(Context context, DisplayController displayController) {
-        mContext = context;
-        displayController.addChangeListener(this);
-        onDisplayInfoChanged(context, displayController.getInfo(), CHANGE_ALL);
-    }
-
-    @Override
-    public void close() {
-        DisplayController.INSTANCE.get(mContext).removeChangeListener(this);
+        onDisplayInfoChanged(context, displayController.getInfoForDisplay(mDisplayId), CHANGE_ALL);
     }
 
     @Override

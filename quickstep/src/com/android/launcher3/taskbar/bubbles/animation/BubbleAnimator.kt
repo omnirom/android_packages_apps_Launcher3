@@ -18,6 +18,8 @@ package com.android.launcher3.taskbar.bubbles.animation
 
 import androidx.core.animation.Animator
 import androidx.core.animation.ValueAnimator
+import kotlin.math.max
+import kotlin.math.min
 
 /**
  * Animates individual bubbles within the bubble bar while the bubble bar is expanded.
@@ -39,9 +41,14 @@ class BubbleAnimator(
     private var state: State = State.Idle
     private lateinit var animator: ValueAnimator
 
-    fun animateNewBubble(selectedBubbleIndex: Int, listener: Listener) {
+    @JvmOverloads
+    fun animateNewBubble(
+        selectedBubbleIndex: Int,
+        newlySelectedBubbleIndex: Int? = null,
+        listener: Listener,
+    ) {
         animator = createAnimator(listener)
-        state = State.AddingBubble(selectedBubbleIndex)
+        state = State.AddingBubble(selectedBubbleIndex, newlySelectedBubbleIndex)
         animator.start()
     }
 
@@ -65,14 +72,18 @@ class BubbleAnimator(
 
     fun animateNewAndRemoveOld(
         selectedBubbleIndex: Int,
+        newlySelectedBubbleIndex: Int,
         removedBubbleIndex: Int,
+        addedBubbleIndex: Int,
         listener: Listener,
     ) {
         animator = createAnimator(listener)
         state =
             State.AddingAndRemoving(
                 selectedBubbleIndex = selectedBubbleIndex,
+                newlySelectedBubbleIndex = newlySelectedBubbleIndex,
                 removedBubbleIndex = removedBubbleIndex,
+                addedBubbleIndex = addedBubbleIndex,
             )
         animator.start()
     }
@@ -132,6 +143,7 @@ class BubbleAnimator(
                 getBubbleTranslationXWhileAddingBubbleAtLimit(
                     bubbleIndex = bubbleIndex,
                     removedBubbleIndex = state.removedBubbleIndex,
+                    addedBubbleIndex = state.addedBubbleIndex,
                     addedBubbleScale = animator.animatedFraction,
                     removedBubbleScale = 1 - animator.animatedFraction,
                 )
@@ -180,29 +192,31 @@ class BubbleAnimator(
     fun getArrowPosition(): Float {
         return when (val state = state) {
             State.Idle -> 0f
-            is State.AddingBubble -> {
-                val tx =
-                    getBubbleTranslationXWhileScalingBubble(
-                        bubbleIndex = state.selectedBubbleIndex,
-                        scalingBubbleIndex = 0,
-                        bubbleScale = animator.animatedFraction,
-                    )
-                tx + iconSize / 2f
-            }
-
+            is State.AddingBubble -> getArrowPositionWhenAddingBubble(state)
             is State.RemovingBubble -> getArrowPositionWhenRemovingBubble(state)
-            is State.AddingAndRemoving -> {
-                // we never remove the selected bubble, so the arrow stays pointing to its center
-                val tx =
-                    getBubbleTranslationXWhileAddingBubbleAtLimit(
-                        bubbleIndex = state.selectedBubbleIndex,
-                        removedBubbleIndex = state.removedBubbleIndex,
-                        addedBubbleScale = animator.animatedFraction,
-                        removedBubbleScale = 1 - animator.animatedFraction,
-                    )
-                tx + iconSize / 2f
-            }
+            is State.AddingAndRemoving -> getArrowPositionWhenAddingAndRemovingBubble(state)
         }
+    }
+
+    private fun getArrowPositionWhenAddingBubble(state: State.AddingBubble): Float {
+        val scale = animator.animatedFraction
+        var tx =
+            getBubbleTranslationXWhileScalingBubble(
+                bubbleIndex = state.selectedBubbleIndex,
+                scalingBubbleIndex = 0,
+                bubbleScale = scale,
+            ) + iconSize / 2f
+        if (state.newlySelectedBubbleIndex != null) {
+            val selectedBubbleScale = if (state.newlySelectedBubbleIndex == 0) scale else 1f
+            val finalTx =
+                getBubbleTranslationXWhileScalingBubble(
+                    bubbleIndex = state.newlySelectedBubbleIndex,
+                    scalingBubbleIndex = 0,
+                    bubbleScale = scale,
+                ) + iconSize * selectedBubbleScale / 2f
+            tx += (finalTx - tx) * animator.animatedFraction
+        }
+        return tx
     }
 
     private fun getArrowPositionWhenRemovingBubble(state: State.RemovingBubble): Float =
@@ -250,6 +264,46 @@ class BubbleAnimator(
             }
         }
 
+    private fun getArrowPositionWhenAddingAndRemovingBubble(state: State.AddingAndRemoving): Float {
+        // The bubble bar keeps constant width while adding and removing bubble. So we just need to
+        // find selected bubble arrow position on the animation start and newly selected bubble
+        // arrow position on the animation end interpolating the arrow between these positions
+        // during the animation.
+        // The indexes in the state are provided for the bubble bar containing all bubbles. So for
+        // certain circumstances indexes should be adjusted.
+        // When animation is started added bubble has zero scale as well as removed bubble when the
+        // animation is ended, so for both cases we should compute translation as it is one less
+        // bubble.
+        val bubbleCountOnEnd = bubbleCount - 1
+        var selectedIndex = state.selectedBubbleIndex
+        // We only need to adjust the selected index if added bubble was added before the selected.
+        if (selectedIndex > state.addedBubbleIndex) {
+            // If the selectedIndex is higher index than the added bubble index, we need to reduce
+            // selectedIndex by one because the added bubble  has zero scale when animation is
+            // started.
+            selectedIndex--
+        }
+        var newlySelectedIndex = state.newlySelectedBubbleIndex
+        // We only need to adjust newlySelectedIndex if removed bubble was removed before the newly
+        // selected bubble.
+        if (newlySelectedIndex > state.removedBubbleIndex) {
+            // If the newlySelectedIndex is higher index than the removed bubble index, we need to
+            // reduce newlySelectedIndex by one because the removed bubble has zero scale when
+            // animation is ended.
+            newlySelectedIndex--
+        }
+        val iconAndSpacing: Float = iconSize + expandedBarIconSpacing
+        val startTx = getBubblesToTheLeft(selectedIndex, bubbleCountOnEnd) * iconAndSpacing
+        val endTx = getBubblesToTheLeft(newlySelectedIndex, bubbleCountOnEnd) * iconAndSpacing
+        val tx = startTx + (endTx - startTx) * animator.animatedFraction
+        return tx + iconSize / 2f
+    }
+
+    private fun getBubblesToTheLeft(bubbleIndex: Int, bubbleCount: Int = this.bubbleCount): Int =
+        // when bar is on left the index - 0 corresponds to the right - most bubble and when the
+        // bubble bar is on the right - 0 corresponds to the left - most bubble.
+        if (onLeft) bubbleCount - bubbleIndex - 1 else bubbleIndex
+
     /**
      * Returns the translation X for the bubble at index {@code bubbleIndex} when the bubble bar is
      * expanded and a bubble is animating in or out.
@@ -274,6 +328,7 @@ class BubbleAnimator(
                     // the bar is on the left and the current bubble is to the right of the scaling
                     // bubble so account for its scale
                     (bubbleCount - bubbleIndex - 2 + bubbleScale) * iconAndSpacing
+
                 bubbleIndex == scalingBubbleIndex -> {
                     // the bar is on the left and this is the scaling bubble
                     val totalIconSize = (bubbleCount - bubbleIndex - 1) * iconSize
@@ -283,6 +338,7 @@ class BubbleAnimator(
                     val scaledSpace = bubbleScale * expandedBarIconSpacing
                     totalIconSize + totalSpacing + scaledSpace + pivotAdjustment
                 }
+
                 else ->
                     // the bar is on the left and the scaling bubble is on the right. the current
                     // bubble is unaffected by the scaling bubble
@@ -294,10 +350,12 @@ class BubbleAnimator(
                     // the bar is on the right and the scaling bubble is on the right. the current
                     // bubble is unaffected by the scaling bubble
                     iconAndSpacing * bubbleIndex
+
                 bubbleIndex == scalingBubbleIndex ->
                     // the bar is on the right, and this is the animating bubble. it only needs to
                     // be adjusted for the scaling pivot.
                     iconAndSpacing * bubbleIndex + pivotAdjustment
+
                 else ->
                     // the bar is on the right and the scaling bubble is on the left so account for
                     // its scale
@@ -309,61 +367,67 @@ class BubbleAnimator(
     private fun getBubbleTranslationXWhileAddingBubbleAtLimit(
         bubbleIndex: Int,
         removedBubbleIndex: Int,
+        addedBubbleIndex: Int,
         addedBubbleScale: Float,
         removedBubbleScale: Float,
     ): Float {
         val iconAndSpacing = iconSize + expandedBarIconSpacing
         // the bubbles are scaling from the center, so we need to adjust their translation so
         // that the distance to the adjacent bubble scales at the same rate.
-        val addedBubblePivotAdjustment = -(1 - addedBubbleScale) * iconSize / 2f
-        val removedBubblePivotAdjustment = -(1 - removedBubbleScale) * iconSize / 2f
+        val addedBubblePivotAdjustment = (addedBubbleScale - 1) * iconSize / 2f
+        val removedBubblePivotAdjustment = (removedBubbleScale - 1) * iconSize / 2f
 
-        return if (onLeft) {
-            // this is how many bubbles there are to the left of the current bubble.
-            // when the bubble bar is on the right the added bubble is the right-most bubble so it
-            // doesn't affect the translation of any other bubble.
-            // when the removed bubble is to the left of the current bubble, we need to subtract it
-            // from bubblesToLeft and use removedBubbleScale instead when calculating the
-            // translation.
-            val bubblesToLeft = bubbleCount - bubbleIndex - 1
-            when {
-                bubbleIndex == 0 ->
-                    // this is the added bubble and it's the right-most bubble. account for all the
-                    // other bubbles -- including the removed bubble -- and adjust for the added
-                    // bubble pivot.
-                    (bubblesToLeft - 1 + removedBubbleScale) * iconAndSpacing +
-                        addedBubblePivotAdjustment
-                bubbleIndex < removedBubbleIndex ->
+        val minAddedRemovedIndex = min(addedBubbleIndex, removedBubbleIndex)
+        val maxAddedRemovedIndex = max(addedBubbleIndex, removedBubbleIndex)
+        val isBetweenAddedAndRemoved =
+            bubbleIndex in (minAddedRemovedIndex + 1)..<maxAddedRemovedIndex
+        val isRemovedBubbleToLeftOfAddedBubble = onLeft == addedBubbleIndex < removedBubbleIndex
+        val bubblesToLeft = getBubblesToTheLeft(bubbleIndex)
+        return when {
+            isBetweenAddedAndRemoved -> {
+                if (isRemovedBubbleToLeftOfAddedBubble) {
                     // the removed bubble is to the left so account for it
                     (bubblesToLeft - 1 + removedBubbleScale) * iconAndSpacing
-                bubbleIndex == removedBubbleIndex -> {
-                    // this is the removed bubble. all the bubbles to the left are at full scale
-                    // but we need to scale the spacing between the removed bubble and the bubble to
-                    // its left because the removed bubble disappears towards the left side
+                } else {
+                    // the added bubble is to the left so account for it
+                    (bubblesToLeft - 1 + addedBubbleScale) * iconAndSpacing
+                }
+            }
+
+            bubbleIndex == addedBubbleIndex -> {
+                if (isRemovedBubbleToLeftOfAddedBubble) {
+                    // the removed bubble is to the left so account for it
+                    (bubblesToLeft - 1 + removedBubbleScale) * iconAndSpacing
+                } else {
+                    // it's the left-most scaling bubble, all bubbles on the left are at full scale
+                    bubblesToLeft * iconAndSpacing
+                } + addedBubblePivotAdjustment
+            }
+
+            bubbleIndex == removedBubbleIndex -> {
+                if (isRemovedBubbleToLeftOfAddedBubble) {
+                    // All the bubbles to the left are at full scale, but we need to scale the
+                    // spacing between the removed bubble and the bubble next to it
                     val totalIconSize = bubblesToLeft * iconSize
                     val totalSpacing =
                         (bubblesToLeft - 1 + removedBubbleScale) * expandedBarIconSpacing
-                    totalIconSize + totalSpacing + removedBubblePivotAdjustment
-                }
-                else ->
-                    // both added and removed bubbles are to the right so they don't affect the tx
-                    bubblesToLeft * iconAndSpacing
+                    totalIconSize + totalSpacing
+                } else {
+                    // The added bubble is to the left, so account for it
+                    (bubblesToLeft - 1 + addedBubbleScale) * iconAndSpacing
+                } + removedBubblePivotAdjustment
             }
-        } else {
-            when {
-                bubbleIndex == 0 -> addedBubblePivotAdjustment // we always add bubbles at index 0
-                bubbleIndex < removedBubbleIndex ->
-                    // the bar is on the right and the removed bubble is on the right. the current
-                    // bubble is unaffected by the removed bubble. only need to factor in the added
-                    // bubble's scale.
-                    iconAndSpacing * (bubbleIndex - 1 + addedBubbleScale)
-                bubbleIndex == removedBubbleIndex ->
-                    // the bar is on the right, and this is the animating bubble.
-                    iconAndSpacing * (bubbleIndex - 1 + addedBubbleScale) +
-                        removedBubblePivotAdjustment
-                else ->
-                    // both the added and the removed bubbles are to the left of the current bubble
-                    iconAndSpacing * (bubbleIndex - 2 + addedBubbleScale + removedBubbleScale)
+
+            else -> {
+                // if bubble index is on the right side of the animated bubbles, we need to deduct
+                // one, since both the added and the removed bubbles takes a single place
+                val onTheRightOfAnimatedBubbles =
+                    if (onLeft) {
+                        bubbleIndex < minAddedRemovedIndex
+                    } else {
+                        bubbleIndex > maxAddedRemovedIndex
+                    }
+                (bubblesToLeft - if (onTheRightOfAnimatedBubbles) 1 else 0) * iconAndSpacing
             }
         }
     }
@@ -378,7 +442,12 @@ class BubbleAnimator(
         data object Idle : State
 
         /** A new bubble is being added to the bubble bar. */
-        data class AddingBubble(val selectedBubbleIndex: Int) : State
+        data class AddingBubble(
+            /** The index of the selected bubble. */
+            val selectedBubbleIndex: Int,
+            /** The index of the newly selected bubble. */
+            val newlySelectedBubbleIndex: Int?,
+        ) : State
 
         /** A bubble is being removed from the bubble bar. */
         data class RemovingBubble(
@@ -393,8 +462,16 @@ class BubbleAnimator(
         ) : State
 
         /** A new bubble is being added and an old bubble is being removed from the bubble bar. */
-        data class AddingAndRemoving(val selectedBubbleIndex: Int, val removedBubbleIndex: Int) :
-            State
+        data class AddingAndRemoving(
+            /** The index of the selected bubble. */
+            val selectedBubbleIndex: Int,
+            /** The index of the newly selected bubble. */
+            val newlySelectedBubbleIndex: Int,
+            /** The index of the bubble being removed. */
+            val removedBubbleIndex: Int,
+            /** The index of the added bubble. */
+            val addedBubbleIndex: Int,
+        ) : State
     }
 
     /** Callbacks for the animation. */

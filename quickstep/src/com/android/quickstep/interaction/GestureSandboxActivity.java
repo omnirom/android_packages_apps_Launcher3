@@ -115,22 +115,13 @@ public class GestureSandboxActivity extends FragmentActivity {
 
     private void initWindowInsets() {
         View root = findViewById(android.R.id.content);
-        root.addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
-            @Override
-            public void onLayoutChange(View v, int left, int top, int right, int bottom,
-                    int oldLeft, int oldTop, int oldRight, int oldBottom) {
-                updateExclusionRects(root);
-            }
-        });
+        root.addOnLayoutChangeListener(
+                (v, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom) ->
+                        updateExclusionRects(root));
 
         // Return CONSUMED if you don't want want the window insets to keep being
         // passed down to descendant views.
-        root.setOnApplyWindowInsetsListener(new View.OnApplyWindowInsetsListener() {
-            @Override
-            public WindowInsets onApplyWindowInsets(View v, WindowInsets insets) {
-                return WindowInsets.CONSUMED;
-            }
-        });
+        root.setOnApplyWindowInsetsListener((v, insets) -> WindowInsets.CONSUMED);
     }
 
     private void updateExclusionRects(View rootView) {

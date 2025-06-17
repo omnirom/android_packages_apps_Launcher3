@@ -215,6 +215,7 @@ constructor(
         animator.spring(DynamicAnimation.TRANSLATION_Y, totalTranslationY, initialVelocity ?: 0f)
         animator.addUpdateListener { handle, values ->
             val ty = values[DynamicAnimation.TRANSLATION_Y]?.value ?: return@addUpdateListener
+            if (animatingBubble == null) return@addUpdateListener
             when {
                 ty >= stashedHandleTranslationYForAnimation -> {
                     // we're in the first leg of the animation. only animate the handle. the bubble
@@ -365,7 +366,12 @@ constructor(
     }
 
     /** Animates to the initial state of the bubble bar, when there are no previous bubbles. */
-    fun animateToInitialState(b: BubbleBarBubble, isInApp: Boolean, isExpanding: Boolean) {
+    fun animateToInitialState(
+        b: BubbleBarBubble,
+        isInApp: Boolean,
+        isExpanding: Boolean,
+        isDragging: Boolean = false,
+    ) {
         val bubbleView = b.view
         val animator = PhysicsAnimator.getInstance(bubbleView)
         if (animator.isRunning()) animator.cancel()
@@ -374,15 +380,12 @@ constructor(
         // bubble bar to the handle if we're in an app.
         val showAnimation = buildBubbleBarSpringInAnimation()
         val hideAnimation =
-            if (isInApp && !isExpanding) {
+            if (isInApp && !isExpanding && !isDragging) {
                 buildBubbleBarToHandleAnimation()
             } else {
                 Runnable {
-                    moveToState(AnimatingBubble.State.ANIMATING_OUT)
-                    bubbleBarFlyoutController.collapseFlyout {
-                        onFlyoutRemoved()
-                        clearAnimatingBubble()
-                    }
+                    collapseFlyoutAndUpdateState()
+                    if (isDragging) return@Runnable
                     bubbleStashController.showBubbleBarImmediate()
                     bubbleStashController.updateTaskbarTouchRegion()
                 }
@@ -440,11 +443,7 @@ constructor(
         // first bounce the bubble bar and show the flyout. Then hide the flyout.
         val showAnimation = buildBubbleBarBounceAnimation()
         val hideAnimation = Runnable {
-            moveToState(AnimatingBubble.State.ANIMATING_OUT)
-            bubbleBarFlyoutController.collapseFlyout {
-                onFlyoutRemoved()
-                clearAnimatingBubble()
-            }
+            collapseFlyoutAndUpdateState()
             bubbleStashController.showBubbleBarImmediate()
             bubbleStashController.updateTaskbarTouchRegion()
         }
@@ -452,6 +451,14 @@ constructor(
             AnimatingBubble(bubbleView, showAnimation, hideAnimation, expand = isExpanding)
         scheduler.post(showAnimation)
         scheduler.postDelayed(FLYOUT_DELAY_MS, hideAnimation)
+    }
+
+    private fun collapseFlyoutAndUpdateState() {
+        moveToState(AnimatingBubble.State.ANIMATING_OUT)
+        bubbleBarFlyoutController.collapseFlyout {
+            onFlyoutRemoved()
+            clearAnimatingBubble()
+        }
     }
 
     /**
@@ -531,7 +538,7 @@ constructor(
         bubbleStashController.getStashedHandlePhysicsAnimator().cancelIfRunning()
         resetBubbleBarPropertiesOnInterrupt()
         bubbleStashController.onNewBubbleAnimationInterrupted(
-            /* isStashed= */ bubbleBarView.alpha == 0f,
+            /* isStashed= */ bubbleStashController.isStashed,
             bubbleBarView.translationY,
         )
     }

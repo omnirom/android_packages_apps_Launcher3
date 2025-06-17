@@ -40,6 +40,7 @@
     <style name="LauncherTheme" parent="@style/DynamicColorsBaseLauncherTheme">
         <item name="android:textColorSecondary">#DE000000</item>
         <item name="allAppsScrimColor">@color/materialColorSurfaceDim</item>
+        <item name="allAppsScrimColorOverBlur">#33000000</item>
         <item name="allappsHeaderProtectionColor">@color/materialColorSurfaceContainerHighest</item>
         <item name="allAppsNavBarScrimColor">#66FFFFFF</item>
         <item name="popupColorPrimary">@color/popup_color_primary_light</item>
@@ -76,6 +77,7 @@
         <item name="dropTargetHoverTextColor">@color/drop_target_hover_text_color_light</item>
         <item name="dropTargetHoverButtonColor">@color/drop_target_hover_button_color_light</item>
         <item name="overviewScrimColor">@color/overview_scrim</item>
+        <item name="overviewScrimColorOverBlur">#33000000</item>
         <item name="preloadIconAccentColor">@color/preload_icon_accent_color_light</item>
         <item name="preloadIconBackgroundColor">@color/preload_icon_background_color_light</item>
         <item name="android:windowTranslucentStatus">false</item>
@@ -114,6 +116,7 @@
         <item name="android:colorControlHighlight">#19FFFFFF</item>
         <item name="android:colorPrimary">#FF212121</item>
         <item name="allAppsScrimColor">@color/materialColorSurfaceDim</item>
+        <item name="allAppsScrimColorOverBlur">#52000000</item>
         <item name="allappsHeaderProtectionColor">@color/materialColorSurfaceContainerLow</item>
         <item name="allAppsNavBarScrimColor">#80000000</item>
         <item name="popupColorPrimary">@color/popup_color_primary_dark</item>
@@ -139,6 +142,7 @@
         <item name="iconOnlyShortcutColor">#B3FFFFFF</item>
         <item name="eduHalfSheetBGColor">#DD000000</item>
         <item name="overviewScrimColor">@color/overview_scrim_dark</item>
+        <item name="overviewScrimColorOverBlur">#52000000</item>
         <item name="preloadIconAccentColor">@color/preload_icon_accent_color_dark</item>
         <item name="preloadIconBackgroundColor">@color/preload_icon_background_color_dark</item>
     </style>
@@ -289,6 +293,36 @@
             @color/widget_cell_subtitle_color_dark</item>
     </style>
 
+    <style name="WidgetListHeader.Title" parent="@android:style/TextAppearance.DeviceDefault" >
+        <!-- Title / Medium -->
+        <item name="android:textFontWeight">@integer/widget_picker_header_app_title_font_weight</item>
+        <item name="android:textSize">@dimen/widget_picker_header_app_title_font_size</item>
+        <item name="android:lineHeight">@dimen/widget_picker_header_app_title_line_height</item>
+        <item name="android:textColor">?attr/widgetPickerHeaderAppTitleColor</item>
+    </style>
+
+    <style name="WidgetListHeader.Title.Selected" parent="WidgetListHeader.Title">
+        <!-- Title / Medium / Emphasized -->
+        <item name="android:textFontWeight">
+            @integer/widget_picker_header_selected_app_title_font_weight
+        </item>
+    </style>
+
+    <style name="WidgetListHeader.SubTitle" parent="@android:style/TextAppearance.DeviceDefault" >
+        <!-- Title / Small -->
+        <item name="android:textFontWeight">@integer/widget_picker_header_app_subtitle_font_weight</item>
+        <item name="android:textSize">@dimen/widget_picker_header_app_subtitle_font_size</item>
+        <item name="android:lineHeight">@dimen/widget_picker_header_app_subtitle_line_height</item>
+        <item name="android:textColor">?attr/widgetPickerHeaderAppSubtitleColor</item>
+    </style>
+
+    <style name="WidgetListHeader.SubTitle.Selected" parent="WidgetListHeader.SubTitle">
+        <!-- Title / Small / Emphasized -->
+        <item name="android:textFontWeight">
+            @integer/widget_picker_header_selected_app_subtitle_font_weight
+        </item>
+    </style>
+
     <style name="FastScrollerPopup" parent="@android:style/TextAppearance.DeviceDefault.DialogWindowTitle">
         <item name="android:layout_width">wrap_content</item>
         <item name="android:minWidth">@dimen/fastscroll_popup_width</item>
@@ -371,7 +405,9 @@
         <item name="android:background">@drawable/drop_target_background</item>
     </style>
 
-    <style name="DropTargetButton" parent="DropTargetButtonBase" />
+    <style name="DropTargetButton" parent="DropTargetButtonBase">
+        <item name="android:fontFamily" android:featureFlag="com.android.launcher3.gsf_res">variable-title-medium</item>
+    </style>
 
     <style name="TextHeadline" parent="@android:style/TextAppearance.DeviceDefault.DialogWindowTitle" />
 

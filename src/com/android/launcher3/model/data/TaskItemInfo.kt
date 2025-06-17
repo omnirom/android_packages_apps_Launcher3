@@ -17,8 +17,7 @@
 package com.android.launcher3.model.data
 
 /**
- * Temporary class holding a Task ID to allow us to reference a Task when clicking a hotseat item.
- *
- * TODO(b/315344726): Remove this class when we have proper Taskbar support for multi-instance apps
+ * A Task info class holding a Task ID to allow us to reference a Task when clicking a hotseat item.
+ * This is also used to help identify the shortcuts shown in the long-press menu.
  */
 class TaskItemInfo(val taskId: Int, itemInfo: WorkspaceItemInfo) : WorkspaceItemInfo(itemInfo)

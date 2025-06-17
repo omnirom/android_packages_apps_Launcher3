@@ -20,6 +20,7 @@ import android.animation.Animator
 import android.animation.AnimatorSet
 import android.animation.ObjectAnimator
 import android.animation.ValueAnimator
+import android.content.Context
 import android.view.View
 import androidx.dynamicanimation.animation.SpringForce
 import com.android.app.animation.Interpolators
@@ -30,11 +31,10 @@ import com.android.wm.shell.shared.bubbles.BubbleBarLocation
 
 /** Animator helper that creates bars animators. */
 object BarsLocationAnimatorHelper {
-
-    private const val FADE_OUT_ANIM_ALPHA_DURATION_MS: Long = 50L
-    private const val FADE_OUT_ANIM_ALPHA_DELAY_MS: Long = 50L
-    private const val FADE_OUT_ANIM_POSITION_DURATION_MS: Long = 100L
-    private const val FADE_IN_ANIM_ALPHA_DURATION_MS: Long = 100L
+    const val FADE_OUT_ANIM_ALPHA_DURATION_MS: Long = 50L
+    const val FADE_OUT_ANIM_ALPHA_DELAY_MS: Long = 50L
+    const val FADE_OUT_ANIM_POSITION_DURATION_MS: Long = 100L
+    const val FADE_IN_ANIM_ALPHA_DURATION_MS: Long = 100L
 
     // Use STIFFNESS_MEDIUMLOW which is not defined in the API constants
     private const val FADE_IN_ANIM_POSITION_SPRING_STIFFNESS: Float = 400f
@@ -45,13 +45,13 @@ object BarsLocationAnimatorHelper {
     // During fade in animation we shift the bubble bar 1/60th of the screen width
     private const val FADE_IN_ANIM_POSITION_SHIFT: Float = 1 / 60f
 
-    private val View.screenWidth: Int
+    private val Context.screenWidth: Int
         get() = resources.displayMetrics.widthPixels
 
-    private val View.outShift: Float
+    val Context.outShift: Float
         get() = screenWidth * FADE_OUT_ANIM_POSITION_SHIFT
 
-    private val View.inShiftX: Float
+    val Context.inShiftX: Float
         get() = screenWidth * FADE_IN_ANIM_POSITION_SHIFT
 
     /**
@@ -108,7 +108,7 @@ object BarsLocationAnimatorHelper {
         targetViewAlphaAnim: ObjectAnimator,
         bubbleBarView: View,
     ): Animator {
-        val shift: Float = bubbleBarView.outShift
+        val shift: Float = bubbleBarView.context.outShift
 
         val onLeft = newLocation.isOnLeft(bubbleBarView.isLayoutRtl)
         val startTx: Float
@@ -132,15 +132,19 @@ object BarsLocationAnimatorHelper {
         return createLocationInAnimator(startTx, finalTx, targetViewAlphaAnim, bubbleBarView)
     }
 
-    /** Creates an animator for the bubble bar view out part. */
+    /**
+     * Creates an animator for the bubble bar view out part.
+     *
+     * @param targetLocation the location bubble bar should animate to.
+     */
     @JvmStatic
     fun getBubbleBarLocationOutAnimator(
         bubbleBarView: View,
-        bubbleBarLocation: BubbleBarLocation,
+        targetLocation: BubbleBarLocation,
         targetViewAlphaAnim: ObjectAnimator,
     ): Animator {
-        val onLeft = bubbleBarLocation.isOnLeft(bubbleBarView.isLayoutRtl)
-        val shift = bubbleBarView.outShift
+        val onLeft = targetLocation.isOnLeft(bubbleBarView.isLayoutRtl)
+        val shift = bubbleBarView.context.outShift
         val finalTx = bubbleBarView.translationX + (if (onLeft) -shift else shift)
         return this.createLocationOutAnimator(finalTx, targetViewAlphaAnim, bubbleBarView)
     }
@@ -152,7 +156,7 @@ object BarsLocationAnimatorHelper {
         navButtonsView: View,
         navBarTargetTranslationX: Float,
     ): Animator {
-        val outShift: Float = navButtonsView.outShift
+        val outShift: Float = navButtonsView.context.outShift
         val isNavBarOnRight: Boolean = location.isOnLeft(navButtonsView.isLayoutRtl)
         val finalOutTx =
             navButtonsView.translationX + (if (isNavBarOnRight) outShift else -outShift)
@@ -162,7 +166,7 @@ object BarsLocationAnimatorHelper {
                 ObjectAnimator.ofFloat(navButtonsView, LauncherAnimUtils.VIEW_ALPHA, 0f),
                 navButtonsView,
             )
-        val inShift: Float = navButtonsView.inShiftX
+        val inShift: Float = navButtonsView.context.inShiftX
         val inStartX = navBarTargetTranslationX + (if (isNavBarOnRight) -inShift else inShift)
         val fadeIn: Animator =
             createLocationInAnimator(

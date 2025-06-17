@@ -151,19 +151,6 @@ android_test {
     test_suites: ["general-tests"],
 }
 
-// Shared between tests and launcher
-android_library {
-    name: "launcher-testing-shared",
-    srcs: [
-        "multivalentTests/shared/com/android/launcher3/testing/shared/**/*.java",
-        "multivalentTests/shared/com/android/launcher3/testing/shared/**/*.kt",
-    ],
-    resource_dirs: [],
-    manifest: "multivalentTests/shared/AndroidManifest.xml",
-    sdk_version: "current",
-    min_sdk_version: min_launcher3_sdk_version,
-}
-
 filegroup {
     name: "launcher-testing-helpers-robo",
     srcs: [
@@ -181,6 +168,7 @@ filegroup {
         "src/**/*Test.java",
         "src/**/*Test.kt",
         "src/**/RoboApiWrapper.kt",
+        "src/**/EventsRule.kt",
         "multivalentTests/src/**/*Test.java",
         "multivalentTests/src/**/*Test.kt",
     ],
@@ -239,6 +227,5 @@ android_robolectric_test {
     ],
     instrumentation_for: "Launcher3",
     plugins: ["dagger2-compiler"],
-    upstream: true,
     strict_mode: false,
 }

@@ -46,6 +46,7 @@ import com.android.launcher3.icons.cache.CachedObject;
 import com.android.launcher3.model.WidgetItem;
 import com.android.launcher3.model.data.PackageItemInfo;
 import com.android.launcher3.search.SearchCallback;
+import com.android.launcher3.util.SandboxApplication;
 import com.android.launcher3.widget.LauncherAppWidgetProviderInfo;
 import com.android.launcher3.widget.model.WidgetsListBaseEntry;
 import com.android.launcher3.widget.model.WidgetsListContentEntry;
@@ -53,6 +54,7 @@ import com.android.launcher3.widget.model.WidgetsListHeaderEntry;
 import com.android.launcher3.widget.picker.search.WidgetsSearchBar.WidgetsSearchDataProvider;
 
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -66,6 +68,7 @@ import java.util.List;
 @RunWith(AndroidJUnit4.class)
 public class SimpleWidgetsSearchAlgorithmTest {
 
+    @Rule public SandboxApplication app = new SandboxApplication();
     @Mock private IconCache mIconCache;
 
     private InvariantDeviceProfile mTestProfile;
@@ -90,7 +93,7 @@ public class SimpleWidgetsSearchAlgorithmTest {
             CachedObject componentWithLabel = invocation.getArgument(0);
             return componentWithLabel.getComponent().getShortClassName();
         }).when(mIconCache).getTitleNoCache(any());
-        mTestProfile = new InvariantDeviceProfile();
+        mTestProfile = InvariantDeviceProfile.INSTANCE.get(app);
         mTestProfile.numRows = 5;
         mTestProfile.numColumns = 5;
         mContext = getApplicationContext();

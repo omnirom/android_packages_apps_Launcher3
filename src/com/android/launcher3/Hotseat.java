@@ -38,6 +38,7 @@ import com.android.launcher3.Utilities;
 import androidx.annotation.IntDef;
 import androidx.annotation.Nullable;
 
+import com.android.launcher3.ShortcutAndWidgetContainer.TranslationProvider;
 import com.android.launcher3.celllayout.CellLayoutLayoutParams;
 import com.android.launcher3.util.HorizontalInsettableView;
 import com.android.launcher3.util.MultiPropertyFactory;
@@ -237,6 +238,13 @@ public class Hotseat extends CellLayout implements Insettable {
             animatorSet.play(qsbAnimator);
         }
         animatorSet.setDuration(BUBBLE_BAR_ADJUSTMENT_ANIMATION_DURATION_MS).start();
+    }
+
+    @Override
+    protected int getTranslationXForCell(int cellX, int cellY) {
+        TranslationProvider translationProvider = getShortcutsAndWidgets().getTranslationProvider();
+        if (translationProvider == null) return 0;
+        return (int) translationProvider.getTranslationX(cellX);
     }
 
     @Override

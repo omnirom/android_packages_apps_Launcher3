@@ -51,7 +51,7 @@ class ScreenOnTrackerTest {
 
     @Test
     fun test_default_state() {
-        verify(receiver).register(context, ACTION_SCREEN_ON, ACTION_SCREEN_OFF, ACTION_USER_PRESENT)
+        verify(receiver).register(ACTION_SCREEN_ON, ACTION_SCREEN_OFF, ACTION_USER_PRESENT)
         assertThat(underTest.isScreenOn).isTrue()
     }
 
@@ -59,7 +59,7 @@ class ScreenOnTrackerTest {
     fun close_unregister_receiver() {
         underTest.close()
 
-        verify(receiver).unregisterReceiverSafely(context)
+        verify(receiver).unregisterReceiverSafely()
     }
 
     @Test

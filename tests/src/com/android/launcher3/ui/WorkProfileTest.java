@@ -26,6 +26,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeTrue;
 
+import android.os.Process;
 import android.util.Log;
 import android.view.View;
 
@@ -73,7 +74,9 @@ public class WorkProfileTest extends BaseLauncherActivityTest<Launcher> {
 
     @Before
     public void setUp() throws Exception {
-        String output = executeShellCommand("pm create-user --profileOf 0 --managed TestProfile");
+        String output = executeShellCommand(String.format(
+                "pm create-user --profileOf %d --managed TestProfile",
+                Process.myUserHandle().getIdentifier()));
         updateWorkProfileSetupSuccessful("pm create-user", output);
 
         String[] tokens = output.split("\\s+");

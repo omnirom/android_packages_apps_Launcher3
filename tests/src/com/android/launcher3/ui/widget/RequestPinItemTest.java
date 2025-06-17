@@ -51,6 +51,7 @@ import com.android.launcher3.util.BaseLauncherActivityTest;
 import com.android.launcher3.util.BlockingBroadcastReceiver;
 import com.android.launcher3.util.LauncherBindableItemsContainer.ItemOperator;
 import com.android.launcher3.util.TestUtil;
+import com.android.launcher3.util.rule.ScreenRecordRule;
 import com.android.launcher3.util.rule.ShellCommandRule;
 
 import org.junit.Before;
@@ -74,6 +75,9 @@ public class RequestPinItemTest extends BaseLauncherActivityTest<Launcher> {
     @Rule
     public ShellCommandRule mDefaultLauncherRule = ShellCommandRule.setDefaultLauncher();
 
+    @Rule
+    public ScreenRecordRule mScreenRecordRule = new ScreenRecordRule();
+
     private String mCallbackAction;
     private String mShortcutId;
     private int mAppWidgetId;
@@ -87,6 +91,7 @@ public class RequestPinItemTest extends BaseLauncherActivityTest<Launcher> {
     @Test
     public void testEmpty() throws Throwable { /* needed while the broken tests are being fixed */ }
 
+    @ScreenRecordRule.ScreenRecord // b/386243192
     @Test
     public void testPinWidgetNoConfig() throws Throwable {
         runTest("pinWidgetNoConfig", true, (info, view) -> info instanceof LauncherAppWidgetInfo
@@ -95,6 +100,7 @@ public class RequestPinItemTest extends BaseLauncherActivityTest<Launcher> {
                         .equals(AppWidgetNoConfig.class.getName()));
     }
 
+    @ScreenRecordRule.ScreenRecord // b/386243192
     @Test
     public void testPinWidgetNoConfig_customPreview() throws Throwable {
         // Command to set custom preview
@@ -108,6 +114,7 @@ public class RequestPinItemTest extends BaseLauncherActivityTest<Launcher> {
                         .equals(AppWidgetNoConfig.class.getName()), command);
     }
 
+    @ScreenRecordRule.ScreenRecord // b/386243192
     @Test
     public void testPinWidgetWithConfig() throws Throwable {
         runTest("pinWidgetWithConfig", true,
@@ -117,6 +124,7 @@ public class RequestPinItemTest extends BaseLauncherActivityTest<Launcher> {
                                 .equals(AppWidgetWithConfig.class.getName()));
     }
 
+    @ScreenRecordRule.ScreenRecord // b/386243192
     @Test
     public void testPinShortcut() throws Throwable {
         // Command to set the shortcut id

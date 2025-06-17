@@ -18,10 +18,8 @@ package com.android.launcher3.statemanager;
 import static android.content.pm.ActivityInfo.CONFIG_ORIENTATION;
 import static android.content.pm.ActivityInfo.CONFIG_SCREEN_SIZE;
 
-import static com.android.launcher3.LauncherConstants.SavedInstanceKeys.RUNTIME_STATE_RECREATE_TO_UPDATE_THEME;
 import static com.android.launcher3.LauncherState.FLAG_NON_INTERACTIVE;
 
-import android.content.Context;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.os.Handler;
@@ -30,9 +28,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 
 import androidx.annotation.CallSuper;
-import androidx.annotation.NonNull;
 
-import com.android.launcher3.BaseDraggingActivity;
+import com.android.launcher3.BaseActivity;
 import com.android.launcher3.LauncherRootView;
 import com.android.launcher3.Utilities;
 import com.android.launcher3.statemanager.StateManager.StateHandler;
@@ -46,7 +43,7 @@ import java.util.List;
  * @param <STATE_TYPE> Type of state object
  */
 public abstract class StatefulActivity<STATE_TYPE extends BaseState<STATE_TYPE>>
-        extends BaseDraggingActivity implements StatefulContainer<STATE_TYPE> {
+        extends BaseActivity implements StatefulContainer<STATE_TYPE> {
 
     public final Handler mHandler = new Handler();
     private final Runnable mHandleDeferredResume = this::handleDeferredResume;
@@ -56,7 +53,6 @@ public abstract class StatefulActivity<STATE_TYPE extends BaseState<STATE_TYPE>>
 
     protected Configuration mOldConfig;
     private int mOldRotation;
-    private boolean mRecreateToUpdateTheme = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,18 +60,6 @@ public abstract class StatefulActivity<STATE_TYPE extends BaseState<STATE_TYPE>>
 
         mOldConfig = new Configuration(getResources().getConfiguration());
         mOldRotation = WindowManagerProxy.INSTANCE.get(this).getRotation(this);
-    }
-
-    @Override
-    protected void onSaveInstanceState(@NonNull Bundle outState) {
-        outState.putBoolean(RUNTIME_STATE_RECREATE_TO_UPDATE_THEME, mRecreateToUpdateTheme);
-        super.onSaveInstanceState(outState);
-    }
-
-    @Override
-    protected void recreateToUpdateTheme() {
-        mRecreateToUpdateTheme = true;
-        super.recreateToUpdateTheme();
     }
 
     /**
@@ -212,11 +196,6 @@ public abstract class StatefulActivity<STATE_TYPE extends BaseState<STATE_TYPE>>
 
         mOldConfig.setTo(newConfig);
         mOldRotation = rotation;
-    }
-
-    @Override
-    public Context getContext() {
-        return this;
     }
 
     /**

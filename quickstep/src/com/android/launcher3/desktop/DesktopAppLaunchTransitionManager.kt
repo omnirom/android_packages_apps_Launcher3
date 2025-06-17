@@ -23,6 +23,7 @@ import android.window.DesktopModeFlags
 import android.window.RemoteTransition
 import android.window.TransitionFilter
 import android.window.TransitionFilter.CONTAINER_ORDER_TOP
+import com.android.internal.jank.Cuj
 import com.android.launcher3.desktop.DesktopAppLaunchTransition.AppLaunchType
 import com.android.launcher3.util.Executors.MAIN_EXECUTOR
 import com.android.quickstep.SystemUiProxy
@@ -45,8 +46,13 @@ class DesktopAppLaunchTransitionManager(
         }
         remoteWindowLimitUnminimizeTransition =
             RemoteTransition(
-                DesktopAppLaunchTransition(context, MAIN_EXECUTOR, AppLaunchType.UNMINIMIZE),
-                "DesktopWindowLimitUnminimize"
+                DesktopAppLaunchTransition(
+                    context,
+                    AppLaunchType.UNMINIMIZE,
+                    Cuj.CUJ_DESKTOP_MODE_APP_LAUNCH_FROM_INTENT,
+                    MAIN_EXECUTOR,
+                ),
+                "DesktopWindowLimitUnminimize",
             )
         systemUiProxy.registerRemoteTransition(
             remoteWindowLimitUnminimizeTransition,
@@ -68,8 +74,7 @@ class DesktopAppLaunchTransitionManager(
 
     private fun shouldRegisterTransitions(): Boolean =
         DesktopModeStatus.canEnterDesktopMode(context) &&
-            (DesktopModeFlags.ENABLE_DESKTOP_APP_LAUNCH_TRANSITIONS.isTrue ||
-                DesktopModeFlags.ENABLE_DESKTOP_APP_LAUNCH_TRANSITIONS_BUGFIX.isTrue)
+            DesktopModeFlags.ENABLE_DESKTOP_APP_LAUNCH_TRANSITIONS_BUGFIX.isTrue
 
     companion object {
         private fun buildAppLaunchFilter(): TransitionFilter {

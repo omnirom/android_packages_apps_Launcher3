@@ -89,11 +89,12 @@ class SplitAnimationControllerTest {
     @Before
     fun setup() {
         whenever(mockTaskContainer.snapshotView).thenReturn(mockSnapshotView)
-        whenever(mockTaskContainer.splitAnimationThumbnail).thenReturn(mockBitmap)
+        whenever(mockTaskContainer.thumbnail).thenReturn(mockBitmap)
         whenever(mockTaskContainer.iconView).thenReturn(mockIconView)
         whenever(mockTaskContainer.task).thenReturn(mockTask)
         whenever(mockIconView.drawable).thenReturn(mockTaskViewDrawable)
         whenever(mockTaskView.taskContainers).thenReturn(List(1) { mockTaskContainer })
+        whenever(mockTaskView.firstTaskContainer).thenReturn(mockTaskContainer)
 
         whenever(splitSelectSource.drawable).thenReturn(mockSplitSourceDrawable)
         whenever(splitSelectSource.view).thenReturn(mockSplitSourceView)
@@ -117,7 +118,7 @@ class SplitAnimationControllerTest {
         assertEquals(
             "Did not fallback to use splitSource icon drawable",
             mockSplitSourceDrawable,
-            splitAnimInitProps.iconDrawable
+            splitAnimInitProps.iconDrawable,
         )
     }
 
@@ -133,7 +134,7 @@ class SplitAnimationControllerTest {
         assertEquals(
             "Did not use taskView icon drawable",
             mockTaskViewDrawable,
-            splitAnimInitProps.iconDrawable
+            splitAnimInitProps.iconDrawable,
         )
     }
 
@@ -152,7 +153,7 @@ class SplitAnimationControllerTest {
         assertEquals(
             "Did not use taskView icon drawable",
             mockTaskViewDrawable,
-            splitAnimInitProps.iconDrawable
+            splitAnimInitProps.iconDrawable,
         )
     }
 
@@ -168,7 +169,7 @@ class SplitAnimationControllerTest {
         assertEquals(
             "Did not use splitSource icon drawable",
             mockSplitSourceDrawable,
-            splitAnimInitProps.iconDrawable
+            splitAnimInitProps.iconDrawable,
         )
     }
 
@@ -190,13 +191,13 @@ class SplitAnimationControllerTest {
         val splitAnimInitProps: SplitAnimationController.Companion.SplitAnimInitProps =
             splitAnimationController.getFirstAnimInitViews(
                 { mockGroupedTaskView },
-                { splitSelectSource }
+                { splitSelectSource },
             )
 
         assertEquals(
             "Did not use splitSource icon drawable",
             mockSplitSourceDrawable,
-            splitAnimInitProps.iconDrawable
+            splitAnimInitProps.iconDrawable,
         )
     }
 
@@ -214,7 +215,7 @@ class SplitAnimationControllerTest {
                 any(),
                 any(),
                 any(),
-                any()
+                any(),
             )
 
         spySplitAnimationController.playSplitLaunchAnimation(
@@ -230,7 +231,7 @@ class SplitAnimationControllerTest {
             null /* info */,
             null /* t */,
             {} /* finishCallback */,
-            1f /* cornerRadius */
+            1f, /* cornerRadius */
         )
 
         verify(spySplitAnimationController)
@@ -243,7 +244,7 @@ class SplitAnimationControllerTest {
                 any(),
                 any(),
                 any(),
-                any()
+                any(),
             )
     }
 
@@ -267,7 +268,7 @@ class SplitAnimationControllerTest {
             transitionInfo,
             transaction,
             {} /* finishCallback */,
-            1f /* cornerRadius */
+            1f, /* cornerRadius */
         )
 
         verify(spySplitAnimationController)
@@ -296,7 +297,7 @@ class SplitAnimationControllerTest {
             transitionInfo,
             transaction,
             {} /* finishCallback */,
-            1f /* cornerRadius */
+            1f, /* cornerRadius */
         )
 
         verify(spySplitAnimationController)
@@ -325,7 +326,7 @@ class SplitAnimationControllerTest {
             transitionInfo,
             transaction,
             {} /* finishCallback */,
-            1f /* cornerRadius */
+            1f, /* cornerRadius */
         )
 
         verify(spySplitAnimationController)
@@ -353,7 +354,7 @@ class SplitAnimationControllerTest {
             transitionInfo,
             transaction,
             {} /* finishCallback */,
-            1f /* cornerRadius */
+            1f, /* cornerRadius */
         )
 
         verify(spySplitAnimationController)
@@ -381,7 +382,7 @@ class SplitAnimationControllerTest {
             transitionInfo,
             transaction,
             {} /* finishCallback */,
-            1f /* cornerRadius */
+            1f, /* cornerRadius */
         )
 
         verify(spySplitAnimationController)
@@ -408,7 +409,7 @@ class SplitAnimationControllerTest {
             transitionInfo,
             transaction,
             {} /* finishCallback */,
-            1f /* cornerRadius */
+            1f, /* cornerRadius */
         )
 
         verify(spySplitAnimationController)

@@ -18,6 +18,7 @@ package com.android.launcher3.taskbar.bubbles;
 import static com.android.launcher3.LauncherAnimUtils.VIEW_ALPHA;
 
 import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
 import android.animation.ObjectAnimator;
 import android.animation.ValueAnimator;
 import android.annotation.NonNull;
@@ -204,7 +205,7 @@ public class BubbleBarView extends FrameLayout {
         mExpandedBarIconsSpacing = getResources().getDimensionPixelSize(
                 R.dimen.bubblebar_expanded_icon_spacing);
         mBubbleElevation = getResources().getDimensionPixelSize(R.dimen.bubblebar_icon_elevation);
-        mDragElevation = getResources().getDimensionPixelSize(R.dimen.bubblebar_drag_elevation);
+        mDragElevation = getResources().getDimensionPixelSize(R.dimen.dragged_bubble_elevation);
         mPointerSize = getResources()
                 .getDimensionPixelSize(R.dimen.bubblebar_pointer_visible_size);
 
@@ -536,6 +537,16 @@ public class BubbleBarView extends FrameLayout {
         return (float) (displayWidth - getWidth() - margin);
     }
 
+    /** Set whether the background should show the drop target */
+    public void showDropTarget(boolean isDropTarget) {
+        mBubbleBarBackground.showDropTarget(isDropTarget);
+    }
+
+    /** Returns whether the Bubble Bar is currently displaying a drop target. */
+    public boolean isShowingDropTarget() {
+        return mBubbleBarBackground.isShowingDropTarget();
+    }
+
     /**
      * Animate bubble bar to the given location transiently. Does not modify the layout or the value
      * returned by {@link #getBubbleBarLocation()}.
@@ -550,28 +561,50 @@ public class BubbleBarView extends FrameLayout {
         // First animator hides the bar.
         // After it completes, bubble positions in the bar and arrow position is updated.
         // Second animator is started to show the bar.
-        ObjectAnimator alphaOutAnim = ObjectAnimator.ofFloat(
-                this, getLocationAnimAlphaProperty(), 0f);
-        mBubbleBarLocationAnimator = BarsLocationAnimatorHelper.getBubbleBarLocationOutAnimator(
-                this,
-                bubbleBarLocation,
-                alphaOutAnim);
+        mBubbleBarLocationAnimator = animateToBubbleBarLocationOut(bubbleBarLocation);
         mBubbleBarLocationAnimator.addListener(AnimatorListeners.forEndCallback(() -> {
-            updateBubblesLayoutProperties(bubbleBarLocation);
-            mBubbleBarBackground.setAnchorLeft(bubbleBarLocation.isOnLeft(isLayoutRtl()));
-            ObjectAnimator alphaInAnim = ObjectAnimator.ofFloat(BubbleBarView.this,
-                    getLocationAnimAlphaProperty(), 1f);
-
             // Animate it in
-            mBubbleBarLocationAnimator = BarsLocationAnimatorHelper.getBubbleBarLocationInAnimator(
-                    bubbleBarLocation,
-                    mBubbleBarLocation,
-                    getDistanceFromOtherSide(),
-                    alphaInAnim,
-                    BubbleBarView.this);
+            mBubbleBarLocationAnimator = animateToBubbleBarLocationIn(mBubbleBarLocation,
+                    bubbleBarLocation);
             mBubbleBarLocationAnimator.start();
         }));
         mBubbleBarLocationAnimator.start();
+    }
+
+    /** Creates animator for animating bubble bar in. */
+    public Animator animateToBubbleBarLocationIn(BubbleBarLocation fromLocation,
+            BubbleBarLocation toLocation) {
+        updateBubblesLayoutProperties(toLocation);
+        mBubbleBarBackground.setAnchorLeft(toLocation.isOnLeft(isLayoutRtl()));
+        ObjectAnimator alphaInAnim = ObjectAnimator.ofFloat(BubbleBarView.this,
+                getLocationAnimAlphaProperty(), 1f);
+        return BarsLocationAnimatorHelper.getBubbleBarLocationInAnimator(toLocation, fromLocation,
+                getDistanceFromOtherSide(), alphaInAnim, this);
+    }
+
+    /**
+     * Creates animator for animating bubble bar out.
+     *
+     * @param targetLocation the location bubble br should animate to.
+     */
+    public Animator animateToBubbleBarLocationOut(BubbleBarLocation targetLocation) {
+        ObjectAnimator alphaOutAnim = ObjectAnimator.ofFloat(
+                this, getLocationAnimAlphaProperty(), 0f);
+        Animator outAnimation = BarsLocationAnimatorHelper.getBubbleBarLocationOutAnimator(
+                this,
+                targetLocation,
+                alphaOutAnim);
+        outAnimation.addListener(new AnimatorListenerAdapter() {
+            @Override
+            public void onAnimationEnd(@NonNull Animator animation, boolean isReverse) {
+                // need to restore the original bar view state in case icon is dropped to the bubble
+                // bar original location
+                updateBubblesLayoutProperties(targetLocation);
+                mBubbleBarBackground.setAnchorLeft(targetLocation.isOnLeft(isLayoutRtl()));
+                setTranslationX(0f);
+            }
+        });
+        return outAnimation;
     }
 
     /**
@@ -681,8 +714,18 @@ public class BubbleBarView extends FrameLayout {
         return mRelativePivotY;
     }
 
-    /** Add a new bubble to the bubble bar. */
+    /** Add a new bubble to the bubble bar without updating the selected bubble. */
     public void addBubble(BubbleView bubble) {
+        addBubble(bubble, /* bubbleToSelect = */ null);
+    }
+
+    /**
+     * Add a new bubble to the bubble bar and selects the provided bubble.
+     *
+     * @param bubble         bubble to add
+     * @param bubbleToSelect if {@code null}, then selected bubble does not change
+     */
+    public void addBubble(BubbleView bubble, @Nullable BubbleView bubbleToSelect) {
         FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams((int) mIconSize, (int) mIconSize,
                 Gravity.LEFT);
         final int index = bubble.isOverflow() ? getChildCount() : 0;
@@ -718,7 +761,12 @@ public class BubbleBarView extends FrameLayout {
                     invalidate();
                 }
             };
-            mBubbleAnimator.animateNewBubble(indexOfChild(mSelectedBubbleView), listener);
+            if (bubbleToSelect != null) {
+                mBubbleAnimator.animateNewBubble(indexOfChild(mSelectedBubbleView),
+                        indexOfChild(bubbleToSelect), listener);
+            } else {
+                mBubbleAnimator.animateNewBubble(indexOfChild(mSelectedBubbleView), listener);
+            }
         } else {
             addView(bubble, index, lp);
         }
@@ -726,34 +774,32 @@ public class BubbleBarView extends FrameLayout {
 
     /** Add a new bubble and remove an old bubble from the bubble bar. */
     public void addBubbleAndRemoveBubble(BubbleView addedBubble, BubbleView removedBubble,
-            Runnable onEndRunnable) {
+            @Nullable BubbleView bubbleToSelect, Runnable onEndRunnable) {
         FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams((int) mIconSize, (int) mIconSize,
                 Gravity.LEFT);
-        boolean isOverflowSelected = mSelectedBubbleView.isOverflow();
-        boolean removingOverflow = removedBubble.isOverflow();
-        boolean addingOverflow = addedBubble.isOverflow();
-
+        int addedIndex = addedBubble.isOverflow() ? getChildCount() : 0;
         if (!isExpanded()) {
             removeView(removedBubble);
-            int index = addingOverflow ? getChildCount() : 0;
-            addView(addedBubble, index, lp);
+            addView(addedBubble, addedIndex, lp);
             if (onEndRunnable != null) {
                 onEndRunnable.run();
             }
             return;
         }
-        int index = addingOverflow ? getChildCount() : 0;
         addedBubble.setScaleX(0f);
         addedBubble.setScaleY(0f);
-        addView(addedBubble, index, lp);
-
-        if (isOverflowSelected && removingOverflow) {
-            // The added bubble will be selected
-            mSelectedBubbleView = addedBubble;
-        }
-        int indexOfSelectedBubble = indexOfChild(mSelectedBubbleView);
+        addView(addedBubble, addedIndex, lp);
+        int indexOfCurrentSelectedBubble = indexOfChild(mSelectedBubbleView);
         int indexOfBubbleToRemove = indexOfChild(removedBubble);
-
+        int indexOfNewlySelectedBubble = bubbleToSelect == null
+                ? indexOfCurrentSelectedBubble : indexOfChild(bubbleToSelect);
+        // Since removed bubble is kept till the end of the animation we should check if there are
+        // more than one bubble. In such a case the bar will remain open without the selected bubble
+        if (mSelectedBubbleView == removedBubble
+                && bubbleToSelect == null
+                && getBubbleChildCount() > 1) {
+            Log.w(TAG, "Remove the currently selected bubble without selecting a new one.");
+        }
         mBubbleAnimator = new BubbleAnimator(mIconSize, mExpandedBarIconsSpacing,
                 getChildCount(), mBubbleBarLocation.isOnLeft(isLayoutRtl()));
         BubbleAnimator.Listener listener = new BubbleAnimator.Listener() {
@@ -786,8 +832,8 @@ public class BubbleBarView extends FrameLayout {
                 invalidate();
             }
         };
-        mBubbleAnimator.animateNewAndRemoveOld(indexOfSelectedBubble, indexOfBubbleToRemove,
-                listener);
+        mBubbleAnimator.animateNewAndRemoveOld(indexOfCurrentSelectedBubble,
+                indexOfNewlySelectedBubble, indexOfBubbleToRemove, addedIndex, listener);
     }
 
     @Override
@@ -1324,6 +1370,14 @@ public class BubbleBarView extends FrameLayout {
 
     float getCollapsedWidthWithMaxVisibleBubbles()  {
         return getScaledIconSize() + mIconOverlapAmount + 2 * mBubbleBarPadding;
+    }
+
+    float getCollapsedWidthForIconSizeAndPadding(int iconSize, int bubbleBarPadding) {
+        final int bubbleChildCount = Math.min(getBubbleChildCount(), MAX_VISIBLE_BUBBLES_COLLAPSED);
+        if (bubbleChildCount == 0) return 0;
+        final int spacesCount = bubbleChildCount - 1;
+        final float horizontalPadding = 2 * bubbleBarPadding;
+        return iconSize * bubbleChildCount + mIconOverlapAmount * spacesCount + horizontalPadding;
     }
 
     /** Returns the child count excluding the overflow if it's present. */

@@ -21,6 +21,7 @@ import static com.android.launcher3.util.TestUtil.resolveSystemAppInfo;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import android.app.PendingIntent;
@@ -93,7 +94,8 @@ public class DigitalWellBeingToastTest extends BaseLauncherActivityTest<Quickste
         final TaskView task = getOnceNotNull("No latest task", launcher -> getLatestTask(launcher));
 
         return getFromLauncher(launcher -> {
-            TaskContainer taskContainer = task.getTaskContainers().get(0);
+            TaskContainer taskContainer = task.getFirstTaskContainer();
+            assertNotNull(taskContainer);
             assertTrue("Latest task is not Calculator", calculatorPackage.equals(
                     taskContainer.getTask().getTopComponent().getPackageName()));
             return taskContainer.getDigitalWellBeingToast();
@@ -101,7 +103,7 @@ public class DigitalWellBeingToastTest extends BaseLauncherActivityTest<Quickste
     }
 
     private TaskView getLatestTask(Launcher launcher) {
-        return launcher.<RecentsView>getOverviewPanel().getTaskViewAt(0);
+        return launcher.<RecentsView>getOverviewPanel().getFirstTaskView();
     }
 
     private void runWithShellPermission(Runnable action) {

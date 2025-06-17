@@ -58,13 +58,8 @@ class PillColorProvider private constructor(c: Context) {
     }
 
     fun setup() {
-        appTitlePillPaint.color =
-            context.resources.getColor(
-                R.color.material_color_surface_container_lowest,
-                context.theme,
-            )
-        appTitleTextPaint.color =
-            context.resources.getColor(R.color.material_color_on_surface, context.theme)
+        appTitlePillPaint.color = context.getColor(R.color.materialColorSurfaceContainer)
+        appTitleTextPaint.color = context.getColor(R.color.materialColorOnSurface)
         isMatchaEnabledInternal = Settings.Secure.getInt(context.contentResolver, MATCHA_SETTING, 0)
         isMatchaEnabled = isMatchaEnabledInternal != 0
     }

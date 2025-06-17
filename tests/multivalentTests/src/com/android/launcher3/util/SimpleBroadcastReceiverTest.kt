@@ -52,7 +52,7 @@ class SimpleBroadcastReceiverTest {
     @Before
     fun setUp() {
         MockitoAnnotations.initMocks(this)
-        underTest = SimpleBroadcastReceiver(UI_HELPER_EXECUTOR, intentConsumer)
+        underTest = SimpleBroadcastReceiver(context, UI_HELPER_EXECUTOR, intentConsumer)
         if (Looper.getMainLooper() == null) {
             Looper.prepareMainLooper()
         }
@@ -60,7 +60,7 @@ class SimpleBroadcastReceiverTest {
 
     @Test
     fun async_register() {
-        underTest.register(context, "test_action_1", "test_action_2")
+        underTest.register("test_action_1", "test_action_2")
         awaitTasksCompleted()
 
         verify(context).registerReceiver(same(underTest), intentFilterCaptor.capture())
@@ -72,7 +72,7 @@ class SimpleBroadcastReceiverTest {
 
     @Test
     fun async_register_withCompletionRunnable() {
-        underTest.register(context, completionRunnable, "test_action_1", "test_action_2")
+        underTest.register(completionRunnable, "test_action_1", "test_action_2")
         awaitTasksCompleted()
 
         verify(context).registerReceiver(same(underTest), intentFilterCaptor.capture())
@@ -85,7 +85,7 @@ class SimpleBroadcastReceiverTest {
 
     @Test
     fun async_register_withCompletionRunnable_and_flag() {
-        underTest.register(context, completionRunnable, 1, "test_action_1", "test_action_2")
+        underTest.register(completionRunnable, 1, "test_action_1", "test_action_2")
         awaitTasksCompleted()
 
         verify(context).registerReceiver(same(underTest), intentFilterCaptor.capture(), eq(1))
@@ -98,7 +98,7 @@ class SimpleBroadcastReceiverTest {
 
     @Test
     fun async_register_with_package() {
-        underTest.registerPkgActions(context, "pkg", "test_action_1", "test_action_2")
+        underTest.registerPkgActions("pkg", "test_action_1", "test_action_2")
 
         awaitTasksCompleted()
         verify(context).registerReceiver(same(underTest), intentFilterCaptor.capture())
@@ -112,9 +112,10 @@ class SimpleBroadcastReceiverTest {
 
     @Test
     fun sync_register_withCompletionRunnable_and_flag() {
-        underTest = SimpleBroadcastReceiver(Handler(Looper.getMainLooper()), intentConsumer)
+        underTest =
+            SimpleBroadcastReceiver(context, Handler(Looper.getMainLooper()), intentConsumer)
 
-        underTest.register(context, completionRunnable, 1, "test_action_1", "test_action_2")
+        underTest.register(completionRunnable, 1, "test_action_1", "test_action_2")
         getInstrumentation().waitForIdleSync()
 
         verify(context).registerReceiver(same(underTest), intentFilterCaptor.capture(), eq(1))
@@ -126,8 +127,31 @@ class SimpleBroadcastReceiverTest {
     }
 
     @Test
+    fun sync_register_withCompletionRunnable_and_permission_and_flag() {
+        underTest =
+            SimpleBroadcastReceiver(context, Handler(Looper.getMainLooper()), intentConsumer)
+
+        underTest.register(completionRunnable, "permission", 1, "test_action_1", "test_action_2")
+        getInstrumentation().waitForIdleSync()
+
+        verify(context)
+            .registerReceiver(
+                same(underTest),
+                intentFilterCaptor.capture(),
+                eq("permission"),
+                eq(null),
+                eq(1),
+            )
+        verify(completionRunnable).run()
+        val intentFilter = intentFilterCaptor.value
+        assertThat(intentFilter.countActions()).isEqualTo(2)
+        assertThat(intentFilter.getAction(0)).isEqualTo("test_action_1")
+        assertThat(intentFilter.getAction(1)).isEqualTo("test_action_2")
+    }
+
+    @Test
     fun async_unregister() {
-        underTest.unregisterReceiverSafely(context)
+        underTest.unregisterReceiverSafely()
 
         awaitTasksCompleted()
         verify(context).unregisterReceiver(same(underTest))
@@ -135,9 +159,10 @@ class SimpleBroadcastReceiverTest {
 
     @Test
     fun sync_unregister() {
-        underTest = SimpleBroadcastReceiver(Handler(Looper.getMainLooper()), intentConsumer)
+        underTest =
+            SimpleBroadcastReceiver(context, Handler(Looper.getMainLooper()), intentConsumer)
 
-        underTest.unregisterReceiverSafely(context)
+        underTest.unregisterReceiverSafely()
         getInstrumentation().waitForIdleSync()
 
         verify(context).unregisterReceiver(same(underTest))

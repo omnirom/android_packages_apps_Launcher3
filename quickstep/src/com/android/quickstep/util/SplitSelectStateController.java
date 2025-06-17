@@ -71,7 +71,6 @@ import com.android.internal.logging.InstanceId;
 import com.android.launcher3.R;
 import com.android.launcher3.anim.PendingAnimation;
 import com.android.launcher3.apppairs.AppPairIcon;
-import com.android.launcher3.config.FeatureFlags;
 import com.android.launcher3.icons.IconProvider;
 import com.android.launcher3.logging.StatsLogManager;
 import com.android.launcher3.model.data.ItemInfo;
@@ -169,7 +168,7 @@ public class SplitSelectStateController {
     private final BackPressHandler mSplitBackHandler = new BackPressHandler() {
         @Override
         public boolean canHandleBack() {
-            return FeatureFlags.enableSplitContextually() && isSplitSelectActive();
+            return isSplitSelectActive();
         }
 
         @Override
@@ -196,7 +195,7 @@ public class SplitSelectStateController {
         mRecentTasksModel = recentsModel;
         mActivityBackCallback = activityBackCallback;
         mSplitAnimationController = new SplitAnimationController(this);
-        mAppPairsController = new AppPairsController(mContainer.asContext(), this, statsLogManager);
+        mAppPairsController = new AppPairsController(mContainer, this, statsLogManager);
         mSplitSelectDataHolder = new SplitSelectDataHolder(mContainer.asContext());
     }
 
@@ -260,7 +259,7 @@ public class SplitSelectStateController {
                     GroupTask groupTask = taskGroups.get(i);
                     if (isInstanceOfAppPair(
                             groupTask, componentKeys.get(0), componentKeys.get(1))) {
-                        lastActiveTasks[0] = groupTask.task1;
+                        lastActiveTasks[0] = ((SplitTask) groupTask).getTopLeftTask();
                         break;
                     }
                 }
@@ -314,11 +313,15 @@ public class SplitSelectStateController {
      */
     public boolean isInstanceOfAppPair(GroupTask groupTask, @NonNull ComponentKey componentKey1,
             @NonNull ComponentKey componentKey2) {
-        return ((isInstanceOfComponent(groupTask.task1, componentKey1)
-                && isInstanceOfComponent(groupTask.task2, componentKey2))
-                ||
-                (isInstanceOfComponent(groupTask.task1, componentKey2)
-                        && isInstanceOfComponent(groupTask.task2, componentKey1)));
+        if (groupTask instanceof SplitTask splitTask) {
+            return ((isInstanceOfComponent(splitTask.getTopLeftTask(), componentKey1)
+                    && isInstanceOfComponent(splitTask.getBottomRightTask(), componentKey2))
+                    ||
+                    (isInstanceOfComponent(splitTask.getTopLeftTask(), componentKey2)
+                            && isInstanceOfComponent(splitTask.getBottomRightTask(),
+                            componentKey1)));
+        }
+        return false;
     }
 
     /**
@@ -678,7 +681,7 @@ public class SplitSelectStateController {
         }
 
         @Override
-        public void startAnimation(IBinder transition, TransitionInfo info,
+        public void startAnimation(IBinder transition, TransitionInfo transitionInfo,
                 SurfaceControl.Transaction t,
                 IRemoteTransitionFinishedCallback finishedCallback) {
             final Runnable finishAdapter = () ->  {
@@ -708,7 +711,7 @@ public class SplitSelectStateController {
                         null /* nonApps */,
                         mStateManager,
                         mDepthController,
-                        info, t, () -> {
+                        transitionInfo, t, () -> {
                             finishAdapter.run();
                             cleanup(true /*success*/);
                         },
@@ -739,8 +742,7 @@ public class SplitSelectStateController {
     }
 
     /**
-     * To be called whenever we exit split selection state. If
-     * {@link FeatureFlags#enableSplitContextually()} is set, this should be the
+     * To be called whenever we exit split selection state. This should be the
      * central way split is getting reset, which should then go through the callbacks to reset
      * other state.
      */
@@ -920,7 +922,7 @@ public class SplitSelectStateController {
 
             @Override
             public void onRecentsAnimationStart(RecentsAnimationController controller,
-                    RecentsAnimationTargets targets) {
+                    RecentsAnimationTargets targets, TransitionInfo transitionInfo) {
                 StatsLogManager.LauncherEvent launcherDesktopSplitEvent =
                         mSplitPosition == STAGE_POSITION_BOTTOM_OR_RIGHT ?
                         LAUNCHER_DESKTOP_MODE_SPLIT_RIGHT_BOTTOM :

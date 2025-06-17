@@ -18,8 +18,10 @@ package com.android.launcher3.model
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.SmallTest
 import com.android.launcher3.LauncherAppState
+import com.android.launcher3.LauncherSettings.Favorites.ITEM_TYPE_FOLDER
 import com.android.launcher3.icons.BitmapInfo
 import com.android.launcher3.icons.waitForUpdateHandlerToFinish
+import com.android.launcher3.model.data.FolderInfo
 import com.android.launcher3.model.data.WorkspaceItemInfo
 import com.android.launcher3.util.Executors
 import com.android.launcher3.util.LauncherLayoutBuilder
@@ -149,11 +151,13 @@ class FolderIconLoadTest {
         // Reload again with correct icon state
         app.model.forceReload()
         modelHelper.loadModelSync()
-        val collections = modelHelper.getBgDataModel().collections
-
-        assertThat(collections.size()).isEqualTo(1)
-        assertThat(collections.valueAt(0).getAppContents().size).isEqualTo(itemCount)
-        return collections.valueAt(0).getAppContents()
+        val collections =
+            modelHelper.bgDataModel.itemsIdMap
+                .filter { it.itemType == ITEM_TYPE_FOLDER }
+                .map { it as FolderInfo }
+        assertThat(collections.size).isEqualTo(1)
+        assertThat(collections[0].getAppContents().size).isEqualTo(itemCount)
+        return collections[0].getAppContents()
     }
 
     private fun verifyHighRes(items: ArrayList<WorkspaceItemInfo>, vararg indices: Int) {

@@ -16,7 +16,7 @@
 
 package com.android.quickstep.recents.data
 
-import com.android.quickstep.TaskThumbnailCache.HighResLoadingState.HighResLoadingStateChangedCallback
+import com.android.quickstep.HighResLoadingState.HighResLoadingStateChangedCallback
 
 class FakeHighResLoadingStateNotifier : HighResLoadingStateNotifier {
     val listeners = mutableListOf<HighResLoadingStateChangedCallback>()

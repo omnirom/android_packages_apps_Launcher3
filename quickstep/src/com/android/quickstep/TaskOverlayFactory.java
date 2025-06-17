@@ -42,7 +42,7 @@ import com.android.launcher3.popup.SystemShortcut;
 import com.android.launcher3.util.ResourceBasedOverride;
 import com.android.launcher3.views.ActivityContext;
 import com.android.launcher3.views.Snackbar;
-import com.android.quickstep.task.util.TaskOverlayHelper;
+import com.android.quickstep.recents.domain.usecase.ThumbnailPosition;
 import com.android.quickstep.util.RecentsOrientedState;
 import com.android.quickstep.views.DesktopTaskView;
 import com.android.quickstep.views.GroupedTaskView;
@@ -52,6 +52,7 @@ import com.android.quickstep.views.RecentsViewContainer;
 import com.android.quickstep.views.TaskContainer;
 import com.android.quickstep.views.TaskView;
 import com.android.systemui.shared.recents.model.Task;
+import com.android.systemui.shared.recents.model.ThumbnailData;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -117,12 +118,14 @@ public class TaskOverlayFactory implements ResourceBasedOverride {
             TaskShortcutFactory.FREE_FORM,
             DesktopSystemShortcut.Companion.createFactory(),
             ExternalDisplaySystemShortcut.Companion.createFactory(),
+            AspectRatioSystemShortcut.Companion.createFactory(),
             TaskShortcutFactory.WELLBEING,
             TaskShortcutFactory.SAVE_APP_PAIR,
             TaskShortcutFactory.SCREENSHOT,
             TaskShortcutFactory.MODAL,
             TaskShortcutFactory.CLEAR_TASK,
-            TaskShortcutFactory.CLEAR_ALL_TASK
+            TaskShortcutFactory.CLEAR_ALL_TASK,
+            TaskShortcutFactory.CLOSE,
     };
 
     /**
@@ -135,43 +138,50 @@ public class TaskOverlayFactory implements ResourceBasedOverride {
 
         private T mActionsView;
         protected ImageActionsApi mImageApi;
-        protected TaskOverlayHelper mHelper;
+        private ThumbnailData mThumbnailData = null;
 
         protected TaskOverlay(TaskContainer taskContainer) {
             mApplicationContext = taskContainer.getTaskView().getContext().getApplicationContext();
             mTaskContainer = taskContainer;
-            if (enableRefactorTaskThumbnail()) {
-                mHelper = new TaskOverlayHelper(mTaskContainer.getTask(), this);
-            }
             mImageApi = new ImageActionsApi(mApplicationContext, this::getThumbnail);
         }
 
-        /**
-         * Initialize the overlay when a Task is bound to the TaskView.
-         */
-        public void init() {
-            if (enableRefactorTaskThumbnail()) {
-                mHelper.init();
-            }
-        }
-
-        /**
-         * Destroy the overlay when the TaskView is recycled.
-         */
-        public void destroy() {
-            if (enableRefactorTaskThumbnail()) {
-                mHelper.destroy();
-            }
+        public void setThumbnailState(@Nullable ThumbnailData thumbnailData) {
+            mThumbnailData = thumbnailData;
         }
 
         protected @Nullable Bitmap getThumbnail() {
-            return enableRefactorTaskThumbnail() ? mHelper.getEnabledState().getThumbnail()
-                    : mTaskContainer.getThumbnailViewDeprecated().getThumbnail();
+            if (enableRefactorTaskThumbnail()) {
+                return mThumbnailData == null ? null : mThumbnailData.getThumbnail();
+            } else {
+                return mTaskContainer.getThumbnailViewDeprecated().getThumbnail();
+            }
+        }
+        /**
+         * Returns whether the snapshot is real. If the device is locked for the user of the task,
+         * the snapshot used will be an app-theme generated snapshot instead of a real snapshot.
+         */
+        protected boolean isRealSnapshot() {
+            if (enableRefactorTaskThumbnail()) {
+                if (mThumbnailData == null) return false;
+
+                return mThumbnailData.isRealSnapshot && !mTaskContainer.getTask().isLocked;
+            } else {
+                return mTaskContainer.getThumbnailViewDeprecated().isRealSnapshot();
+            }
         }
 
-        protected boolean isRealSnapshot() {
-            return enableRefactorTaskThumbnail() ? mHelper.getEnabledState().isRealSnapshot()
-                    : mTaskContainer.getThumbnailViewDeprecated().isRealSnapshot();
+        /**
+         * Returns whether the snapshot is rotated compared to the current task orientation.
+         */
+        public boolean isThumbnailRotationDifferentFromTask() {
+            if (enableRefactorTaskThumbnail()) {
+                ThumbnailPosition thumbnailPosition = mTaskContainer.getThumbnailPosition();
+                return thumbnailPosition != null && thumbnailPosition.isRotated();
+            }
+
+            return mTaskContainer.getThumbnailViewDeprecated()
+                    .isThumbnailRotationDifferentFromTask();
         }
 
         protected T getActionsView() {
@@ -195,10 +205,14 @@ public class TaskOverlayFactory implements ResourceBasedOverride {
          */
         public void initOverlay(Task task, @Nullable Bitmap thumbnail, Matrix matrix,
                 boolean rotated) {
-            getActionsView().updateDisabledFlags(DISABLED_NO_THUMBNAIL, thumbnail == null);
+            if (!enableRefactorTaskThumbnail()) {
+                getActionsView().updateDisabledFlags(DISABLED_NO_THUMBNAIL, thumbnail == null);
+            }
 
             if (thumbnail != null) {
-                getActionsView().updateDisabledFlags(DISABLED_ROTATED, rotated);
+                if (!enableRefactorTaskThumbnail()) {
+                    getActionsView().updateDisabledFlags(DISABLED_ROTATED, rotated);
+                }
                 getActionsView().setCallbacks(new OverlayUICallbacksImpl(isRealSnapshot(), task));
             }
         }
@@ -241,7 +255,7 @@ public class TaskOverlayFactory implements ResourceBasedOverride {
             RecentsView overviewPanel = mTaskContainer.getTaskView().getRecentsView();
             // Task has already been dismissed
             if (overviewPanel == null) return;
-            overviewPanel.initiateSplitSelect(mTaskContainer.getTaskView());
+            overviewPanel.initiateSplitSelect(mTaskContainer);
         }
 
         protected void saveAppPair() {
@@ -323,9 +337,16 @@ public class TaskOverlayFactory implements ResourceBasedOverride {
             // inverse tells us where the view would be in the bitmaps coordinates. The insets are
             // the difference between the bitmap bounds and the projected view bounds.
             Matrix boundsToBitmapSpace = new Matrix();
-            Matrix thumbnailMatrix = enableRefactorTaskThumbnail()
-                    ? mHelper.getThumbnailMatrix()
-                    : mTaskContainer.getThumbnailViewDeprecated().getThumbnailMatrix();
+            Matrix thumbnailMatrix;
+            if (enableRefactorTaskThumbnail()) {
+                if (mTaskContainer.getThumbnailPosition() != null) {
+                    thumbnailMatrix = mTaskContainer.getThumbnailPosition().getMatrix();
+                } else {
+                    thumbnailMatrix = Matrix.IDENTITY_MATRIX;
+                }
+            } else {
+                thumbnailMatrix = mTaskContainer.getThumbnailViewDeprecated().getThumbnailMatrix();
+            }
             thumbnailMatrix.invert(boundsToBitmapSpace);
             RectF boundsInBitmapSpace = new RectF();
             boundsToBitmapSpace.mapRect(boundsInBitmapSpace, viewRect);
@@ -366,18 +387,15 @@ public class TaskOverlayFactory implements ResourceBasedOverride {
 
         private class ScreenshotSystemShortcut extends SystemShortcut {
 
-            private final RecentsViewContainer mContainer;
-
             ScreenshotSystemShortcut(RecentsViewContainer container, ItemInfo itemInfo,
                     View originalView) {
                 super(R.drawable.ic_screenshot, R.string.action_screenshot, container, itemInfo,
                         originalView);
-                mContainer = container;
             }
 
             @Override
             public void onClick(View view) {
-                saveScreenshot(mTaskContainer.getTaskView().getFirstTask());
+                saveScreenshot(mTaskContainer.getTask());
                 dismissTaskMenuView();
             }
         }

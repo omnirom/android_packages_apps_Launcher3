@@ -23,8 +23,9 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.MediumTest
 import androidx.test.platform.app.InstrumentationRegistry.getInstrumentation
 import com.android.launcher3.Flags
+import com.android.launcher3.LauncherAppState
 import com.android.launcher3.LauncherPrefs
-import com.android.launcher3.model.ModelDbController
+import com.android.launcher3.model.ModelDelegate
 import com.android.launcher3.provider.RestoreDbTask
 import com.android.launcher3.util.Executors.MODEL_EXECUTOR
 import com.android.launcher3.util.TestUtil
@@ -34,6 +35,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.mockito.kotlin.mock
 
 /**
  * Makes sure to test {@code RestoreDbTask#removeOldDBs}, we need to remove all the dbs that are not
@@ -43,11 +45,10 @@ import org.junit.runner.RunWith
 @MediumTest
 class BackupAndRestoreDBSelectionTest {
 
-    @JvmField @Rule var backAndRestoreRule = BackAndRestoreRule()
+    @get:Rule var backAndRestoreRule = BackAndRestoreRule()
+    @get:Rule val setFlagsRule = SetFlagsRule()
 
-    @JvmField
-    @Rule
-    val setFlagsRule = SetFlagsRule(SetFlagsRule.DefaultInitValueType.DEVICE_DEFAULT)
+    val modelDelegate = mock<ModelDelegate>()
 
     @Before
     fun setUp() {
@@ -66,11 +67,12 @@ class BackupAndRestoreDBSelectionTest {
 
     @Test
     fun oldDatabasesNotPresentAfterRestore() {
-        val dbController = ModelDbController(getInstrumentation().targetContext)
+        val dbController =
+            LauncherAppState.getInstance(getInstrumentation().targetContext).model.modelDbController
         if (Flags.gridMigrationRefactor()) {
-            dbController.attemptMigrateDb(null)
+            dbController.attemptMigrateDb(null, modelDelegate)
         } else {
-            dbController.tryMigrateDB(null)
+            dbController.tryMigrateDB(null, modelDelegate)
         }
         TestUtil.runOnExecutorSync(MODEL_EXECUTOR) {
             assert(backAndRestoreRule.getDatabaseFiles().size == 1) {

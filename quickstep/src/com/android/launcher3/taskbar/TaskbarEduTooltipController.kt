@@ -39,11 +39,11 @@ import androidx.core.view.updateLayoutParams
 import com.airbnb.lottie.LottieAnimationView
 import com.android.launcher3.LauncherPrefs
 import com.android.launcher3.R
+import com.android.launcher3.RemoveAnimationSettingsTracker
 import com.android.launcher3.Utilities
 import com.android.launcher3.config.FeatureFlags.enableTaskbarPinning
 import com.android.launcher3.taskbar.TaskbarAutohideSuspendController.FLAG_AUTOHIDE_SUSPEND_EDU_OPEN
 import com.android.launcher3.taskbar.TaskbarControllers.LoggableTaskbarController
-import com.android.launcher3.util.DisplayController
 import com.android.launcher3.util.OnboardingPrefs.TASKBAR_EDU_TOOLTIP_STEP
 import com.android.launcher3.util.OnboardingPrefs.TASKBAR_SEARCH_EDU_SEEN
 import com.android.launcher3.util.ResourceBasedOverride
@@ -51,6 +51,8 @@ import com.android.launcher3.views.ActivityContext
 import com.android.launcher3.views.BaseDragLayer
 import com.android.quickstep.util.ContextualSearchInvoker
 import com.android.quickstep.util.LottieAnimationColorUtils
+import com.android.wm.shell.shared.TypefaceUtils
+import com.android.wm.shell.shared.TypefaceUtils.FontFamily
 import java.io.PrintWriter
 
 /** First EDU step for swiping up to show transient Taskbar. */
@@ -128,11 +130,31 @@ open class TaskbarEduTooltipController(context: Context) :
         activityContext.dragLayer.post { maybeShowSearchEdu() }
     }
 
+    /**
+     * Turns off auto play of lottie animations if user has opted to remove animation else attaches
+     * click listener to allow user to play or pause animations.
+     */
+    fun handleEduAnimations(animationViews: List<LottieAnimationView>) {
+        for (animationView in animationViews) {
+            if (
+                RemoveAnimationSettingsTracker.INSTANCE.get(animationView.context)
+                    .isRemoveAnimationEnabled()
+            ) {
+                animationView.pauseAnimation()
+            } else {
+                animationView.setOnClickListener {
+                    if (animationView.isAnimating) animationView.pauseAnimation()
+                    else animationView.playAnimation()
+                }
+            }
+        }
+    }
+
     /** Shows swipe EDU tooltip if it is the current [tooltipStep]. */
     fun maybeShowSwipeEdu() {
         if (
             !isTooltipEnabled ||
-                !DisplayController.isTransientTaskbar(activityContext) ||
+                !activityContext.isTransientTaskbar ||
                 tooltipStep > TOOLTIP_STEP_SWIPE
         ) {
             return
@@ -141,7 +163,13 @@ open class TaskbarEduTooltipController(context: Context) :
         tooltipStep = TOOLTIP_STEP_FEATURES
         inflateTooltip(R.layout.taskbar_edu_swipe)
         tooltip?.run {
-            requireViewById<LottieAnimationView>(R.id.swipe_animation).supportLightTheme()
+            TypefaceUtils.setTypeface(
+                requireViewById(R.id.taskbar_edu_title),
+                FontFamily.GSF_HEADLINE_SMALL_EMPHASIZED,
+            )
+            val swipeAnimation = requireViewById<LottieAnimationView>(R.id.swipe_animation)
+            swipeAnimation.supportLightTheme()
+            handleEduAnimations(listOf(swipeAnimation))
             show()
         }
     }
@@ -170,7 +198,8 @@ open class TaskbarEduTooltipController(context: Context) :
             splitscreenAnim.supportLightTheme()
             suggestionsAnim.supportLightTheme()
             pinningAnim.supportLightTheme()
-            if (DisplayController.isTransientTaskbar(activityContext)) {
+            handleEduAnimations(listOf(splitscreenAnim, suggestionsAnim, pinningAnim))
+            if (activityContext.isTransientTaskbar) {
                 splitscreenAnim.setAnimation(R.raw.taskbar_edu_splitscreen_transient)
                 suggestionsAnim.setAnimation(R.raw.taskbar_edu_suggestions_transient)
                 pinningEdu.visibility = if (enableTaskbarPinning()) VISIBLE else GONE
@@ -180,10 +209,27 @@ open class TaskbarEduTooltipController(context: Context) :
                 pinningEdu.visibility = GONE
             }
 
+            TypefaceUtils.setTypeface(
+                requireViewById(R.id.taskbar_edu_title),
+                FontFamily.GSF_HEADLINE_SMALL_EMPHASIZED,
+            )
+            TypefaceUtils.setTypeface(
+                requireViewById(R.id.splitscreen_text),
+                FontFamily.GSF_BODY_MEDIUM,
+            )
+            TypefaceUtils.setTypeface(
+                requireViewById(R.id.suggestions_text),
+                FontFamily.GSF_BODY_MEDIUM,
+            )
+            TypefaceUtils.setTypeface(
+                requireViewById(R.id.pinning_text),
+                FontFamily.GSF_BODY_MEDIUM,
+            )
+
             // Set up layout parameters.
             content.updateLayoutParams { width = MATCH_PARENT }
             updateLayoutParams<MarginLayoutParams> {
-                if (DisplayController.isTransientTaskbar(activityContext)) {
+                if (activityContext.isTransientTaskbar) {
                     width =
                         resources.getDimensionPixelSize(
                             if (enableTaskbarPinning())
@@ -216,7 +262,7 @@ open class TaskbarEduTooltipController(context: Context) :
         // for the original 2 edu steps) as a proxy to needing to show the separate pinning edu
         if (
             !enableTaskbarPinning() ||
-                !DisplayController.isTransientTaskbar(activityContext) ||
+                !activityContext.isTransientTaskbar ||
                 !isTooltipEnabled ||
                 tooltipStep > TOOLTIP_STEP_PINNING ||
                 tooltipStep < TOOLTIP_STEP_FEATURES
@@ -228,11 +274,21 @@ open class TaskbarEduTooltipController(context: Context) :
 
         tooltip?.run {
             allowTouchDismissal = true
-            requireViewById<LottieAnimationView>(R.id.standalone_pinning_animation)
-                .supportLightTheme()
+            TypefaceUtils.setTypeface(
+                requireViewById(R.id.taskbar_edu_title),
+                FontFamily.GSF_HEADLINE_SMALL_EMPHASIZED,
+            )
+            TypefaceUtils.setTypeface(
+                requireViewById(R.id.pinning_text),
+                FontFamily.GSF_BODY_MEDIUM,
+            )
 
+            val pinningAnim =
+                requireViewById<LottieAnimationView>(R.id.standalone_pinning_animation)
+            pinningAnim.supportLightTheme()
+            handleEduAnimations(listOf(pinningAnim))
             updateLayoutParams<BaseDragLayer.LayoutParams> {
-                if (DisplayController.isTransientTaskbar(activityContext)) {
+                if (activityContext.isTransientTaskbar) {
                     bottomMargin += activityContext.deviceProfile.taskbarHeight
                 }
                 // Unlike other tooltips, we want to align with taskbar divider rather than center.
@@ -262,7 +318,7 @@ open class TaskbarEduTooltipController(context: Context) :
     fun maybeShowSearchEdu() {
         if (
             !enableTaskbarPinning() ||
-                !DisplayController.isPinnedTaskbar(activityContext) ||
+                !activityContext.isPinnedTaskbar ||
                 !isTooltipEnabled ||
                 !shouldShowSearchEdu ||
                 userHasSeenSearchEdu ||
@@ -274,11 +330,20 @@ open class TaskbarEduTooltipController(context: Context) :
         inflateTooltip(R.layout.taskbar_edu_search)
         tooltip?.run {
             allowTouchDismissal = true
-            requireViewById<LottieAnimationView>(R.id.search_edu_animation).supportLightTheme()
+            val searchEdu = requireViewById<LottieAnimationView>(R.id.search_edu_animation)
+            searchEdu.supportLightTheme()
+            handleEduAnimations(listOf(searchEdu))
             val eduSubtitle: TextView = requireViewById(R.id.search_edu_text)
+
+            TypefaceUtils.setTypeface(
+                requireViewById(R.id.taskbar_edu_title),
+                FontFamily.GSF_HEADLINE_SMALL_EMPHASIZED,
+            )
+            TypefaceUtils.setTypeface(eduSubtitle, FontFamily.GSF_BODY_SMALL)
+
             showDisclosureText(eduSubtitle)
             updateLayoutParams<BaseDragLayer.LayoutParams> {
-                if (DisplayController.isTransientTaskbar(activityContext)) {
+                if (activityContext.isTransientTaskbar) {
                     bottomMargin += activityContext.deviceProfile.taskbarHeight
                 }
                 // Unlike other tooltips, we want to align with the all apps button rather than

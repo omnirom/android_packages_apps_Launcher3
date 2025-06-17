@@ -50,6 +50,7 @@ import android.view.RemoteAnimationTarget;
 import android.view.Surface;
 import android.view.SurfaceControl;
 import android.view.SurfaceControl.Transaction;
+import android.window.TransitionInfo;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -62,6 +63,7 @@ import com.android.launcher3.anim.PendingAnimation;
 import com.android.launcher3.anim.SpringAnimationBuilder;
 import com.android.launcher3.states.StateAnimationConfig;
 import com.android.launcher3.util.DisplayController;
+import com.android.launcher3.util.MSDLPlayerWrapper;
 import com.android.quickstep.fallback.FallbackRecentsView;
 import com.android.quickstep.fallback.RecentsState;
 import com.android.quickstep.util.RectFSpringAnim;
@@ -100,11 +102,12 @@ public class FallbackSwipeHandler extends
 
     private boolean mAppCanEnterPip;
 
-    public FallbackSwipeHandler(Context context, RecentsAnimationDeviceState deviceState,
+    public FallbackSwipeHandler(Context context,
             TaskAnimationManager taskAnimationManager, GestureState gestureState, long touchTimeMs,
-            boolean continuingLastGesture, InputConsumerController inputConsumer) {
-        super(context, deviceState, taskAnimationManager, gestureState, touchTimeMs,
-                continuingLastGesture, inputConsumer, null);
+            boolean continuingLastGesture, InputConsumerController inputConsumer,
+            MSDLPlayerWrapper msdlPlayerWrapper) {
+        super(context, taskAnimationManager, gestureState, touchTimeMs,
+                continuingLastGesture, inputConsumer, msdlPlayerWrapper);
 
         mRunningOverHome = mGestureState.getRunningTask() != null
                 && mGestureState.getRunningTask().isHomeTask();
@@ -170,14 +173,15 @@ public class FallbackSwipeHandler extends
     }
 
     @Override
-    public void onTasksAppeared(@NonNull RemoteAnimationTarget[] appearedTaskTargets) {
+    public void onTasksAppeared(@NonNull RemoteAnimationTarget[] appearedTaskTargets,
+            @Nullable TransitionInfo transitionInfo) {
         if (mActiveAnimationFactory != null && mActiveAnimationFactory.handleHomeTaskAppeared(
                 appearedTaskTargets)) {
             mActiveAnimationFactory = null;
             return;
         }
 
-        super.onTasksAppeared(appearedTaskTargets);
+        super.onTasksAppeared(appearedTaskTargets, transitionInfo);
     }
 
     @Override
@@ -214,8 +218,8 @@ public class FallbackSwipeHandler extends
         if (mRunningOverHome) {
             if (DisplayController.getNavigationMode(mContext).hasGestures) {
                 mRecentsView.onGestureAnimationStartOnHome(
-                        mGestureState.getRunningTask().getPlaceholderTasks(),
-                        mDeviceState.getRotationTouchHelper());
+                        mGestureState.getRunningTask().getPlaceholderGroupedTaskInfo(
+                                /* splitTaskIds = */ null));
             }
         } else {
             super.notifyGestureAnimationStartToRecents();

@@ -70,7 +70,7 @@ import com.android.launcher3.model.data.AppInfo;
 import com.android.launcher3.model.data.ItemInfo;
 import com.android.launcher3.model.data.WorkspaceItemInfo;
 import com.android.launcher3.pm.UserCache;
-import com.android.launcher3.util.ApiWrapper;
+import com.android.launcher3.util.AllModulesForTest;
 import com.android.launcher3.util.ComponentKey;
 import com.android.launcher3.util.LauncherModelHelper.SandboxModelContext;
 import com.android.launcher3.util.LauncherMultivalentJUnit;
@@ -81,9 +81,6 @@ import com.android.launcher3.views.Snackbar;
 import com.android.launcher3.widget.picker.model.WidgetPickerDataProvider;
 import com.android.launcher3.widget.picker.model.data.WidgetPickerData;
 
-import dagger.BindsInstance;
-import dagger.Component;
-
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -93,6 +90,9 @@ import org.junit.runner.RunWith;
 import org.mockito.Answers;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+
+import dagger.BindsInstance;
+import dagger.Component;
 
 @SmallTest
 @RunWith(LauncherMultivalentJUnit.class)
@@ -109,7 +109,6 @@ public class SystemShortcutTest {
     private AppInfo mAppInfo;
 
     @Mock UserCache mUserCache;
-    @Mock ApiWrapper mApiWrapper;
     @Mock UserIconInfo mUserIconInfo;
     @Mock LauncherActivityInfo mLauncherActivityInfo;
     @Mock ApplicationInfo mApplicationInfo;
@@ -121,9 +120,8 @@ public class SystemShortcutTest {
     public void setUp() {
         MockitoAnnotations.initMocks(this);
         mSandboxContext.initDaggerComponent(
-                DaggerSystemShortcutTest_TestComponent.builder().bindApiWrapper(
-                        ApiWrapper.INSTANCE.get(mSandboxContext)));
-        mSandboxContext.putObject(UserCache.INSTANCE, mUserCache);
+                DaggerSystemShortcutTest_TestComponent.builder().bindUserCache(mUserCache)
+        );
         mTestContext = new TestSandboxModelContextWrapper(mSandboxContext) {
             @Override
             public StatsLogManager getStatsLogManager() {
@@ -414,14 +412,13 @@ public class SystemShortcutTest {
     }
 
     @LauncherAppSingleton
-    @Component
+    @Component(modules = { AllModulesForTest.class })
     interface TestComponent extends LauncherAppComponent {
         @Component.Builder
         interface Builder extends LauncherAppComponent.Builder {
-            @BindsInstance Builder bindApiWrapper(ApiWrapper wrapper);
-
-            @Override
-            TestComponent build();
+            @BindsInstance
+            SystemShortcutTest.TestComponent.Builder bindUserCache(UserCache userCache);
+            @Override LauncherAppComponent build();
         }
     }
 }

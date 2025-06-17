@@ -34,13 +34,15 @@ import androidx.annotation.WorkerThread;
 
 import com.android.launcher3.Flags;
 import com.android.launcher3.util.PackageUserKey;
+import com.android.launcher3.util.SafeCloseable;
 
 import java.lang.ref.WeakReference;
 import java.util.Objects;
 
 @SuppressWarnings("NewApi")
 @WorkerThread
-public class InstallSessionTracker extends PackageInstaller.SessionCallback {
+public class InstallSessionTracker extends PackageInstaller.SessionCallback implements
+        SafeCloseable {
 
     public static final String TAG = "InstallSessionTracker";
 
@@ -196,7 +198,8 @@ public class InstallSessionTracker extends PackageInstaller.SessionCallback {
         }
     }
 
-    public void unregister() {
+    @Override
+    public void close() {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
             mInstaller.unregisterSessionCallback(this);
         } else {

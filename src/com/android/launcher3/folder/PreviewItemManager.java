@@ -17,6 +17,7 @@
 package com.android.launcher3.folder;
 
 import static com.android.launcher3.BubbleTextView.DISPLAY_FOLDER;
+import static com.android.launcher3.LauncherSettings.Favorites.DESKTOP_ICON_FLAG;
 import static com.android.launcher3.folder.ClippedFolderIconLayoutRule.ENTER_INDEX;
 import static com.android.launcher3.folder.ClippedFolderIconLayoutRule.EXIT_INDEX;
 import static com.android.launcher3.folder.ClippedFolderIconLayoutRule.MAX_NUM_ITEMS_IN_PREVIEW;
@@ -43,14 +44,15 @@ import androidx.annotation.VisibleForTesting;
 
 import com.android.launcher3.BubbleTextView;
 import com.android.launcher3.Flags;
+import com.android.launcher3.LauncherAppState;
 import com.android.launcher3.Utilities;
 import com.android.launcher3.apppairs.AppPairIcon;
 import com.android.launcher3.apppairs.AppPairIconDrawingParams;
 import com.android.launcher3.apppairs.AppPairIconGraphic;
 import com.android.launcher3.model.data.AppPairInfo;
 import com.android.launcher3.model.data.ItemInfo;
+import com.android.launcher3.model.data.ItemInfoWithIcon;
 import com.android.launcher3.model.data.WorkspaceItemInfo;
-import com.android.launcher3.util.Themes;
 import com.android.launcher3.views.ActivityContext;
 
 import java.util.ArrayList;
@@ -445,8 +447,7 @@ public class PreviewItemManager {
             if (isActivePendingIcon(wii)) {
                 p.drawable = newPendingIcon(mContext, wii);
             } else {
-                p.drawable = wii.newIcon(mContext,
-                        Themes.isThemedIconEnabled(mContext) ? FLAG_THEMED : 0);
+                p.drawable = wii.newIcon(mContext, FLAG_THEMED);
             }
             p.drawable.setBounds(0, 0, mIconSize, mIconSize);
         } else if (item instanceof AppPairInfo api) {
@@ -460,6 +461,18 @@ public class PreviewItemManager {
         // Set the callback to FolderIcon as it is responsible to drawing the icon. The
         // callback will be released when the folder is opened.
         p.drawable.setCallback(mIcon);
+
+        // Verify high res
+        if (item instanceof ItemInfoWithIcon info
+                && info.getMatchingLookupFlag().isVisuallyLessThan(DESKTOP_ICON_FLAG)) {
+            LauncherAppState.getInstance(mContext).getIconCache().updateIconInBackground(
+                    newInfo -> {
+                        if (p.item == newInfo) {
+                            setDrawable(p, newInfo);
+                            mIcon.invalidate();
+                        }
+                    }, info);
+        }
     }
 
     /**

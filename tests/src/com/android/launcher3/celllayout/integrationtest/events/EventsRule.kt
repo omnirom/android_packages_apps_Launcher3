@@ -17,11 +17,15 @@
 package com.android.launcher3.celllayout.integrationtest.events
 
 import android.content.Context
-import com.android.launcher3.debug.TestEvent
+import android.util.Log
+import com.android.dx.mockito.inline.extended.ExtendedMockito.*
+import com.android.dx.mockito.inline.extended.StaticMockitoSession
 import com.android.launcher3.debug.TestEventEmitter
+import com.android.launcher3.debug.TestEventEmitter.TestEvent
 import org.junit.rules.TestRule
 import org.junit.runner.Description
 import org.junit.runners.model.Statement
+import org.mockito.quality.Strictness
 
 /**
  * Rule to create EventWaiters to wait for events that happens on the Launcher. For reference look
@@ -30,35 +34,65 @@ import org.junit.runners.model.Statement
  * Waiting for event should be used to prevent race conditions, it provides a more precise way of
  * waiting for events compared to [AbstractLauncherUiTest#waitForLauncherCondition].
  *
- * This class overrides the [TestEventEmitter] with [TestEventsEmitterImplementation] and makes sure
- * to return the [TestEventEmitter] to the previous value when finished.
+ * This class mocks the static method [TestEventEmitter.sendEvent]
  */
 class EventsRule(val context: Context) : TestRule {
 
-    private var prevEventEmitter: TestEventEmitter? = null
+    private val expectedEvents: ArrayDeque<EventWaiter> = ArrayDeque()
 
-    private val eventEmitter = TestEventsEmitterImplementation()
+    private lateinit var mockitoSession: StaticMockitoSession
 
     override fun apply(base: Statement, description: Description?): Statement {
         return object : Statement() {
             override fun evaluate() {
-                beforeTest()
-                base.evaluate()
-                afterTest()
+                try {
+                    beforeTest()
+                    base.evaluate()
+                } finally {
+                    afterTest()
+                }
             }
         }
     }
 
     fun createEventWaiter(expectedEvent: TestEvent): EventWaiter {
-        return eventEmitter.createEventWaiter(expectedEvent)
+        val eventWaiter = EventWaiter(expectedEvent)
+        expectedEvents.add(eventWaiter)
+        return eventWaiter
     }
 
     private fun beforeTest() {
-        prevEventEmitter = TestEventEmitter.INSTANCE.get(context)
-        TestEventEmitter.INSTANCE.initializeForTesting(eventEmitter)
+        mockitoSession =
+            mockitoSession()
+                .strictness(Strictness.LENIENT)
+                .spyStatic(TestEventEmitter::class.java)
+                .startMocking()
+
+        doAnswer { invocation ->
+                val event = (invocation.arguments[0] as TestEvent)
+                Log.d(TAG, "Signal received $event")
+                Log.d(TAG, "Total expected events ${expectedEvents.size}")
+                if (!expectedEvents.isEmpty()) {
+                    val eventWaiter = expectedEvents.last()
+                    if (eventWaiter.eventToWait == event) {
+                        Log.d(TAG, "Removing $event")
+                        expectedEvents.removeLast()
+                        eventWaiter.terminate()
+                    } else {
+                        Log.d(TAG, "Not matching $event")
+                    }
+                }
+                null
+            }
+            .`when` { TestEventEmitter.sendEvent(any()) }
     }
 
     private fun afterTest() {
-        TestEventEmitter.INSTANCE.initializeForTesting(prevEventEmitter)
+        mockitoSession.finishMocking()
+        expectedEvents.clear()
+    }
+
+    companion object {
+        private const val TAG = "TestEvents"
     }
 }

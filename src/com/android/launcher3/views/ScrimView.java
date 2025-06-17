@@ -54,8 +54,7 @@ public class ScrimView extends View implements Insettable {
     }
 
     @Override
-    public void setInsets(Rect insets) {
-    }
+    public void setInsets(Rect insets) {}
 
     @Override
     public boolean hasOverlappingRendering() {

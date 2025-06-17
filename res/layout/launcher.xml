@@ -29,6 +29,7 @@
         android:importantForAccessibility="no">
 
         <com.android.launcher3.views.AccessibilityActionsView
+            android:id="@+id/accessibility_action_view"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:contentDescription="@string/home_screen"

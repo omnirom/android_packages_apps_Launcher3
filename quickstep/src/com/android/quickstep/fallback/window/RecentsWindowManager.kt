@@ -21,6 +21,7 @@ import android.app.ActivityOptions
 import android.content.ComponentName
 import android.content.Context
 import android.content.LocusId
+import android.content.res.Configuration
 import android.os.Bundle
 import android.view.KeyEvent
 import android.view.LayoutInflater
@@ -32,24 +33,25 @@ import android.view.View
 import android.view.WindowManager
 import android.view.WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
 import android.window.RemoteTransition
+import com.android.launcher3.AbstractFloatingView
 import com.android.launcher3.BaseActivity
 import com.android.launcher3.LauncherAnimationRunner
 import com.android.launcher3.LauncherAnimationRunner.RemoteAnimationFactory
 import com.android.launcher3.R
 import com.android.launcher3.compat.AccessibilityManagerCompat
-import com.android.launcher3.statehandlers.DesktopVisibilityController
 import com.android.launcher3.statemanager.StateManager
 import com.android.launcher3.statemanager.StateManager.AtomicAnimationFactory
 import com.android.launcher3.statemanager.StatefulContainer
 import com.android.launcher3.taskbar.TaskbarUIController
-import com.android.launcher3.testing.shared.TestProtocol.OVERVIEW_STATE_ORDINAL
+import com.android.launcher3.testing.TestLogging
+import com.android.launcher3.testing.shared.TestProtocol.SEQUENCE_MAIN
 import com.android.launcher3.util.ContextTracker
 import com.android.launcher3.util.DisplayController
+import com.android.launcher3.util.Executors
 import com.android.launcher3.util.RunnableList
 import com.android.launcher3.util.SystemUiController
 import com.android.launcher3.views.BaseDragLayer
 import com.android.launcher3.views.ScrimView
-import com.android.quickstep.FallbackWindowInterface
 import com.android.quickstep.OverviewComponentObserver
 import com.android.quickstep.RecentsAnimationCallbacks
 import com.android.quickstep.RecentsAnimationCallbacks.RecentsAnimationListener
@@ -65,8 +67,7 @@ import com.android.quickstep.fallback.RecentsState.BACKGROUND_APP
 import com.android.quickstep.fallback.RecentsState.BG_LAUNCHER
 import com.android.quickstep.fallback.RecentsState.DEFAULT
 import com.android.quickstep.fallback.RecentsState.HOME
-import com.android.quickstep.fallback.RecentsState.MODAL_TASK
-import com.android.quickstep.fallback.RecentsState.OVERVIEW_SPLIT_SELECT
+import com.android.quickstep.fallback.toLauncherStateOrdinal
 import com.android.quickstep.util.RecentsAtomicAnimationFactory
 import com.android.quickstep.util.RecentsWindowProtoLogProxy
 import com.android.quickstep.util.SplitSelectStateController
@@ -77,7 +78,6 @@ import com.android.quickstep.views.RecentsViewContainer
 import com.android.systemui.shared.recents.model.ThumbnailData
 import com.android.systemui.shared.system.TaskStackChangeListener
 import com.android.systemui.shared.system.TaskStackChangeListeners
-import java.util.function.Predicate
 
 /**
  * Class that will manage RecentsView lifecycle within a window and interface correctly where
@@ -88,8 +88,10 @@ import java.util.function.Predicate
  * To add new protologs, see [RecentsWindowProtoLogProxy]. To enable logging to logcat, see
  * [QuickstepProtoLogGroup.Constants.DEBUG_RECENTS_WINDOW]
  */
-class RecentsWindowManager(context: Context) :
-    RecentsWindowContext(context), RecentsViewContainer, StatefulContainer<RecentsState> {
+class RecentsWindowManager(context: Context, wallpaperColorHints: Int) :
+    RecentsWindowContext(context, wallpaperColorHints),
+    RecentsViewContainer,
+    StatefulContainer<RecentsState> {
 
     companion object {
         private const val HOME_APPEAR_DURATION: Long = 250
@@ -97,6 +99,9 @@ class RecentsWindowManager(context: Context) :
 
         class RecentsWindowTracker : ContextTracker<RecentsWindowManager?>() {
             override fun isHomeStarted(context: RecentsWindowManager?): Boolean {
+                // if we need to change this block to use context in some way, we will need to
+                // refactor RecentsWindowTracker to be an instance (instead of a singleton) managed
+                // by RecentsDisplayModel. Otherwise bad things will occur.
                 return true
             }
         }
@@ -111,7 +116,7 @@ class RecentsWindowManager(context: Context) :
     private var layoutInflater: LayoutInflater = LayoutInflater.from(this).cloneInContext(this)
     private var stateManager: StateManager<RecentsState, RecentsWindowManager> =
         StateManager<RecentsState, RecentsWindowManager>(this, RecentsState.BG_LAUNCHER)
-    private var mSystemUiController: SystemUiController? = null
+    private var systemUiController: SystemUiController? = null
 
     private var dragLayer: RecentsDragLayer<RecentsWindowManager>? = null
     private var windowView: View? = null
@@ -124,79 +129,10 @@ class RecentsWindowManager(context: Context) :
     private var tisBindHelper: TISBindHelper = TISBindHelper(this) {}
 
     // Callback array that corresponds to events defined in @ActivityEvent
-    private val mEventCallbacks =
+    private val eventCallbacks =
         listOf(RunnableList(), RunnableList(), RunnableList(), RunnableList())
-    private var onInitListener: Predicate<Boolean>? = null
 
-    private val taskStackChangeListener =
-        object : TaskStackChangeListener {
-            override fun onTaskMovedToFront(taskId: Int) {
-                if ((isShowing() && isInState(DEFAULT))) {
-                    // handling state where we end recents animation by swiping livetile away
-                    // TODO: animate this switch.
-                    cleanupRecentsWindow()
-                }
-            }
-        }
-
-    private val recentsAnimationListener =
-        object : RecentsAnimationListener {
-            override fun onRecentsAnimationCanceled(thumbnailDatas: HashMap<Int, ThumbnailData>) {
-                recentAnimationStopped()
-            }
-
-            override fun onRecentsAnimationFinished(controller: RecentsAnimationController) {
-                recentAnimationStopped()
-            }
-        }
-
-    init {
-        FallbackWindowInterface.init(this)
-        TaskStackChangeListeners.getInstance().registerTaskStackListener(taskStackChangeListener)
-    }
-
-    override fun destroy() {
-        super.destroy()
-        cleanupRecentsWindow()
-        FallbackWindowInterface.getInstance()?.destroy()
-        TaskStackChangeListeners.getInstance().unregisterTaskStackListener(taskStackChangeListener)
-        callbacks?.removeListener(recentsAnimationListener)
-        recentsWindowTracker.onContextDestroyed(this)
-    }
-
-    override fun startHome() {
-        startHome(/* finishRecentsAnimation= */ true)
-    }
-
-    fun startHome(finishRecentsAnimation: Boolean) {
-        val recentsView: RecentsView<*, *> = getOverviewPanel()
-
-        if (!finishRecentsAnimation) {
-            recentsView.switchToScreenshot(/* onFinishRunnable= */ null)
-            startHomeInternal()
-            return
-        }
-        recentsView.switchToScreenshot {
-            recentsView.finishRecentsAnimation(/* toRecents= */ true) { startHomeInternal() }
-        }
-    }
-
-    private fun startHomeInternal() {
-        val runner = LauncherAnimationRunner(mainThreadHandler, mAnimationToHomeFactory, true)
-        val options =
-            ActivityOptions.makeRemoteAnimation(
-                RemoteAnimationAdapter(runner, HOME_APPEAR_DURATION, 0),
-                RemoteTransition(
-                    runner.toRemoteTransition(),
-                    iApplicationThread,
-                    "StartHomeFromRecents",
-                ),
-            )
-        OverviewComponentObserver.startHomeIntentSafely(this, options.toBundle(), TAG)
-        stateManager.moveToRestState()
-    }
-
-    private val mAnimationToHomeFactory =
+    private val animationToHomeFactory =
         RemoteAnimationFactory {
             _: Int,
             appTargets: Array<RemoteAnimationTarget>?,
@@ -223,7 +159,7 @@ class RecentsWindowManager(context: Context) :
                 anim,
                 this@RecentsWindowManager,
                 {
-                    getStateManager().goToState(BG_LAUNCHER, false)
+                    getStateManager().goToState(BG_LAUNCHER, true)
                     cleanupRecentsWindow()
                 },
                 true, /* skipFirstFrame */
@@ -233,19 +169,53 @@ class RecentsWindowManager(context: Context) :
     private val onBackInvokedCallback: () -> Unit = {
         // If we are in live tile mode, launch the live task, otherwise return home
         recentsView?.runningTaskView?.launchWithAnimation() ?: startHome()
+        TestLogging.recordEvent(SEQUENCE_MAIN, "onBackInvoked")
     }
 
-    private fun cleanupRecentsWindow() {
-        RecentsWindowProtoLogProxy.logCleanup(isShowing())
-        if (isShowing()) {
-            windowManager.removeViewImmediate(windowView)
+    private val taskStackChangeListener =
+        object : TaskStackChangeListener {
+            override fun onTaskMovedToFront(taskId: Int) {
+                if ((isShowing() && isInState(DEFAULT))) {
+                    // handling state where we end recents animation by swiping livetile away
+                    // TODO: animate this switch.
+                    cleanupRecentsWindow()
+                }
+            }
         }
-        stateManager.moveToRestState()
-        callbacks?.removeListener(recentsAnimationListener)
+
+    private val recentsAnimationListener =
+        object : RecentsAnimationListener {
+            override fun onRecentsAnimationCanceled(thumbnailDatas: HashMap<Int, ThumbnailData>) {
+                recentAnimationStopped()
+            }
+
+            override fun onRecentsAnimationFinished(controller: RecentsAnimationController) {
+                recentAnimationStopped()
+            }
+        }
+
+    init {
+        TaskStackChangeListeners.getInstance().registerTaskStackListener(taskStackChangeListener)
     }
 
-    private fun isShowing(): Boolean {
-        return windowView?.parent != null
+    override fun handleConfigurationChanged(configuration: Configuration?) {
+        initDeviceProfile()
+        AbstractFloatingView.closeOpenViews(
+            this,
+            true,
+            AbstractFloatingView.TYPE_ALL and AbstractFloatingView.TYPE_REBIND_SAFE.inv(),
+        )
+        dispatchDeviceProfileChanged()
+    }
+
+    override fun destroy() {
+        super.destroy()
+        Executors.MAIN_EXECUTOR.execute { onViewDestroyed() }
+        cleanupRecentsWindow()
+        TaskStackChangeListeners.getInstance().unregisterTaskStackListener(taskStackChangeListener)
+        callbacks?.removeListener(recentsAnimationListener)
+        recentsWindowTracker.onContextDestroyed(this)
+        recentsView?.destroy()
     }
 
     fun startRecentsWindow(callbacks: RecentsAnimationCallbacks? = null) {
@@ -287,11 +257,57 @@ class RecentsWindowManager(context: Context) :
         actionsView?.updateDimension(getDeviceProfile(), recentsView?.lastComputedTaskSize)
         actionsView?.updateVerticalMargin(DisplayController.getNavigationMode(this))
 
-        mSystemUiController = SystemUiController(windowView)
+        systemUiController = SystemUiController(windowView)
         recentsWindowTracker.handleCreate(this)
 
         this.callbacks = callbacks
         callbacks?.addListener(recentsAnimationListener)
+        onViewCreated()
+    }
+
+    override fun startHome() {
+        startHome(/* finishRecentsAnimation= */ true)
+    }
+
+    fun startHome(finishRecentsAnimation: Boolean) {
+        val recentsView: RecentsView<*, *> = getOverviewPanel()
+
+        if (!finishRecentsAnimation) {
+            recentsView.switchToScreenshot /* onFinishRunnable= */ {}
+            startHomeInternal()
+            return
+        }
+        recentsView.switchToScreenshot {
+            recentsView.finishRecentsAnimation(/* toRecents= */ true) { startHomeInternal() }
+        }
+    }
+
+    private fun startHomeInternal() {
+        val runner = LauncherAnimationRunner(mainThreadHandler, animationToHomeFactory, true)
+        val options =
+            ActivityOptions.makeRemoteAnimation(
+                RemoteAnimationAdapter(runner, HOME_APPEAR_DURATION, 0),
+                RemoteTransition(
+                    runner.toRemoteTransition(),
+                    iApplicationThread,
+                    "StartHomeFromRecents",
+                ),
+            )
+        OverviewComponentObserver.startHomeIntentSafely(this, options.toBundle(), TAG)
+        stateManager.moveToRestState()
+    }
+
+    private fun cleanupRecentsWindow() {
+        RecentsWindowProtoLogProxy.logCleanup(isShowing())
+        if (isShowing()) {
+            windowManager.removeViewImmediate(windowView)
+        }
+        stateManager.moveToRestState()
+        callbacks?.removeListener(recentsAnimationListener)
+    }
+
+    private fun isShowing(): Boolean {
+        return windowView?.parent != null
     }
 
     private fun recentAnimationStopped() {
@@ -309,20 +325,12 @@ class RecentsWindowManager(context: Context) :
         return overviewCommandHelper == null || overviewCommandHelper.canStartHomeSafely()
     }
 
-    override fun getDesktopVisibilityController(): DesktopVisibilityController? {
-        return tisBindHelper.desktopVisibilityController
-    }
-
     override fun setTaskbarUIController(taskbarUIController: TaskbarUIController?) {
         this.taskbarUIController = taskbarUIController
     }
 
     override fun getTaskbarUIController(): TaskbarUIController? {
         return taskbarUIController
-    }
-
-    fun registerInitListener(onInitListener: Predicate<Boolean>) {
-        this.onInitListener = onInitListener
     }
 
     override fun collectStateHandlers(out: MutableList<StateManager.StateHandler<RecentsState?>>?) {
@@ -343,43 +351,23 @@ class RecentsWindowManager(context: Context) :
 
     override fun onStateSetStart(state: RecentsState) {
         super.onStateSetStart(state)
-        RecentsWindowProtoLogProxy.logOnStateSetStart(getStateName(state))
+        RecentsWindowProtoLogProxy.logOnStateSetStart(state.toString())
     }
 
     override fun onStateSetEnd(state: RecentsState) {
         super.onStateSetEnd(state)
-        RecentsWindowProtoLogProxy.logOnStateSetEnd(getStateName(state))
-
+        RecentsWindowProtoLogProxy.logOnStateSetEnd(state.toString())
         if (state == HOME || state == BG_LAUNCHER) {
             cleanupRecentsWindow()
         }
-        if (state === DEFAULT) {
-            AccessibilityManagerCompat.sendStateEventToTest(baseContext, OVERVIEW_STATE_ORDINAL)
-        }
-    }
-
-    private fun getStateName(state: RecentsState?): String {
-        return when (state) {
-            null -> "NULL"
-            DEFAULT -> "default"
-            MODAL_TASK -> "MODAL_TASK"
-            BACKGROUND_APP -> "BACKGROUND_APP"
-            HOME -> "HOME"
-            BG_LAUNCHER -> "BG_LAUNCHER"
-            OVERVIEW_SPLIT_SELECT -> "OVERVIEW_SPLIT_SELECT"
-            else -> "ordinal=" + state.ordinal
-        }
+        AccessibilityManagerCompat.sendStateEventToTest(baseContext, state.toLauncherStateOrdinal())
     }
 
     override fun getSystemUiController(): SystemUiController? {
-        if (mSystemUiController == null) {
-            mSystemUiController = SystemUiController(rootView)
+        if (systemUiController == null) {
+            systemUiController = SystemUiController(rootView)
         }
-        return mSystemUiController
-    }
-
-    override fun getContext(): Context {
-        return this
+        return systemUiController
     }
 
     override fun getScrimView(): ScrimView? {
@@ -426,12 +414,12 @@ class RecentsWindowManager(context: Context) :
 
     /** Adds a callback for the provided activity event */
     override fun addEventCallback(@BaseActivity.ActivityEvent event: Int, callback: Runnable?) {
-        mEventCallbacks[event].add(callback)
+        eventCallbacks[event].add(callback)
     }
 
     /** Removes a previously added callback */
     override fun removeEventCallback(@BaseActivity.ActivityEvent event: Int, callback: Runnable?) {
-        mEventCallbacks[event].remove(callback)
+        eventCallbacks[event].remove(callback)
     }
 
     override fun runOnBindToTouchInteractionService(r: Runnable?) {

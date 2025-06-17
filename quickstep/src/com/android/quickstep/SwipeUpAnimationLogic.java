@@ -58,7 +58,7 @@ import java.util.Arrays;
 import java.util.function.Consumer;
 
 public abstract class SwipeUpAnimationLogic implements
-        RecentsAnimationCallbacks.RecentsAnimationListener{
+        RecentsAnimationCallbacks.RecentsAnimationListener {
 
     protected static final Rect TEMP_RECT = new Rect();
     protected final RemoteTargetGluer mTargetGluer;
@@ -66,7 +66,6 @@ public abstract class SwipeUpAnimationLogic implements
     protected DeviceProfile mDp;
 
     protected final Context mContext;
-    protected final RecentsAnimationDeviceState mDeviceState;
     protected final GestureState mGestureState;
 
     protected RemoteTargetHandle[] mRemoteTargetHandles;
@@ -85,20 +84,19 @@ public abstract class SwipeUpAnimationLogic implements
 
     protected boolean mIsSwipeForSplit;
 
-    public SwipeUpAnimationLogic(Context context, RecentsAnimationDeviceState deviceState,
-            GestureState gestureState) {
+    public SwipeUpAnimationLogic(Context context, GestureState gestureState) {
         mContext = context;
-        mDeviceState = deviceState;
         mGestureState = gestureState;
         updateIsGestureForSplit(TopTaskTracker.INSTANCE.get(context)
                 .getRunningSplitTaskIds().length);
 
         mTargetGluer = new RemoteTargetGluer(mContext, mGestureState.getContainerInterface());
         mRemoteTargetHandles = mTargetGluer.getRemoteTargetHandles();
+        RotationTouchHelper rotationTouchHelper = RotationTouchHelper.INSTANCE.get(context);
         runActionOnRemoteHandles(remoteTargetHandle ->
                 remoteTargetHandle.getTaskViewSimulator().getOrientationState().update(
-                        mDeviceState.getRotationTouchHelper().getCurrentActiveRotation(),
-                        mDeviceState.getRotationTouchHelper().getDisplayRotation()
+                        rotationTouchHelper.getCurrentActiveRotation(),
+                        rotationTouchHelper.getDisplayRotation()
                 ));
     }
 
@@ -114,7 +112,7 @@ public abstract class SwipeUpAnimationLogic implements
             PendingAnimation pendingAnimation = new PendingAnimation(mTransitionDragLength * 2);
             TaskViewSimulator taskViewSimulator = remoteHandle.getTaskViewSimulator();
             taskViewSimulator.setDp(dp);
-            taskViewSimulator.addAppToOverviewAnim(pendingAnimation, LINEAR);
+            taskViewSimulator.addAppToCarouselAnim(pendingAnimation, LINEAR);
             AnimatorPlaybackController playbackController =
                     pendingAnimation.createPlaybackController();
 
@@ -503,6 +501,11 @@ public abstract class SwipeUpAnimationLogic implements
                 } else {
                     scale = 1f;
                 }
+            }
+
+            if (Float.isNaN(scale)) {
+                Log.e(TAG, "Scale is NaN: starting dimensions=[" + startWidth + ", " + startHeight
+                        + "], current dimensions=[" + currentWidth + ", " + currentHeight + "]");
             }
 
             mTargetTaskView.setScaleX(scale);

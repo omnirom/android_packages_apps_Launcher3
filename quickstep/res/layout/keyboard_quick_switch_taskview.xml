@@ -21,14 +21,14 @@
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     android:importantForAccessibility="yes"
-    android:background="@drawable/keyboard_quick_switch_task_view_background"
-    android:clipToOutline="true"
-    launcher:focusBorderColor="@color/materialColorOutline">
+    launcher:focusBorderColor="@color/materialColorSecondary">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/content"
         android:layout_width="@dimen/keyboard_quick_switch_taskview_width"
         android:layout_height="@dimen/keyboard_quick_switch_taskview_height"
+        android:background="@drawable/keyboard_quick_switch_task_view_background"
+        android:clipToOutline="true"
 
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"

@@ -33,7 +33,7 @@ object ProductionDispatchers : DispatcherProvider {
 
     override val default: CoroutineDispatcher = Dispatchers.Default
     override val background: CoroutineDispatcher = bgDispatcher
-    override val main: CoroutineDispatcher = Dispatchers.Main
+    override val main: CoroutineDispatcher = Dispatchers.Main.immediate
     override val unconfined: CoroutineDispatcher = Dispatchers.Unconfined
 }
 

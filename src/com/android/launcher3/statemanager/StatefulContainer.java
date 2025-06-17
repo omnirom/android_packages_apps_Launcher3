@@ -20,8 +20,6 @@ package com.android.launcher3.statemanager;
 import static com.android.launcher3.LauncherState.FLAG_CLOSE_POPUPS;
 import static com.android.launcher3.statemanager.BaseState.FLAG_NON_INTERACTIVE;
 
-import android.content.Context;
-import android.content.ContextWrapper;
 import android.content.res.Configuration;
 
 import androidx.annotation.CallSuper;
@@ -38,23 +36,6 @@ import java.util.List;
  */
 public interface StatefulContainer<STATE_TYPE extends BaseState<STATE_TYPE>> extends
         ActivityContext {
-
-    /**
-     * Returns an instance of an implementation of StatefulContainer
-     *
-     * @param context will find instance of StatefulContainer from given context.
-     */
-    static <T extends StatefulContainer> T fromContext(Context context) {
-        if (context instanceof StatefulContainer) {
-            return (T) context;
-        } else if (context instanceof ContextWrapper) {
-            return fromContext(((ContextWrapper) context).getBaseContext());
-        } else {
-            throw new IllegalArgumentException("Cannot find StatefulContainer in parent tree");
-        }
-    }
-
-    Context getContext();
 
     /**
      * Creates a factory for atomic state animations

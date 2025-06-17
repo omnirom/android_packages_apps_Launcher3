@@ -58,11 +58,6 @@ final class HomeGestureTutorialController extends SwipeUpGestureTutorialControll
     }
 
     @Override
-    public int getSpokenIntroductionSubtitle() {
-        return R.string.home_gesture_spoken_intro_subtitle;
-    }
-
-    @Override
     public int getSuccessFeedbackTitle() {
         return R.string.home_gesture_tutorial_success;
     }

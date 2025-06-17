@@ -35,4 +35,9 @@ public class WidgetsListExpandActionEntry extends WidgetsListBaseEntry {
                 /*items=*/ Collections.EMPTY_LIST);
         mPkgItem.title = "";
     }
+
+    @Override
+    public WidgetsListBaseEntry copy() {
+        return new WidgetsListExpandActionEntry();
+    }
 }

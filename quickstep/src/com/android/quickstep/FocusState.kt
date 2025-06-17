@@ -27,7 +27,10 @@ import com.android.wm.shell.shared.IShellTransitions
 class FocusState {
 
     var focusedDisplayId = DEFAULT_DISPLAY
-        private set
+        private set(value) {
+            field = value
+            listeners.forEach { it.onFocusedDisplayChanged(value) }
+        }
 
     private var listeners = mutableSetOf<FocusChangeListener>()
 
@@ -40,9 +43,7 @@ class FocusState {
             transitions?.setFocusTransitionListener(
                 object : Stub() {
                     override fun onFocusedDisplayChanged(displayId: Int) {
-                        Executors.MAIN_EXECUTOR.execute {
-                            listeners.forEach { it.onFocusedDisplayChanged(displayId) }
-                        }
+                        Executors.MAIN_EXECUTOR.execute { focusedDisplayId = displayId }
                     }
                 }
             )

@@ -11,14 +11,12 @@ import com.android.launcher3.Utilities.SHOULD_SHOW_FIRST_PAGE_WIDGET
 import com.android.launcher3.WorkspaceLayoutManager.FIRST_SCREEN_ID
 import com.android.launcher3.allapps.AllAppsStore
 import com.android.launcher3.config.FeatureFlags
-import com.android.launcher3.debug.TestEvent
 import com.android.launcher3.debug.TestEventEmitter
+import com.android.launcher3.debug.TestEventEmitter.TestEvent
 import com.android.launcher3.model.BgDataModel
 import com.android.launcher3.model.StringCache
 import com.android.launcher3.model.data.AppInfo
 import com.android.launcher3.model.data.ItemInfo
-import com.android.launcher3.model.data.LauncherAppWidgetInfo
-import com.android.launcher3.model.data.WorkspaceItemInfo
 import com.android.launcher3.popup.PopupContainerWithArrow
 import com.android.launcher3.util.ComponentKey
 import com.android.launcher3.util.IntArray as LIntArray
@@ -97,7 +95,7 @@ class ModelCallbacks(private var launcher: Launcher) : BgDataModel.Callbacks {
         synchronouslyBoundPages = boundPages
         pagesToBindSynchronously = LIntSet()
         clearPendingBinds()
-        if (!launcher.isInState(LauncherState.ALL_APPS)) {
+        if (!launcher.isInState(LauncherState.ALL_APPS) && !Flags.enableWorkspaceInflation()) {
             launcher.appsView.appsStore.enableDeferUpdates(AllAppsStore.DEFER_UPDATES_NEXT_DRAW)
             pendingTasks.add {
                 launcher.appsView.appsStore.disableDeferUpdates(
@@ -156,7 +154,7 @@ class ModelCallbacks(private var launcher: Launcher) : BgDataModel.Callbacks {
             /*pause=*/ false,
             deviceProfile.isTwoPanels,
         )
-        TestEventEmitter.INSTANCE.get(launcher).sendEvent(TestEvent.WORKSPACE_FINISH_LOADING)
+        TestEventEmitter.sendEvent(TestEvent.WORKSPACE_FINISH_LOADING)
     }
 
     /**
@@ -215,29 +213,13 @@ class ModelCallbacks(private var launcher: Launcher) : BgDataModel.Callbacks {
         launcher.appsView.appsStore.updateProgressBar(app)
     }
 
-    override fun bindWidgetsRestored(widgets: ArrayList<LauncherAppWidgetInfo?>?) {
-        launcher.workspace.widgetsRestored(widgets)
-    }
-
-    /**
-     * Some shortcuts were updated in the background. Implementation of the method from
-     * LauncherModel.Callbacks.
-     *
-     * @param updated list of shortcuts which have changed.
-     */
-    override fun bindWorkspaceItemsChanged(updated: List<WorkspaceItemInfo?>) {
-        if (updated.isNotEmpty()) {
-            launcher.workspace.updateWorkspaceItems(updated, launcher)
-            PopupContainerWithArrow.dismissInvalidPopup(launcher)
-        }
-    }
-
     /**
      * Update the state of a package, typically related to install state. Implementation of the
      * method from LauncherModel.Callbacks.
      */
-    override fun bindRestoreItemsChange(updates: HashSet<ItemInfo?>?) {
-        launcher.workspace.updateRestoreItems(updates, launcher)
+    override fun bindItemsUpdated(updates: Set<ItemInfo>) {
+        launcher.workspace.updateContainerItems(updates, launcher)
+        PopupContainerWithArrow.dismissInvalidPopup(launcher)
     }
 
     /**
@@ -252,11 +234,8 @@ class ModelCallbacks(private var launcher: Launcher) : BgDataModel.Callbacks {
         PopupContainerWithArrow.dismissInvalidPopup(launcher)
     }
 
-    override fun bindAllWidgets(
-        allWidgets: List<WidgetsListBaseEntry>,
-        defaultWidgets: List<WidgetsListBaseEntry>,
-    ) {
-        launcher.widgetPickerDataProvider.setWidgets(allWidgets, defaultWidgets)
+    override fun bindAllWidgets(allWidgets: List<WidgetsListBaseEntry>) {
+        launcher.widgetPickerDataProvider.setWidgets(allWidgets)
     }
 
     /** Returns the ids of the workspaces to bind. */

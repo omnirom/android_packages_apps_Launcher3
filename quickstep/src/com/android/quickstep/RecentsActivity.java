@@ -26,6 +26,7 @@ import static com.android.launcher3.QuickstepTransitionManager.STATUS_BAR_TRANSI
 import static com.android.launcher3.QuickstepTransitionManager.STATUS_BAR_TRANSITION_PRE_DELAY;
 import static com.android.launcher3.testing.shared.TestProtocol.LAUNCHER_ACTIVITY_STOPPED_MESSAGE;
 import static com.android.launcher3.testing.shared.TestProtocol.OVERVIEW_STATE_ORDINAL;
+import static com.android.launcher3.util.WallpaperThemeManager.setWallpaperDependentTheme;
 import static com.android.quickstep.OverviewComponentObserver.startHomeIntentSafely;
 import static com.android.quickstep.TaskUtils.taskIsATargetWithMode;
 import static com.android.quickstep.TaskViewUtils.createRecentsWindowAnimator;
@@ -65,7 +66,6 @@ import com.android.launcher3.anim.PendingAnimation;
 import com.android.launcher3.compat.AccessibilityManagerCompat;
 import com.android.launcher3.desktop.DesktopRecentsTransitionController;
 import com.android.launcher3.model.data.ItemInfo;
-import com.android.launcher3.statehandlers.DesktopVisibilityController;
 import com.android.launcher3.statemanager.StateManager;
 import com.android.launcher3.statemanager.StateManager.AtomicAnimationFactory;
 import com.android.launcher3.statemanager.StateManager.StateHandler;
@@ -248,7 +248,6 @@ public final class RecentsActivity extends StatefulActivity<RecentsState> implem
 
     @Override
     public void returnToHomescreen() {
-        super.returnToHomescreen();
         // TODO(b/137318995) This should go home, but doing so removes freeform windows
     }
 
@@ -262,6 +261,7 @@ public final class RecentsActivity extends StatefulActivity<RecentsState> implem
         }
     }
 
+    @NonNull
     @Override
     public ActivityOptionsWrapper getActivityLaunchOptions(final View v, @Nullable ItemInfo item) {
         if (!(v instanceof TaskView)) {
@@ -319,7 +319,7 @@ public final class RecentsActivity extends StatefulActivity<RecentsState> implem
     /**
      * Composes the animations for a launch from the recents list if possible.
      */
-    private AnimatorSet  composeRecentsLaunchAnimator(
+    private AnimatorSet composeRecentsLaunchAnimator(
             @NonNull RecentsView recentsView,
             @NonNull TaskView taskView,
             RemoteAnimationTarget[] appTargets,
@@ -329,7 +329,8 @@ public final class RecentsActivity extends StatefulActivity<RecentsState> implem
         boolean activityClosing = taskIsATargetWithMode(appTargets, getTaskId(), MODE_CLOSING);
         PendingAnimation pa = new PendingAnimation(RECENTS_LAUNCH_DURATION);
         createRecentsWindowAnimator(recentsView, taskView, !activityClosing, appTargets,
-                wallpaperTargets, nonAppTargets, null /* depthController */, pa);
+                wallpaperTargets, nonAppTargets, /* depthController= */ null ,
+                /* transitionInfo= */ null, pa);
         target.play(pa.buildAnim());
 
         // Found a visible recents task that matches the opening app, lets launch the app from there
@@ -372,6 +373,7 @@ public final class RecentsActivity extends StatefulActivity<RecentsState> implem
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setWallpaperDependentTheme(this);
 
         mStateManager = new StateManager<>(this, RecentsState.BG_LAUNCHER);
 
@@ -432,7 +434,6 @@ public final class RecentsActivity extends StatefulActivity<RecentsState> implem
      */
     private void initDeviceProfile() {
         mDeviceProfile = createDeviceProfile();
-        onDeviceProfileInitiated();
     }
 
     @Override
@@ -453,6 +454,10 @@ public final class RecentsActivity extends StatefulActivity<RecentsState> implem
 
     @Override
     protected void onDestroy() {
+        RecentsView recentsView = getOverviewPanel();
+        if (recentsView != null) {
+            recentsView.destroy();
+        }
         super.onDestroy();
         ACTIVITY_TRACKER.onContextDestroyed(this);
         mActivityLaunchAnimationRunner = null;
@@ -549,11 +554,5 @@ public final class RecentsActivity extends StatefulActivity<RecentsState> implem
     @Override
     public boolean isRecentsViewVisible() {
         return getStateManager().getState().isRecentsViewVisible();
-    }
-
-    @Nullable
-    @Override
-    public DesktopVisibilityController getDesktopVisibilityController() {
-        return mTISBindHelper.getDesktopVisibilityController();
     }
 }

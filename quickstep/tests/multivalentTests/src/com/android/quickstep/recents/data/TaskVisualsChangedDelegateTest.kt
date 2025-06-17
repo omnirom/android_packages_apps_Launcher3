@@ -19,16 +19,19 @@ package com.android.quickstep.recents.data
 import android.content.ComponentName
 import android.content.Intent
 import android.os.UserHandle
+import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.android.quickstep.recents.data.TaskVisualsChangedDelegate.TaskIconChangedCallback
 import com.android.quickstep.recents.data.TaskVisualsChangedDelegate.TaskThumbnailChangedCallback
 import com.android.systemui.shared.recents.model.Task.TaskKey
 import com.android.systemui.shared.recents.model.ThumbnailData
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
+import org.junit.runner.RunWith
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoMoreInteractions
 
+@RunWith(AndroidJUnit4::class)
 class TaskVisualsChangedDelegateTest {
     private val taskVisualsChangeNotifier = FakeTaskVisualsChangeNotifier()
     private val highResLoadingStateNotifier = FakeHighResLoadingStateNotifier()
@@ -83,21 +86,21 @@ class TaskVisualsChangedDelegateTest {
         // Correct match
         systemUnderTest.registerTaskIconChangedCallback(
             createTaskKey(id = 1, pkg = ALTERNATIVE_PACKAGE_NAME, userId = 1),
-            expectedListener
+            expectedListener,
         )
         // 1 out of 2 match
         systemUnderTest.registerTaskIconChangedCallback(
             createTaskKey(id = 2, pkg = PACKAGE_NAME, userId = 1),
-            listener
+            listener,
         )
         systemUnderTest.registerTaskIconChangedCallback(
             createTaskKey(id = 3, pkg = ALTERNATIVE_PACKAGE_NAME, userId = 2),
-            listener
+            listener,
         )
         // 0 out of 2 match
         systemUnderTest.registerTaskIconChangedCallback(
             createTaskKey(id = 4, pkg = PACKAGE_NAME, userId = 2),
-            listener
+            listener,
         )
 
         systemUnderTest.onTaskIconChanged(ALTERNATIVE_PACKAGE_NAME, UserHandle(1))
@@ -112,11 +115,11 @@ class TaskVisualsChangedDelegateTest {
         val newListener = mock<TaskIconChangedCallback>()
         systemUnderTest.registerTaskIconChangedCallback(
             createTaskKey(id = 1, pkg = ALTERNATIVE_PACKAGE_NAME, userId = 1),
-            replacedListener
+            replacedListener,
         )
         systemUnderTest.registerTaskIconChangedCallback(
             createTaskKey(id = 1, pkg = ALTERNATIVE_PACKAGE_NAME, userId = 1),
-            newListener
+            newListener,
         )
 
         systemUnderTest.onTaskIconChanged(ALTERNATIVE_PACKAGE_NAME, UserHandle(1))
@@ -132,11 +135,11 @@ class TaskVisualsChangedDelegateTest {
         val expectedThumbnailData = ThumbnailData(snapshotId = 12345)
         systemUnderTest.registerTaskThumbnailChangedCallback(
             createTaskKey(id = 1),
-            expectedListener
+            expectedListener,
         )
         systemUnderTest.registerTaskThumbnailChangedCallback(
             createTaskKey(id = 2),
-            additionalListener
+            additionalListener,
         )
 
         systemUnderTest.onTaskThumbnailChanged(1, expectedThumbnailData)
@@ -146,22 +149,41 @@ class TaskVisualsChangedDelegateTest {
     }
 
     @Test
-    fun onHighResLoadingStateChanged_notifiesAllListeners() {
+    fun onHighResLoadingStateChanged_toEnabled_notifiesAllListeners() {
         val expectedListener = mock<TaskThumbnailChangedCallback>()
         val additionalListener = mock<TaskThumbnailChangedCallback>()
         systemUnderTest.registerTaskThumbnailChangedCallback(
             createTaskKey(id = 1),
-            expectedListener
+            expectedListener,
         )
         systemUnderTest.registerTaskThumbnailChangedCallback(
             createTaskKey(id = 2),
-            additionalListener
+            additionalListener,
         )
 
         systemUnderTest.onHighResLoadingStateChanged(true)
 
-        verify(expectedListener).onHighResLoadingStateChanged()
-        verify(additionalListener).onHighResLoadingStateChanged()
+        verify(expectedListener).onHighResLoadingStateChanged(true)
+        verify(additionalListener).onHighResLoadingStateChanged(true)
+    }
+
+    @Test
+    fun onHighResLoadingStateChanged_toDisabled_notifiesAllListeners() {
+        val expectedListener = mock<TaskThumbnailChangedCallback>()
+        val additionalListener = mock<TaskThumbnailChangedCallback>()
+        systemUnderTest.registerTaskThumbnailChangedCallback(
+            createTaskKey(id = 1),
+            expectedListener,
+        )
+        systemUnderTest.registerTaskThumbnailChangedCallback(
+            createTaskKey(id = 2),
+            additionalListener,
+        )
+
+        systemUnderTest.onHighResLoadingStateChanged(false)
+
+        verify(expectedListener).onHighResLoadingStateChanged(false)
+        verify(additionalListener).onHighResLoadingStateChanged(false)
     }
 
     @Test
@@ -171,7 +193,7 @@ class TaskVisualsChangedDelegateTest {
         val expectedThumbnailData = ThumbnailData(snapshotId = 12345)
         systemUnderTest.registerTaskThumbnailChangedCallback(
             createTaskKey(id = 1),
-            replacedListener1
+            replacedListener1,
         )
         systemUnderTest.registerTaskThumbnailChangedCallback(createTaskKey(id = 1), newListener1)
 

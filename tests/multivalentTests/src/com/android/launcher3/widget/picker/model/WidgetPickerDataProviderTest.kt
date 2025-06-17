@@ -40,6 +40,7 @@ import com.android.launcher3.widget.model.WidgetsListContentEntry
 import com.android.launcher3.widget.model.WidgetsListHeaderEntry
 import com.android.launcher3.widget.picker.model.WidgetPickerDataProvider.WidgetPickerDataChangeListener
 import com.google.common.truth.Truth.assertThat
+import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -72,14 +73,14 @@ class WidgetPickerDataProviderTest {
 
     private lateinit var appWidgetItem: WidgetItem
 
-    private var underTest = WidgetPickerDataProvider()
+    private lateinit var underTest: WidgetPickerDataProvider
 
     @Before
     fun setUp() {
         userHandle = UserHandle.CURRENT
         context = ActivityContextWrapper(ApplicationProvider.getApplicationContext())
         testInvariantProfile = LauncherAppState.getIDP(context)
-
+        underTest = WidgetPickerDataProvider(context)
         doAnswer { invocation: InvocationOnMock ->
                 val componentWithLabel = invocation.getArgument<Any>(0) as CachedObject
                 componentWithLabel.getComponent().shortClassName
@@ -88,6 +89,11 @@ class WidgetPickerDataProviderTest {
             .getTitleNoCache(any<CachedObject>())
 
         appWidgetItem = createWidgetItem()
+    }
+
+    @After
+    fun tearDown() {
+        underTest.destroy()
     }
 
     @Test

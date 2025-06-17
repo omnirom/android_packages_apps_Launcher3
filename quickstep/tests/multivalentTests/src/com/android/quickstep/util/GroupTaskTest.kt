@@ -19,9 +19,9 @@ package com.android.quickstep.util
 import android.content.ComponentName
 import android.content.Intent
 import android.graphics.Rect
+import android.view.Display.DEFAULT_DISPLAY
 import com.android.launcher3.util.LauncherMultivalentJUnit
 import com.android.launcher3.util.SplitConfigurationOptions
-import com.android.quickstep.views.TaskViewType
 import com.android.systemui.shared.recents.model.Task
 import com.android.wm.shell.shared.split.SplitScreenConstants
 import com.google.common.truth.Truth.assertThat
@@ -33,28 +33,28 @@ class GroupTaskTest {
 
     @Test
     fun testGroupTask_sameInstance_isEqual() {
-        val task = GroupTask(createTask(1))
+        val task = SingleTask(createTask(1))
         assertThat(task).isEqualTo(task)
     }
 
     @Test
     fun testGroupTask_identicalConstructor_isEqual() {
-        val task1 = GroupTask(createTask(1))
-        val task2 = GroupTask(createTask(1))
+        val task1 = SingleTask(createTask(1))
+        val task2 = SingleTask(createTask(1))
         assertThat(task1).isEqualTo(task2)
     }
 
     @Test
     fun testGroupTask_copy_isEqual() {
-        val task1 = GroupTask(createTask(1))
+        val task1 = SingleTask(createTask(1))
         val task2 = task1.copy()
         assertThat(task1).isEqualTo(task2)
     }
 
     @Test
     fun testGroupTask_differentId_isNotEqual() {
-        val task1 = GroupTask(createTask(1))
-        val task2 = GroupTask(createTask(2))
+        val task1 = SingleTask(createTask(1))
+        val task2 = SingleTask(createTask(2))
         assertThat(task1).isNotEqualTo(task2)
     }
 
@@ -66,10 +66,10 @@ class GroupTaskTest {
                 Rect(),
                 1,
                 2,
-                SplitScreenConstants.SNAP_TO_2_50_50
+                SplitScreenConstants.SNAP_TO_2_50_50,
             )
-        val task1 = GroupTask(createTask(1), createTask(2), splitBounds, TaskViewType.GROUPED)
-        val task2 = GroupTask(createTask(1), createTask(2), splitBounds, TaskViewType.GROUPED)
+        val task1 = SplitTask(createTask(1), createTask(2), splitBounds)
+        val task2 = SplitTask(createTask(1), createTask(2), splitBounds)
         assertThat(task1).isEqualTo(task2)
     }
 
@@ -81,7 +81,7 @@ class GroupTaskTest {
                 Rect(),
                 1,
                 2,
-                SplitScreenConstants.SNAP_TO_2_50_50
+                SplitScreenConstants.SNAP_TO_2_50_50,
             )
         val splitBounds2 =
             SplitConfigurationOptions.SplitBounds(
@@ -89,17 +89,17 @@ class GroupTaskTest {
                 Rect(),
                 1,
                 2,
-                SplitScreenConstants.SNAP_TO_2_33_66
+                SplitScreenConstants.SNAP_TO_2_33_66,
             )
-        val task1 = GroupTask(createTask(1), createTask(2), splitBounds1, TaskViewType.GROUPED)
-        val task2 = GroupTask(createTask(1), createTask(2), splitBounds2, TaskViewType.GROUPED)
+        val task1 = SplitTask(createTask(1), createTask(2), splitBounds1)
+        val task2 = SplitTask(createTask(1), createTask(2), splitBounds2)
         assertThat(task1).isNotEqualTo(task2)
     }
 
     @Test
     fun testGroupTask_differentType_isNotEqual() {
-        val task1 = GroupTask(createTask(1), null, null, TaskViewType.SINGLE)
-        val task2 = GroupTask(createTask(1), null, null, TaskViewType.DESKTOP)
+        val task1 = SingleTask(createTask(1))
+        val task2 = DesktopTask(deskId = 0, DEFAULT_DISPLAY, listOf(createTask(1)))
         assertThat(task1).isNotEqualTo(task2)
     }
 

@@ -19,12 +19,15 @@ package com.android.launcher3;
 import static android.util.Base64.NO_PADDING;
 import static android.util.Base64.NO_WRAP;
 
+import static com.android.launcher3.icons.cache.CacheLookupFlag.DEFAULT_LOOKUP_FLAG;
+
 import android.database.sqlite.SQLiteDatabase;
 import android.provider.BaseColumns;
 import android.util.Base64;
 
 import androidx.annotation.NonNull;
 
+import com.android.launcher3.icons.cache.CacheLookupFlag;
 import com.android.launcher3.model.data.ItemInfo;
 
 import java.util.LinkedHashMap;
@@ -352,6 +355,11 @@ public class LauncherSettings {
         public static String getColumns(long profileId) {
             return String.join(", ", getColumnsToTypes(profileId).keySet());
         }
+
+        /**
+         * Lookup flag to be used for items which are visible on the home screen
+         */
+        public static final CacheLookupFlag DESKTOP_ICON_FLAG = DEFAULT_LOOKUP_FLAG;
     }
 
     /**

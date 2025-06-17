@@ -34,24 +34,16 @@ class RecentsViewModel(
         recentsTasksRepository.setVisibleTasks(visibleTaskIdList.toSet())
     }
 
-    fun updateFullscreenProgress(fullscreenProgress: Float) {
-        recentsViewData.fullscreenProgress.value = fullscreenProgress
-    }
-
     fun updateTasksFullyVisible(taskIds: Set<Int>) {
         recentsViewData.settledFullyVisibleTaskIds.value = taskIds
     }
 
+    fun updateCentralTaskIds(taskIds: Set<Int>) {
+        recentsViewData.centralTaskIds.value = taskIds
+    }
+
     fun setOverlayEnabled(isOverlayEnabled: Boolean) {
         recentsViewData.overlayEnabled.value = isOverlayEnabled
-    }
-
-    fun setTintAmount(tintAmount: Float) {
-        recentsViewData.tintAmount.value = tintAmount
-    }
-
-    fun updateThumbnailSplashProgress(taskThumbnailSplashAlpha: Float) {
-        recentsViewData.thumbnailSplashProgress.value = taskThumbnailSplashAlpha
     }
 
     suspend fun waitForThumbnailsToUpdate(updatedThumbnails: Map<Int, ThumbnailData>?) {

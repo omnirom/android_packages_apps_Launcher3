@@ -16,22 +16,22 @@
 
 package com.android.quickstep;
 
-import static androidx.test.core.app.ApplicationProvider.getApplicationContext;
-
 import static com.android.quickstep.InputConsumerUtils.newBaseConsumer;
 import static com.android.quickstep.InputConsumerUtils.newConsumer;
 
 import static com.google.common.truth.Truth.assertThat;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.mockito.kotlin.StubberKt.doCallRealMethod;
 
 import android.annotation.NonNull;
-import android.annotation.Nullable;
 import android.os.Looper;
 import android.view.Choreographer;
+import android.view.Display;
 import android.view.MotionEvent;
 
 import androidx.test.ext.junit.runners.AndroidJUnit4;
@@ -40,6 +40,9 @@ import androidx.test.platform.app.InstrumentationRegistry;
 
 import com.android.launcher3.DeviceProfile;
 import com.android.launcher3.anim.AnimatedFloat;
+import com.android.launcher3.dagger.LauncherAppComponent;
+import com.android.launcher3.dagger.LauncherAppModule;
+import com.android.launcher3.dagger.LauncherAppSingleton;
 import com.android.launcher3.taskbar.TaskbarActivityContext;
 import com.android.launcher3.taskbar.TaskbarManager;
 import com.android.launcher3.taskbar.bubbles.BubbleBarController;
@@ -54,9 +57,8 @@ import com.android.launcher3.taskbar.bubbles.BubblePinController;
 import com.android.launcher3.taskbar.bubbles.BubbleStashedHandleViewController;
 import com.android.launcher3.taskbar.bubbles.stashing.BubbleStashController;
 import com.android.launcher3.util.LockedUserState;
-import com.android.launcher3.util.MainThreadInitializedObject;
+import com.android.launcher3.util.SandboxApplication;
 import com.android.launcher3.views.BaseDragLayer;
-import com.android.quickstep.fallback.window.RecentsWindowManager;
 import com.android.quickstep.inputconsumers.AccessibilityInputConsumer;
 import com.android.quickstep.inputconsumers.BubbleBarInputConsumer;
 import com.android.quickstep.inputconsumers.DeviceLockedInputConsumer;
@@ -76,6 +78,9 @@ import com.android.quickstep.views.RecentsViewContainer;
 import com.android.systemui.shared.system.InputChannelCompat;
 import com.android.systemui.shared.system.InputMonitorCompat;
 
+import dagger.BindsInstance;
+import dagger.Component;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -94,14 +99,15 @@ import javax.inject.Provider;
 @RunWith(AndroidJUnit4.class)
 public class InputConsumerUtilsTest {
 
-    @NonNull private final MainThreadInitializedObject.SandboxContext mContext =
-            new MainThreadInitializedObject.SandboxContext(getApplicationContext());
-    @NonNull private final TaskAnimationManager mTaskAnimationManager = new TaskAnimationManager(
-            mContext, mock(RecentsWindowManager.class));
-    @NonNull private final InputMonitorCompat mInputMonitorCompat = new InputMonitorCompat("", 0);
+    @Rule public final SandboxApplication mContext = new SandboxApplication();
 
+    private final int mDisplayId = Display.DEFAULT_DISPLAY;
+    @NonNull private final InputMonitorCompat mInputMonitorCompat =
+            new InputMonitorCompat("", mDisplayId);
+
+    private TaskAnimationManager mTaskAnimationManager;
     private InputChannelCompat.InputEventReceiver mInputEventReceiver;
-    @Nullable private ResetGestureInputConsumer mResetGestureInputConsumer;
+    private boolean mUserUnlocked = true;
     @NonNull private Function<GestureState, AnimatedFloat> mSwipeUpProxyProvider = (state) -> null;
 
     @NonNull @Mock private TaskbarActivityContext mTaskbarActivityContext;
@@ -121,8 +127,17 @@ public class InputConsumerUtilsTest {
     public final MockitoRule mMockitoRule = MockitoJUnit.rule();
 
     @Before
-    public void setupMainThreadInitializedObjects() {
-        mContext.putObject(LockedUserState.INSTANCE, mLockedUserState);
+    public void setupTaskAnimationManager() {
+        mTaskAnimationManager = new TaskAnimationManager(mContext, mDeviceState, mDisplayId);
+    }
+
+    @Before
+    public void setupDaggerGraphOverrides() {
+        mContext.initDaggerComponent(DaggerInputConsumerUtilsTest_TestComponent
+                .builder()
+                .bindLockedState(mLockedUserState)
+                .bindRotationHelper(mock(RotationTouchHelper.class))
+                .bindRecentsState(mDeviceState));
     }
 
     @Before
@@ -147,12 +162,6 @@ public class InputConsumerUtilsTest {
     @Before
     public void setUpTaskbarManager() {
         when(mTaskbarManager.getCurrentActivityContext()).thenReturn(mTaskbarActivityContext);
-    }
-
-    @Before
-    public void setUpResetGestureInputConsumer() {
-        mResetGestureInputConsumer = new ResetGestureInputConsumer(
-                mTaskAnimationManager, mTaskbarManager::getCurrentActivityContext);
     }
 
     @Before
@@ -188,7 +197,6 @@ public class InputConsumerUtilsTest {
         when(mDeviceState.canStartSystemGesture()).thenReturn(true);
         when(mDeviceState.isFullyGesturalNavMode()).thenReturn(true);
         when(mDeviceState.getNavBarPosition()).thenReturn(mock(NavBarPosition.class));
-        when(mDeviceState.getRotationTouchHelper()).thenReturn(mock(RotationTouchHelper.class));
     }
 
     @After
@@ -287,7 +295,7 @@ public class InputConsumerUtilsTest {
     @Test
     public void testNewBaseConsumer_launcherChildActivityResumed_returnsDefaultInputConsumer() {
         when(mRunningTask.isHomeTask()).thenReturn(true);
-        when(mOverviewComponentObserver.isHomeAndOverviewSame()).thenReturn(true);
+        when(mOverviewComponentObserver.isHomeAndOverviewSameActivity()).thenReturn(true);
 
         assertEqualsDefaultInputConsumer(this::createBaseInputConsumer);
     }
@@ -300,9 +308,17 @@ public class InputConsumerUtilsTest {
     }
 
     @Test
+    public void testNewBaseConsumer_noGestureBlockedTask_returnsOtherActivityInputConsumer() {
+        doCallRealMethod().when(mDeviceState).setGestureBlockingTaskId(anyInt());
+        mDeviceState.setGestureBlockingTaskId(-1);
+        when(mDeviceState.isGestureBlockedTask(any())).thenCallRealMethod();
+
+        assertCorrectInputConsumer(this::createBaseInputConsumer, OtherActivityInputConsumer.class,
+                InputConsumer.TYPE_OTHER_ACTIVITY);
+    }
+
+    @Test
     public void testNewBaseConsumer_containsOtherActivityInputConsumer() {
-        // OtherActivityInputConsumer needs to be initialized on the main thread because of
-        // MotionPauseDetector.mForcePauseTimeout
         assertCorrectInputConsumer(
                 this::createBaseInputConsumer,
                 OtherActivityInputConsumer.class,
@@ -473,8 +489,7 @@ public class InputConsumerUtilsTest {
         MotionEvent event = MotionEvent.obtain(0, 0, MotionEvent.ACTION_DOWN, 0, 0, 0);
         InputConsumer inputConsumer = newConsumer(
                 mContext,
-                mContext,
-                mResetGestureInputConsumer,
+                mUserUnlocked,
                 mOverviewComponentObserver,
                 mDeviceState,
                 mPreviousGestureState,
@@ -498,7 +513,8 @@ public class InputConsumerUtilsTest {
         MotionEvent event = MotionEvent.obtain(0, 0, MotionEvent.ACTION_DOWN, 0, 0, 0);
         InputConsumer inputConsumer = newBaseConsumer(
                 mContext,
-                mResetGestureInputConsumer,
+                mUserUnlocked,
+                mTaskbarManager,
                 mOverviewComponentObserver,
                 mDeviceState,
                 mPreviousGestureState,
@@ -523,12 +539,15 @@ public class InputConsumerUtilsTest {
                 ResetGestureInputConsumer.class,
                 InputConsumer.TYPE_RESET_GESTURE);
 
-        mResetGestureInputConsumer = null;
+        mUserUnlocked = false;
 
-        runOnMainSync(() -> assertThat(inputConsumerProvider.get()).isEqualTo(InputConsumer.NO_OP));
+        assertCorrectInputConsumer(
+                inputConsumerProvider,
+                InputConsumer.class,
+                InputConsumer.TYPE_NO_OP);
     }
 
-    private static void assertCorrectInputConsumer(
+    private void assertCorrectInputConsumer(
             @NonNull Provider<InputConsumer> inputConsumerProvider,
             @NonNull Class<? extends InputConsumer> expectedOutputConsumer,
             int expectedType) {
@@ -539,11 +558,13 @@ public class InputConsumerUtilsTest {
                 expectedType);
     }
 
-    private static void assertCorrectInputConsumer(
+    private void assertCorrectInputConsumer(
             @NonNull Provider<InputConsumer> inputConsumerProvider,
             @NonNull Class<? extends InputConsumer> expectedOutputConsumer,
             @NonNull Class<? extends InputConsumer> expectedActiveConsumer,
             int expectedType) {
+        when(mCurrentGestureState.getDisplayId()).thenReturn(mDisplayId);
+
         runOnMainSync(() -> {
             InputConsumer inputConsumer = inputConsumerProvider.get();
 
@@ -551,7 +572,14 @@ public class InputConsumerUtilsTest {
             assertThat(inputConsumer.getActiveConsumerInHierarchy())
                     .isInstanceOf(expectedActiveConsumer);
             assertThat(inputConsumer.getType()).isEqualTo(expectedType);
+            assertThat(inputConsumer.getDisplayId()).isEqualTo(mDisplayId);
         });
+        int expectedDisplayId = mDisplayId + 1;
+
+        when(mCurrentGestureState.getDisplayId()).thenReturn(expectedDisplayId);
+
+        runOnMainSync(() -> assertThat(inputConsumerProvider.get().getDisplayId())
+                .isEqualTo(expectedDisplayId));
     }
 
     private static void runOnMainSync(@NonNull Runnable runnable) {
@@ -589,5 +617,19 @@ public class InputConsumerUtilsTest {
         when(bubbleBarViewController.isEventOverBubbleBar(any())).thenReturn(true);
 
         return bubbleControllers;
+    }
+
+    @LauncherAppSingleton
+    @Component(modules = {LauncherAppModule.class})
+    interface TestComponent extends LauncherAppComponent {
+        @Component.Builder
+        interface Builder extends LauncherAppComponent.Builder {
+            @BindsInstance Builder bindLockedState(LockedUserState state);
+            @BindsInstance Builder bindRotationHelper(RotationTouchHelper helper);
+            @BindsInstance Builder bindRecentsState(RecentsAnimationDeviceState state);
+
+            @Override
+            TestComponent build();
+        }
     }
 }

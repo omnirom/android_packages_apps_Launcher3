@@ -24,7 +24,6 @@ import static com.android.launcher3.tapl.OverviewTask.OverviewTaskContainer.SPLI
 import android.graphics.Rect;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.test.uiautomator.By;
 import androidx.test.uiautomator.BySelector;
 import androidx.test.uiautomator.UiObject2;
@@ -126,11 +125,11 @@ public final class OverviewTask {
         return right - left;
     }
 
-    int getTaskCenterX() {
+    public int getTaskCenterX() {
         return mTask.getVisibleCenter().x;
     }
 
-    int getTaskCenterY() {
+    public int getTaskCenterY() {
         return mTask.getVisibleCenter().y;
     }
 
@@ -158,6 +157,7 @@ public final class OverviewTask {
             }
 
             boolean taskWasFocused = mLauncher.isTablet()
+                    && !isDesktop()
                     && getVisibleHeight() == mLauncher.getOverviewTaskSize().height();
             List<Integer> originalTasksCenterX =
                     getCurrentTasksCenterXList().stream().sorted().toList();
@@ -208,6 +208,36 @@ public final class OverviewTask {
                 .map(OverviewTask::getTaskCenterX)
                 .collect(Collectors.toList())
                 : List.of(mOverview.getCurrentTask().getTaskCenterX());
+    }
+
+    /**
+     * Starts dismissing the task by swiping up, then cancels, and task springs back to start.
+     */
+    public void dismissCancel() {
+        try (LauncherInstrumentation.Closable e = mLauncher.eventsCheck();
+             LauncherInstrumentation.Closable c = mLauncher.addContextLayer(
+                     "want to start dismissing an overview task then cancel")) {
+            verifyActiveContainer();
+            int taskCountBeforeDismiss = mOverview.getTaskCount();
+            mLauncher.assertNotEquals("Unable to find a task", 0, taskCountBeforeDismiss);
+
+            final Rect taskBounds = mLauncher.getVisibleBounds(mTask);
+            final int centerX = taskBounds.centerX();
+            final int centerY = taskBounds.bottom - 1;
+            final int endCenterY = centerY - (taskBounds.height() / 4);
+            mLauncher.executeAndWaitForLauncherEvent(
+                    // Set slowDown to true so we do not fling the task at the end of the drag, as
+                    // we want it to cancel and return back to the origin. We use 30 steps to
+                    // perform the gesture slowly as well, to avoid flinging.
+                    () -> mLauncher.linearGesture(centerX, centerY, centerX, endCenterY,
+                            /* steps= */ 30, /* slowDown= */ true,
+                            LauncherInstrumentation.GestureScope.DONT_EXPECT_PILFER),
+                    event -> TestProtocol.DISMISS_ANIMATION_ENDS_MESSAGE.equals(
+                            event.getClassName()),
+                    () -> "Canceling swipe to dismiss did not end with task at origin.",
+                    "cancel swiping to dismiss");
+
+        }
     }
 
     /**
@@ -281,10 +311,8 @@ public final class OverviewTask {
     /**
      * Returns whether the given String is contained in this Task's contentDescription. Also returns
      * true if both Strings are null.
-     *
-     * TODO(b/342627272): remove Nullable support once the bug causing it to be null is fixed.
      */
-    public boolean containsContentDescription(@Nullable String expected,
+    public boolean containsContentDescription(String expected,
             OverviewTaskContainer overviewTaskContainer) {
         String actual = findObjectInTask(overviewTaskContainer.snapshotRes).getContentDescription();
         if (actual == null && expected == null) {
@@ -300,7 +328,7 @@ public final class OverviewTask {
      * Returns whether the given String is contained in this Task's contentDescription. Also returns
      * true if both Strings are null
      */
-    public boolean containsContentDescription(@Nullable String expected) {
+    public boolean containsContentDescription(String expected) {
         return containsContentDescription(expected, DEFAULT);
     }
 

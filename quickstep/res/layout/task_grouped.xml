@@ -33,10 +33,17 @@
     launcher:focusBorderColor="@color/materialColorOutline"
     launcher:hoverBorderColor="@color/materialColorPrimary">
 
-    <include layout="@layout/task_thumbnail_deprecated"/>
+    <ViewStub
+        android:id="@+id/snapshot"
+        android:inflatedId="@id/snapshot"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
 
-    <include layout="@layout/task_thumbnail_deprecated"
-        android:id="@+id/bottomright_snapshot" />
+    <ViewStub
+        android:id="@+id/bottomright_snapshot"
+        android:inflatedId="@id/bottomright_snapshot"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
 
     <!-- Filtering affects only alpha instead of the visibility since visibility can be altered
          separately through RecentsView#resetFromSplitSelectionState() -->

@@ -15,15 +15,14 @@
  */
 package com.android.launcher3.widget.picker;
 
-import static com.android.launcher3.Flags.enableCategorizedWidgetSuggestions;
 import static com.android.launcher3.Flags.enableTieredWidgetsByDefaultInPicker;
-import static com.android.launcher3.Flags.enableUnfoldedTwoPanePicker;
 import static com.android.launcher3.allapps.ActivityAllAppsContainerView.AdapterHolder.SEARCH;
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_WIDGETSTRAY_EXPAND_PRESS;
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_WIDGETSTRAY_SEARCHED;
 import static com.android.launcher3.testing.shared.TestProtocol.NORMAL_STATE_ORDINAL;
 import static com.android.launcher3.views.RecyclerViewFastScroller.FastScrollerLocation.WIDGET_SCROLLER;
 
+import static java.lang.Math.abs;
 import static java.util.Collections.emptyList;
 
 import android.animation.Animator;
@@ -41,6 +40,7 @@ import android.util.SparseArray;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewConfiguration;
 import android.view.ViewGroup;
 import android.view.ViewParent;
 import android.view.WindowInsets;
@@ -80,7 +80,6 @@ import com.android.launcher3.workprofile.PersonalWorkPagedView;
 import com.android.launcher3.workprofile.PersonalWorkSlidingTabStrip.OnActivePageChangedListener;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -118,6 +117,10 @@ public class WidgetsFullSheet extends BaseWidgetSheet
             new HashMap<>();
     protected int mRecommendationsCurrentPage = 0;
     protected final SparseArray<AdapterHolder> mAdapters = new SparseArray();
+
+    // Helps with removing focus from searchbar by analyzing motion events.
+    private final SearchClearFocusHelper mSearchClearFocusHelper = new SearchClearFocusHelper();
+    private final float mTouchSlop; // initialized in constructor
 
     private final OnAttachStateChangeListener mBindScrollbarInSearchMode =
             new OnAttachStateChangeListener() {
@@ -165,6 +168,7 @@ public class WidgetsFullSheet extends BaseWidgetSheet
 
     public WidgetsFullSheet(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
+        mTouchSlop = ViewConfiguration.get(context).getScaledTouchSlop();
         mDeviceProfile = mActivityContext.getDeviceProfile();
         mUserCache = UserCache.INSTANCE.get(context);
         mHasWorkProfile = mUserCache.getUserProfiles()
@@ -570,14 +574,11 @@ public class WidgetsFullSheet extends BaseWidgetSheet
     public void exitSearchMode() {
         if (!mIsInSearchMode) return;
         onSearchResults(new ArrayList<>());
-        WidgetsRecyclerView searchRecyclerView = mAdapters.get(
-                AdapterHolder.SEARCH).mWidgetsRecyclerView;
         // Remove all views when exiting the search mode; this prevents animating from stale results
         // to new ones the next time we enter search mode. By the time recycler view is hidden,
         // layout may not have happened to clear up existing results. So, instead of waiting for it
         // to happen, we clear the views here.
-        searchRecyclerView.swapAdapter(
-                searchRecyclerView.getAdapter(), /*removeAndRecycleExistingViews=*/ true);
+        mAdapters.get(AdapterHolder.SEARCH).reset();
         setViewVisibilityBasedOnSearch(/*isInSearchMode=*/ false);
         if (mHasWorkProfile) {
             mViewPager.snapToPage(AdapterHolder.PRIMARY);
@@ -606,13 +607,12 @@ public class WidgetsFullSheet extends BaseWidgetSheet
             mNoWidgetsView.setVisibility(GONE);
         } else {
             mAdapters.get(AdapterHolder.SEARCH).mWidgetsRecyclerView.setVisibility(GONE);
-            mAdapters.get(getCurrentAdapterHolderType()).mWidgetsRecyclerView.setVisibility(
-                    VISIBLE);
-            if (mRecommendedWidgetsCount > 0) {
-                // Display recommendations immediately, if present, so that other parts of sticky
-                // header (e.g. personal / work tabs) don't flash in interim.
-                mWidgetRecommendationsContainer.setVisibility(VISIBLE);
-            }
+            AdapterHolder currentAdapterHolder = mAdapters.get(getCurrentAdapterHolderType());
+            // Remove all views when exiting the search mode; this prevents animating / flashing old
+            // list position / state.
+            currentAdapterHolder.reset();
+            currentAdapterHolder.mWidgetsRecyclerView.setVisibility(VISIBLE);
+            post(this::onRecommendedWidgetsBound);
             // Visibility of recycler views and headers are handled in methods below.
             onWidgetsBound();
         }
@@ -628,35 +628,22 @@ public class WidgetsFullSheet extends BaseWidgetSheet
         if (mIsInSearchMode) {
             return;
         }
-        if (enableCategorizedWidgetSuggestions()) {
-            // We avoid applying new recommendations when some are already displayed.
-            if (mRecommendedWidgetsMap.isEmpty()) {
-                mRecommendedWidgetsMap =
-                        mActivityContext.getWidgetPickerDataProvider().get().getRecommendations();
-            }
-            mRecommendedWidgetsCount = mWidgetRecommendationsView.setRecommendations(
-                    mRecommendedWidgetsMap,
-                    mDeviceProfile,
-                    /* availableHeight= */ getMaxAvailableHeightForRecommendations(),
-                    /* availableWidth= */ mMaxSpanPerRow,
-                    /* cellPadding= */ mWidgetCellHorizontalPadding,
-                    /* requestedPage= */ mRecommendationsCurrentPage
-            );
-        } else {
-            if (mRecommendedWidgets.isEmpty()) {
-                mRecommendedWidgets = mActivityContext.getWidgetPickerDataProvider().get()
-                        .getRecommendations()
-                        .values().stream()
-                        .flatMap(Collection::stream).toList();
-                mRecommendedWidgetsCount = mWidgetRecommendationsView.setRecommendations(
-                        mRecommendedWidgets,
-                        mDeviceProfile,
-                        /* availableHeight= */ getMaxAvailableHeightForRecommendations(),
-                        /* availableWidth= */ mMaxSpanPerRow,
-                        /* cellPadding= */ mWidgetCellHorizontalPadding
-                );
-            }
+        boolean forceUpdate = false;
+        // We avoid applying new recommendations when some are already displayed.
+        if (mRecommendedWidgetsMap.isEmpty()) {
+            mRecommendedWidgetsMap =
+                    mActivityContext.getWidgetPickerDataProvider().get().getRecommendations();
+            forceUpdate = true;
         }
+        mRecommendedWidgetsCount = mWidgetRecommendationsView.setRecommendations(
+                mRecommendedWidgetsMap,
+                mDeviceProfile,
+                /* availableHeight= */ getMaxAvailableHeightForRecommendations(),
+                /* availableWidth= */ mMaxSpanPerRow,
+                /* cellPadding= */ mWidgetCellHorizontalPadding,
+                /* requestedPage= */ mRecommendationsCurrentPage,
+                /* forceUpdate= */ forceUpdate
+        );
 
         mWidgetRecommendationsContainer.setVisibility(
                 mRecommendedWidgetsCount > 0 ? VISIBLE : GONE);
@@ -714,10 +701,14 @@ public class WidgetsFullSheet extends BaseWidgetSheet
     public boolean onControllerInterceptTouchEvent(MotionEvent ev) {
         if (ev.getAction() == MotionEvent.ACTION_DOWN) {
             mNoIntercept = shouldScroll(ev);
-            if (mSearchBar.isSearchBarFocused()
-                    && !getPopupContainer().isEventOverView(mSearchBarContainer, ev)) {
-                mSearchBar.clearSearchBarFocus();
-            }
+        }
+
+        // Clear focus only if user touched outside of search area and handling focus out ourselves
+        // was necessary (e.g. when it's not predictive back, but other user interaction).
+        if (mSearchBar.isSearchBarFocused()
+                && !getPopupContainer().isEventOverView(mSearchBarContainer, ev)
+                && mSearchClearFocusHelper.shouldClearFocus(ev, mTouchSlop)) {
+            mSearchBar.clearSearchBarFocus();
         }
 
         return super.onControllerInterceptTouchEvent(ev);
@@ -784,13 +775,7 @@ public class WidgetsFullSheet extends BaseWidgetSheet
     }
 
     private static int getWidgetSheetId(BaseActivity activity) {
-        boolean isTwoPane = (activity.getDeviceProfile().isTablet
-                // Enables two pane picker for tablets in all orientations when the
-                // enableCategorizedWidgetSuggestions flag is on.
-                && (activity.getDeviceProfile().isLandscape || enableCategorizedWidgetSuggestions())
-                && !activity.getDeviceProfile().isTwoPanels)
-                // Enables two pane picker for unfolded foldables if the flag is on.
-                || (activity.getDeviceProfile().isTwoPanels && enableUnfoldedTwoPanePicker());
+        boolean isTwoPane = activity.getDeviceProfile().isTablet;
 
         return isTwoPane ? R.layout.widgets_two_pane_sheet : R.layout.widgets_full_sheet;
     }
@@ -937,16 +922,7 @@ public class WidgetsFullSheet extends BaseWidgetSheet
     private static boolean shouldRecreateLayout(DeviceProfile oldDp, DeviceProfile newDp) {
         // When folding/unfolding the foldables, we need to switch between the regular widget picker
         // and the two pane picker, so we rebuild the picker with the correct layout.
-        boolean isFoldUnFold =
-                oldDp.isTwoPanels != newDp.isTwoPanels && enableUnfoldedTwoPanePicker();
-        // In tablets, on orientation change we switch between single and two pane picker unless the
-        // categorized suggestions flag was on. With the categorized suggestions feature, we use a
-        // two pane picker across all orientations.
-        boolean useDifferentLayoutOnOrientationChange =
-                (!enableCategorizedWidgetSuggestions() && (newDp.isTablet && !newDp.isTwoPanels
-                        && oldDp.isLandscape != newDp.isLandscape));
-
-        return isFoldUnFold || useDifferentLayoutOnOrientationChange;
+        return oldDp.isTwoPanels != newDp.isTwoPanels;
     }
 
     /**
@@ -1115,6 +1091,21 @@ public class WidgetsFullSheet extends BaseWidgetSheet
             mWidgetsListItemAnimator = new WidgetsListItemAnimator();
         }
 
+        /**
+         * Swaps the adapter to existing adapter to prevent the recycler view from using stale view
+         * to animate in the new visibility update.
+         *
+         * <p>For instance, when clearing search text and re-entering search with new list shouldn't
+         * use stale results to animate in new results. Alternative is setting list animators to
+         * null, but, we need animations with the default item animator.
+         */
+        private void reset() {
+            mWidgetsRecyclerView.swapAdapter(
+                    mWidgetsListAdapter,
+                    /*removeAndRecycleExistingViews=*/ true
+            );
+        }
+
         private int getEmptySpaceHeight() {
             return mStickyHeaderLayout != null ? mStickyHeaderLayout.getHeaderHeight() : 0;
         }
@@ -1139,6 +1130,55 @@ public class WidgetsFullSheet extends BaseWidgetSheet
                 mWidgetsRecyclerView.addOnAttachStateChangeListener(mBindScrollbarInSearchMode);
             }
             mWidgetsListAdapter.setMaxHorizontalSpansPxPerRow(mMaxSpanPerRow);
+        }
+    }
+
+    /**
+     * Helper to identify if searchbar's focus can be cleared when user performs an action
+     * outside search.
+     */
+    private static class SearchClearFocusHelper {
+        private float mFirstInteractionX = -1f;
+        private float mFirstInteractionY = -1f;
+
+        /**
+         * For a given [MotionEvent] indicates if we should clear focus from search (and hide IME).
+         */
+        boolean shouldClearFocus(MotionEvent ev, float touchSlop) {
+            int action = ev.getAction();
+            boolean clearFocus = false;
+
+            if (action == MotionEvent.ACTION_DOWN) {
+                mFirstInteractionX = ev.getX();
+                mFirstInteractionY = ev.getY();
+            } else if (action == MotionEvent.ACTION_CANCEL) {
+                // This is when user performed a gesture e.g. predictive back
+                // We don't handle it ourselves and let IME handle the close.
+                mFirstInteractionY = -1;
+                mFirstInteractionX = -1;
+            } else if (action == MotionEvent.ACTION_UP) {
+                // Its clear that user action wasn't predictive back - but press / scroll etc. that
+                // should hide the keyboard.
+                clearFocus = true;
+                mFirstInteractionY = -1;
+                mFirstInteractionX = -1;
+            } else if (action == MotionEvent.ACTION_MOVE) {
+                // Sometimes, on move, we may not receive ACTION_UP, but if the move was within
+                // touch slop and we didn't know if its moved or cancelled, we can clear focus.
+                // Example case: Apps list is small and you do a little scroll on list - in such, we
+                // want to still hide the keyboard.
+                if (mFirstInteractionX != -1 && mFirstInteractionY != -1) {
+                    float distY = abs(mFirstInteractionY - ev.getY());
+                    float distX = abs(mFirstInteractionX - ev.getX());
+                    if (distY >= touchSlop || distX >= touchSlop) {
+                        clearFocus = true;
+                        mFirstInteractionY = -1;
+                        mFirstInteractionX = -1;
+                    }
+                }
+            }
+
+            return clearFocus;
         }
     }
 }

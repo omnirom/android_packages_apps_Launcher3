@@ -333,13 +333,11 @@ public class FallbackRecentsTest {
 
     private class OverviewUpdateHandler implements OverviewChangeListener {
 
-        final RecentsAnimationDeviceState mRads;
         final OverviewComponentObserver mObserver;
         final CountDownLatch mChangeCounter;
 
         OverviewUpdateHandler() {
             Context ctx = getInstrumentation().getTargetContext();
-            mRads = new RecentsAnimationDeviceState(ctx);
             mObserver = OverviewComponentObserver.INSTANCE.get(ctx);
             mChangeCounter = new CountDownLatch(1);
             if (mObserver.getHomeIntent().getComponent()
@@ -358,7 +356,6 @@ public class FallbackRecentsTest {
 
         void destroy() {
             mObserver.removeOverviewChangeListener(this);
-            mRads.destroy();
         }
     }
 }

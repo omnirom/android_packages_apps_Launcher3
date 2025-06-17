@@ -51,7 +51,6 @@ import androidx.annotation.Nullable;
 import androidx.annotation.StringRes;
 
 import com.android.launcher3.R;
-import com.android.launcher3.contextualeducation.ContextualEduStatsManager;
 import com.android.launcher3.logging.StatsLogManager;
 import com.android.launcher3.testing.TestLogging;
 import com.android.launcher3.testing.shared.TestProtocol;
@@ -120,7 +119,6 @@ public class TaskbarNavButtonController implements TaskbarControllers.LoggableTa
     private final Context mContext;
     private final TaskbarNavButtonCallbacks mCallbacks;
     private final SystemUiProxy mSystemUiProxy;
-    private final ContextualEduStatsManager mContextualEduStatsManager;
     private final Handler mHandler;
     private final ContextualSearchInvoker mContextualSearchInvoker;
     @Nullable private StatsLogManager mStatsLogManager;
@@ -131,13 +129,11 @@ public class TaskbarNavButtonController implements TaskbarControllers.LoggableTa
             Context context,
             TaskbarNavButtonCallbacks callbacks,
             SystemUiProxy systemUiProxy,
-            ContextualEduStatsManager contextualEduStatsManager,
             Handler handler,
             ContextualSearchInvoker contextualSearchInvoker) {
         mContext = context;
         mCallbacks = callbacks;
         mSystemUiProxy = systemUiProxy;
-        mContextualEduStatsManager = contextualEduStatsManager;
         mHandler = handler;
         mContextualSearchInvoker = contextualSearchInvoker;
     }
@@ -151,21 +147,19 @@ public class TaskbarNavButtonController implements TaskbarControllers.LoggableTa
             // prevent interactions with other buttons while back button is pressed
             return;
         }
-        // Provide the same haptic feedback that the system offers for virtual keys.
-        view.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY);
         switch (buttonType) {
             case BUTTON_BACK:
                 executeBack(/* keyEvent */ null);
                 break;
             case BUTTON_HOME:
                 logEvent(LAUNCHER_TASKBAR_HOME_BUTTON_TAP);
-                mContextualEduStatsManager.updateEduStats(/* isTrackpadGesture= */ false,
+                mSystemUiProxy.updateContextualEduStats(/* isTrackpadGesture= */ false,
                         GestureType.HOME);
                 navigateHome();
                 break;
             case BUTTON_RECENTS:
                 logEvent(LAUNCHER_TASKBAR_OVERVIEW_BUTTON_TAP);
-                mContextualEduStatsManager.updateEduStats(/* isTrackpadGesture= */ false,
+                mSystemUiProxy.updateContextualEduStats(/* isTrackpadGesture= */ false,
                         GestureType.OVERVIEW);
                 navigateToOverview();
                 break;
@@ -364,7 +358,7 @@ public class TaskbarNavButtonController implements TaskbarControllers.LoggableTa
     private void executeBack(@Nullable KeyEvent keyEvent) {
         if (keyEvent == null || (keyEvent.getAction() == ACTION_UP && !keyEvent.isCanceled())) {
             logEvent(LAUNCHER_TASKBAR_BACK_BUTTON_TAP);
-            mContextualEduStatsManager.updateEduStats(/* isTrackpadGesture= */ false,
+            mSystemUiProxy.updateContextualEduStats(/* isTrackpadGesture= */ false,
                     GestureType.BACK);
         }
         mSystemUiProxy.onBackEvent(keyEvent);

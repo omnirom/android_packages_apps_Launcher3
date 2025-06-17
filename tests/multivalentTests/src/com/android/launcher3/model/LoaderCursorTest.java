@@ -16,8 +16,12 @@
 
 package com.android.launcher3.model;
 
+import static android.graphics.BitmapFactory.decodeByteArray;
+import static android.platform.test.flag.junit.SetFlagsRule.DefaultInitValueType.DEVICE_DEFAULT;
+
 import static androidx.test.InstrumentationRegistry.getContext;
 
+import static com.android.launcher3.LauncherPrefs.IS_FIRST_LOAD_AFTER_RESTORE;
 import static com.android.launcher3.LauncherSettings.Favorites.APPWIDGET_ID;
 import static com.android.launcher3.LauncherSettings.Favorites.APPWIDGET_PROVIDER;
 import static com.android.launcher3.LauncherSettings.Favorites.APPWIDGET_SOURCE;
@@ -40,7 +44,10 @@ import static com.android.launcher3.LauncherSettings.Favorites.SPANX;
 import static com.android.launcher3.LauncherSettings.Favorites.SPANY;
 import static com.android.launcher3.LauncherSettings.Favorites.TITLE;
 import static com.android.launcher3.LauncherSettings.Favorites._ID;
+import static com.android.launcher3.model.data.ItemInfoWithIcon.FLAG_ARCHIVED;
 import static com.android.launcher3.util.LauncherModelHelper.TEST_ACTIVITY;
+
+import static com.google.common.truth.Truth.assertThat;
 
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertFalse;
@@ -49,24 +56,33 @@ import static junit.framework.Assert.assertNull;
 import static junit.framework.Assert.assertTrue;
 
 import android.content.ComponentName;
-import android.content.Context;
 import android.content.Intent;
 import android.database.MatrixCursor;
+import android.graphics.Bitmap;
 import android.os.Process;
+import android.platform.test.annotations.DisableFlags;
+import android.platform.test.annotations.EnableFlags;
+import android.platform.test.flag.junit.SetFlagsRule;
 
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.filters.SmallTest;
 
+import com.android.launcher3.Flags;
 import com.android.launcher3.InvariantDeviceProfile;
 import com.android.launcher3.LauncherAppState;
+import com.android.launcher3.LauncherPrefs;
+import com.android.launcher3.icons.BitmapInfo;
+import com.android.launcher3.icons.LauncherIcons;
 import com.android.launcher3.model.data.ItemInfo;
 import com.android.launcher3.model.data.WorkspaceItemInfo;
 import com.android.launcher3.util.Executors;
 import com.android.launcher3.util.LauncherModelHelper;
+import com.android.launcher3.util.LauncherModelHelper.SandboxModelContext;
 import com.android.launcher3.util.PackageManagerHelper;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -77,23 +93,32 @@ import org.junit.runner.RunWith;
 @RunWith(AndroidJUnit4.class)
 public class LoaderCursorTest {
 
+    @Rule
+    public final SetFlagsRule mSetFlagsRule = new SetFlagsRule(DEVICE_DEFAULT);
+
     private LauncherModelHelper mModelHelper;
     private LauncherAppState mApp;
-    private PackageManagerHelper mPmHelper;
+    private LauncherPrefs mPrefs;
 
     private MatrixCursor mCursor;
     private InvariantDeviceProfile mIDP;
-    private Context mContext;
+    private SandboxModelContext mContext;
 
     private LoaderCursor mLoaderCursor;
+
+    private static byte[] sTestBlob = new byte[] {
+            -119, 80, 78, 71, 13, 10, 26, 10, 0, 0, 0, 13, 73, 72, 68, 82, 0, 0, 0, 1, 0, 0, 0, 1,
+            8, 4, 0, 0, 0, -75, 28, 12, 2, 0, 0, 0, 11, 73, 68, 65, 84, 120, -38, 99, 100, 96, 0,
+            0, 0, 6, 0, 2, 48, -127, -48, 47, 0, 0, 0, 0, 73, 69, 78, 68, -82, 66, 96, -126
+    };
 
     @Before
     public void setup() {
         mModelHelper = new LauncherModelHelper();
         mContext = mModelHelper.sandboxContext;
+        mPrefs = LauncherPrefs.get(mContext);
         mIDP = InvariantDeviceProfile.INSTANCE.get(mContext);
         mApp = LauncherAppState.getInstance(mContext);
-        mPmHelper = PackageManagerHelper.INSTANCE.get(mContext);
 
         mCursor = new MatrixCursor(new String[] {
                 ICON, TITLE, _ID, CONTAINER, ITEM_TYPE,
@@ -103,12 +128,14 @@ public class LoaderCursorTest {
         });
 
         UserManagerState ums = new UserManagerState();
-        mLoaderCursor = new LoaderCursor(mCursor, mApp, ums, mPmHelper, null);
+        mLoaderCursor = mContext.getAppComponent().getLoaderCursorFactory()
+                .createLoaderCursor(mCursor, ums, null);
         ums.allUsers.put(0, Process.myUserHandle());
     }
 
     @After
     public void tearDown() {
+        mPrefs.putSync(IS_FIRST_LOAD_AFTER_RESTORE.to(false));
         mCursor.close();
         mModelHelper.destroy();
     }
@@ -119,7 +146,8 @@ public class LoaderCursorTest {
                 .add(PROFILE_ID, 0)
                 .add(ITEM_TYPE, itemType)
                 .add(TITLE, title)
-                .add(CONTAINER, CONTAINER_DESKTOP);
+                .add(CONTAINER, CONTAINER_DESKTOP)
+                .add(ICON, sTestBlob);
     }
 
     @Test
@@ -161,7 +189,12 @@ public class LoaderCursorTest {
 
     @Test
     public void loadSimpleShortcut() {
-        initCursor(ITEM_TYPE_DEEP_SHORTCUT, "my-shortcut");
+        mCursor.newRow()
+                .add(_ID, 1)
+                .add(PROFILE_ID, 0)
+                .add(ITEM_TYPE, ITEM_TYPE_DEEP_SHORTCUT)
+                .add(TITLE, "my-shortcut")
+                .add(CONTAINER, CONTAINER_DESKTOP);
         assertTrue(mLoaderCursor.moveToNext());
 
         WorkspaceItemInfo info = mLoaderCursor.loadSimpleWorkspaceItem();
@@ -222,6 +255,86 @@ public class LoaderCursorTest {
         assertFalse(mLoaderCursor.checkItemPlacement(
                 newItemInfo(3, 3, 1, 1, CONTAINER_HOTSEAT, 3), true));
     }
+
+    @Test
+    @EnableFlags(Flags.FLAG_RESTORE_ARCHIVED_APP_ICONS_FROM_DB)
+    public void ifArchivedWithFlagAndRestore_whenloadWorkspaceTitleAndIcon_thenLoadIconFromDb() {
+        // Given
+        mPrefs.putSync(IS_FIRST_LOAD_AFTER_RESTORE.to(true));
+        initCursor(ITEM_TYPE_APPLICATION, "title");
+        assertTrue(mLoaderCursor.moveToNext());
+        WorkspaceItemInfo itemInfo = new WorkspaceItemInfo();
+        itemInfo.runtimeStatusFlags |= FLAG_ARCHIVED;
+        Bitmap expectedBitmap = LauncherIcons.obtain(mContext)
+                .createIconBitmap(decodeByteArray(sTestBlob, 0, sTestBlob.length))
+                .icon;
+
+        // When
+        mLoaderCursor.loadWorkspaceTitleAndIcon(false, true, itemInfo);
+        // Then
+        assertThat(itemInfo.bitmap.icon).isNotNull();
+        assertThat(itemInfo.bitmap.icon.sameAs(expectedBitmap)).isTrue();
+    }
+
+    @Test
+    @EnableFlags(Flags.FLAG_RESTORE_ARCHIVED_APP_ICONS_FROM_DB)
+    public void ifArchivedWithFlagAndNotRestore_whenloadWorkspaceTitleAndIcon_thenLoadIconFromDb() {
+        // Given
+        mPrefs.putSync(IS_FIRST_LOAD_AFTER_RESTORE.to(false));
+        initCursor(ITEM_TYPE_APPLICATION, "title");
+        assertTrue(mLoaderCursor.moveToNext());
+        WorkspaceItemInfo itemInfo = new WorkspaceItemInfo();
+        BitmapInfo original = itemInfo.bitmap;
+        itemInfo.runtimeStatusFlags |= FLAG_ARCHIVED;
+
+        // When
+        mLoaderCursor.loadWorkspaceTitleAndIcon(false, true, itemInfo);
+        // Then
+        assertThat(itemInfo.bitmap).isEqualTo(original);
+    }
+
+    @Test
+    @EnableFlags(Flags.FLAG_RESTORE_ARCHIVED_APP_ICONS_FROM_DB)
+    public void ifArchivedWithFlag_whenLoadIconFromDb_thenLoadIconFromBlob() {
+        // Given
+        initCursor(ITEM_TYPE_APPLICATION, "title");
+        assertTrue(mLoaderCursor.moveToNext());
+        WorkspaceItemInfo itemInfo = new WorkspaceItemInfo();
+        itemInfo.runtimeStatusFlags |= FLAG_ARCHIVED;
+        // Then
+        assertTrue(mLoaderCursor.loadIconFromDb(itemInfo));
+    }
+
+    @Test
+    @DisableFlags(Flags.FLAG_RESTORE_ARCHIVED_APP_ICONS_FROM_DB)
+    public void ifArchivedWithoutFlag_whenLoadWorkspaceTitleAndIcon_thenDoNotLoadFromDb() {
+        // Given
+        initCursor(ITEM_TYPE_APPLICATION, "title");
+        assertTrue(mLoaderCursor.moveToNext());
+        WorkspaceItemInfo itemInfo = new WorkspaceItemInfo();
+        BitmapInfo original = itemInfo.bitmap;
+        itemInfo.runtimeStatusFlags |= FLAG_ARCHIVED;
+        Intent intent = new Intent();
+        intent.setComponent(new ComponentName("package", "class"));
+        itemInfo.intent = intent;
+        // When
+        mLoaderCursor.loadWorkspaceTitleAndIcon(false, false, itemInfo);
+        // Then
+        assertThat(itemInfo.bitmap).isEqualTo(original);
+    }
+
+    @Test
+    @DisableFlags(Flags.FLAG_RESTORE_ARCHIVED_APP_ICONS_FROM_DB)
+    public void ifArchivedWithoutFlag_whenLoadIconFromDb_thenDoNotLoadFromBlob() {
+        // Given
+        initCursor(ITEM_TYPE_APPLICATION, "title");
+        assertTrue(mLoaderCursor.moveToNext());
+        WorkspaceItemInfo itemInfo = new WorkspaceItemInfo();
+        itemInfo.runtimeStatusFlags |= FLAG_ARCHIVED;
+        // Then
+        assertFalse(mLoaderCursor.loadIconFromDb(itemInfo));
+    }
+
 
     private ItemInfo newItemInfo(int cellX, int cellY, int spanX, int spanY,
             int container, int screenId) {

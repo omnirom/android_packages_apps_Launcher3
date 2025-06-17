@@ -47,7 +47,7 @@ class LauncherWidgetHolderTest {
     fun setUp() {
         assertTrue(WIDGETS_ENABLED)
         widgetHolder =
-            LauncherWidgetHolder(ActivityContextWrapper(getInstrumentation().targetContext)) {}
+            LauncherWidgetHolder(ActivityContextWrapper(getInstrumentation().targetContext))
     }
 
     @After
@@ -62,7 +62,7 @@ class LauncherWidgetHolderTest {
         widgetHolder.setListeningFlag(false)
         assertFalse(widgetHolder.isListening)
         widgetHolder.startListening()
-        widgetHolder.widgetHolderExecutor.submit {}.get()
+        ListenableAppWidgetHost.widgetHolderExecutor.submit {}.get()
         getInstrumentation().waitForIdleSync()
         assertTrue(widgetHolder.isListening)
         verify(testView, times(1)).reInflate()
@@ -73,10 +73,10 @@ class LauncherWidgetHolderTest {
     fun holder_start_listening_after_activity_start() {
         widgetHolder.setShouldListenFlag(FLAG_STATE_IS_NORMAL or FLAG_ACTIVITY_RESUMED, true)
         widgetHolder.setActivityStarted(false)
-        widgetHolder.widgetHolderExecutor.submit {}.get()
+        ListenableAppWidgetHost.widgetHolderExecutor.submit {}.get()
         assertFalse(widgetHolder.shouldListen(widgetHolder.mFlags.get()))
         widgetHolder.setActivityStarted(true)
-        widgetHolder.widgetHolderExecutor.submit {}.get()
+        ListenableAppWidgetHost.widgetHolderExecutor.submit {}.get()
         assertTrue(widgetHolder.shouldListen(widgetHolder.mFlags.get()))
     }
 
@@ -84,10 +84,10 @@ class LauncherWidgetHolderTest {
     fun holder_start_listening_after_activity_resume() {
         widgetHolder.setShouldListenFlag(FLAG_STATE_IS_NORMAL or FLAG_ACTIVITY_STARTED, true)
         widgetHolder.setActivityResumed(false)
-        widgetHolder.widgetHolderExecutor.submit {}.get()
+        ListenableAppWidgetHost.widgetHolderExecutor.submit {}.get()
         assertFalse(widgetHolder.shouldListen(widgetHolder.mFlags.get()))
         widgetHolder.setActivityResumed(true)
-        widgetHolder.widgetHolderExecutor.submit {}.get()
+        ListenableAppWidgetHost.widgetHolderExecutor.submit {}.get()
         assertTrue(widgetHolder.shouldListen(widgetHolder.mFlags.get()))
     }
 
@@ -95,10 +95,10 @@ class LauncherWidgetHolderTest {
     fun holder_start_listening_after_state_normal() {
         widgetHolder.setShouldListenFlag(FLAG_ACTIVITY_RESUMED or FLAG_ACTIVITY_STARTED, true)
         widgetHolder.setStateIsNormal(false)
-        widgetHolder.widgetHolderExecutor.submit {}.get()
+        ListenableAppWidgetHost.widgetHolderExecutor.submit {}.get()
         assertFalse(widgetHolder.shouldListen(widgetHolder.mFlags.get()))
         widgetHolder.setStateIsNormal(true)
-        widgetHolder.widgetHolderExecutor.submit {}.get()
+        ListenableAppWidgetHost.widgetHolderExecutor.submit {}.get()
         assertTrue(widgetHolder.shouldListen(widgetHolder.mFlags.get()))
     }
 
@@ -117,7 +117,7 @@ class LauncherWidgetHolderTest {
 
     @Test
     fun holder_add_provider_change_listener() {
-        val listener = LauncherWidgetHolder.ProviderChangedListener {}
+        val listener = ListenableAppWidgetHost.ProviderChangedListener {}
         widgetHolder.addProviderChangeListener(listener)
         getInstrumentation().waitForIdleSync()
         assertEquals(1, widgetHolder.mProviderChangedListeners.size)
@@ -127,7 +127,7 @@ class LauncherWidgetHolderTest {
 
     @Test
     fun holder_remove_provider_change_listener() {
-        val listener = LauncherWidgetHolder.ProviderChangedListener {}
+        val listener = ListenableAppWidgetHost.ProviderChangedListener {}
         widgetHolder.addProviderChangeListener(listener)
         widgetHolder.removeProviderChangeListener(listener)
         getInstrumentation().waitForIdleSync()
@@ -139,7 +139,7 @@ class LauncherWidgetHolderTest {
         widgetHolder.setListeningFlag(true)
         assertTrue(widgetHolder.isListening)
         widgetHolder.stopListening()
-        widgetHolder.widgetHolderExecutor.submit {}.get()
+        ListenableAppWidgetHost.widgetHolderExecutor.submit {}.get()
         assertFalse(widgetHolder.isListening)
     }
 

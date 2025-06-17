@@ -23,6 +23,7 @@ import android.content.pm.LauncherApps
 import android.content.pm.PackageInstaller
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
+import android.os.Process.myUserHandle
 import android.os.UserHandle
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.SmallTest
@@ -51,7 +52,7 @@ class InstallSessionHelperTest {
     private val sandboxContext = spy(launcherModelHelper.sandboxContext)
     private val packageManager = sandboxContext.packageManager
     private val expectedAppPackage = "expectedAppPackage"
-    private val expectedInstallerPackage = "expectedInstallerPackage"
+    private val expectedInstallerPackage = sandboxContext.packageName
     private val mockPackageInstaller: PackageInstaller = mock()
 
     private lateinit var installSessionHelper: InstallSessionHelper
@@ -60,7 +61,6 @@ class InstallSessionHelperTest {
     @Before
     fun setup() {
         whenever(packageManager.packageInstaller).thenReturn(mockPackageInstaller)
-        whenever(sandboxContext.packageName).thenReturn(expectedInstallerPackage)
         launcherApps = sandboxContext.spyService(LauncherApps::class.java)
         installSessionHelper = InstallSessionHelper(sandboxContext)
     }
@@ -73,14 +73,14 @@ class InstallSessionHelperTest {
                 sessionId = 0
                 installerPackageName = expectedInstallerPackage
                 appPackageName = expectedAppPackage
-                userId = 0
+                userId = myUserHandle().identifier
             }
         val expectedVerifiedSession2 =
             PackageInstaller.SessionInfo().apply {
                 sessionId = 1
                 installerPackageName = expectedInstallerPackage
                 appPackageName = "app2"
-                userId = 0
+                userId = myUserHandle().identifier
             }
         val expectedSessions = listOf(expectedVerifiedSession1, expectedVerifiedSession2)
         whenever(launcherApps.allPackageInstallerSessions).thenReturn(expectedSessions)
@@ -97,13 +97,13 @@ class InstallSessionHelperTest {
             PackageInstaller.SessionInfo().apply {
                 installerPackageName = expectedInstallerPackage
                 appPackageName = expectedAppPackage
-                userId = 0
+                userId = myUserHandle().identifier
             }
         whenever(launcherApps.allPackageInstallerSessions)
             .thenReturn(listOf(expectedVerifiedSession))
         // When
         val actualSession =
-            installSessionHelper.getActiveSessionInfo(UserHandle(0), expectedAppPackage)
+            installSessionHelper.getActiveSessionInfo(myUserHandle(), expectedAppPackage)
         // Then
         assertThat(actualSession).isEqualTo(expectedVerifiedSession)
     }
@@ -116,7 +116,7 @@ class InstallSessionHelperTest {
                 sessionId = 1
                 installerPackageName = expectedInstallerPackage
                 appPackageName = expectedAppPackage
-                userId = 0
+                userId = myUserHandle().identifier
             }
         whenever(mockPackageInstaller.getSessionInfo(1)).thenReturn(expectedSession)
         // When
@@ -147,14 +147,14 @@ class InstallSessionHelperTest {
                 sessionId = 0
                 installerPackageName = expectedInstallerPackage
                 appPackageName = expectedAppPackage
-                userId = 0
+                userId = myUserHandle().identifier
             }
         val expectedVerifiedSession2 =
             PackageInstaller.SessionInfo().apply {
                 sessionId = 1
                 installerPackageName = expectedInstallerPackage
                 appPackageName = "app2"
-                userId = 0
+                userId = myUserHandle().identifier
             }
         val expectedSessions = listOf(expectedVerifiedSession1, expectedVerifiedSession2)
         whenever(launcherApps.allPackageInstallerSessions).thenReturn(expectedSessions)
@@ -174,7 +174,7 @@ class InstallSessionHelperTest {
                 sessionId = 1
                 installerPackageName = expectedInstallerPackage
                 appPackageName = "app2"
-                userId = 0
+                userId = myUserHandle().identifier
             }
         whenever(launcherApps.allPackageInstallerSessions).thenReturn(listOf(expectedSession))
         // When
@@ -196,7 +196,7 @@ class InstallSessionHelperTest {
                 sessionId = 1
                 installerPackageName = expectedInstallerPackage
                 appPackageName = "app2"
-                userId = 0
+                userId = myUserHandle().identifier
             }
         whenever(launcherApps.allPackageInstallerSessions).thenReturn(listOf(expectedSession))
         // When
@@ -219,7 +219,7 @@ class InstallSessionHelperTest {
                 sessionId = 1
                 installerPackageName = expectedInstallerPackage
                 appPackageName = "appPackage"
-                userId = 0
+                userId = myUserHandle().identifier
                 appIcon = Bitmap.createBitmap(1, 1, Bitmap.Config.ALPHA_8)
                 appLabel = "appLabel"
                 installReason = PackageManager.INSTALL_REASON_USER
@@ -249,7 +249,7 @@ class InstallSessionHelperTest {
                 sessionId = 1
                 installerPackageName = expectedInstallerPackage
                 appPackageName = "appPackage"
-                userId = 0
+                userId = myUserHandle().identifier
                 appIcon = Bitmap.createBitmap(1, 1, Bitmap.Config.ALPHA_8)
                 appLabel = "appLabel"
                 installReason = PackageManager.INSTALL_REASON_USER

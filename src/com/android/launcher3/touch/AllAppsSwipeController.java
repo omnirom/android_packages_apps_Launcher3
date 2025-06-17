@@ -22,6 +22,7 @@ import static com.android.app.animation.Interpolators.EMPHASIZED_DECELERATE;
 import static com.android.app.animation.Interpolators.FINAL_FRAME;
 import static com.android.app.animation.Interpolators.INSTANT;
 import static com.android.app.animation.Interpolators.LINEAR;
+import static com.android.app.animation.Interpolators.clampToProgress;
 import static com.android.launcher3.LauncherState.ALL_APPS;
 import static com.android.launcher3.LauncherState.NORMAL;
 import static com.android.launcher3.states.StateAnimationConfig.ANIM_ALL_APPS_FADE;
@@ -39,6 +40,7 @@ import android.view.animation.Interpolator;
 
 import com.android.app.animation.Interpolators;
 import com.android.launcher3.AbstractFloatingView;
+import com.android.launcher3.Flags;
 import com.android.launcher3.Launcher;
 import com.android.launcher3.LauncherState;
 import com.android.launcher3.states.StateAnimationConfig;
@@ -53,10 +55,10 @@ public class AllAppsSwipeController extends AbstractStateChangeTouchController {
     private static final float ALL_APPS_SCRIM_VISIBLE_THRESHOLD = 0.1f;
     private static final float ALL_APPS_STAGGERED_FADE_THRESHOLD = 0.5f;
 
-    public static final Interpolator ALL_APPS_SCRIM_RESPONDER =
+    private static final Interpolator ALL_APPS_SCRIM_RESPONDER =
             Interpolators.clampToProgress(
                     LINEAR, ALL_APPS_SCRIM_VISIBLE_THRESHOLD, ALL_APPS_STAGGERED_FADE_THRESHOLD);
-    public static final Interpolator ALL_APPS_CLAMPING_RESPONDER =
+    private static final Interpolator ALL_APPS_CLAMPING_RESPONDER =
             Interpolators.clampToProgress(
                     LINEAR,
                     1 - ALL_APPS_CONTENT_FADE_MAX_CLAMPING_THRESHOLD,
@@ -207,6 +209,20 @@ public class AllAppsSwipeController extends AbstractStateChangeTouchController {
             }
             config.setInterpolator(ANIM_WORKSPACE_SCALE, DECELERATED_EASE);
             config.setInterpolator(ANIM_DEPTH, DECELERATED_EASE);
+            if (Flags.allAppsBlur()) {
+                if (!config.isUserControlled()) {
+                    config.setInterpolator(ANIM_DEPTH, EMPHASIZED_DECELERATE);
+                }
+                config.setInterpolator(ANIM_WORKSPACE_FADE,
+                        clampToProgress(LINEAR, 1 - ALL_APPS_SCRIM_VISIBLE_THRESHOLD, 1));
+                config.setInterpolator(ANIM_HOTSEAT_FADE,
+                        clampToProgress(LINEAR, 1 - ALL_APPS_SCRIM_VISIBLE_THRESHOLD, 1));
+            } else if (launcher.getDeviceProfile().isPhone) {
+                // On phones without blur, reveal the workspace and hotseat when leaving All Apps.
+                config.setInterpolator(ANIM_WORKSPACE_FADE, INSTANT);
+                config.setInterpolator(ANIM_HOTSEAT_FADE, INSTANT);
+                config.animFlags |= StateAnimationConfig.SKIP_DEPTH_CONTROLLER;
+            }
         } else {
             if (config.isUserControlled()) {
                 config.setInterpolator(ANIM_DEPTH, Interpolators.reverse(BLUR_MANUAL));
@@ -248,6 +264,18 @@ public class AllAppsSwipeController extends AbstractStateChangeTouchController {
             }
             config.setInterpolator(ANIM_WORKSPACE_SCALE, DECELERATED_EASE);
             config.setInterpolator(ANIM_DEPTH, DECELERATED_EASE);
+            if (Flags.allAppsBlur()) {
+                config.setInterpolator(ANIM_DEPTH, LINEAR);
+                config.setInterpolator(ANIM_WORKSPACE_FADE,
+                        clampToProgress(LINEAR, 0, ALL_APPS_SCRIM_VISIBLE_THRESHOLD));
+                config.setInterpolator(ANIM_HOTSEAT_FADE,
+                        clampToProgress(LINEAR, 0, ALL_APPS_SCRIM_VISIBLE_THRESHOLD));
+            } else if (launcher.getDeviceProfile().isPhone) {
+                // On phones without blur, hide the workspace and hotseat when entering All Apps.
+                config.setInterpolator(ANIM_WORKSPACE_FADE, FINAL_FRAME);
+                config.setInterpolator(ANIM_HOTSEAT_FADE, FINAL_FRAME);
+                config.animFlags |= StateAnimationConfig.SKIP_DEPTH_CONTROLLER;
+            }
         } else {
             config.setInterpolator(ANIM_DEPTH,
                     config.isUserControlled() ? BLUR_MANUAL : BLUR_ATOMIC);

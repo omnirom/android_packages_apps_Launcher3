@@ -15,10 +15,14 @@
  */
 package com.android.launcher3.allapps;
 
+import static android.multiuser.Flags.enableMovingContentIntoPrivateSpace;
+
 import static com.android.launcher3.allapps.BaseAllAppsAdapter.VIEW_TYPE_BOTTOM_VIEW_TO_SCROLL_TO;
+import static com.android.launcher3.allapps.BaseAllAppsAdapter.VIEW_TYPE_MASK_PRIVATE_SPACE_HEADER;
 import static com.android.launcher3.allapps.SectionDecorationInfo.ROUND_BOTTOM_LEFT;
 import static com.android.launcher3.allapps.SectionDecorationInfo.ROUND_BOTTOM_RIGHT;
 import static com.android.launcher3.allapps.SectionDecorationInfo.ROUND_NOTHING;
+import static com.android.launcher3.icons.BitmapInfo.FLAG_NO_BADGE;
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_PRIVATE_SPACE_PREINSTALLED_APPS_COUNT;
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_PRIVATE_SPACE_USER_INSTALLED_APPS_COUNT;
 
@@ -60,6 +64,7 @@ public class AlphabeticalAppsList<T extends Context & ActivityContext> implement
         AllAppsStore.OnUpdateListener {
 
     public static final String TAG = "AlphabeticalAppsList";
+    public static final String PRIVATE_SPACE_PACKAGE = "com.android.privatespace";
 
     private final WorkProfileManager mWorkProviderManager;
 
@@ -382,7 +387,7 @@ public class AlphabeticalAppsList<T extends Context & ActivityContext> implement
 
     private int addPrivateSpaceApps(int position) {
         // Add Install Apps Button first.
-        if (Flags.privateSpaceAppInstallerButton()) {
+        if (Flags.privateSpaceAppInstallerButton() && !enableMovingContentIntoPrivateSpace()) {
             mPrivateProviderManager.addPrivateSpaceInstallAppButton(mAdapterItems);
             position++;
         }
@@ -419,6 +424,31 @@ public class AlphabeticalAppsList<T extends Context & ActivityContext> implement
         // Add system apps.
         position = addAppsWithSections(split.get(false), position);
 
+        if (enableMovingContentIntoPrivateSpace()) {
+            // Look for the private space app via package and move it after header.
+            int headerIndex = -1;
+            int privateSpaceAppIndex = -1;
+            for (int i = 0; i < mAdapterItems.size(); i++) {
+                BaseAllAppsAdapter.AdapterItem currentItem = mAdapterItems.get(i);
+                if (currentItem.viewType == VIEW_TYPE_MASK_PRIVATE_SPACE_HEADER) {
+                    headerIndex = i;
+                }
+                if (currentItem.itemInfo != null && Objects.equals(
+                        currentItem.itemInfo.getTargetPackage(), PRIVATE_SPACE_PACKAGE)) {
+                    currentItem.itemInfo.bitmap = mPrivateProviderManager.preparePSBitmapInfo();
+                    currentItem.itemInfo.bitmap.creationFlags |= FLAG_NO_BADGE;
+                    currentItem.itemInfo.contentDescription =
+                            mPrivateProviderManager.getPsAppContentDesc();
+                    privateSpaceAppIndex = i;
+                }
+            }
+            if (headerIndex != -1 && privateSpaceAppIndex != -1) {
+                BaseAllAppsAdapter.AdapterItem movedItem =
+                        mAdapterItems.remove(privateSpaceAppIndex);
+                // Move the icon after the header.
+                mAdapterItems.add(headerIndex + 1, movedItem);
+            }
+        }
         return position;
     }
 

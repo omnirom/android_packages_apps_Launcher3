@@ -32,12 +32,12 @@ import com.android.launcher3.Utilities.dpToPx
 import com.android.launcher3.config.FeatureFlags.enableTaskbarPinning
 import com.android.launcher3.taskbar.TaskbarActivityContext
 import com.android.launcher3.taskbar.TaskbarViewCallbacks
-import com.android.launcher3.util.DisplayController
 import com.android.launcher3.util.Executors.MAIN_EXECUTOR
 import com.android.launcher3.views.ActivityContext
 import com.android.launcher3.views.IconButtonView
 import com.android.quickstep.DeviceConfigWrapper
 import com.android.quickstep.util.ContextualSearchStateManager
+import com.android.wm.shell.Flags
 
 /** Taskbar all apps button container for customizable taskbar. */
 class TaskbarAllAppsButtonContainer
@@ -69,7 +69,7 @@ constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
             )
         backgroundTintList = ColorStateList.valueOf(TRANSPARENT)
         setIconDrawable(drawable)
-        if (!DisplayController.isTransientTaskbar(context)) {
+        if (!activityContext.isTransientTaskbar) {
             setPadding(dpToPx(activityContext.taskbarSpecsEvaluator.taskbarIconPadding.toFloat()))
         }
         setForegroundTint(activityContext.getColor(R.color.all_apps_button_color))
@@ -98,14 +98,34 @@ constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
 
     @DrawableRes
     private fun getAllAppsButton(isTransientTaskbar: Boolean): Int {
+        if (Flags.enableGsf()) {
+            return getAllAppsButtonForExpressiveTheme()
+        }
         val shouldSelectTransientIcon =
             isTransientTaskbar || (enableTaskbarPinning() && !activityContext.isThreeButtonNav)
         return if (shouldSelectTransientIcon) R.drawable.ic_transient_taskbar_all_apps_search_button
         else R.drawable.ic_taskbar_all_apps_search_button
     }
 
+    @DrawableRes
+    private fun getAllAppsButtonForExpressiveTheme(): Int {
+        return R.drawable.ic_taskbar_all_apps_search_button_expressive_theme
+    }
+
+    @DimenRes
+    fun getAllAppsButtonTranslationXOffsetForExpressiveTheme(isTransientTaskbar: Boolean): Int {
+        return if (isTransientTaskbar) {
+            R.dimen.transient_taskbar_all_apps_button_translation_x_offset_for_expressive_theme
+        } else {
+            R.dimen.taskbar_all_apps_search_button_translation_x_offset_for_expressive_theme
+        }
+    }
+
     @DimenRes
     fun getAllAppsButtonTranslationXOffset(isTransientTaskbar: Boolean): Int {
+        if (Flags.enableGsf()) {
+            return getAllAppsButtonTranslationXOffsetForExpressiveTheme(isTransientTaskbar)
+        }
         return if (isTransientTaskbar) {
             R.dimen.transient_taskbar_all_apps_button_translation_x_offset
         } else {

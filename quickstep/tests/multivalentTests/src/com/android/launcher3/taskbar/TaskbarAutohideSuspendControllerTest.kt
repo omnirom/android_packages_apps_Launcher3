@@ -17,10 +17,12 @@
 package com.android.launcher3.taskbar
 
 import android.animation.AnimatorTestRule
+import androidx.test.core.app.ApplicationProvider
 import androidx.test.platform.app.InstrumentationRegistry.getInstrumentation
 import com.android.launcher3.taskbar.TaskbarAutohideSuspendController.FLAG_AUTOHIDE_SUSPEND_DRAGGING
 import com.android.launcher3.taskbar.TaskbarAutohideSuspendController.FLAG_AUTOHIDE_SUSPEND_IN_LAUNCHER
 import com.android.launcher3.taskbar.TaskbarAutohideSuspendController.FLAG_AUTOHIDE_SUSPEND_TOUCHING
+import com.android.launcher3.taskbar.rules.SandboxParams
 import com.android.launcher3.taskbar.rules.TaskbarModeRule
 import com.android.launcher3.taskbar.rules.TaskbarModeRule.Mode.TRANSIENT
 import com.android.launcher3.taskbar.rules.TaskbarModeRule.TaskbarMode
@@ -34,6 +36,10 @@ import com.google.common.truth.Truth.assertThat
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.mockito.kotlin.anyOrNull
+import org.mockito.kotlin.doAnswer
+import org.mockito.kotlin.spy
+import org.mockito.kotlin.whenever
 
 @RunWith(LauncherMultivalentJUnit::class)
 @EmulatedDevices(["pixelTablet2023"])
@@ -41,16 +47,15 @@ class TaskbarAutohideSuspendControllerTest {
 
     @get:Rule(order = 0)
     val context =
-        TaskbarWindowSandboxContext.create { builder ->
-            builder.bindSystemUiProxy(
-                object : SystemUiProxy(this) {
-                    override fun notifyTaskbarAutohideSuspend(suspend: Boolean) {
-                        super.notifyTaskbarAutohideSuspend(suspend)
-                        latestSuspendNotification = suspend
-                    }
+        TaskbarWindowSandboxContext.create(
+            SandboxParams({
+                spy(SystemUiProxy(ApplicationProvider.getApplicationContext())) { proxy ->
+                    doAnswer { latestSuspendNotification = it.getArgument(0) }
+                        .whenever(proxy)
+                        .notifyTaskbarAutohideSuspend(anyOrNull())
                 }
-            )
-        }
+            })
+        )
     @get:Rule(order = 1) val animatorTestRule = AnimatorTestRule(this)
     @get:Rule(order = 2) val taskbarModeRule = TaskbarModeRule(context)
     @get:Rule(order = 3) val taskbarUnitTestRule = TaskbarUnitTestRule(this, context)

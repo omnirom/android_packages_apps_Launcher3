@@ -34,7 +34,6 @@ import com.android.app.viewcapture.ViewCaptureFactory;
 import com.android.launcher3.AbstractFloatingView;
 import com.android.launcher3.testing.TestLogging;
 import com.android.launcher3.testing.shared.TestProtocol;
-import com.android.launcher3.util.DisplayController;
 import com.android.launcher3.util.TouchController;
 import com.android.launcher3.views.BaseDragLayer;
 
@@ -147,7 +146,7 @@ public class TaskbarOverlayDragLayer extends
      * 2) Sets tappableInsets bottom inset to 0.
      */
     private WindowInsets updateInsetsDueToStashing(WindowInsets oldInsets) {
-        if (!DisplayController.isTransientTaskbar(mContainer)) {
+        if (!mContainer.isTransientTaskbar()) {
             return oldInsets;
         }
         WindowInsets.Builder updatedInsetsBuilder = new WindowInsets.Builder(oldInsets);

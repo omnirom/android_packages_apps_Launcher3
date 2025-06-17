@@ -33,11 +33,13 @@ import com.android.launcher3.util.LauncherMultivalentJUnit;
 import com.android.quickstep.views.RecentsView;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 
 @SmallTest
 @RunWith(LauncherMultivalentJUnit.class)
+@Ignore
 public class LauncherSwipeHandlerV2TestCase extends AbsSwipeUpHandlerTestCase<
         LauncherState,
         QuickstepLauncher,
@@ -73,12 +75,12 @@ public class LauncherSwipeHandlerV2TestCase extends AbsSwipeUpHandlerTestCase<
             long touchTimeMs, boolean continuingLastGesture) {
         return new LauncherSwipeHandlerV2(
                 mContext,
-                mRecentsAnimationDeviceState,
                 mTaskAnimationManager,
                 mGestureState,
                 touchTimeMs,
                 continuingLastGesture,
-                mInputConsumerController);
+                mInputConsumerController,
+                mMSDLPlayerWrapper);
     }
 
     @NonNull

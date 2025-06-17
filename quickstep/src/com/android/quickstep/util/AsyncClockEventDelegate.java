@@ -59,8 +59,7 @@ public class AsyncClockEventDelegate extends ClockEventDelegate
 
     private final Context mContext;
     private final SettingsCache mSettingsCache;
-    private final SimpleBroadcastReceiver mReceiver =
-            new SimpleBroadcastReceiver(UI_HELPER_EXECUTOR, this::onClockEventReceived);
+    private final SimpleBroadcastReceiver mReceiver;
 
     private final ArrayMap<BroadcastReceiver, Handler> mTimeEventReceivers = new ArrayMap<>();
     private final List<ContentObserver> mFormatObservers = new ArrayList<>();
@@ -76,7 +75,9 @@ public class AsyncClockEventDelegate extends ClockEventDelegate
         super(context);
         mContext = context;
         mSettingsCache = settingsCache;
-        mReceiver.register(mContext, ACTION_TIME_CHANGED, ACTION_TIMEZONE_CHANGED);
+        mReceiver = new SimpleBroadcastReceiver(
+                context, UI_HELPER_EXECUTOR, this::onClockEventReceived);
+        mReceiver.register(ACTION_TIME_CHANGED, ACTION_TIMEZONE_CHANGED);
         tracker.addCloseable(this);
     }
 
@@ -138,6 +139,6 @@ public class AsyncClockEventDelegate extends ClockEventDelegate
     public void close() {
         mDestroyed = true;
         mSettingsCache.unregister(mFormatUri, this);
-        mReceiver.unregisterReceiverSafely(mContext);
+        mReceiver.unregisterReceiverSafely();
     }
 }

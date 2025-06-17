@@ -16,6 +16,7 @@
 
 package com.android.launcher3.ui;
 
+import static android.os.Process.myUserHandle;
 import static android.platform.test.flag.junit.SetFlagsRule.DefaultInitValueType.DEVICE_DEFAULT;
 
 import static androidx.test.platform.app.InstrumentationRegistry.getInstrumentation;
@@ -219,7 +220,8 @@ public abstract class BaseLauncherTaplTest {
 
     protected void clearPackageData(String pkg) throws IOException, InterruptedException {
         assertTrue("pm clear command failed",
-                mDevice.executeShellCommand("pm clear " + pkg)
+                mDevice.executeShellCommand(
+                        String.format("pm clear --user %d %s", myUserHandle().getIdentifier(), pkg))
                         .contains("Success"));
         assertTrue("pm wait-for-handler command failed",
                 mDevice.executeShellCommand("pm wait-for-handler")

@@ -45,7 +45,7 @@ public class DaggerSingletonTracker implements SafeCloseable {
      * Adds the SafeCloseable Singletons to the mLauncherAppSingletons list.
      * This helps to track the singletons and close them appropriately.
      * See {@link DaggerSingletonTracker#close()} and
-     * {@link MainThreadInitializedObject.SandboxContext#onDestroy()}
+     * {@link SandboxContext#onDestroy()}
      */
     public void addCloseable(SafeCloseable closeable) {
         MAIN_EXECUTOR.execute(() -> {

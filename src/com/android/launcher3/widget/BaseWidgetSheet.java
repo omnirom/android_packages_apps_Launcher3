@@ -16,7 +16,6 @@
 package com.android.launcher3.widget;
 
 import static com.android.app.animation.Interpolators.EMPHASIZED;
-import static com.android.launcher3.Flags.enableWidgetTapToAdd;
 import static com.android.launcher3.LauncherState.NORMAL;
 import static com.android.launcher3.anim.AnimatorListeners.forSuccessCallback;
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_WIDGET_ADD_BUTTON_TAP;
@@ -150,40 +149,36 @@ public abstract class BaseWidgetSheet extends AbstractSlideInView<BaseActivity>
             return;
         }
 
-        if (enableWidgetTapToAdd()) {
-            scrollToWidgetCell(wc);
+        scrollToWidgetCell(wc);
 
-            if (mWidgetCellWithAddButton != null) {
-                if (mWidgetCellWithAddButton.isShowingAddButton()) {
-                    // If there is a add button currently showing, hide it.
-                    mWidgetCellWithAddButton.hideAddButton(/* animate= */ true);
-                } else {
-                    // The last recorded widget cell to show an add button is no longer showing it,
-                    // likely because the widget cell has been recycled or lost focus. If this is
-                    // the cell that has been clicked, we will show it below.
-                    mWidgetCellWithAddButton = null;
-                }
-            }
-
-            if (mWidgetCellWithAddButton != wc) {
-                // If click is on a cell not showing an add button, show it now.
-                final PendingAddItemInfo info = (PendingAddItemInfo) wc.getTag();
-                if (mActivityContext instanceof Launcher) {
-                    wc.showAddButton((view) -> addWidget(info));
-                } else {
-                    wc.showAddButton((view) -> mActivityContext.getItemOnClickListener()
-                            .onClick(wc));
-                }
-            }
-
-            mWidgetCellWithAddButton = mWidgetCellWithAddButton != wc ? wc : null;
-            if (mWidgetCellWithAddButton != null) {
-                mLastSelectedWidgetItem = mWidgetCellWithAddButton.getWidgetItem();
+        if (mWidgetCellWithAddButton != null) {
+            if (mWidgetCellWithAddButton.isShowingAddButton()) {
+                // If there is a add button currently showing, hide it.
+                mWidgetCellWithAddButton.hideAddButton(/* animate= */ true);
             } else {
-                mLastSelectedWidgetItem = null;
+                // The last recorded widget cell to show an add button is no longer showing it,
+                // likely because the widget cell has been recycled or lost focus. If this is
+                // the cell that has been clicked, we will show it below.
+                mWidgetCellWithAddButton = null;
             }
+        }
+
+        if (mWidgetCellWithAddButton != wc) {
+            // If click is on a cell not showing an add button, show it now.
+            final PendingAddItemInfo info = (PendingAddItemInfo) wc.getTag();
+            if (mActivityContext instanceof Launcher) {
+                wc.showAddButton((view) -> addWidget(info));
+            } else {
+                wc.showAddButton((view) -> mActivityContext.getItemOnClickListener()
+                        .onClick(wc));
+            }
+        }
+
+        mWidgetCellWithAddButton = mWidgetCellWithAddButton != wc ? wc : null;
+        if (mWidgetCellWithAddButton != null) {
+            mLastSelectedWidgetItem = mWidgetCellWithAddButton.getWidgetItem();
         } else {
-            mActivityContext.getItemOnClickListener().onClick(wc);
+            mLastSelectedWidgetItem = null;
         }
     }
 

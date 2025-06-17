@@ -219,7 +219,7 @@ class InstallSessionTrackerTest {
             .whenever(launcherApps)
             .unregisterPackageInstallerSessionCallback(installSessionTracker)
         // When
-        installSessionTracker.unregister()
+        installSessionTracker.close()
         // Then
         verify(launcherApps).unregisterPackageInstallerSessionCallback(installSessionTracker)
     }

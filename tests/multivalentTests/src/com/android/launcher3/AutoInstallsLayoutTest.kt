@@ -45,6 +45,7 @@ import com.android.launcher3.dagger.LauncherAppComponent
 import com.android.launcher3.dagger.LauncherAppSingleton
 import com.android.launcher3.model.data.AppInfo
 import com.android.launcher3.pm.UserCache
+import com.android.launcher3.util.AllModulesMinusApiWrapper
 import com.android.launcher3.util.ApiWrapper
 import com.android.launcher3.util.Executors
 import com.android.launcher3.util.LauncherLayoutBuilder
@@ -66,7 +67,7 @@ import org.junit.runner.RunWith
 import org.mockito.Mock
 import org.mockito.MockitoAnnotations
 import org.mockito.kotlin.doReturn
-import org.mockito.kotlin.spy
+import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 
 /** Tests for [AutoInstallsLayout] */
@@ -165,7 +166,9 @@ class AutoInstallsLayoutTest {
 
     @Test
     fun work_item_added_to_home() {
-        val apiWrapperMock = spy(ApiWrapper.INSTANCE[targetContext])
+        val original = ApiWrapper.INSTANCE[targetContext]
+        val apiWrapperMock =
+            mock<MyApiWrapper>(defaultAnswer = { it.method.invoke(original, *it.arguments) })
         targetContext.initDaggerComponent(
             DaggerAutoInstallsLayoutTestComponent.builder().bindApiWrapper(apiWrapperMock)
         )
@@ -221,9 +224,12 @@ class AutoInstallsLayoutTest {
     }
 }
 
+class MyApiWrapper : ApiWrapper(null)
+
 @LauncherAppSingleton
-@Component
+@Component(modules = [AllModulesMinusApiWrapper::class])
 interface AutoInstallsLayoutTestComponent : LauncherAppComponent {
+
     @Component.Builder
     interface Builder : LauncherAppComponent.Builder {
         @BindsInstance fun bindApiWrapper(wrapper: ApiWrapper): Builder

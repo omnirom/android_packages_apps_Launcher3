@@ -1,5 +1,7 @@
 package com.android.quickstep;
 
+import static android.view.Display.DEFAULT_DISPLAY;
+
 import static com.android.launcher3.taskbar.TaskbarThresholdUtils.getFromNavThreshold;
 import static com.android.launcher3.util.Executors.MAIN_EXECUTOR;
 
@@ -19,6 +21,7 @@ import com.android.quickstep.util.LayoutUtils;
 import com.android.quickstep.util.TISBindHelper;
 import com.android.quickstep.views.RecentsView;
 import com.android.quickstep.views.RecentsViewContainer;
+import com.android.systemui.shared.recents.model.Task;
 
 import java.util.ArrayList;
 import java.util.concurrent.CountDownLatch;
@@ -44,11 +47,9 @@ public class QuickstepTestInformationHandler extends TestInformationHandler {
                 CountDownLatch latch = new CountDownLatch(1);
                 RecentsModel.INSTANCE.get(mContext).getTasks((taskGroups) -> {
                     for (GroupTask group : taskGroups) {
-                        taskBaseIntentComponents.add(
-                                group.task1.key.baseIntent.getComponent().flattenToString());
-                        if (group.task2 != null) {
+                        for (Task t : group.getTasks()) {
                             taskBaseIntentComponents.add(
-                                    group.task2.key.baseIntent.getComponent().flattenToString());
+                                    t.key.baseIntent.getComponent().flattenToString());
                         }
                     }
                     latch.countDown();
@@ -178,7 +179,7 @@ public class QuickstepTestInformationHandler extends TestInformationHandler {
 
             case TestProtocol.REQUEST_RECREATE_TASKBAR:
                 // Allow null-pointer to catch illegal states.
-                runOnTISBinder(tisBinder -> tisBinder.getTaskbarManager().recreateTaskbar());
+                runOnTISBinder(tisBinder -> tisBinder.getTaskbarManager().recreateTaskbars());
                 return response;
             case TestProtocol.REQUEST_TASKBAR_IME_DOCKED:
                 return getTISBinderUIProperty(Bundle::putBoolean, tisBinder ->
@@ -205,17 +206,20 @@ public class QuickstepTestInformationHandler extends TestInformationHandler {
     @Override
     protected WindowInsets getWindowInsets() {
         RecentsViewContainer container = getRecentsViewContainer();
-        return container == null ? null : container.getRootView().getRootWindowInsets();
+        WindowInsets insets = container == null
+                ? null : container.getRootView().getRootWindowInsets();
+        return insets == null ? super.getWindowInsets() : insets;
     }
 
     private RecentsViewContainer getRecentsViewContainer() {
+        // TODO (b/400647896): support per-display container in e2e tests
         return OverviewComponentObserver.INSTANCE.get(mContext)
-                .getContainerInterface().getCreatedContainer();
+                .getContainerInterface(DEFAULT_DISPLAY).getCreatedContainer();
     }
 
     @Override
     protected boolean isLauncherInitialized() {
-        return super.isLauncherInitialized() && TouchInteractionService.isInitialized();
+        return super.isLauncherInitialized() && SystemUiProxy.INSTANCE.get(mContext).isActive();
     }
 
     private void enableBlockingTimeout(

@@ -15,8 +15,6 @@
  */
 package com.android.launcher3.widget.picker.util;
 
-import static androidx.test.core.app.ApplicationProvider.getApplicationContext;
-
 import static com.android.launcher3.util.WidgetUtils.createAppWidgetProviderInfo;
 
 import static com.google.common.truth.Truth.assertThat;
@@ -44,10 +42,12 @@ import com.android.launcher3.icons.cache.CachedObject;
 import com.android.launcher3.model.WidgetItem;
 import com.android.launcher3.pm.ShortcutConfigActivityInfo;
 import com.android.launcher3.util.ActivityContextWrapper;
+import com.android.launcher3.util.SandboxApplication;
 import com.android.launcher3.widget.LauncherAppWidgetProviderInfo;
 import com.android.launcher3.widget.util.WidgetsTableUtils;
 
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -67,6 +67,8 @@ public final class WidgetsTableUtilsTest {
     private static final int CELL_SIZE = 50;
     private static final int NUM_OF_COLS = 5;
     private static final int NUM_OF_ROWS = 5;
+
+    @Rule public SandboxApplication app = new SandboxApplication();
 
     @Mock
     private IconCache mIconCache;
@@ -89,9 +91,8 @@ public final class WidgetsTableUtilsTest {
     public void setUp() {
         MockitoAnnotations.initMocks(this);
 
-        mContext = new ActivityContextWrapper(getApplicationContext());
-
-        mTestInvariantProfile = new InvariantDeviceProfile();
+        mContext = new ActivityContextWrapper(app);
+        mTestInvariantProfile = InvariantDeviceProfile.INSTANCE.get(app);
         mTestInvariantProfile.numColumns = NUM_OF_COLS;
         mTestInvariantProfile.numRows = NUM_OF_ROWS;
 

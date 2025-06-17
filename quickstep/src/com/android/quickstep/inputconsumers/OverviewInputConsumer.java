@@ -55,12 +55,16 @@ public class OverviewInputConsumer<S extends BaseState<S>,
     private final int[] mLocationOnScreen = new int[2];
 
     private final boolean mStartingInActivityBounds;
+
     private boolean mTargetHandledTouch;
     private boolean mHasSetTouchModeForFirstDPadEvent;
     private boolean mIsWaitingForAttachToWindow;
 
-    public OverviewInputConsumer(GestureState gestureState, T container,
-            @Nullable InputMonitorCompat inputMonitor, boolean startingInActivityBounds) {
+    public OverviewInputConsumer(
+            GestureState gestureState,
+            T container,
+            @Nullable InputMonitorCompat inputMonitor,
+            boolean startingInActivityBounds) {
         mContainer = container;
         mInputMonitor = inputMonitor;
         mStartingInActivityBounds = startingInActivityBounds;
@@ -74,6 +78,11 @@ public class OverviewInputConsumer<S extends BaseState<S>,
     @Override
     public int getType() {
         return TYPE_OVERVIEW;
+    }
+
+    @Override
+    public int getDisplayId() {
+        return mGestureState.getDisplayId();
     }
 
     @Override

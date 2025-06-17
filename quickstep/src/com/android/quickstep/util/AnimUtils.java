@@ -21,16 +21,22 @@ import static com.android.launcher3.LauncherState.NORMAL;
 import static com.android.launcher3.util.Executors.MAIN_EXECUTOR;
 
 import android.animation.AnimatorSet;
-import android.annotation.NonNull;
+import android.os.BinderUtils;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.os.IRemoteCallback;
 import android.view.animation.Interpolator;
+
+import androidx.annotation.NonNull;
+import androidx.lifecycle.DefaultLifecycleObserver;
+import androidx.lifecycle.LifecycleOwner;
 
 import com.android.launcher3.logging.StatsLogManager;
 import com.android.launcher3.statemanager.BaseState;
 import com.android.launcher3.statemanager.StateManager;
 import com.android.launcher3.states.StateAnimationConfig;
 import com.android.launcher3.util.RunnableList;
+import com.android.launcher3.views.ActivityContext;
 import com.android.quickstep.views.RecentsViewContainer;
 
 /**
@@ -78,8 +84,7 @@ public class AnimUtils {
             @NonNull SplitAnimationController animationController) {
         StateAnimationConfig config = new StateAnimationConfig();
         BaseState startState = stateManager.getState();
-        long duration = startState.getTransitionDuration(container.asContext(),
-                false /*isToState*/);
+        long duration = startState.getTransitionDuration(container, false /*isToState*/);
         if (duration == 0) {
             // Case where we're in contextual on workspace (NORMAL), which by default has 0
             // transition duration
@@ -96,13 +101,29 @@ public class AnimUtils {
     }
 
     /**
-     * Returns a IRemoteCallback which completes the provided list as a result
+     * Returns a IRemoteCallback which completes the provided list as a result or when the owner
+     * is destroyed
      */
-    public static IRemoteCallback completeRunnableListCallback(RunnableList list) {
+    public static IRemoteCallback completeRunnableListCallback(
+            RunnableList list, ActivityContext owner) {
+        DefaultLifecycleObserver destroyObserver = new DefaultLifecycleObserver() {
+            @Override
+            public void onDestroy(@NonNull LifecycleOwner owner) {
+                list.executeAllAndClear();
+            }
+        };
+        MAIN_EXECUTOR.execute(() -> owner.getLifecycle().addObserver(destroyObserver));
+        list.add(() -> owner.getLifecycle().removeObserver(destroyObserver));
+
         return new IRemoteCallback.Stub() {
             @Override
             public void sendResult(Bundle bundle) {
                 MAIN_EXECUTOR.execute(list::executeAllAndDestroy);
+            }
+
+            @Override
+            public IBinder asBinder() {
+                return BinderUtils.wrapLifecycle(this, owner.getOwnerCleanupSet());
             }
         };
     }

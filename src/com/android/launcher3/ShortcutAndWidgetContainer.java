@@ -330,8 +330,13 @@ public class ShortcutAndWidgetContainer extends ViewGroup implements FolderIcon.
         mTranslationProvider = provider;
     }
 
+    /** Returns the current {@link TranslationProvider translation provider}. */
+    public @Nullable TranslationProvider getTranslationProvider() {
+        return mTranslationProvider;
+    }
+
     /** Provides translation values to apply when laying out child views. */
-    interface TranslationProvider {
+    public interface TranslationProvider {
         float getTranslationX(int cellX);
     }
 }

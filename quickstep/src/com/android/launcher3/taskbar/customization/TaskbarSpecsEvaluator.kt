@@ -26,6 +26,8 @@ class TaskbarSpecsEvaluator(
     numColumns: Int = taskbarActivityContext.deviceProfile.inv.numColumns,
 ) {
     var taskbarIconSize: TaskbarIconSize = getIconSizeByGrid(numColumns, numRows)
+    val numShownHotseatIcons
+        get() = taskbarActivityContext.deviceProfile.numShownHotseatIcons
 
     // TODO(b/341146605) : initialize it to taskbar container in later cl.
     private var taskbarContainer: List<TaskbarContainer> = emptyList()

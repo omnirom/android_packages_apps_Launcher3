@@ -200,6 +200,7 @@ public class WorkProfileManager extends UserProfileManager
 
     private void onWorkFabClicked(View view) {
         if (getCurrentState() == STATE_ENABLED && mWorkUtilityView.isEnabled()) {
+            Log.d(TAG, "Work FAB clicked.");
             logEvents(LAUNCHER_TURN_OFF_WORK_APPS_TAP);
             setWorkProfileEnabled(false);
         }

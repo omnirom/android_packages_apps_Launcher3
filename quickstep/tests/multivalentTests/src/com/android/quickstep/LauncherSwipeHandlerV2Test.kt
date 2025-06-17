@@ -17,13 +17,20 @@
 package com.android.quickstep
 
 import android.graphics.PointF
+import android.hardware.display.DisplayManager
+import android.hardware.display.DisplayManagerGlobal
+import android.view.Display
+import android.view.Display.DEFAULT_DISPLAY
+import android.view.DisplayAdjustments.DEFAULT_DISPLAY_ADJUSTMENTS
+import android.view.DisplayInfo
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.SmallTest
 import com.android.launcher3.R
 import com.android.launcher3.dagger.LauncherAppComponent
+import com.android.launcher3.dagger.LauncherAppModule
 import com.android.launcher3.dagger.LauncherAppSingleton
 import com.android.launcher3.util.LauncherModelHelper
-import com.android.quickstep.dagger.QuickStepModule
+import com.android.launcher3.util.MSDLPlayerWrapper
 import com.android.systemui.contextualeducation.GestureType
 import com.android.systemui.shared.system.InputConsumerController
 import dagger.BindsInstance
@@ -51,6 +58,8 @@ class LauncherSwipeHandlerV2Test {
 
     @Mock private lateinit var systemUiProxy: SystemUiProxy
 
+    @Mock private lateinit var msdlPlayerWrapper: MSDLPlayerWrapper
+
     private lateinit var underTest: LauncherSwipeHandlerV2
 
     @get:Rule val mockitoRule = MockitoJUnit.rule()
@@ -61,24 +70,45 @@ class LauncherSwipeHandlerV2Test {
     private val flingSpeed =
         -(sandboxContext.resources.getDimension(R.dimen.quickstep_fling_threshold_speed) + 1)
 
+    private val displayManager: DisplayManager =
+        sandboxContext.spyService(DisplayManager::class.java)
+
     @Before
     fun setup() {
+        val display =
+            Display(
+                DisplayManagerGlobal.getInstance(),
+                DEFAULT_DISPLAY,
+                DisplayInfo(),
+                DEFAULT_DISPLAY_ADJUSTMENTS,
+            )
+        whenever(displayManager.getDisplay(eq(DEFAULT_DISPLAY))).thenReturn(display)
+        whenever(displayManager.displays).thenReturn(arrayOf(display))
+
         sandboxContext.initDaggerComponent(
-            DaggerTestComponent.builder().bindSystemUiProxy(systemUiProxy)
+            DaggerTestComponent.builder()
+                .bindSystemUiProxy(systemUiProxy)
+                .bindRotationHelper(mock(RotationTouchHelper::class.java))
+                .bindRecentsState(mock(RecentsAnimationDeviceState::class.java))
         )
-        val deviceState = mock(RecentsAnimationDeviceState::class.java)
-        whenever(deviceState.rotationTouchHelper).thenReturn(mock(RotationTouchHelper::class.java))
-        gestureState = spy(GestureState(OverviewComponentObserver.INSTANCE.get(sandboxContext), 0))
+        gestureState =
+            spy(
+                GestureState(
+                    OverviewComponentObserver.INSTANCE.get(sandboxContext),
+                    DEFAULT_DISPLAY,
+                    0,
+                )
+            )
 
         underTest =
             LauncherSwipeHandlerV2(
                 sandboxContext,
-                deviceState,
                 taskAnimationManager,
                 gestureState,
                 0,
                 false,
                 inputConsumerController,
+                msdlPlayerWrapper,
             )
         underTest.onGestureStarted(/* isLikelyToStartNewTask= */ false)
     }
@@ -86,31 +116,29 @@ class LauncherSwipeHandlerV2Test {
     @Test
     fun goHomeFromAppByTrackpad_updateEduStats() {
         gestureState.setTrackpadGestureType(GestureState.TrackpadGestureType.THREE_FINGER)
-        underTest.onGestureEnded(flingSpeed, PointF())
+        underTest.onGestureEnded(flingSpeed, PointF(), /* horizontalTouchSlopPassed= */ false)
         verify(systemUiProxy)
-            .updateContextualEduStats(
-                /* isTrackpadGesture= */ eq(true),
-                eq(GestureType.HOME.toString()),
-            )
+            .updateContextualEduStats(/* isTrackpadGesture= */ eq(true), eq(GestureType.HOME))
     }
 
     @Test
     fun goHomeFromAppByTouch_updateEduStats() {
-        underTest.onGestureEnded(flingSpeed, PointF())
+        underTest.onGestureEnded(flingSpeed, PointF(), /* horizontalTouchSlopPassed= */ false)
         verify(systemUiProxy)
-            .updateContextualEduStats(
-                /* isTrackpadGesture= */ eq(false),
-                eq(GestureType.HOME.toString()),
-            )
+            .updateContextualEduStats(/* isTrackpadGesture= */ eq(false), eq(GestureType.HOME))
     }
 }
 
 @LauncherAppSingleton
-@Component(modules = [QuickStepModule::class])
+@Component(modules = [LauncherAppModule::class])
 interface TestComponent : LauncherAppComponent {
     @Component.Builder
     interface Builder : LauncherAppComponent.Builder {
         @BindsInstance fun bindSystemUiProxy(proxy: SystemUiProxy): Builder
+
+        @BindsInstance fun bindRotationHelper(helper: RotationTouchHelper): Builder
+
+        @BindsInstance fun bindRecentsState(state: RecentsAnimationDeviceState): Builder
 
         override fun build(): TestComponent
     }

@@ -16,26 +16,44 @@
 
 package com.android.launcher3.widget.picker.model
 
+import android.content.Context
+import com.android.launcher3.dagger.LauncherComponentProvider.appComponent
+import com.android.launcher3.model.WidgetItem
+import com.android.launcher3.model.WidgetsFilterDataProvider
+import com.android.launcher3.model.WidgetsFilterDataProvider.WidgetsFilterLoadedCallback
 import com.android.launcher3.model.data.ItemInfo
 import com.android.launcher3.widget.model.WidgetsListBaseEntry
 import com.android.launcher3.widget.picker.model.data.WidgetPickerData
 import com.android.launcher3.widget.picker.model.data.WidgetPickerDataUtils.withRecommendedWidgets
 import com.android.launcher3.widget.picker.model.data.WidgetPickerDataUtils.withWidgets
 import java.io.PrintWriter
+import java.util.function.Predicate
 
 /**
  * Provides [WidgetPickerData] to various views such as widget picker, app-specific widget picker,
  * widgets shortcut.
  */
-class WidgetPickerDataProvider {
+class WidgetPickerDataProvider(private val filterProvider: WidgetsFilterDataProvider) :
+    WidgetsFilterLoadedCallback {
+
+    constructor(context: Context) : this(context.appComponent.widgetsFilterDataProvider)
+
     /** All the widgets data provided for the views */
     private var mWidgetPickerData: WidgetPickerData = WidgetPickerData()
 
     private var changeListener: WidgetPickerDataChangeListener? = null
 
+    var hostSpecifiedDefaultWidgetsFilter: Predicate<WidgetItem>? = null
+
+    private var allWidgets: List<WidgetsListBaseEntry> = emptyList()
+
     /** Sets a listener to be called back when widget data is updated. */
     fun setChangeListener(changeListener: WidgetPickerDataChangeListener?) {
         this.changeListener = changeListener
+    }
+
+    init {
+        filterProvider.addFilterChangeCallback(this)
     }
 
     /** Returns the current snapshot of [WidgetPickerData]. */
@@ -43,16 +61,34 @@ class WidgetPickerDataProvider {
         return mWidgetPickerData
     }
 
+    override fun onWidgetsFilterLoaded() {
+        setWidgets(allWidgets)
+    }
+
     /**
      * Updates the widgets available to the widget picker.
      *
      * Generally called when the widgets model has new data.
      */
-    @JvmOverloads
-    fun setWidgets(
-        allWidgets: List<WidgetsListBaseEntry>,
-        defaultWidgets: List<WidgetsListBaseEntry> = listOf()
-    ) {
+    fun setWidgets(allWidgets: List<WidgetsListBaseEntry>) {
+        this.allWidgets = allWidgets
+
+        val currentFilter = filterProvider.defaultWidgetsFilter
+        val finalFilter =
+            when {
+                currentFilter != null && hostSpecifiedDefaultWidgetsFilter != null ->
+                    currentFilter.and(hostSpecifiedDefaultWidgetsFilter)
+                hostSpecifiedDefaultWidgetsFilter != null -> hostSpecifiedDefaultWidgetsFilter
+                else -> currentFilter
+            }
+
+        val defaultWidgets =
+            if (finalFilter != null)
+                allWidgets
+                    .map { it.copy().apply { mWidgets.removeIf(finalFilter) } }
+                    .filter { it.mWidgets.isNotEmpty() }
+            else emptyList()
+
         mWidgetPickerData =
             mWidgetPickerData.withWidgets(allWidgets = allWidgets, defaultWidgets = defaultWidgets)
         changeListener?.onWidgetsBound()
@@ -72,6 +108,10 @@ class WidgetPickerDataProvider {
     fun dump(prefix: String, writer: PrintWriter) {
         writer.println(prefix + "WidgetPickerDataProvider:")
         writer.println("$prefix\twidgetPickerData:$mWidgetPickerData")
+    }
+
+    fun destroy() {
+        filterProvider.removeFilterChangeCallback(this)
     }
 
     interface WidgetPickerDataChangeListener {

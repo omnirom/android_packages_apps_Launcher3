@@ -20,7 +20,6 @@ import androidx.test.platform.app.InstrumentationRegistry.getInstrumentation
 import com.android.launcher3.taskbar.rules.TaskbarModeRule.Mode
 import com.android.launcher3.taskbar.rules.TaskbarModeRule.TaskbarMode
 import com.android.launcher3.util.DisplayController
-import com.android.launcher3.util.MainThreadInitializedObject
 import com.android.launcher3.util.NavigationMode
 import org.junit.rules.TestRule
 import org.junit.runner.Description
@@ -31,8 +30,8 @@ import org.mockito.kotlin.spy
 /**
  * Allows tests to specify which Taskbar [Mode] to run under.
  *
- * [context] should match the test's target context, so that [MainThreadInitializedObject] instances
- * are properly sandboxed.
+ * [context] should match the test's target context, so that Dagger singleton instances are properly
+ * sandboxed.
  *
  * Annotate tests with [TaskbarMode] to set a mode. If the annotation is omitted for any tests, this
  * rule is a no-op.
@@ -61,11 +60,10 @@ class TaskbarModeRule(private val context: TaskbarWindowSandboxContext) : TestRu
                 val mode = taskbarMode.mode
 
                 getInstrumentation().runOnMainSync {
-                    context.putObject(
-                        DisplayController.INSTANCE,
-                        object : DisplayController(context) {
-                            override fun getInfo(): Info {
-                                return spy(super.getInfo()) {
+                    DisplayController.INSTANCE[context].let {
+                        if (it is DisplayControllerSpy) {
+                            it.infoModifier = { info ->
+                                spy(info) {
                                     on { isTransientTaskbar } doReturn (mode == Mode.TRANSIENT)
                                     on { isPinnedTaskbar } doReturn (mode == Mode.PINNED)
                                     on { navigationMode } doReturn
@@ -76,8 +74,8 @@ class TaskbarModeRule(private val context: TaskbarWindowSandboxContext) : TestRu
                                         }
                                 }
                             }
-                        },
-                    )
+                        }
+                    }
                 }
 
                 base.evaluate()

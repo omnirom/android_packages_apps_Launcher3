@@ -45,7 +45,8 @@ open class TaskbarViewCallbacksFactory @JvmOverloads constructor(
                 if (contextualSearchInvoked) {
                     val runningPackage =
                         TopTaskTracker.INSTANCE[activity].getCachedTopTask(
-                                /* filterOnlyVisibleRecents */ true
+                                /* filterOnlyVisibleRecents */ true,
+                                activity.display.displayId,
                             )
                             .getPackageName()
                     activity.statsLogManager

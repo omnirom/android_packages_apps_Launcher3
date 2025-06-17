@@ -19,15 +19,18 @@ import android.content.Context
 import android.window.DesktopModeFlags
 import androidx.annotation.VisibleForTesting
 import com.android.launcher3.BubbleTextView.RunningAppState
+import com.android.launcher3.Flags
 import com.android.launcher3.Flags.enableRecentsInTaskbar
 import com.android.launcher3.model.data.ItemInfo
 import com.android.launcher3.model.data.TaskItemInfo
 import com.android.launcher3.model.data.WorkspaceItemInfo
 import com.android.launcher3.taskbar.TaskbarControllers.LoggableTaskbarController
 import com.android.launcher3.util.CancellableTask
+import com.android.quickstep.RecentsFilterState
 import com.android.quickstep.RecentsModel
 import com.android.quickstep.util.DesktopTask
 import com.android.quickstep.util.GroupTask
+import com.android.quickstep.util.SingleTask
 import com.android.wm.shell.shared.desktopmode.DesktopModeStatus
 import java.io.PrintWriter
 
@@ -73,6 +76,17 @@ class TaskbarRecentAppsController(context: Context, private val recentsModel: Re
     var shownTasks: List<GroupTask> = emptyList()
         private set
 
+    val shownTaskIds: List<Int>
+        get() = shownTasks.flatMap { shownTask -> shownTask.tasks }.map { it.key.id }
+
+    /**
+     * The task-state of an app, i.e. whether the app has a task and what state that task is in.
+     *
+     * @property taskId The ID of the task if one exists (i.e. if the state is RUNNING or
+     *   MINIMIZED), null otherwise (NOT_RUNNING).
+     */
+    data class TaskState(val runningAppState: RunningAppState, val taskId: Int? = null)
+
     /**
      * Returns the state of the most active Desktop task represented by the given [ItemInfo].
      *
@@ -80,24 +94,28 @@ class TaskbarRecentAppsController(context: Context, private val recentsModel: Re
      * i.e. we return [DesktopAppState.RUNNING] over [DesktopAppState.MINIMIZED], and
      * [DesktopAppState.MINIMIZED] over [DesktopAppState.NOT_RUNNING].
      */
-    fun getDesktopItemState(itemInfo: ItemInfo?): RunningAppState {
-        val packageName = itemInfo?.getTargetPackage() ?: return RunningAppState.NOT_RUNNING
-        return getDesktopAppState(packageName, itemInfo.user.identifier)
+    fun getDesktopItemState(itemInfo: ItemInfo?): TaskState {
+        val packageName =
+            itemInfo?.getTargetPackage() ?: return TaskState(RunningAppState.NOT_RUNNING)
+        return getDesktopTaskState(packageName, itemInfo.user.identifier)
     }
 
-    private fun getDesktopAppState(packageName: String, userId: Int): RunningAppState {
-        val tasks = desktopTask?.tasks ?: return RunningAppState.NOT_RUNNING
+    private fun getDesktopTaskState(packageName: String, userId: Int): TaskState {
+        val tasks = desktopTask?.tasks ?: return TaskState(RunningAppState.NOT_RUNNING)
         val appTasks =
             tasks.filter { task ->
                 packageName == task.key.packageName && task.key.userId == userId
             }
-        if (appTasks.find { getRunningAppState(it.key.id) == RunningAppState.RUNNING } != null) {
-            return RunningAppState.RUNNING
+        val runningTask = appTasks.find { getRunningAppState(it.key.id) == RunningAppState.RUNNING }
+        if (runningTask != null) {
+            return TaskState(RunningAppState.RUNNING, runningTask.key.id)
         }
-        if (appTasks.find { getRunningAppState(it.key.id) == RunningAppState.MINIMIZED } != null) {
-            return RunningAppState.MINIMIZED
+        val minimizedTask =
+            appTasks.find { getRunningAppState(it.key.id) == RunningAppState.MINIMIZED }
+        if (minimizedTask != null) {
+            return TaskState(RunningAppState.MINIMIZED, taskId = minimizedTask.key.id)
         }
-        return RunningAppState.NOT_RUNNING
+        return TaskState(RunningAppState.NOT_RUNNING)
     }
 
     /** Get the [RunningAppState] for the given task. */
@@ -118,7 +136,7 @@ class TaskbarRecentAppsController(context: Context, private val recentsModel: Re
         get() {
             if (
                 !canShowRunningApps ||
-                    !controllers.taskbarDesktopModeController.areDesktopTasksVisible
+                    !controllers.taskbarDesktopModeController.shouldShowDesktopTasksInTaskbar()
             ) {
                 return emptySet()
             }
@@ -134,7 +152,7 @@ class TaskbarRecentAppsController(context: Context, private val recentsModel: Re
         get() {
             if (
                 !canShowRunningApps ||
-                    !controllers.taskbarDesktopModeController.areDesktopTasksVisible
+                    !controllers.taskbarDesktopModeController.shouldShowDesktopTasksInTaskbar()
             ) {
                 return emptySet()
             }
@@ -170,10 +188,10 @@ class TaskbarRecentAppsController(context: Context, private val recentsModel: Re
     /** Called to update hotseatItems, in order to de-dupe them from Recent/Running tasks later. */
     fun updateHotseatItemInfos(hotseatItems: Array<ItemInfo?>): Array<ItemInfo?> {
         // Ignore predicted apps - we show running or recent apps instead.
-        val areDesktopTasksVisible = controllers.taskbarDesktopModeController.areDesktopTasksVisible
+        val showDesktopTasks =
+            controllers.taskbarDesktopModeController.shouldShowDesktopTasksInTaskbar()
         val removePredictions =
-            (areDesktopTasksVisible && canShowRunningApps) ||
-                (!areDesktopTasksVisible && canShowRecentApps)
+            (showDesktopTasks && canShowRunningApps) || (!showDesktopTasks && canShowRecentApps)
         if (!removePredictions) {
             shownHotseatItems = hotseatItems.filterNotNull()
             onRecentsOrHotseatChanged()
@@ -185,7 +203,7 @@ class TaskbarRecentAppsController(context: Context, private val recentsModel: Re
                 .filter { itemInfo -> !itemInfo.isPredictedItem }
                 .toMutableList()
 
-        if (areDesktopTasksVisible && canShowRunningApps) {
+        if (showDesktopTasks && canShowRunningApps) {
             shownHotseatItems =
                 updateHotseatItemsFromRunningTasks(
                     getOrderedAndWrappedDesktopTasks(),
@@ -198,30 +216,35 @@ class TaskbarRecentAppsController(context: Context, private val recentsModel: Re
         return shownHotseatItems.toTypedArray()
     }
 
-    private fun getOrderedAndWrappedDesktopTasks(): List<GroupTask> {
+    private fun getOrderedAndWrappedDesktopTasks(): List<SingleTask> {
         val tasks = desktopTask?.tasks ?: emptyList()
-        // Kind of hacky, we wrap each single task in the Desktop as a GroupTask.
+        // We wrap each task in the Desktop as a `SingleTask`.
         val orderFromId = orderedRunningTaskIds.withIndex().associate { (index, id) -> id to index }
         val sortedTasks = tasks.sortedWith(compareBy(nullsLast()) { orderFromId[it.key.id] })
-        return sortedTasks.map { GroupTask(it) }
+        return sortedTasks.map { SingleTask(it) }
     }
 
     private fun reloadRecentTasksIfNeeded() {
         if (!recentsModel.isTaskListValid(taskListChangeId)) {
             taskListChangeId =
-                recentsModel.getTasks { tasks ->
-                    allRecentTasks = tasks
-                    val oldRunningTaskdIds = runningTaskIds
-                    val oldMinimizedTaskIds = minimizedTaskIds
-                    desktopTask = allRecentTasks.filterIsInstance<DesktopTask>().firstOrNull()
-                    val runningTasksChanged = oldRunningTaskdIds != runningTaskIds
-                    val minimizedTasksChanged = oldMinimizedTaskIds != minimizedTaskIds
-                    if (
-                        onRecentsOrHotseatChanged() || runningTasksChanged || minimizedTasksChanged
-                    ) {
-                        controllers.taskbarViewController.commitRunningAppsToUI()
-                    }
-                }
+                recentsModel.getTasks(
+                    { tasks ->
+                        allRecentTasks = tasks
+                        val oldRunningTaskdIds = runningTaskIds
+                        val oldMinimizedTaskIds = minimizedTaskIds
+                        desktopTask = allRecentTasks.filterIsInstance<DesktopTask>().firstOrNull()
+                        val runningTasksChanged = oldRunningTaskdIds != runningTaskIds
+                        val minimizedTasksChanged = oldMinimizedTaskIds != minimizedTaskIds
+                        if (
+                            onRecentsOrHotseatChanged() ||
+                                runningTasksChanged ||
+                                minimizedTasksChanged
+                        ) {
+                            controllers.taskbarViewController.commitRunningAppsToUI()
+                        }
+                    },
+                    RecentsFilterState.EMPTY_FILTER,
+                )
         }
     }
 
@@ -234,7 +257,7 @@ class TaskbarRecentAppsController(context: Context, private val recentsModel: Re
         val oldShownTasks = shownTasks
         orderedRunningTaskIds = updateOrderedRunningTaskIds()
         shownTasks =
-            if (controllers.taskbarDesktopModeController.areDesktopTasksVisible) {
+            if (controllers.taskbarDesktopModeController.shouldShowDesktopTasksInTaskbar()) {
                 computeShownRunningTasks()
             } else {
                 computeShownRecentTasks()
@@ -265,8 +288,8 @@ class TaskbarRecentAppsController(context: Context, private val recentsModel: Re
     }
 
     private fun updateOrderedRunningTaskIds(): MutableList<Int> {
-        val desktopTaskAsList = getOrderedAndWrappedDesktopTasks()
-        val desktopTaskIds = desktopTaskAsList.map { it.task1.key.id }
+        val desktopTasksAsList = getOrderedAndWrappedDesktopTasks().map { it.task }
+        val desktopTaskIds = desktopTasksAsList.map { it.key.id }
         var newOrder =
             orderedRunningTaskIds
                 .filter { it in desktopTaskIds } // Only keep the tasks that are still running
@@ -276,27 +299,61 @@ class TaskbarRecentAppsController(context: Context, private val recentsModel: Re
         return newOrder
     }
 
+    /**
+     * Computes the list of running tasks to be shown in the recent apps section of the taskbar in
+     * desktop mode, taking into account deduplication against hotseat items and existing tasks.
+     */
     private fun computeShownRunningTasks(): List<GroupTask> {
         if (!canShowRunningApps) {
             return emptyList()
         }
-        val desktopTaskAsList = getOrderedAndWrappedDesktopTasks()
-        val desktopTaskIds = desktopTaskAsList.map { it.task1.key.id }
-        val shownTaskIds = shownTasks.map { it.task1.key.id }
-        // TODO(b/315344726 Multi-instance support): only show one icon per package once we support
-        //  taskbar multi-instance menus
-        val shownHotseatItemTaskIds =
-            shownHotseatItems.mapNotNull { it as? TaskItemInfo }.map { it.taskId }
-        // Remove any newly-missing Tasks, and actual group-tasks
+
+        val desktopTasks = getOrderedAndWrappedDesktopTasks()
+
         val newShownTasks =
-            shownTasks
-                .filter { !it.supportsMultipleTasks() }
-                .filter { it.task1.key.id in desktopTaskIds }
-                .toMutableList()
-        // Add any new Tasks, maintaining the order from previous shownTasks.
-        newShownTasks.addAll(desktopTaskAsList.filter { it.task1.key.id !in shownTaskIds })
-        // Remove any tasks already covered by Hotseat icons
-        return newShownTasks.filter { it.task1.key.id !in shownHotseatItemTaskIds }
+            if (Flags.enableMultiInstanceMenuTaskbar()) {
+                val deduplicatedDesktopTasks =
+                    desktopTasks.distinctBy { Pair(it.task.key.packageName, it.task.key.userId) }
+
+                shownTasks
+                    .filter {
+                        it is SingleTask &&
+                            it.task.key.id in deduplicatedDesktopTasks.map { it.task.key.id }
+                    }
+                    .toMutableList()
+                    .apply {
+                        addAll(
+                            deduplicatedDesktopTasks.filter { currentTask ->
+                                val currentTaskKey = currentTask.task.key
+                                currentTaskKey.id !in shownTaskIds &&
+                                    shownHotseatItems.none { hotseatItem ->
+                                        currentTask.containsPackage(
+                                            hotseatItem.targetPackage,
+                                            hotseatItem.user.identifier,
+                                        )
+                                    }
+                            }
+                        )
+                    }
+            } else {
+                val desktopTaskIds = desktopTasks.map { it.task.key.id }
+                val shownHotseatItemTaskIds =
+                    shownHotseatItems.mapNotNull { it as? TaskItemInfo }.map { it.taskId }
+
+                shownTasks
+                    .filter { it is SingleTask && it.task.key.id in desktopTaskIds }
+                    .toMutableList()
+                    .apply {
+                        addAll(
+                            desktopTasks.filter { desktopTask ->
+                                desktopTask.task.key.id !in shownTaskIds
+                            }
+                        )
+                        removeAll { it is SingleTask && it.task.key.id in shownHotseatItemTaskIds }
+                    }
+            }
+
+        return newShownTasks
     }
 
     private fun computeShownRecentTasks(): List<GroupTask> {
@@ -305,7 +362,6 @@ class TaskbarRecentAppsController(context: Context, private val recentsModel: Re
         }
         // Remove the current task.
         val allRecentTasks = allRecentTasks.subList(0, allRecentTasks.size - 1)
-        // TODO(b/315344726 Multi-instance support): dedupe Tasks of the same package too
         var shownTasks = dedupeHotseatTasks(allRecentTasks, shownHotseatItems)
         if (shownTasks.size > MAX_RECENT_TASKS) {
             // Remove any tasks older than MAX_RECENT_TASKS.
@@ -318,10 +374,29 @@ class TaskbarRecentAppsController(context: Context, private val recentsModel: Re
         groupTasks: List<GroupTask>,
         shownHotseatItems: List<ItemInfo>,
     ): List<GroupTask> {
-        val hotseatPackages = shownHotseatItems.map { item -> item.targetPackage }
-        return groupTasks.filter { groupTask ->
-            groupTask.hasMultipleTasks() ||
-                !hotseatPackages.contains(groupTask.task1.key.packageName)
+        // TODO: b/393476333 - Check the behavior of the Taskbar recents section when empty desks
+        // become supported.
+        return if (Flags.enableMultiInstanceMenuTaskbar()) {
+            groupTasks.filter { groupTask ->
+                // Keep tasks that are group tasks or unique package name/user combinations
+                when (groupTask) {
+                    is SingleTask ->
+                        shownHotseatItems.none {
+                            groupTask.containsPackage(it.targetPackage, it.user.identifier)
+                        }
+
+                    else -> true
+                }
+            }
+        } else {
+            val hotseatPackages = shownHotseatItems.map { it.targetPackage }
+            groupTasks.filter { groupTask ->
+                when (groupTask) {
+                    is SingleTask -> hotseatPackages.none { groupTask.containsPackage(it) }
+
+                    else -> true
+                }
+            }
         }
     }
 
@@ -338,11 +413,13 @@ class TaskbarRecentAppsController(context: Context, private val recentsModel: Re
                 itemInfo
             } else {
                 val foundTask =
-                    groupTasks.find { task ->
-                        task.task1.key.packageName == itemInfo.targetPackage &&
-                            task.task1.key.userId == itemInfo.user.identifier
-                    } ?: return@map itemInfo
-                TaskItemInfo(foundTask.task1.key.id, itemInfo as WorkspaceItemInfo)
+                    groupTasks
+                        .flatMap { it.tasks }
+                        .find { task ->
+                            task.key.packageName == itemInfo.targetPackage &&
+                                task.key.userId == itemInfo.user.identifier
+                        } ?: return@map itemInfo
+                TaskItemInfo(foundTask.key.id, itemInfo as WorkspaceItemInfo)
             }
         }
 

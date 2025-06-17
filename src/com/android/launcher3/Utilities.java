@@ -18,6 +18,7 @@ package com.android.launcher3;
 
 import static com.android.launcher3.BuildConfig.WIDGET_ON_FIRST_SCREEN;
 import static com.android.launcher3.Flags.enableSmartspaceAsAWidget;
+import static com.android.launcher3.graphics.ShapeDelegate.DEFAULT_PATH_SIZE;
 import static com.android.launcher3.icons.BitmapInfo.FLAG_THEMED;
 import static com.android.launcher3.util.SplitConfigurationOptions.STAGE_POSITION_BOTTOM_OR_RIGHT;
 import static com.android.launcher3.util.SplitConfigurationOptions.STAGE_POSITION_TOP_OR_LEFT;
@@ -41,6 +42,7 @@ import android.graphics.ColorFilter;
 import android.graphics.LightingColorFilter;
 import android.graphics.Matrix;
 import android.graphics.Paint;
+import android.graphics.Path;
 import android.graphics.Point;
 import android.graphics.PointF;
 import android.graphics.Rect;
@@ -76,9 +78,11 @@ import androidx.annotation.WorkerThread;
 import androidx.core.graphics.ColorUtils;
 
 import com.android.launcher3.dragndrop.FolderAdaptiveIcon;
+import com.android.launcher3.graphics.ThemeManager;
 import com.android.launcher3.graphics.TintedDrawableSpan;
 import com.android.launcher3.icons.BitmapInfo;
 import com.android.launcher3.icons.CacheableShortcutInfo;
+import com.android.launcher3.icons.IconThemeController;
 import com.android.launcher3.icons.LauncherIcons;
 import com.android.launcher3.model.data.ItemInfo;
 import com.android.launcher3.model.data.ItemInfoWithIcon;
@@ -91,7 +95,6 @@ import com.android.launcher3.util.FlagOp;
 import com.android.launcher3.util.IntArray;
 import com.android.launcher3.util.Executors;
 import com.android.launcher3.util.SplitConfigurationOptions.SplitPositionOption;
-import com.android.launcher3.util.Themes;
 import com.android.launcher3.views.ActivityContext;
 import com.android.launcher3.views.BaseDragLayer;
 import com.android.launcher3.widget.PendingAddShortcutInfo;
@@ -100,6 +103,7 @@ import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.function.Predicate;
 
 /**
@@ -297,8 +301,12 @@ public final class Utilities {
      */
     public static void mapCoordInSelfToDescendant(View descendant, View root, float[] coord) {
         sMatrix.reset();
+        //TODO(b/307488755) when implemented this check should be removed
+        if (!Objects.equals(descendant.getWindowId(), root.getWindowId())) {
+            return;
+        }
         View v = descendant;
-        while(v != root) {
+        while (v != root) {
             sMatrix.postTranslate(-v.getScrollX(), -v.getScrollY());
             sMatrix.postConcat(v.getMatrix());
             sMatrix.postTranslate(v.getLeft(), v.getTop());
@@ -650,13 +658,12 @@ public final class Utilities {
     @WorkerThread
     public static <T extends Context & ActivityContext> Pair<AdaptiveIconDrawable, Drawable>
             getFullDrawable(T context, ItemInfo info, int width, int height, boolean useTheme) {
-        useTheme &= Themes.isThemedIconEnabled(context);
         LauncherAppState appState = LauncherAppState.getInstance(context);
         Drawable mainIcon = null;
 
         Drawable badge = null;
-        if ((info instanceof ItemInfoWithIcon iiwi) && !iiwi.usingLowResIcon()) {
-            badge = iiwi.bitmap.getBadgeDrawable(context, useTheme);
+        if ((info instanceof ItemInfoWithIcon iiwi) && !iiwi.getMatchingLookupFlag().useLowRes()) {
+            badge = iiwi.bitmap.getBadgeDrawable(context, useTheme, getIconShapeOrNull(context));
         }
 
         if (info instanceof PendingAddShortcutInfo) {
@@ -682,8 +689,12 @@ public final class Utilities {
                         appState.getInvariantDeviceProfile().fillResIconDpi);
                 // Only fetch badge if the icon is on workspace
                 if (info.id != ItemInfo.NO_ID && badge == null) {
-                    badge = appState.getIconCache().getShortcutInfoBadge(si)
-                            .newIcon(context, FLAG_THEMED);
+                    badge = appState.getIconCache().getShortcutInfoBadge(si).newIcon(
+                            context,
+                            ThemeManager.INSTANCE.get(context).isIconThemeEnabled()
+                                    ? FLAG_THEMED : 0,
+                            getIconShapeOrNull(context)
+                    );
                 }
             }
         } else if (info.itemType == LauncherSettings.Favorites.ITEM_TYPE_FOLDER) {
@@ -705,7 +716,7 @@ public final class Utilities {
         } else {
             // Wrap the main icon in AID
             try (LauncherIcons li = LauncherIcons.obtain(context)) {
-                result = li.wrapToAdaptiveIcon(mainIcon, null);
+                result = li.wrapToAdaptiveIcon(mainIcon);
             }
         }
         if (result == null) {
@@ -714,25 +725,26 @@ public final class Utilities {
 
         // Inject theme icon drawable
         if (ATLEAST_T && useTheme) {
-            try (LauncherIcons li = LauncherIcons.obtain(context)) {
-                if (li.getThemeController() != null) {
-                    AdaptiveIconDrawable themed = li.getThemeController().createThemedAdaptiveIcon(
-                            context,
-                            result,
-                            info instanceof ItemInfoWithIcon iiwi ? iiwi.bitmap : null);
-                    if (themed != null) {
-                        result = themed;
-                    }
+            IconThemeController themeController =
+                    ThemeManager.INSTANCE.get(context).getThemeController();
+            if (themeController != null) {
+                AdaptiveIconDrawable themed = themeController.createThemedAdaptiveIcon(
+                        context,
+                        result,
+                        info instanceof ItemInfoWithIcon iiwi ? iiwi.bitmap : null);
+                if (themed != null) {
+                    result = themed;
                 }
             }
         }
 
         if (badge == null) {
             badge = BitmapInfo.LOW_RES_INFO.withFlags(
-                            UserCache.INSTANCE.get(context)
-                                    .getUserInfo(info.user)
-                                    .applyBitmapInfoFlags(FlagOp.NO_OP))
-                    .getBadgeDrawable(context, useTheme);
+                    UserCache.INSTANCE.get(context)
+                            .getUserInfo(info.user)
+                            .applyBitmapInfoFlags(FlagOp.NO_OP)
+                    )
+                    .getBadgeDrawable(context, useTheme, getIconShapeOrNull(context));
             if (badge == null) {
                 badge = new ColorDrawable(Color.TRANSPARENT);
             }
@@ -972,5 +984,30 @@ public final class Utilities {
             }
             android.os.Process.killProcess(android.os.Process.myPid());
         });
+    }
+
+    /**
+     * Returns current icon shape to use for badges if flag is on, otherwise null.
+     */
+    @Nullable
+    public static Path getIconShapeOrNull(Context context) {
+        if (Flags.enableLauncherIconShapes()) {
+            return ThemeManager.INSTANCE.get(context)
+                    .getIconShape()
+                    .getPath(DEFAULT_PATH_SIZE);
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * Logs with DEBUG priority if the current device is a debug device.
+     *
+     * <p>Debug devices by default include -eng and -userdebug builds, but not -user builds.
+     */
+    public static void debugLog(String tag, String message) {
+        if (BuildConfig.IS_DEBUG_DEVICE) {
+            Log.d(tag, message);
+        }
     }
 }

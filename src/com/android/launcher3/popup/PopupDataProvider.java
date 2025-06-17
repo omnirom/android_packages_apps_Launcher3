@@ -23,20 +23,26 @@ import android.util.Log;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import com.android.launcher3.BubbleTextView;
+import com.android.launcher3.allapps.ActivityAllAppsContainerView;
 import com.android.launcher3.dot.DotInfo;
+import com.android.launcher3.folder.Folder;
+import com.android.launcher3.folder.FolderIcon;
+import com.android.launcher3.model.data.FolderInfo;
 import com.android.launcher3.model.data.ItemInfo;
 import com.android.launcher3.notification.NotificationKeyData;
 import com.android.launcher3.notification.NotificationListener;
 import com.android.launcher3.util.ComponentKey;
+import com.android.launcher3.util.LauncherBindableItemsContainer.ItemOperator;
 import com.android.launcher3.util.PackageUserKey;
 import com.android.launcher3.util.ShortcutUtil;
+import com.android.launcher3.views.ActivityContext;
 
 import java.io.PrintWriter;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 /**
@@ -47,19 +53,45 @@ public class PopupDataProvider implements NotificationListener.NotificationsChan
     private static final boolean LOGD = false;
     private static final String TAG = "PopupDataProvider";
 
-    private final Consumer<Predicate<PackageUserKey>> mNotificationDotsChangeListener;
+    private final ActivityContext mContext;
+
+    /** Maps packages to their DotInfo's . */
+    private final Map<PackageUserKey, DotInfo> mPackageUserToDotInfos = new HashMap<>();
 
     /** Maps launcher activity components to a count of how many shortcuts they have. */
     private HashMap<ComponentKey, Integer> mDeepShortcutMap = new HashMap<>();
-    /** Maps packages to their DotInfo's . */
-    private Map<PackageUserKey, DotInfo> mPackageUserToDotInfos = new HashMap<>();
 
-    public PopupDataProvider(Consumer<Predicate<PackageUserKey>> notificationDotsChangeListener) {
-        mNotificationDotsChangeListener = notificationDotsChangeListener;
+    public PopupDataProvider(ActivityContext context) {
+        mContext = context;
     }
 
     private void updateNotificationDots(Predicate<PackageUserKey> updatedDots) {
-        mNotificationDotsChangeListener.accept(updatedDots);
+        final PackageUserKey packageUserKey = new PackageUserKey(null, null);
+        Predicate<ItemInfo> matcher = info -> !packageUserKey.updateFromItemInfo(info)
+                || updatedDots.test(packageUserKey);
+
+        ItemOperator op = (info, v) -> {
+            if (v instanceof BubbleTextView && info != null && matcher.test(info)) {
+                ((BubbleTextView) v).applyDotState(info, true /* animate */);
+            } else if (v instanceof FolderIcon icon
+                    && info instanceof FolderInfo fi && fi.anyMatch(matcher)) {
+                icon.updateDotInfo();
+            }
+
+            // process all the shortcuts
+            return false;
+        };
+
+        mContext.getContent().mapOverItems(op);
+        Folder folder = Folder.getOpen(mContext);
+        if (folder != null) {
+            folder.mapOverItems(op);
+        }
+
+        ActivityAllAppsContainerView<?> appsView = mContext.getAppsView();
+        if (appsView != null) {
+            appsView.getAppsStore().updateNotificationDots(updatedDots);
+        }
     }
 
     @Override

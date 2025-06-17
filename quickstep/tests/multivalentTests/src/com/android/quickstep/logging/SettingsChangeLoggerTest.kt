@@ -21,8 +21,8 @@ import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.android.launcher3.LauncherPrefs
 import com.android.launcher3.LauncherPrefs.Companion.ALLOW_ROTATION
-import com.android.launcher3.LauncherPrefs.Companion.THEMED_ICONS
 import com.android.launcher3.SessionCommitReceiver.ADD_ICON_PREFERENCE_KEY
+import com.android.launcher3.graphics.ThemeManager
 import com.android.launcher3.logging.InstanceId
 import com.android.launcher3.logging.StatsLogManager
 import com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_ADD_NEW_APPS_TO_HOME_SCREEN_ENABLED
@@ -34,6 +34,9 @@ import com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_NAVI
 import com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_NOTIFICATION_DOT_ENABLED
 import com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_THEMED_ICON_DISABLED
 import com.android.launcher3.states.RotationHelper.ALLOW_ROTATION_PREFERENCE_KEY
+import com.android.launcher3.util.DaggerSingletonTracker
+import com.android.launcher3.util.DisplayController
+import com.android.launcher3.util.SettingsCache
 import com.google.common.truth.Truth.assertThat
 import org.junit.After
 import org.junit.Before
@@ -60,11 +63,17 @@ class SettingsChangeLoggerTest {
     @Mock private lateinit var mStatsLogManager: StatsLogManager
 
     @Mock private lateinit var mMockLogger: StatsLogManager.StatsLogger
+    @Mock private lateinit var mTracker: DaggerSingletonTracker
+    private var displayController: DisplayController = DisplayController.INSTANCE.get(mContext)
+    private var settingsCache: SettingsCache = SettingsCache.INSTANCE.get(mContext)
 
     @Captor private lateinit var mEventCaptor: ArgumentCaptor<StatsLogManager.EventEnum>
 
     private var mDefaultThemedIcons = false
     private var mDefaultAllowRotation = false
+
+    private val themeManager: ThemeManager
+        get() = ThemeManager.INSTANCE.get(mContext)
 
     @Before
     fun setUp() {
@@ -72,25 +81,39 @@ class SettingsChangeLoggerTest {
 
         whenever(mStatsLogManager.logger()).doReturn(mMockLogger)
         whenever(mStatsLogManager.logger().withInstanceId(any())).doReturn(mMockLogger)
-        mDefaultThemedIcons = LauncherPrefs.get(mContext).get(THEMED_ICONS)
+        mDefaultThemedIcons = themeManager.isMonoThemeEnabled
         mDefaultAllowRotation = LauncherPrefs.get(mContext).get(ALLOW_ROTATION)
         // To match the default value of THEMED_ICONS
-        LauncherPrefs.get(mContext).put(THEMED_ICONS, false)
+        themeManager.isMonoThemeEnabled = false
         // To match the default value of ALLOW_ROTATION
         LauncherPrefs.get(mContext).put(item = ALLOW_ROTATION, value = false)
 
-        mSystemUnderTest = SettingsChangeLogger(mContext, mStatsLogManager)
+        mSystemUnderTest =
+            SettingsChangeLogger(
+                mContext,
+                mStatsLogManager,
+                mTracker,
+                displayController,
+                settingsCache,
+            )
     }
 
     @After
     fun tearDown() {
-        LauncherPrefs.get(mContext).put(THEMED_ICONS, mDefaultThemedIcons)
+        themeManager.isMonoThemeEnabled = mDefaultThemedIcons
         LauncherPrefs.get(mContext).put(ALLOW_ROTATION, mDefaultAllowRotation)
     }
 
     @Test
     fun loggingPrefs_correctDefaultValue() {
-        val systemUnderTest = SettingsChangeLogger(mContext, mStatsLogManager)
+        val systemUnderTest =
+            SettingsChangeLogger(
+                mContext,
+                mStatsLogManager,
+                mTracker,
+                displayController,
+                settingsCache,
+            )
 
         assertThat(systemUnderTest.loggingPrefs[ALLOW_ROTATION_PREFERENCE_KEY]!!.defaultValue)
             .isFalse()
@@ -117,7 +140,8 @@ class SettingsChangeLoggerTest {
         LauncherPrefs.get(mContext).put(item = ALLOW_ROTATION, value = true)
 
         // This a new object so the values of mLoggablePrefs will be different
-        SettingsChangeLogger(mContext, mStatsLogManager).logSnapshot(mInstanceId)
+        SettingsChangeLogger(mContext, mStatsLogManager, mTracker, displayController, settingsCache)
+            .logSnapshot(mInstanceId)
 
         verify(mMockLogger, atLeastOnce()).log(mEventCaptor.capture())
         val capturedEvents = mEventCaptor.allValues

@@ -30,6 +30,7 @@ import com.android.launcher3.statemanager.StateManager
 import com.android.launcher3.util.Executors.MAIN_EXECUTOR
 import com.android.quickstep.SystemUiProxy
 import com.android.quickstep.TaskViewUtils
+import com.android.quickstep.util.DesksUtils.Companion.areMultiDesksFlagsEnabled
 import com.android.quickstep.views.DesktopTaskView
 import com.android.quickstep.views.TaskContainer
 import com.android.quickstep.views.TaskView
@@ -60,15 +61,24 @@ class DesktopRecentsTransitionController(
                 callback,
             )
         val transition = RemoteTransition(animRunner, appThread, "RecentsToDesktop")
-        systemUiProxy.showDesktopApps(desktopTaskView.display.displayId, transition)
+        if (areMultiDesksFlagsEnabled()) {
+            systemUiProxy.activateDesk(desktopTaskView.deskId, transition)
+        } else {
+            systemUiProxy.showDesktopApps(desktopTaskView.displayId, transition)
+        }
     }
 
     /** Launch desktop tasks from recents view */
-    fun moveToDesktop(taskContainer: TaskContainer, transitionSource: DesktopModeTransitionSource) {
+    fun moveToDesktop(
+        taskContainer: TaskContainer,
+        transitionSource: DesktopModeTransitionSource,
+        successCallback: Runnable,
+    ) {
         systemUiProxy.moveToDesktop(
             taskContainer.task.key.id,
             transitionSource,
             /* transition = */ null,
+            successCallback,
         )
     }
 

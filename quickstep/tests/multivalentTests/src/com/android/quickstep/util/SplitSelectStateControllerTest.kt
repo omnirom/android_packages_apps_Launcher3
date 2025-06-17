@@ -102,12 +102,12 @@ class SplitSelectStateControllerTest {
     fun activeTasks_noMatchingTasks() {
         val nonMatchingComponent = ComponentKey(ComponentName("no", "match"), primaryUserHandle)
         val groupTask1 =
-            generateGroupTask(
+            generateSplitTask(
                 ComponentName("pomegranate", "juice"),
                 ComponentName("pumpkin", "pie"),
             )
         val groupTask2 =
-            generateGroupTask(
+            generateSplitTask(
                 ComponentName("hotdog", "juice"),
                 ComponentName("personal", "computer"),
             )
@@ -143,12 +143,12 @@ class SplitSelectStateControllerTest {
         val matchingComponent =
             ComponentKey(ComponentName(matchingPackage, matchingClass), primaryUserHandle)
         val groupTask1 =
-            generateGroupTask(
+            generateSplitTask(
                 ComponentName(matchingPackage, matchingClass),
                 ComponentName("pomegranate", "juice"),
             )
         val groupTask2 =
-            generateGroupTask(
+            generateSplitTask(
                 ComponentName("pumpkin", "pie"),
                 ComponentName("personal", "computer"),
             )
@@ -170,7 +170,7 @@ class SplitSelectStateControllerTest {
                     it[0].key.baseIntent.component?.className,
                     matchingClass,
                 )
-                assertEquals(it[0], groupTask1.task1)
+                assertEquals(it[0], groupTask1.topLeftTask)
             }
 
         // Capture callback from recentsModel#getTasks()
@@ -196,12 +196,12 @@ class SplitSelectStateControllerTest {
         val nonPrimaryUserComponent =
             ComponentKey(ComponentName(matchingPackage, matchingClass), nonPrimaryUserHandle)
         val groupTask1 =
-            generateGroupTask(
+            generateSplitTask(
                 ComponentName(matchingPackage, matchingClass),
                 ComponentName("pomegranate", "juice"),
             )
         val groupTask2 =
-            generateGroupTask(
+            generateSplitTask(
                 ComponentName("pumpkin", "pie"),
                 ComponentName("personal", "computer"),
             )
@@ -237,14 +237,14 @@ class SplitSelectStateControllerTest {
         val nonPrimaryUserComponent =
             ComponentKey(ComponentName(matchingPackage, matchingClass), nonPrimaryUserHandle)
         val groupTask1 =
-            generateGroupTask(
+            generateSplitTask(
                 ComponentName(matchingPackage, matchingClass),
                 nonPrimaryUserHandle,
                 ComponentName("pomegranate", "juice"),
                 nonPrimaryUserHandle,
             )
         val groupTask2 =
-            generateGroupTask(
+            generateSplitTask(
                 ComponentName("pumpkin", "pie"),
                 ComponentName("personal", "computer"),
             )
@@ -267,7 +267,7 @@ class SplitSelectStateControllerTest {
                     matchingClass,
                 )
                 assertEquals("userId mismatched", it[0].key.userId, nonPrimaryUserHandle.identifier)
-                assertEquals(it[0], groupTask1.task1)
+                assertEquals(it[0], groupTask1.topLeftTask)
             }
 
         // Capture callback from recentsModel#getTasks()
@@ -293,12 +293,12 @@ class SplitSelectStateControllerTest {
         val matchingComponent =
             ComponentKey(ComponentName(matchingPackage, matchingClass), primaryUserHandle)
         val groupTask1 =
-            generateGroupTask(
+            generateSplitTask(
                 ComponentName(matchingPackage, matchingClass),
                 ComponentName("pumpkin", "pie"),
             )
         val groupTask2 =
-            generateGroupTask(
+            generateSplitTask(
                 ComponentName("pomegranate", "juice"),
                 ComponentName(matchingPackage, matchingClass),
             )
@@ -320,7 +320,7 @@ class SplitSelectStateControllerTest {
                     it[0].key.baseIntent.component?.className,
                     matchingClass,
                 )
-                assertEquals(it[0], groupTask1.task1)
+                assertEquals(it[0], groupTask1.topLeftTask)
             }
 
         // Capture callback from recentsModel#getTasks()
@@ -348,9 +348,9 @@ class SplitSelectStateControllerTest {
             ComponentKey(ComponentName(matchingPackage, matchingClass), primaryUserHandle)
 
         val groupTask1 =
-            generateGroupTask(ComponentName("hotdog", "pie"), ComponentName("pumpkin", "pie"))
+            generateSplitTask(ComponentName("hotdog", "pie"), ComponentName("pumpkin", "pie"))
         val groupTask2 =
-            generateGroupTask(
+            generateSplitTask(
                 ComponentName("pomegranate", "juice"),
                 ComponentName(matchingPackage, matchingClass),
             )
@@ -374,7 +374,7 @@ class SplitSelectStateControllerTest {
                     it[1].key.baseIntent.component?.className,
                     matchingClass,
                 )
-                assertEquals(it[1], groupTask2.task2)
+                assertEquals(it[1], groupTask2.bottomRightTask)
             }
 
         // Capture callback from recentsModel#getTasks()
@@ -401,9 +401,9 @@ class SplitSelectStateControllerTest {
             ComponentKey(ComponentName(matchingPackage, matchingClass), primaryUserHandle)
 
         val groupTask1 =
-            generateGroupTask(ComponentName("hotdog", "pie"), ComponentName("pumpkin", "pie"))
+            generateSplitTask(ComponentName("hotdog", "pie"), ComponentName("pumpkin", "pie"))
         val groupTask2 =
-            generateGroupTask(
+            generateSplitTask(
                 ComponentName("pomegranate", "juice"),
                 ComponentName(matchingPackage, matchingClass),
             )
@@ -426,7 +426,7 @@ class SplitSelectStateControllerTest {
                     it[0].key.baseIntent.component?.className,
                     matchingClass,
                 )
-                assertEquals(it[0], groupTask2.task2)
+                assertEquals(it[0], groupTask2.bottomRightTask)
                 assertNull("No tasks should have matched", it[1] /*task*/)
             }
 
@@ -454,12 +454,12 @@ class SplitSelectStateControllerTest {
             ComponentKey(ComponentName(matchingPackage, matchingClass), primaryUserHandle)
 
         val groupTask1 =
-            generateGroupTask(
+            generateSplitTask(
                 ComponentName(matchingPackage, matchingClass),
                 ComponentName("pumpkin", "pie"),
             )
         val groupTask2 =
-            generateGroupTask(
+            generateSplitTask(
                 ComponentName("pomegranate", "juice"),
                 ComponentName(matchingPackage, matchingClass),
             )
@@ -482,7 +482,7 @@ class SplitSelectStateControllerTest {
                     it[0].key.baseIntent.component?.className,
                     matchingClass,
                 )
-                assertEquals(it[0], groupTask1.task1)
+                assertEquals(it[0], groupTask1.topLeftTask)
                 assertEquals(
                     "ComponentName package mismatched",
                     it[1].key.baseIntent.component?.packageName,
@@ -493,7 +493,7 @@ class SplitSelectStateControllerTest {
                     it[1].key.baseIntent.component?.className,
                     matchingClass,
                 )
-                assertEquals(it[1], groupTask2.task2)
+                assertEquals(it[1], groupTask2.bottomRightTask)
             }
 
         // Capture callback from recentsModel#getTasks()
@@ -524,14 +524,14 @@ class SplitSelectStateControllerTest {
             ComponentKey(ComponentName(matchingPackage2, matchingClass2), primaryUserHandle)
 
         val groupTask1 =
-            generateGroupTask(ComponentName("hotdog", "pie"), ComponentName("pumpkin", "pie"))
+            generateSplitTask(ComponentName("hotdog", "pie"), ComponentName("pumpkin", "pie"))
         val groupTask2 =
-            generateGroupTask(
+            generateSplitTask(
                 ComponentName(matchingPackage2, matchingClass2),
                 ComponentName(matchingPackage, matchingClass),
             )
         val groupTask3 =
-            generateGroupTask(
+            generateSplitTask(
                 ComponentName("hotdog", "pie"),
                 ComponentName(matchingPackage, matchingClass),
             )
@@ -545,7 +545,7 @@ class SplitSelectStateControllerTest {
         val taskConsumer =
             Consumer<Array<Task>> {
                 assertEquals("Expected array length 2", 2, it.size)
-                assertEquals("Found wrong task", it[0], groupTask2.task1)
+                assertEquals("Found wrong task", it[0], groupTask2.topLeftTask)
             }
 
         // Capture callback from recentsModel#getTasks()
@@ -640,11 +640,11 @@ class SplitSelectStateControllerTest {
         verify(recentsView, times(0)).resetDesktopTaskFromSplitSelectState()
     }
 
-    // Generate GroupTask with default userId.
-    private fun generateGroupTask(
+    /** Generates a [SplitTask] with default userId. */
+    private fun generateSplitTask(
         task1ComponentName: ComponentName,
         task2ComponentName: ComponentName,
-    ): GroupTask {
+    ): SplitTask {
         val task1 = Task()
         var taskInfo = ActivityManager.RunningTaskInfo()
         taskInfo.taskId = getUniqueId()
@@ -660,20 +660,26 @@ class SplitSelectStateControllerTest {
         intent.component = task2ComponentName
         taskInfo.baseIntent = intent
         task2.key = Task.TaskKey(taskInfo)
-        return GroupTask(
+        return SplitTask(
             task1,
             task2,
-            SplitConfigurationOptions.SplitBounds(Rect(), Rect(), -1, -1, SNAP_TO_2_50_50),
+            SplitConfigurationOptions.SplitBounds(
+                /* leftTopBounds = */ Rect(),
+                /* rightBottomBounds = */ Rect(),
+                /* leftTopTaskId = */ task1.key.id,
+                /* rightBottomTaskId = */ task2.key.id,
+                /* snapPosition = */ SNAP_TO_2_50_50,
+            ),
         )
     }
 
-    // Generate GroupTask with custom user handles.
-    private fun generateGroupTask(
+    /** Generates a [SplitTask] with custom user handles. */
+    private fun generateSplitTask(
         task1ComponentName: ComponentName,
         userHandle1: UserHandle,
         task2ComponentName: ComponentName,
         userHandle2: UserHandle,
-    ): GroupTask {
+    ): SplitTask {
         val task1 = Task()
         var taskInfo = ActivityManager.RunningTaskInfo()
         taskInfo.taskId = getUniqueId()
@@ -692,10 +698,16 @@ class SplitSelectStateControllerTest {
         intent.component = task2ComponentName
         taskInfo.baseIntent = intent
         task2.key = Task.TaskKey(taskInfo)
-        return GroupTask(
+        return SplitTask(
             task1,
             task2,
-            SplitConfigurationOptions.SplitBounds(Rect(), Rect(), -1, -1, SNAP_TO_2_50_50),
+            SplitConfigurationOptions.SplitBounds(
+                /* leftTopBounds = */ Rect(),
+                /* rightBottomBounds = */ Rect(),
+                /* leftTopTaskId = */ task1.key.id,
+                /* rightBottomTaskId = */ task2.key.id,
+                /* snapPosition = */ SNAP_TO_2_50_50,
+            ),
         )
     }
 }

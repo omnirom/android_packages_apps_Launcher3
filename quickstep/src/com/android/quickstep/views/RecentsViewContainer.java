@@ -29,7 +29,6 @@ import androidx.annotation.Nullable;
 
 import com.android.launcher3.BaseActivity;
 import com.android.launcher3.logger.LauncherAtom;
-import com.android.launcher3.statehandlers.DesktopVisibilityController;
 import com.android.launcher3.taskbar.TaskbarUIController;
 import com.android.launcher3.views.ActivityContext;
 import com.android.launcher3.views.ScrimView;
@@ -62,19 +61,6 @@ public interface RecentsViewContainer extends ActivityContext {
      * Returns the Overview Panel as a View
      */
     <T extends View> T getOverviewPanel();
-
-    /**
-     * Returns the RootView
-     */
-    View getRootView();
-
-    /**
-     * Dispatches a generic motion event to the view hierarchy.
-     * Returns the current RecentsViewContainer as context
-     */
-    default Context asContext() {
-        return (Context) this;
-    }
 
     /**
      * @see Window.Callback#dispatchGenericMotionEvent(MotionEvent)
@@ -208,9 +194,6 @@ public interface RecentsViewContainer extends ActivityContext {
                                         .setOrientationHandler(orientationForLogging))
                         .build());
     }
-
-    @Nullable
-    DesktopVisibilityController getDesktopVisibilityController();
 
     void setTaskbarUIController(@Nullable TaskbarUIController taskbarUIController);
 

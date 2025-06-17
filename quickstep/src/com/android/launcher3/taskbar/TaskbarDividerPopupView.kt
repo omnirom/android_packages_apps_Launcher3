@@ -35,7 +35,6 @@ import com.android.launcher3.Flags
 import com.android.launcher3.R
 import com.android.launcher3.popup.ArrowPopup
 import com.android.launcher3.popup.RoundedArrowDrawable
-import com.android.launcher3.util.DisplayController
 import com.android.launcher3.util.Themes
 import com.android.launcher3.views.ActivityContext
 import kotlin.math.max
@@ -70,6 +69,8 @@ constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
 
     private lateinit var dividerView: View
     private var horizontalPosition = 0.0f
+    private val taskbarActivityContext: TaskbarActivityContext =
+        ActivityContext.lookupContext(context)
 
     private val popupCornerRadius = Themes.getDialogCornerRadius(context)
     private val arrowWidth = resources.getDimension(R.dimen.popup_arrow_width)
@@ -78,7 +79,8 @@ constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
     private val minPaddingFromScreenEdge =
         resources.getDimension(R.dimen.taskbar_pinning_popup_menu_min_padding_from_screen_edge)
 
-    private var alwaysShowTaskbarOn = !DisplayController.isTransientTaskbar(context)
+    // TODO: add test for isTransientTaskbar & long presses divider and ensures the popup shows up.
+    private var alwaysShowTaskbarOn = !taskbarActivityContext.isTransientTaskbar
     private var didPreferenceChange = false
     private var verticalOffsetForPopupView =
         resources.getDimensionPixelSize(R.dimen.taskbar_pinning_popup_menu_vertical_margin)
@@ -113,7 +115,7 @@ constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
         }
         alwaysShowTaskbarSwitch.setOnClickListener { view -> (view.parent as View).performClick() }
 
-        if (ActivityContext.lookupContext<TaskbarActivityContext>(context).isGestureNav) {
+        if (taskbarActivityContext.isGestureNav) {
             taskbarSwitchOption.setOnClickListener {
                 alwaysShowTaskbarSwitch.isChecked = !alwaysShowTaskbarOn
                 onClickAlwaysShowTaskbarSwitchOption()

@@ -17,6 +17,7 @@
 package com.android.quickstep.recents.data
 
 import com.android.quickstep.views.RecentsViewContainer
+import com.android.wm.shell.shared.desktopmode.DesktopModeStatus
 
 /**
  * Repository for shrink down version of [com.android.launcher3.DeviceProfile] that only contains
@@ -26,5 +27,10 @@ class RecentsDeviceProfileRepositoryImpl(private val container: RecentsViewConta
     RecentsDeviceProfileRepository {
 
     override fun getRecentsDeviceProfile() =
-        with(container.deviceProfile) { RecentsDeviceProfile(isLargeScreen = isTablet) }
+        with(container.deviceProfile) {
+            RecentsDeviceProfile(
+                isLargeScreen = isTablet,
+                canEnterDesktopMode = DesktopModeStatus.canEnterDesktopMode(container.asContext()),
+            )
+        }
 }

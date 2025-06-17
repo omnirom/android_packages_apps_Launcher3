@@ -44,7 +44,7 @@ class TestWorkspaceBuilder(private val mContext: Context) {
     private fun fillWithWidgets(
         widgetRect: WidgetRect,
         transaction: FavoriteItemsTransaction,
-        screenId: Int
+        screenId: Int,
     ): FavoriteItemsTransaction {
         val initX = widgetRect.cellX
         val initY = widgetRect.cellY
@@ -76,14 +76,23 @@ class TestWorkspaceBuilder(private val mContext: Context) {
         appComponentName =
             ComponentName(
                 InstrumentationRegistry.getInstrumentation().context.packageName,
-                TEST_ACTIVITY_PACKAGE_PREFIX + testAppName
+                TEST_ACTIVITY_PACKAGE_PREFIX + testAppName,
             )
+    }
+
+    /**
+     * Sets the test app for app icons to the specified Component
+     *
+     * @param testAppComponent ComponentName to use for app icons
+     */
+    fun setTestAppComponent(testAppComponent: ComponentName) {
+        appComponentName = testAppComponent
     }
 
     private fun addCorrespondingWidgetRect(
         widgetRect: WidgetRect,
         transaction: FavoriteItemsTransaction,
-        screenId: Int
+        screenId: Int,
     ) {
         if (widgetRect.type == 'x') {
             fillWithWidgets(widgetRect, transaction, screenId)
@@ -96,7 +105,7 @@ class TestWorkspaceBuilder(private val mContext: Context) {
     fun buildFromBoard(
         board: CellLayoutBoard,
         transaction: FavoriteItemsTransaction,
-        screenId: Int
+        screenId: Int,
     ): FavoriteItemsTransaction {
         board.widgets.forEach { addCorrespondingWidgetRect(it, transaction, screenId) }
         board.icons.forEach { transaction.addItem { createIconInCell(it, screenId) } }
@@ -121,7 +130,7 @@ class TestWorkspaceBuilder(private val mContext: Context) {
             WidgetUtils.createWidgetInfo(
                     TestViewHelpers.findWidgetProvider(false),
                     ApplicationProvider.getApplicationContext(),
-                    true
+                    true,
                 )
                 .apply {
                     cellX = widgetRect.cellX
@@ -145,7 +154,7 @@ class TestWorkspaceBuilder(private val mContext: Context) {
             minSpanY = 1
             setOption(FolderInfo.FLAG_MULTI_PAGE_ANIMATION, true, null)
             for (i in 0 until folderPoint.numberIconsInside) {
-                add(getDefaultWorkspaceItem(paramScreenId), false)
+                add(getDefaultWorkspaceItem(paramScreenId))
             }
         }
 

@@ -19,6 +19,7 @@
 
     <!-- Attributes used for launcher theme -->
     <attr name="allAppsScrimColor" format="color" />
+    <attr name="allAppsScrimColorOverBlur" format="color" />
     <attr name="allappsHeaderProtectionColor" format="color" />
     <attr name="allAppsNavBarScrimColor" format="color" />
     <attr name="allAppsTheme" format="reference" />
@@ -39,6 +40,7 @@
     <attr name="iconOnlyShortcutColor" format="color" />
     <attr name="eduHalfSheetBGColor" format="color" />
     <attr name="overviewScrimColor" format="color" />
+    <attr name="overviewScrimColorOverBlur" format="color" />
     <attr name="popupNotificationDotColor" format="color" />
     <attr name="notificationDotColor" format="color" />
     <attr name="focusOutlineColor" format="color" />
@@ -163,8 +165,8 @@
     </declare-styleable>
 
     <declare-styleable name="GridSize">
-        <attr name="minDeviceWidthDp" format="float"/>
-        <attr name="minDeviceHeightDp" format="float"/>
+        <attr name="minDeviceWidthPx" format="float"/>
+        <attr name="minDeviceHeightPx" format="float"/>
         <attr name="numGridRows" format="integer"/>
         <attr name="numGridColumns" format="integer"/>
         <attr name="dbFile" />
@@ -174,7 +176,8 @@
 
     <declare-styleable name="GridDisplayOption">
         <attr name="name" format="string" />
-        <attr name="title" />
+        <attr name="gridTitle" format="string" />
+        <attr name="gridIconId" format="reference"/>
 
         <attr name="numRows" format="integer" />
         <attr name="numColumns" format="integer" />
@@ -267,8 +270,13 @@
         <attr name="allAppsCellSpecsTwoPanelId" format="reference" />
         <!-- defaults to false, if not specified -->
         <attr name="isFixedLandscape" format="boolean" />
-        <!-- defaults to false, if not specified -->
-        <attr name="isOldGrid" format="boolean" />
+        <!-- By default all grid types are enabled -->
+        <attr name="gridType" format="integer">
+            <!-- Enable on phone only -->
+            <flag name="one_grid" value="1" />
+            <!-- Enable on tablets only -->
+            <flag name="non_one_grid" value="2" />
+        </attr>
 
         <!-- By default all categories are enabled -->
         <attr name="deviceCategory" format="integer">

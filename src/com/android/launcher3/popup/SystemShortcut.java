@@ -407,7 +407,7 @@ public abstract class SystemShortcut<T extends ActivityContext> extends ItemInfo
                         && !(itemInfo instanceof WorkspaceItemInfo)) {
                     return null;
                 }
-                return new BubbleShortcut(activity, itemInfo, originalView);
+                return new BubbleShortcut<>(activity, itemInfo, originalView);
             };
 
     public interface BubbleActivityStarter {
@@ -415,7 +415,7 @@ public abstract class SystemShortcut<T extends ActivityContext> extends ItemInfo
         void showShortcutBubble(ShortcutInfo info);
 
         /** Tell SysUI to show the provided intent in a bubble. */
-        void showAppBubble(Intent intent);
+        void showAppBubble(Intent intent, UserHandle user);
     }
 
     public static class BubbleShortcut<T extends ActivityContext> extends SystemShortcut<T> {
@@ -452,7 +452,7 @@ public abstract class SystemShortcut<T extends ActivityContext> extends ItemInfo
                 if (intent.getPackage() == null) {
                     intent.setPackage(mItemInfo.getTargetPackage());
                 }
-                mStarter.showAppBubble(intent);
+                mStarter.showAppBubble(intent, mItemInfo.user);
             } else {
                 Log.w(TAG, "unable to bubble, no intent: " + mItemInfo);
             }

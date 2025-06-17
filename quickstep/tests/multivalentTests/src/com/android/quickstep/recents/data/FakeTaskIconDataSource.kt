@@ -17,11 +17,11 @@
 package com.android.quickstep.recents.data
 
 import android.graphics.drawable.Drawable
-import com.android.launcher3.util.CancellableTask
-import com.android.quickstep.TaskIconCache
+import com.android.quickstep.TaskIconCache.TaskCacheEntry
 import com.android.quickstep.task.thumbnail.data.TaskIconDataSource
 import com.android.systemui.shared.recents.model.Task
 import com.google.common.truth.Truth.assertThat
+import kotlinx.coroutines.yield
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 
@@ -29,28 +29,30 @@ class FakeTaskIconDataSource : TaskIconDataSource {
 
     val taskIdToDrawable: MutableMap<Int, Drawable> =
         (0..10).associateWith { mockCopyableDrawable() }.toMutableMap()
-
-    val taskIdToUpdatingTask: MutableMap<Int, () -> Unit> = mutableMapOf()
-    var shouldLoadSynchronously: Boolean = true
+    private val completionPrevented: MutableSet<Int> = mutableSetOf()
 
     /** Retrieves and sets an icon on [task] from [taskIdToDrawable]. */
-    override fun getIconInBackground(
-        task: Task,
-        callback: TaskIconCache.GetTaskIconCallback
-    ): CancellableTask<*>? {
-        val wrappedCallback = {
-            callback.onTaskIconReceived(
-                taskIdToDrawable.getValue(task.key.id),
-                "content desc ${task.key.id}",
-                "title ${task.key.id}"
-            )
+    override suspend fun getIcon(task: Task): TaskCacheEntry {
+        while (task.key.id in completionPrevented) {
+            yield()
         }
-        if (shouldLoadSynchronously) {
-            wrappedCallback()
-        } else {
-            taskIdToUpdatingTask[task.key.id] = wrappedCallback
-        }
-        return null
+        return TaskCacheEntry(
+            taskIdToDrawable.getValue(task.key.id),
+            "content desc ${task.key.id}",
+            "title ${task.key.id}",
+        )
+    }
+
+    fun preventIconLoad(taskId: Int) {
+        completionPrevented.add(taskId)
+    }
+
+    fun completeLoadingForTask(taskId: Int) {
+        completionPrevented.remove(taskId)
+    }
+
+    fun completeLoading() {
+        completionPrevented.clear()
     }
 
     companion object {

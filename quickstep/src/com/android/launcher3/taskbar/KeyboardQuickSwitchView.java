@@ -30,10 +30,12 @@ import android.util.AttributeSet;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.ViewOutlineProvider;
 import android.view.ViewTreeObserver;
 import android.view.animation.Interpolator;
 import android.widget.HorizontalScrollView;
+import android.widget.ImageButton;
 import android.widget.TextView;
 import android.window.OnBackInvokedDispatcher;
 import android.window.WindowOnBackInvokedDispatcher;
@@ -51,7 +53,12 @@ import com.android.launcher3.anim.AnimatedFloat;
 import com.android.launcher3.testing.TestLogging;
 import com.android.launcher3.testing.shared.TestProtocol;
 import com.android.quickstep.util.GroupTask;
+import com.android.quickstep.util.SingleTask;
+import com.android.quickstep.util.SplitTask;
+import com.android.systemui.shared.recents.model.Task;
 import com.android.systemui.shared.system.InteractionJankMonitorWrapper;
+import com.android.wm.shell.shared.TypefaceUtils;
+import com.android.wm.shell.shared.TypefaceUtils.FontFamily;
 
 import java.util.HashMap;
 import java.util.List;
@@ -99,8 +106,12 @@ public class KeyboardQuickSwitchView extends ConstraintLayout {
     private HorizontalScrollView mScrollView;
     private ConstraintLayout mContent;
 
-    private int mTaskViewWidth;
-    private int mTaskViewHeight;
+    private boolean mSupportsScrollArrows = false;
+    private ImageButton mStartScrollArrow;
+    private ImageButton mEndScrollArrow;
+
+    private int mTaskViewBorderWidth;
+    private int mTaskViewRadius;
     private int mSpacing;
     private int mSmallSpacing;
     private int mOutlineRadius;
@@ -109,11 +120,13 @@ public class KeyboardQuickSwitchView extends ConstraintLayout {
     private int mOverviewTaskIndex = -1;
     private int mDesktopTaskIndex = -1;
 
-    @Nullable private AnimatorSet mOpenAnimation;
+    @Nullable
+    private AnimatorSet mOpenAnimation;
 
     private boolean mIsBackCallbackRegistered = false;
 
-    @Nullable private KeyboardQuickSwitchViewController.ViewCallbacks mViewCallbacks;
+    @Nullable
+    private KeyboardQuickSwitchViewController.ViewCallbacks mViewCallbacks;
 
     public KeyboardQuickSwitchView(@NonNull Context context) {
         this(context, null);
@@ -149,17 +162,26 @@ public class KeyboardQuickSwitchView extends ConstraintLayout {
         mNoRecentItemsPane = findViewById(R.id.no_recent_items_pane);
         mScrollView = findViewById(R.id.scroll_view);
         mContent = findViewById(R.id.content);
+        mStartScrollArrow = findViewById(R.id.scroll_button_start);
+        mEndScrollArrow = findViewById(R.id.scroll_button_end);
+
+        setDescendantFocusability(ViewGroup.FOCUS_BLOCK_DESCENDANTS);
 
         Resources resources = getResources();
-        mTaskViewWidth = resources.getDimensionPixelSize(
-                R.dimen.keyboard_quick_switch_taskview_width);
-        mTaskViewHeight = resources.getDimensionPixelSize(
-                R.dimen.keyboard_quick_switch_taskview_height);
         mSpacing = resources.getDimensionPixelSize(R.dimen.keyboard_quick_switch_view_spacing);
         mSmallSpacing = resources.getDimensionPixelSize(
                 R.dimen.keyboard_quick_switch_view_small_spacing);
         mOutlineRadius = resources.getDimensionPixelSize(R.dimen.keyboard_quick_switch_view_radius);
+        mTaskViewBorderWidth = resources.getDimensionPixelSize(
+                R.dimen.keyboard_quick_switch_border_width);
+        mTaskViewRadius = resources.getDimensionPixelSize(
+                R.dimen.keyboard_quick_switch_task_view_radius);
+
         mIsRtl = Utilities.isRtl(resources);
+
+        TypefaceUtils.setTypeface(
+                mNoRecentItemsPane.findViewById(R.id.no_recent_items_text),
+                FontFamily.GSF_LABEL_LARGE);
     }
 
     private void registerOnBackInvokedCallback() {
@@ -255,17 +277,25 @@ public class KeyboardQuickSwitchView extends ConstraintLayout {
                     layoutInflater,
                     previousTaskView);
 
-            final boolean firstTaskIsLeftTopTask =
-                    groupTask.mSplitBounds == null
-                            || groupTask.mSplitBounds.leftTopTaskId == groupTask.task1.key.id
-                            || groupTask.task2 == null;
+            Task task1;
+            Task task2;
+            if (groupTask instanceof SplitTask splitTask) {
+                task1 = splitTask.getTopLeftTask();
+                task2 = splitTask.getBottomRightTask();
+            } else if (groupTask instanceof SingleTask singleTask) {
+                task1 = singleTask.getTask();
+                task2 = null;
+            } else {
+                continue;
+            }
 
+            currentTaskView.setPositionInformation(i, tasksToDisplay);
             currentTaskView.setThumbnailsForSplitTasks(
-                    firstTaskIsLeftTopTask ? groupTask.task1 : groupTask.task2,
-                    firstTaskIsLeftTopTask ? groupTask.task2 : groupTask.task1,
+                    task1,
+                    task2,
                     updateTasks ? mViewCallbacks::updateThumbnailInBackground : null,
                     updateTasks ? mViewCallbacks::updateIconInBackground : null,
-                    groupTask.mSplitBounds);
+                    groupTask instanceof SplitTask splitTask ? splitTask.getSplitBounds() : null);
 
             previousTaskView = currentTaskView;
         }
@@ -300,7 +330,7 @@ public class KeyboardQuickSwitchView extends ConstraintLayout {
                     layoutInflater,
                     previousTaskView);
 
-            desktopButton.<TextView>findViewById(R.id.text).setText(
+            desktopButton.<TextView>findViewById(R.id.small_text).setText(
                     resources.getString(R.string.quick_switch_desktop));
         }
         mDisplayingRecentTasks = !groupTasks.isEmpty() || useDesktopTaskView;
@@ -315,6 +345,90 @@ public class KeyboardQuickSwitchView extends ConstraintLayout {
                         getViewTreeObserver().removeOnGlobalLayoutListener(this);
                     }
                 });
+    }
+
+
+    void enableScrollArrowSupport() {
+        if (mSupportsScrollArrows) {
+            return;
+        }
+        mSupportsScrollArrows = true;
+
+        if (mIsRtl) {
+            mStartScrollArrow.setContentDescription(
+                    getResources().getString(R.string.quick_switch_scroll_arrow_right));
+            mEndScrollArrow.setContentDescription(
+                    getResources().getString(R.string.quick_switch_scroll_arrow_left));
+        }
+
+
+        mStartScrollArrow.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (mIsRtl) {
+                    runScrollCommand(false, () -> {
+                        mScrollView.smoothScrollBy(mScrollView.getWidth(), 0);
+                    });
+                } else {
+                    runScrollCommand(false, () -> {
+                        mScrollView.smoothScrollBy(-mScrollView.getWidth(), 0);
+                    });
+                }
+            }
+        });
+
+        mEndScrollArrow.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (mIsRtl) {
+                    runScrollCommand(false, () -> {
+                        mScrollView.smoothScrollBy(-mScrollView.getWidth(), 0);
+                    });
+                } else {
+                    runScrollCommand(false, () -> {
+                        mScrollView.smoothScrollBy(mScrollView.getWidth(), 0);
+                    });
+                }
+            }
+        });
+
+        // Add listeners to disable arrow buttons when the scroll view cannot be further scrolled in
+        // the associated direction.
+        mScrollView.setOnScrollChangeListener(new OnScrollChangeListener() {
+            @Override
+            public void onScrollChange(View v, int scrollX, int scrollY, int oldScrollX,
+                    int oldScrollY) {
+                updateArrowButtonsEnabledState();
+            }
+        });
+
+        // Update scroll view outline to clip its contents with rounded corners.
+        mScrollView.setClipToOutline(true);
+        mScrollView.setOutlineProvider(new ViewOutlineProvider() {
+            @Override
+            public void getOutline(View view, Outline outline) {
+                int spacingWithoutBorder = mSpacing - mTaskViewBorderWidth;
+                outline.setRoundRect(spacingWithoutBorder,
+                        spacingWithoutBorder, view.getWidth() - spacingWithoutBorder,
+                        view.getHeight() - spacingWithoutBorder,
+                        mTaskViewRadius);
+            }
+        });
+    }
+
+    private void updateArrowButtonsEnabledState() {
+        if (!mDisplayingRecentTasks) {
+            return;
+        }
+
+        int scrollX = mScrollView.getScrollX();
+        if (mIsRtl) {
+            mEndScrollArrow.setEnabled(scrollX > 0);
+            mStartScrollArrow.setEnabled(scrollX < mContent.getWidth() - mScrollView.getWidth());
+        } else {
+            mStartScrollArrow.setEnabled(scrollX > 0);
+            mEndScrollArrow.setEnabled(scrollX < mContent.getWidth() - mScrollView.getWidth());
+        }
     }
 
     int getOverviewTaskIndex() {
@@ -332,6 +446,21 @@ public class KeyboardQuickSwitchView extends ConstraintLayout {
         mViewCallbacks = null;
     }
 
+    private void animateDisplayedContentForClose(View view, AnimatorSet animator) {
+        Animator translationYAnimation = ObjectAnimator.ofFloat(
+                view,
+                TRANSLATION_Y,
+                0, -Utilities.dpToPx(CONTENT_START_TRANSLATION_Y_DP));
+        translationYAnimation.setDuration(CONTENT_TRANSLATION_Y_ANIMATION_DURATION_MS);
+        translationYAnimation.setInterpolator(CLOSE_TRANSLATION_Y_INTERPOLATOR);
+        animator.play(translationYAnimation);
+
+        Animator contentAlphaAnimation = ObjectAnimator.ofFloat(view, ALPHA, 1f, 0f);
+        contentAlphaAnimation.setDuration(CONTENT_ALPHA_ANIMATION_DURATION_MS);
+        animator.play(contentAlphaAnimation);
+
+    }
+
     protected Animator getCloseAnimation() {
         AnimatorSet closeAnimation = new AnimatorSet();
 
@@ -346,17 +475,11 @@ public class KeyboardQuickSwitchView extends ConstraintLayout {
         closeAnimation.play(alphaAnimation);
 
         View displayedContent = mDisplayingRecentTasks ? mScrollView : mNoRecentItemsPane;
-        Animator translationYAnimation = ObjectAnimator.ofFloat(
-                displayedContent,
-                TRANSLATION_Y,
-                0, -Utilities.dpToPx(CONTENT_START_TRANSLATION_Y_DP));
-        translationYAnimation.setDuration(CONTENT_TRANSLATION_Y_ANIMATION_DURATION_MS);
-        translationYAnimation.setInterpolator(CLOSE_TRANSLATION_Y_INTERPOLATOR);
-        closeAnimation.play(translationYAnimation);
-
-        Animator contentAlphaAnimation = ObjectAnimator.ofFloat(displayedContent, ALPHA, 1f, 0f);
-        contentAlphaAnimation.setDuration(CONTENT_ALPHA_ANIMATION_DURATION_MS);
-        closeAnimation.play(contentAlphaAnimation);
+        animateDisplayedContentForClose(displayedContent, closeAnimation);
+        if (mSupportsScrollArrows) {
+            animateDisplayedContentForClose(mStartScrollArrow, closeAnimation);
+            animateDisplayedContentForClose(mEndScrollArrow, closeAnimation);
+        }
 
         closeAnimation.addListener(new AnimatorListenerAdapter() {
             @Override
@@ -369,6 +492,31 @@ public class KeyboardQuickSwitchView extends ConstraintLayout {
         });
 
         return closeAnimation;
+    }
+
+    private void animateDisplayedContentForOpen(View view, AnimatorSet animator) {
+        Animator translationXAnimation = ObjectAnimator.ofFloat(
+                view,
+                TRANSLATION_X,
+                -Utilities.dpToPx(CONTENT_START_TRANSLATION_X_DP), 0);
+        translationXAnimation.setDuration(CONTENT_TRANSLATION_X_ANIMATION_DURATION_MS);
+        translationXAnimation.setInterpolator(OPEN_TRANSLATION_X_INTERPOLATOR);
+        animator.play(translationXAnimation);
+
+        Animator translationYAnimation = ObjectAnimator.ofFloat(
+                view,
+                TRANSLATION_Y,
+                -Utilities.dpToPx(CONTENT_START_TRANSLATION_Y_DP), 0);
+        translationYAnimation.setDuration(CONTENT_TRANSLATION_Y_ANIMATION_DURATION_MS);
+        translationYAnimation.setInterpolator(OPEN_TRANSLATION_Y_INTERPOLATOR);
+        animator.play(translationYAnimation);
+
+        view.setAlpha(0.0f);
+        Animator contentAlphaAnimation = ObjectAnimator.ofFloat(view, ALPHA, 0f,
+                1f);
+        contentAlphaAnimation.setStartDelay(CONTENT_ALPHA_ANIMATION_START_DELAY_MS);
+        contentAlphaAnimation.setDuration(CONTENT_ALPHA_ANIMATION_DURATION_MS);
+        animator.play(contentAlphaAnimation);
     }
 
     protected void animateOpen(int currentFocusIndexOverride) {
@@ -393,28 +541,17 @@ public class KeyboardQuickSwitchView extends ConstraintLayout {
         mOpenAnimation.play(alphaAnimation);
 
         View displayedContent = mDisplayingRecentTasks ? mScrollView : mNoRecentItemsPane;
-        Animator translationXAnimation = ObjectAnimator.ofFloat(
-                displayedContent,
-                TRANSLATION_X,
-                -Utilities.dpToPx(CONTENT_START_TRANSLATION_X_DP), 0);
-        translationXAnimation.setDuration(CONTENT_TRANSLATION_X_ANIMATION_DURATION_MS);
-        translationXAnimation.setInterpolator(OPEN_TRANSLATION_X_INTERPOLATOR);
-        mOpenAnimation.play(translationXAnimation);
+        animateDisplayedContentForOpen(displayedContent, mOpenAnimation);
+        if (mSupportsScrollArrows) {
+            animateDisplayedContentForOpen(mStartScrollArrow, mOpenAnimation);
+            animateDisplayedContentForOpen(mEndScrollArrow, mOpenAnimation);
+        }
 
-        Animator translationYAnimation = ObjectAnimator.ofFloat(
-                displayedContent,
-                TRANSLATION_Y,
-                -Utilities.dpToPx(CONTENT_START_TRANSLATION_Y_DP), 0);
-        translationYAnimation.setDuration(CONTENT_TRANSLATION_Y_ANIMATION_DURATION_MS);
-        translationYAnimation.setInterpolator(OPEN_TRANSLATION_Y_INTERPOLATOR);
-        mOpenAnimation.play(translationYAnimation);
-
-        Animator contentAlphaAnimation = ObjectAnimator.ofFloat(displayedContent, ALPHA, 0f, 1f);
-        contentAlphaAnimation.setStartDelay(CONTENT_ALPHA_ANIMATION_START_DELAY_MS);
-        contentAlphaAnimation.setDuration(CONTENT_ALPHA_ANIMATION_DURATION_MS);
-        mOpenAnimation.play(contentAlphaAnimation);
 
         ViewOutlineProvider outlineProvider = getOutlineProvider();
+        int defaultFocusedTaskIndex = Math.min(
+                getTaskCount() - 1,
+                currentFocusIndexOverride == -1 ? 1 : currentFocusIndexOverride);
         mOpenAnimation.addListener(new AnimatorListenerAdapter() {
             @Override
             public void onAnimationStart(Animator animation) {
@@ -447,9 +584,28 @@ public class KeyboardQuickSwitchView extends ConstraintLayout {
                                         OPEN_OUTLINE_INTERPOLATOR));
                     }
                 });
-                animateFocusMove(-1, Math.min(
-                        getTaskCount() - 1,
-                        currentFocusIndexOverride == -1 ? 1 : currentFocusIndexOverride));
+
+                if (mSupportsScrollArrows) {
+                    mScrollView.getViewTreeObserver().addOnGlobalLayoutListener(
+                            new ViewTreeObserver.OnGlobalLayoutListener() {
+                                @Override
+                                public void onGlobalLayout() {
+                                    if (mScrollView.getWidth() == 0) {
+                                        return;
+                                    }
+
+                                    if (mContent.getWidth() > mScrollView.getWidth()) {
+                                        mStartScrollArrow.setVisibility(VISIBLE);
+                                        mEndScrollArrow.setVisibility(VISIBLE);
+                                        updateArrowButtonsEnabledState();
+                                    }
+                                    mScrollView.getViewTreeObserver().removeOnGlobalLayoutListener(
+                                            this);
+                                }
+                            });
+                }
+
+                animateFocusMove(-1, defaultFocusedTaskIndex);
                 displayedContent.setVisibility(VISIBLE);
                 setVisibility(VISIBLE);
                 requestFocus();
@@ -469,6 +625,11 @@ public class KeyboardQuickSwitchView extends ConstraintLayout {
                 invalidateOutline();
                 mOpenAnimation = null;
                 InteractionJankMonitorWrapper.end(Cuj.CUJ_LAUNCHER_KEYBOARD_QUICK_SWITCH_OPEN);
+
+                View focusedTask = getTaskAt(defaultFocusedTaskIndex);
+                if (focusedTask != null) {
+                    focusedTask.requestAccessibilityFocus();
+                }
             }
         });
 

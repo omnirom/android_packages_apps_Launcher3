@@ -229,9 +229,7 @@ public class HotseatPredictionController implements DragController.DragListener,
                     (WorkspaceItemInfo) mPredictedItems.get(predictionIndex++);
             if (isPredictedIcon(child) && child.isEnabled()) {
                 PredictedAppIcon icon = (PredictedAppIcon) child;
-                boolean animateIconChange = icon.shouldAnimateIconChange(predictedItem);
-                icon.applyFromWorkspaceItem(predictedItem, animateIconChange, numViewsAnimated);
-                if (animateIconChange) {
+                if (icon.applyFromWorkspaceItemWithAnimation(predictedItem, numViewsAnimated)) {
                     numViewsAnimated++;
                 }
                 icon.finishBinding(mPredictionLongClickListener);

@@ -62,7 +62,11 @@ class IconCacheUpdateHandlerTest {
 
     private var cursor =
         MatrixCursor(
-            arrayOf(IconDB.COLUMN_ROWID, IconDB.COLUMN_COMPONENT, IconDB.COLUMN_FRESHNESS_ID)
+            arrayOf(
+                BaseIconCache.COLUMN_ROWID,
+                BaseIconCache.COLUMN_COMPONENT,
+                BaseIconCache.COLUMN_FRESHNESS_ID,
+            )
         )
 
     private lateinit var updateHandlerUnderTest: IconCacheUpdateHandler

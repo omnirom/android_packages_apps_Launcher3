@@ -16,8 +16,6 @@
 package com.android.quickstep;
 
 
-import static com.android.launcher3.config.FeatureFlags.enableSplitContextually;
-
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeTrue;
@@ -32,7 +30,6 @@ import com.android.launcher3.tapl.Overview;
 import com.android.launcher3.tapl.Taskbar;
 import com.android.launcher3.tapl.TaskbarAppIcon;
 import com.android.quickstep.util.SplitScreenTestUtils;
-import com.android.wm.shell.Flags;
 
 import org.junit.After;
 import org.junit.Before;
@@ -89,25 +86,14 @@ public class TaplTestsSplitscreen extends AbstractQuickStepTest {
                 .getSplitScreenMenuItem()
                 .click();
 
-        if (enableSplitContextually()) {
-            // We're staying in all apps, use same instance
-            mLauncher.getAllApps()
-                    .getAppIcon(CALCULATOR_APP_NAME)
-                    .launchIntoSplitScreen();
-        } else {
-            // We're in overview, use taskbar instance
-            mLauncher.getLaunchedAppState()
-                    .getTaskbar()
-                    .getAppIcon(CALCULATOR_APP_NAME)
-                    .launchIntoSplitScreen();
-        }
+        // We're staying in all apps, use same instance
+        mLauncher.getAllApps()
+                .getAppIcon(CALCULATOR_APP_NAME)
+                .launchIntoSplitScreen();
     }
 
     @Test
     public void testSaveAppPairMenuItemOrActionExistsOnSplitPair() {
-        assumeTrue("App pairs feature is currently not enabled, no test needed",
-                Flags.enableAppPairs());
-
         Overview overview = SplitScreenTestUtils.createAndLaunchASplitPairInOverview(mLauncher);
 
         if (mLauncher.isGridOnlyOverviewEnabled() || !mLauncher.isTablet()) {
@@ -120,9 +106,6 @@ public class TaplTestsSplitscreen extends AbstractQuickStepTest {
 
     @Test
     public void testSaveAppPairMenuItemDoesNotExistOnSingleTask() throws Exception {
-        assumeTrue("App pairs feature is currently not enabled, no test needed",
-                Flags.enableAppPairs());
-
         startAppFast(CALCULATOR_APP_PACKAGE);
 
         assertFalse("Save app pair menu item is erroneously appearing on single task",

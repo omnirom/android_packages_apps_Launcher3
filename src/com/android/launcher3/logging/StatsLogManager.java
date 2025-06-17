@@ -166,6 +166,9 @@ public class StatsLogManager implements ResourceBasedOverride {
         @UiEvent(doc = "User tapped or long pressed on settings icon inside launcher settings.")
         LAUNCHER_SETTINGS_BUTTON_TAP_OR_LONGPRESS(463),
 
+        @UiEvent(doc = "User tapped or long pressed on apps icon inside launcher settings.")
+        LAUNCHER_ALL_APPS_TAP_OR_LONGPRESS(2204),
+
         @UiEvent(doc = "User tapped or long pressed on widget tray icon inside launcher settings.")
         LAUNCHER_WIDGETSTRAY_BUTTON_TAP_OR_LONGPRESS(464),
 
@@ -225,8 +228,11 @@ public class StatsLogManager implements ResourceBasedOverride {
         @UiEvent(doc = "User tapped on desktop icon on a task menu.")
         LAUNCHER_SYSTEM_SHORTCUT_DESKTOP_TAP(1706),
 
-        @UiEvent(doc = "Use tapped on external display icon on a task menu,")
+        @UiEvent(doc = "User tapped on external display icon on a task menu,")
         LAUNCHER_SYSTEM_SHORTCUT_EXTERNAL_DISPLAY_TAP(1957),
+
+        @UiEvent(doc = "User tapped on close app on a task menu,")
+        LAUNCHER_SYSTEM_SHORTCUT_CLOSE_APP_TAP(2081),
 
         @UiEvent(doc = "User tapped on pause app system shortcut.")
         LAUNCHER_SYSTEM_SHORTCUT_PAUSE_TAP(521),
@@ -300,6 +306,12 @@ public class StatsLogManager implements ResourceBasedOverride {
 
         @UiEvent(doc = "User swipes or fling in RIGHT direction on the bottom bazel area.")
         LAUNCHER_QUICKSWITCH_RIGHT(572),
+
+        @UiEvent(doc = "User swipes or fling on the bottom bazel area to enter Desktop mode.")
+        LAUNCHER_QUICKSWITCH_ENTER_DESKTOP_MODE(2025),
+
+        @UiEvent(doc = "User swipes or fling on the bottom bazel area to exit Desktop mode.")
+        LAUNCHER_QUICKSWITCH_EXIT_DESKTOP_MODE(2026),
 
         @UiEvent(doc = "User swipes or fling in DOWN direction on the bottom bazel area.")
         LAUNCHER_SWIPEDOWN_NAVBAR(573),
@@ -424,20 +436,29 @@ public class StatsLogManager implements ResourceBasedOverride {
         @UiEvent(doc = "Notification dismissed by swiping right.")
         LAUNCHER_NOTIFICATION_DISMISSED(652),
 
-        @UiEvent(doc = "Current grid size is changed to 6.")
-        LAUNCHER_GRID_SIZE_6(930),
+        @UiEvent(doc = "Current grid size is changed to 2x2")
+        LAUNCHER_GRID_SIZE_2_BY_2(2181),
 
-        @UiEvent(doc = "Current grid size is changed to 5.")
-        LAUNCHER_GRID_SIZE_5(662),
+        @UiEvent(doc = "Current grid size is changed to 3x3")
+        LAUNCHER_GRID_SIZE_3_BY_3(2182),
 
-        @UiEvent(doc = "Current grid size is changed to 4.")
-        LAUNCHER_GRID_SIZE_4(663),
+        @UiEvent(doc = "Current grid size is changed to 4x4")
+        LAUNCHER_GRID_SIZE_4_BY_4(2183),
 
-        @UiEvent(doc = "Current grid size is changed to 3.")
-        LAUNCHER_GRID_SIZE_3(664),
+        @UiEvent(doc = "Current grid size is changed to 4x5")
+        LAUNCHER_GRID_SIZE_4_BY_5(2184),
 
-        @UiEvent(doc = "Current grid size is changed to 2.")
-        LAUNCHER_GRID_SIZE_2(665),
+        @UiEvent(doc = "Current grid size is changed to 4x6")
+        LAUNCHER_GRID_SIZE_4_BY_6(2185),
+
+        @UiEvent(doc = "Current grid size is changed to 5x5")
+        LAUNCHER_GRID_SIZE_5_BY_5(2186),
+
+        @UiEvent(doc = "Current grid size is changed to 5x6")
+        LAUNCHER_GRID_SIZE_5_BY_6(2187),
+
+        @UiEvent(doc = "Current grid size is changed to 6x5")
+        LAUNCHER_GRID_SIZE_6_BY_5(2188),
 
         @UiEvent(doc = "Launcher entered into AllApps state.")
         LAUNCHER_ALLAPPS_ENTRY(692),
@@ -844,12 +865,40 @@ public class StatsLogManager implements ResourceBasedOverride {
         @UiEvent(doc = "User long press nav handle and a long press runnable was created.")
         LAUNCHER_OMNI_GET_LONG_PRESS_RUNNABLE(1545),
 
+        @UiEvent(doc = "User tapped on \"change aspect ratio\" system shortcut.")
+        LAUNCHER_ASPECT_RATIO_SETTINGS_SYSTEM_SHORTCUT_TAP(2219),
+
         // One Grid Flags
         @UiEvent(doc = "User sets the device in Fixed Landscape")
         FIXED_LANDSCAPE_TOGGLE_ENABLE(2014),
 
         @UiEvent(doc = "User sets the device in Fixed Landscape")
         FIXED_LANDSCAPE_TOGGLE_DISABLED(2020),
+
+        @UiEvent(doc = "Work utility view expand animation started")
+        LAUNCHER_WORK_UTILITY_VIEW_EXPAND_ANIMATION_BEGIN(2075),
+
+        @UiEvent(doc = "Work utility view expand animation ended")
+        LAUNCHER_WORK_UTILITY_VIEW_EXPAND_ANIMATION_END(2076),
+
+        @UiEvent(doc = "Work utility view shrink animation started")
+        LAUNCHER_WORK_UTILITY_VIEW_SHRINK_ANIMATION_BEGIN(2077),
+
+        @UiEvent(doc = "Work utility view shrink animation ended")
+        LAUNCHER_WORK_UTILITY_VIEW_SHRINK_ANIMATION_END(2078),
+
+        @UiEvent(doc = "Standard grid migration occurred")
+        LAUNCHER_STANDARD_GRID_MIGRATION(2200),
+
+        @UiEvent(doc = "Row shift grid migration occurred")
+        LAUNCHER_ROW_SHIFT_GRID_MIGRATION(2201),
+
+        @UiEvent(doc = "Do standard migration when upgrading to one grid")
+        LAUNCHER_STANDARD_ONE_GRID_MIGRATION(2205),
+
+        @UiEvent(doc = "Do row shift migration when upgrading to one grid")
+        LAUNCHER_ROW_SHIFT_ONE_GRID_MIGRATION(2206),
+
         // ADD MORE
         ;
 
@@ -884,6 +933,10 @@ public class StatsLogManager implements ResourceBasedOverride {
         @UiEvent(doc = "Time passed between Contextual Search runnable creation and execution. This"
                 + " ensures that Recent animations have finished before Contextual Search starts.")
         LAUNCHER_LATENCY_OMNI_RUNNABLE(1546),
+
+        @UiEvent(doc = "Time passed between nav handle touch down and cancellation without "
+                + "triggering Contextual Search")
+        LAUNCHER_LATENCY_CONTEXTUAL_SEARCH_LPNH_ABANDON(2171),
         ;
 
         private final int mId;

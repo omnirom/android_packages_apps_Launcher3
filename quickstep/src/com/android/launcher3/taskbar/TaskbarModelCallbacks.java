@@ -18,6 +18,7 @@ package com.android.launcher3.taskbar;
 import android.util.SparseArray;
 import android.view.View;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.UiThread;
 
 import com.android.launcher3.LauncherSettings.Favorites;
@@ -25,7 +26,6 @@ import com.android.launcher3.model.BgDataModel;
 import com.android.launcher3.model.BgDataModel.FixedContainerItems;
 import com.android.launcher3.model.data.AppInfo;
 import com.android.launcher3.model.data.ItemInfo;
-import com.android.launcher3.model.data.WorkspaceItemInfo;
 import com.android.launcher3.util.ComponentKey;
 import com.android.launcher3.util.IntArray;
 import com.android.launcher3.util.IntSet;
@@ -39,9 +39,9 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Predicate;
 
 /**
@@ -62,6 +62,7 @@ public class TaskbarModelCallbacks implements
     // Used to defer any UI updates during the SUW unstash animation.
     private boolean mDeferUpdatesForSUW;
     private Runnable mDeferredUpdates;
+    private boolean mBindingItems = false;
 
     public TaskbarModelCallbacks(
             TaskbarActivityContext context, TaskbarView container) {
@@ -75,14 +76,14 @@ public class TaskbarModelCallbacks implements
 
     @Override
     public void startBinding() {
-        mContext.setBindingItems(true);
+        mBindingItems = true;
         mHotseatItems.clear();
         mPredictedItems = Collections.emptyList();
     }
 
     @Override
     public void finishBindingItems(IntSet pagesBoundFirst) {
-        mContext.setBindingItems(false);
+        mBindingItems = false;
         commitItemsToUI();
     }
 
@@ -114,26 +115,21 @@ public class TaskbarModelCallbacks implements
         return modified;
     }
 
-
     @Override
-    public void bindWorkspaceItemsChanged(List<WorkspaceItemInfo> updated) {
-        updateWorkspaceItems(updated, mContext);
+    public void bindItemsUpdated(Set<ItemInfo> updates) {
+        updateContainerItems(updates, mContext);
     }
 
     @Override
-    public void bindRestoreItemsChange(HashSet<ItemInfo> updates) {
-        updateRestoreItems(updates, mContext);
-    }
-
-    @Override
-    public void mapOverItems(ItemOperator op) {
+    public View mapOverItems(@NonNull ItemOperator op) {
         final int itemCount = mContainer.getChildCount();
         for (int itemIdx = 0; itemIdx < itemCount; itemIdx++) {
             View item = mContainer.getChildAt(itemIdx);
             if (item.getTag() instanceof ItemInfo itemInfo && op.evaluate(itemInfo, item)) {
-                return;
+                return item;
             }
         }
+        return null;
     }
 
     @Override
@@ -174,7 +170,7 @@ public class TaskbarModelCallbacks implements
     }
 
     private void commitItemsToUI() {
-        if (mContext.isBindingItems()) {
+        if (mBindingItems) {
             return;
         }
 
@@ -210,6 +206,7 @@ public class TaskbarModelCallbacks implements
             ItemInfo[] hotseatItemInfos, List<GroupTask> recentTasks) {
         mContainer.updateItems(hotseatItemInfos, recentTasks);
         mControllers.taskbarViewController.updateIconViewsRunningStates();
+        mControllers.taskbarPopupController.setHotseatInfosList(mHotseatItems);
     }
 
     /**

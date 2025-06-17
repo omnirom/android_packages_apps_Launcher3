@@ -48,6 +48,7 @@ import androidx.annotation.Nullable;
 
 import com.android.launcher3.DeviceProfile;
 import com.android.launcher3.InvariantDeviceProfile;
+import com.android.launcher3.LauncherAppState;
 import com.android.launcher3.R;
 import com.android.launcher3.logging.StatsLogManager;
 import com.android.quickstep.interaction.TutorialController.TutorialType;
@@ -175,8 +176,10 @@ abstract class TutorialFragment extends GestureSandboxFragment implements OnTouc
         Bundle args = savedInstanceState != null ? savedInstanceState : getArguments();
         mTutorialType = (TutorialType) args.getSerializable(KEY_TUTORIAL_TYPE);
         mGestureComplete = args.getBoolean(KEY_GESTURE_COMPLETE, false);
-        mEdgeBackGestureHandler = new EdgeBackGestureHandler(getContext());
-        mNavBarGestureHandler = new NavBarGestureHandler(getContext());
+        DeviceProfile deviceProfile = LauncherAppState.getInstance(getContext())
+                .getInvariantDeviceProfile().getDeviceProfile(getContext());
+        mEdgeBackGestureHandler = new EdgeBackGestureHandler(getContext(), deviceProfile);
+        mNavBarGestureHandler = new NavBarGestureHandler(getContext(), deviceProfile);
 
         mDeviceProfile = InvariantDeviceProfile.INSTANCE.get(getContext())
                 .getDeviceProfile(getContext());
@@ -212,7 +215,6 @@ abstract class TutorialFragment extends GestureSandboxFragment implements OnTouc
     public View onCreateView(
             @NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         super.onCreateView(inflater, container, savedInstanceState);
-
         mRootView = (RootSandboxLayout) inflater.inflate(
                 R.layout.redesigned_gesture_tutorial_fragment,
                 container,
@@ -268,9 +270,7 @@ abstract class TutorialFragment extends GestureSandboxFragment implements OnTouc
             mTutorialController.showFeedback(
                     introTitleResId,
                     introSubtitleResId,
-                    mTutorialController.getSpokenIntroductionSubtitle(),
-                    false,
-                    true);
+                    /* isGestureSuccessful= */ false);
             mIntroductionShown = true;
         }
     }

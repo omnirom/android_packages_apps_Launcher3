@@ -17,7 +17,6 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.SmallTest
 import androidx.test.platform.app.InstrumentationRegistry.getInstrumentation
 import com.android.launcher3.Flags.FLAG_ENABLE_GENERATED_PREVIEWS
-import com.android.launcher3.InvariantDeviceProfile
 import com.android.launcher3.R
 import com.android.launcher3.icons.IconCache
 import com.android.launcher3.model.WidgetItem
@@ -100,7 +99,7 @@ class GeneratedPreviewTest {
 
     private fun createWidgetItem() {
         Executors.MODEL_EXECUTOR.submit {
-                val idp = InvariantDeviceProfile()
+                val idp = context.appComponent.idp
                 widgetItem = WidgetItem(appWidgetProviderInfo, idp, iconCache, context)
             }
             .get()
