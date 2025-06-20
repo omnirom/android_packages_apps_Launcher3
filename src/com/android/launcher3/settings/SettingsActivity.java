@@ -24,6 +24,7 @@ import static com.android.launcher3.BuildConfig.IS_DEBUG_DEVICE;
 import static com.android.launcher3.BuildConfig.IS_STUDIO_BUILD;
 import static com.android.launcher3.InvariantDeviceProfile.TYPE_MULTI_DISPLAY;
 import static com.android.launcher3.InvariantDeviceProfile.TYPE_TABLET;
+import static com.android.launcher3.LauncherPrefs.GRID_NAME;
 import static com.android.launcher3.states.RotationHelper.ALLOW_ROTATION_PREFERENCE_KEY;
 
 import android.app.Activity;
@@ -62,6 +63,7 @@ import com.android.launcher3.Flags;
 import com.android.launcher3.InvariantDeviceProfile;
 import com.android.launcher3.InvariantDeviceProfile.GridOption;
 import com.android.launcher3.LauncherFiles;
+import com.android.launcher3.LauncherPrefs;
 import com.android.launcher3.R;
 import com.android.launcher3.states.RotationHelper;
 import com.android.launcher3.Utilities;
@@ -281,7 +283,7 @@ public class SettingsActivity extends FragmentActivity
             grid.setEntries(entries.toArray(new String[entries.size()]));
             grid.setEntryValues(values.toArray(new String[values.size()]));
 
-            String currentGrid = idp.getCurrentGridName(getContext());
+            String currentGrid = LauncherPrefs.INSTANCE.get(getContext()).get(GRID_NAME);
             int valueIndex = grid.findIndexOfValue(currentGrid);
             grid.setValueIndex(valueIndex >= 0 ? valueIndex : 0);
             grid.setSummary(grid.getEntry());
