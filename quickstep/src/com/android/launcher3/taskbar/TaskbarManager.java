@@ -465,9 +465,9 @@ public class TaskbarManager implements DisplayDecorationListener {
                 .register(USER_SETUP_COMPLETE_URI, mOnSettingsChangeListener);
         SettingsCache.INSTANCE.get(mPrimaryWindowContext)
                 .register(NAV_BAR_KIDS_MODE, mOnSettingsChangeListener);
-        SettingsCache.INSTANCE.get(mWindowContext)
+        SettingsCache.INSTANCE.get(mPrimaryWindowContext)
                 .register(OMNI_GESTURE_HANDLE_HIDE, mOnSettingsChangeListener);
-        SettingsCache.INSTANCE.get(mWindowContext)
+        SettingsCache.INSTANCE.get(mPrimaryWindowContext)
                 .register(OMNI_GESTURE_HANDLE_SMALL, mOnSettingsChangeListener);
         SystemDecorationChangeObserver.getINSTANCE().get(mPrimaryWindowContext)
                 .registerDisplayDecorationListener(this);
@@ -1122,9 +1122,9 @@ public class TaskbarManager implements DisplayDecorationListener {
                 .unregister(USER_SETUP_COMPLETE_URI, mOnSettingsChangeListener);
         SettingsCache.INSTANCE.get(mPrimaryWindowContext)
                 .unregister(NAV_BAR_KIDS_MODE, mOnSettingsChangeListener);
-        SettingsCache.INSTANCE.get(mWindowContext)
+        SettingsCache.INSTANCE.get(mPrimaryWindowContext)
                 .unregister(OMNI_GESTURE_HANDLE_HIDE, mOnSettingsChangeListener);
-        SettingsCache.INSTANCE.get(mWindowContext)
+        SettingsCache.INSTANCE.get(mPrimaryWindowContext)
                 .unregister(OMNI_GESTURE_HANDLE_SMALL, mOnSettingsChangeListener);
         SystemDecorationChangeObserver.getINSTANCE().get(mPrimaryWindowContext)
                 .unregisterDisplayDecorationListener(this);
