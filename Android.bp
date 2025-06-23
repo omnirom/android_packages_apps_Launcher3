@@ -566,6 +566,9 @@ android_library {
     min_sdk_version: "current",
     // TODO(b/319712088): re-enable use_resource_processor
     use_resource_processor: false,
+    kotlincflags: [
+        "-Xjvm-default=all",
+    ],
 }
 
 android_library {
