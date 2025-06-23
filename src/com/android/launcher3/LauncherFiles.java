@@ -18,6 +18,7 @@ public class LauncherFiles {
     public static final String LAUNCHER_DB = "launcher.db";
     public static final String LAUNCHER_5_BY_8_DB = "launcher_5_by_8.db";
     public static final String LAUNCHER_6_BY_5_DB = "launcher_6_by_5.db";
+    public static final String LAUNCHER_6_BY_6_DB = "launcher_6_by_6.db";
     public static final String LAUNCHER_4_BY_5_DB = "launcher_4_by_5.db";
     public static final String LAUNCHER_4_BY_6_DB = "launcher_4_by_6.db";
     public static final String LAUNCHER_5_BY_6_DB = "launcher_5_by_6.db";
@@ -40,6 +41,7 @@ public class LauncherFiles {
             LAUNCHER_DB,
             LAUNCHER_5_BY_8_DB,
             LAUNCHER_6_BY_5_DB,
+            LAUNCHER_6_BY_6_DB,
             LAUNCHER_4_BY_5_DB,
             LAUNCHER_4_BY_6_DB,
             LAUNCHER_5_BY_6_DB,
