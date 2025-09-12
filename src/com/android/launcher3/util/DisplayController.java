@@ -104,10 +104,13 @@ public class DisplayController implements DesktopVisibilityListener {
     public static final int CHANGE_TASKBAR_PINNING = 1 << 5;
     public static final int CHANGE_DESKTOP_MODE = 1 << 6;
     public static final int CHANGE_SHOW_LOCKED_TASKBAR = 1 << 7;
+    public static final int CHANGE_OVERLAYS = 1 << 8;
+    public static final int CHANGE_UI_MODE = 1 << 9;
 
     public static final int CHANGE_ALL = CHANGE_ACTIVE_SCREEN | CHANGE_ROTATION
             | CHANGE_DENSITY | CHANGE_SUPPORTED_BOUNDS | CHANGE_NAVIGATION_MODE
-            | CHANGE_TASKBAR_PINNING | CHANGE_DESKTOP_MODE | CHANGE_SHOW_LOCKED_TASKBAR;
+            | CHANGE_TASKBAR_PINNING | CHANGE_DESKTOP_MODE | CHANGE_SHOW_LOCKED_TASKBAR
+            | CHANGE_OVERLAYS | CHANGE_UI_MODE;
 
     private static final String ACTION_OVERLAY_CHANGED = "android.intent.action.OVERLAY_CHANGED";
     private static final String TARGET_OVERLAY_PACKAGE = "android";
@@ -127,6 +130,7 @@ public class DisplayController implements DesktopVisibilityListener {
     private final SimpleBroadcastReceiver mReceiver;
 
     private boolean mDestroyed = false;
+    private int mUiMode = -1;
 
     @Inject
     protected DisplayController(@ApplicationContext Context context,
@@ -146,7 +150,7 @@ public class DisplayController implements DesktopVisibilityListener {
                                 && info.mIsTaskbarPinnedInDesktopMode != prefs.get(
                                 TASKBAR_PINNING_IN_DESKTOP_MODE);
                 if (isTaskbarPinningChanged || isTaskbarPinningDesktopModeChanged) {
-                    notifyConfigChange(DEFAULT_DISPLAY);
+                    notifyConfigChange(DEFAULT_DISPLAY, false, false);
                 }
             };
 
@@ -267,7 +271,7 @@ public class DisplayController implements DesktopVisibilityListener {
 
     @Override
     public void onIsInDesktopModeChanged(int displayId, boolean isInDesktopModeAndNotInOverview) {
-        notifyConfigChange(displayId);
+        notifyConfigChange(displayId, false, false);
     }
 
     /**
@@ -288,9 +292,12 @@ public class DisplayController implements DesktopVisibilityListener {
         if (mDestroyed) {
             return;
         }
+        boolean overlaysChanged = false;
+        boolean uiModeChanged = false;
         if (ACTION_OVERLAY_CHANGED.equals(intent.getAction())) {
             Log.d(TAG, "Overlay changed, notifying listeners");
-            notifyConfigChange(DEFAULT_DISPLAY);
+            overlaysChanged = true;
+            notifyConfigChange(DEFAULT_DISPLAY, overlaysChanged, uiModeChanged);
         }
     }
 
@@ -313,9 +320,11 @@ public class DisplayController implements DesktopVisibilityListener {
                 || mWMProxy.showLockedTaskbarOnHome(windowContext)
                 != info.showLockedTaskbarOnHome()
                 || mWMProxy.showDesktopTaskbarForFreeformDisplay(windowContext)
-                != info.showDesktopTaskbarForFreeformDisplay()) {
-            notifyConfigChange(displayId);
+                != info.showDesktopTaskbarForFreeformDisplay()
+                || mUiMode != config.uiMode) {
+            notifyConfigChange(displayId, false, mUiMode != config.uiMode);
         }
+        mUiMode = config.uiMode;
     }
 
     public void setPriorityListener(DisplayInfoChangeListener listener) {
@@ -363,15 +372,15 @@ public class DisplayController implements DesktopVisibilityListener {
 
     @AnyThread
     public void notifyConfigChange() {
-        notifyConfigChange(DEFAULT_DISPLAY);
+        notifyConfigChange(DEFAULT_DISPLAY, false, false);
     }
 
     @AnyThread
-    public void notifyConfigChange(int displayId) {
-        notifyConfigChangeForDisplay(displayId);
+    public void notifyConfigChange(int displayId, boolean overlaysChanged, boolean uiModeChanged) {
+        notifyConfigChangeForDisplay(displayId, overlaysChanged, uiModeChanged);
     }
 
-    private int calculateChange(Info oldInfo, Info newInfo) {
+    private int calculateChange(Info oldInfo, Info newInfo, boolean overlaysChanged, boolean uiModeChanged) {
         int change = 0;
         if (!newInfo.normalizedDisplayInfo.equals(oldInfo.normalizedDisplayInfo)) {
             change |= CHANGE_ACTIVE_SCREEN;
@@ -403,6 +412,12 @@ public class DisplayController implements DesktopVisibilityListener {
         if (newInfo.mShowLockedTaskbarOnHome != oldInfo.mShowLockedTaskbarOnHome) {
             change |= CHANGE_SHOW_LOCKED_TASKBAR;
         }
+        if (overlaysChanged) {
+            change |= CHANGE_OVERLAYS;
+        }
+        if (uiModeChanged) {
+            change |= CHANGE_UI_MODE;
+        }
 
         if (DEBUG) {
             Log.d(TAG, "handleInfoChange - change: " + getChangeFlagsString(change));
@@ -423,12 +438,12 @@ public class DisplayController implements DesktopVisibilityListener {
     }
 
     @AnyThread
-    public void notifyConfigChangeForDisplay(int displayId) {
+    public void notifyConfigChangeForDisplay(int displayId, boolean overlaysChanged, boolean uiModeChanged) {
         PerDisplayInfo perDisplayInfo = mPerDisplayInfo.get(displayId);
         if (perDisplayInfo == null) return;
         Info oldInfo = perDisplayInfo.mInfo;
         final Info newInfo = getNewInfo(oldInfo, perDisplayInfo.mWindowContext);
-        final int flags = calculateChange(oldInfo, newInfo);
+        final int flags = calculateChange(oldInfo, newInfo, overlaysChanged, uiModeChanged);
         if (flags != 0) {
             MAIN_EXECUTOR.execute(() -> {
                 perDisplayInfo.mInfo = newInfo;
