@@ -612,7 +612,10 @@ android_library {
 // Build rule for Quickstep app.
 android_app {
     name: "Launcher3QuickStep",
-    defaults: ["omni_launcher3_defaults"],
+    static_libs: select(soong_config_variable("launcher3", "launcher3_quickstep_lib"), {
+        any @ flag_val: [flag_val],
+        default: ["Launcher3QuickStepLibMock"],
+    }),
     optimize: {
         proguard_flags_files: [":launcher-proguard-rules"],
         enabled: true,
