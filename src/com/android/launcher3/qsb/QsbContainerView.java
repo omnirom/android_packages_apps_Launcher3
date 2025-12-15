@@ -281,14 +281,19 @@ public class QsbContainerView extends FrameLayout {
         }
 
         private void rebindFragment() {
-            if (mWrapper != null && getContext() != null && isQsbEnabled()) {
+            // Exit if the embedded qsb is disabled
+            if (!isQsbEnabled()) {
+                return;
+            }
+
+            if (mWrapper != null && getContext() != null) {
                 mWrapper.removeAllViews();
                 mWrapper.addView(createQsb(mWrapper));
             }
         }
 
-        private boolean isQsbEnabled() {
-            return Utilities.showQsbWidget(getContext())
+        public boolean isQsbEnabled() {
+            return Utilities.showQsbWidget(getActivity())
                     && !SHOULD_SHOW_FIRST_PAGE_WIDGET;
         }
 
