@@ -17,8 +17,6 @@ package com.android.launcher3.taskbar;
 
 import static android.view.Display.DEFAULT_DISPLAY;
 
-import static com.android.launcher3.taskbar.TaskbarManager.OMNI_GESTURE_HANDLE_HIDE;
-import static com.android.launcher3.taskbar.TaskbarManager.OMNI_GESTURE_HANDLE_SMALL;
 import static com.android.systemui.shared.system.QuickStepContract.SYSUI_STATE_NAV_BAR_HIDDEN;
 
 import android.animation.Animator;
@@ -41,7 +39,6 @@ import com.android.launcher3.anim.RoundedRectRevealOutlineProvider;
 import com.android.launcher3.util.Executors;
 import com.android.launcher3.util.MultiPropertyFactory;
 import com.android.launcher3.util.MultiValueAlpha;
-import com.android.launcher3.util.SettingsCache;
 import com.android.quickstep.NavHandle;
 import com.android.systemui.shared.system.QuickStepContract.SystemUiStateFlags;
 import com.android.wm.shell.shared.handles.RegionSamplingHelper;
@@ -124,28 +121,12 @@ public class StashedHandleViewController implements TaskbarControllers.LoggableT
         if (mActivity.isPhoneGestureNavMode() || mActivity.isTinyTaskbar()
                 || mActivity.isBubbleBarOnPhone()) {
             mTaskbarSize = resources.getDimensionPixelSize(R.dimen.taskbar_phone_size);
-            if (SettingsCache.INSTANCE.get(mActivity).getValue(OMNI_GESTURE_HANDLE_HIDE, 1)) {
-                mStashedHandleWidth =
-                        resources.getDimensionPixelSize(R.dimen.omni_taskbar_stashed_hide);
-            } else if (SettingsCache.INSTANCE.get(mActivity).getValue(OMNI_GESTURE_HANDLE_SMALL, 1)) {
-                mStashedHandleWidth =
-                        resources.getDimensionPixelSize(R.dimen.omni_taskbar_stashed_small_screen);
-            } else {
-                mStashedHandleWidth =
-                        resources.getDimensionPixelSize(R.dimen.taskbar_stashed_small_screen);
-            }
+            mStashedHandleWidth =
+                    resources.getDimensionPixelSize(R.dimen.taskbar_stashed_small_screen);
         } else {
             mTaskbarSize = deviceProfile.taskbarHeight;
-            if (SettingsCache.INSTANCE.get(mActivity).getValue(OMNI_GESTURE_HANDLE_HIDE, 1)) {
-                mStashedHandleWidth =
-                        resources.getDimensionPixelSize(R.dimen.omni_taskbar_stashed_hide);
-            } else if (SettingsCache.INSTANCE.get(mActivity).getValue(OMNI_GESTURE_HANDLE_SMALL, 1)) {
-                mStashedHandleWidth =
-                        resources.getDimensionPixelSize(R.dimen.omni_taskbar_stashed_handle_width);
-            } else {
-                mStashedHandleWidth = resources
-                        .getDimensionPixelSize(R.dimen.taskbar_stashed_handle_width);
-            }
+            mStashedHandleWidth = resources
+                    .getDimensionPixelSize(R.dimen.taskbar_stashed_handle_width);
         }
         int taskbarBottomMargin = deviceProfile.taskbarBottomMargin;
         mStashedHandleView.getLayoutParams().height = mTaskbarSize + taskbarBottomMargin;

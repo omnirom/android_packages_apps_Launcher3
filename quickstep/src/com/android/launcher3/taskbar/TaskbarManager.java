@@ -106,8 +106,6 @@ import java.io.PrintWriter;
 import java.util.Set;
 import java.util.StringJoiner;
 
-import org.omnirom.omnilib.utils.OmniSettings;
-
 /**
  * Class to manage taskbar lifecycle
  */
@@ -140,12 +138,6 @@ public class TaskbarManager implements DisplayDecorationListener {
 
     private static final Uri NAV_BAR_KIDS_MODE = Settings.Secure.getUriFor(
             Settings.Secure.NAV_BAR_KIDS_MODE);
-
-    public static final Uri OMNI_GESTURE_HANDLE_HIDE = Settings.System.getUriFor(
-            OmniSettings.OMNI_GESTURE_HANDLE_HIDE);
-
-    public static final Uri OMNI_GESTURE_HANDLE_SMALL = Settings.System.getUriFor(
-            OmniSettings.OMNI_GESTURE_HANDLE_SMALL);
 
     private final Context mBaseContext;
     private final int mPrimaryDisplayId;
@@ -465,10 +457,6 @@ public class TaskbarManager implements DisplayDecorationListener {
                 .register(USER_SETUP_COMPLETE_URI, mOnSettingsChangeListener);
         SettingsCache.INSTANCE.get(mPrimaryWindowContext)
                 .register(NAV_BAR_KIDS_MODE, mOnSettingsChangeListener);
-        SettingsCache.INSTANCE.get(mPrimaryWindowContext)
-                .register(OMNI_GESTURE_HANDLE_HIDE, mOnSettingsChangeListener);
-        SettingsCache.INSTANCE.get(mPrimaryWindowContext)
-                .register(OMNI_GESTURE_HANDLE_SMALL, mOnSettingsChangeListener);
         SystemDecorationChangeObserver.getINSTANCE().get(mPrimaryWindowContext)
                 .registerDisplayDecorationListener(this);
         mShutdownReceiver =
@@ -1122,10 +1110,6 @@ public class TaskbarManager implements DisplayDecorationListener {
                 .unregister(USER_SETUP_COMPLETE_URI, mOnSettingsChangeListener);
         SettingsCache.INSTANCE.get(mPrimaryWindowContext)
                 .unregister(NAV_BAR_KIDS_MODE, mOnSettingsChangeListener);
-        SettingsCache.INSTANCE.get(mPrimaryWindowContext)
-                .unregister(OMNI_GESTURE_HANDLE_HIDE, mOnSettingsChangeListener);
-        SettingsCache.INSTANCE.get(mPrimaryWindowContext)
-                .unregister(OMNI_GESTURE_HANDLE_SMALL, mOnSettingsChangeListener);
         SystemDecorationChangeObserver.getINSTANCE().get(mPrimaryWindowContext)
                 .unregisterDisplayDecorationListener(this);
         debugPrimaryTaskbar("destroy: unregistering component callbacks");
