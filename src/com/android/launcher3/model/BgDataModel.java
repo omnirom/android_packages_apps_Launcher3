@@ -155,7 +155,9 @@ public class BgDataModel {
                 screenSet.add(item.screenId);
             }
         }
-        if (screenSet.isEmpty()) {
+        if ((FeatureFlags.QSB_ON_FIRST_SCREEN
+                && !SHOULD_SHOW_FIRST_PAGE_WIDGET)
+                || screenSet.isEmpty()) {
             screenSet.add(Workspace.FIRST_SCREEN_ID);
         }
         return screenSet.getArray();

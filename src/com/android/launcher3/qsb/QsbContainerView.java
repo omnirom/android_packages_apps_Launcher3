@@ -47,7 +47,6 @@ import androidx.annotation.WorkerThread;
 import com.android.launcher3.InvariantDeviceProfile;
 import com.android.launcher3.LauncherAppState;
 import com.android.launcher3.LauncherPrefs;
-import com.android.launcher3.Utilities;
 import com.android.launcher3.R;
 import com.android.launcher3.config.FeatureFlags;
 import com.android.launcher3.graphics.FragmentWithPreview;
@@ -288,7 +287,7 @@ public class QsbContainerView extends FrameLayout {
         }
 
         private boolean isQsbEnabled() {
-            return Utilities.showQsbWidget(getContext())
+            return FeatureFlags.QSB_ON_FIRST_SCREEN
                     && !SHOULD_SHOW_FIRST_PAGE_WIDGET;
         }
 
