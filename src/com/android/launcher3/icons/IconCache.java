@@ -614,12 +614,6 @@ public class IconCache extends BaseIconCache {
         info.bitmap = packageEntry.bitmap;
     }
 
-    // replacement for old removed clear() in BaseIconCache
-    public synchronized void clearDb() {
-        clearMemoryCache();
-        iconDb.clear();
-    }
-
     public void updateSessionCache(PackageUserKey key, PackageInstaller.SessionInfo info) {
         cachePackageInstallInfo(key.mPackageName, key.mUser, info.getAppIcon(),
                 info.getAppLabel());

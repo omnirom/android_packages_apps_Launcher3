@@ -30,8 +30,6 @@ import static com.android.launcher3.hybridhotseat.HotseatPredictionModel.convert
 import static com.android.launcher3.icons.cache.CacheLookupFlag.DEFAULT_LOOKUP_FLAG;
 import static com.android.launcher3.model.PredictionHelper.getAppTargetFromItemInfo;
 import static com.android.launcher3.model.PredictionHelper.wrapAppTargetWithItemLocation;
-import static com.android.launcher3.util.DisplayController.CHANGE_OVERLAYS;
-import static com.android.launcher3.util.DisplayController.CHANGE_UI_MODE;
 import static com.android.launcher3.util.Executors.MODEL_EXECUTOR;
 
 import static java.util.stream.Collectors.toCollection;
@@ -77,9 +75,6 @@ import com.android.launcher3.model.data.WorkspaceItemInfo;
 import com.android.launcher3.pm.UserCache;
 import com.android.launcher3.shortcuts.ShortcutKey;
 import com.android.launcher3.util.ApiWrapper;
-import com.android.launcher3.util.DisplayController;
-import com.android.launcher3.util.DisplayController.DisplayInfoChangeListener;
-import com.android.launcher3.util.DisplayController.Info;
 import com.android.launcher3.util.Executors;
 import com.android.launcher3.util.IntSparseArrayMap;
 import com.android.launcher3.util.PackageManagerHelper;
@@ -266,21 +261,6 @@ public class QuickstepModelDelegate extends ModelDelegate {
             prefs.put(LAST_SNAPSHOT_TIME_MILLIS, now);
         }
 
-        DisplayInfoChangeListener displayListener = new DisplayInfoChangeListener() {
-            @Override
-            public void onDisplayInfoChanged(Context context, Info info, int flags) {
-                if ((flags & CHANGE_UI_MODE) != 0 || (flags & CHANGE_OVERLAYS) != 0) {
-                    Log.d(TAG, "onDisplayInfoChanged " + flags);
-                    MODEL_EXECUTOR.execute(() ->
-                        LauncherAppState.getInstance(mContext).getIconCache().clearDb());
-                    mModel.forceReload();
-                }
-            }
-        };
-        DisplayController.INSTANCE.get(mContext).addChangeListener(displayListener);
-        if (!mActive) {
-            DisplayController.INSTANCE.get(mContext).removeChangeListener(displayListener);
-        }
         registerSnapshotLoggingCallback();
     }
 
