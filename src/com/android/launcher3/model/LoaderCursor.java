@@ -633,7 +633,7 @@ public class LoaderCursor extends CursorWrapper {
 
         if (!mOccupied.containsKey(item.screenId)) {
             GridOccupancy screen = new GridOccupancy(countX + 1, countY + 1);
-            if (item.screenId == Workspace.FIRST_SCREEN_ID && (Utilities.showWorkspaceQsbWidget(mContext)
+            if (item.screenId == Workspace.FIRST_SCREEN_ID && (FeatureFlags.QSB_ON_FIRST_SCREEN
                     && !SHOULD_SHOW_FIRST_PAGE_WIDGET
                     && isFirstPagePinnedItemEnabled)) {
                 // Mark the first X columns (X is width of the search container) in the first row as
@@ -641,7 +641,7 @@ public class LoaderCursor extends CursorWrapper {
                 // container.
                 int spanX = mIDP.numSearchContainerColumns;
                 int spanY = 1;
-                screen.markCells(0, 0, spanX, spanY, Utilities.showWorkspaceQsbWidget(mContext));
+                screen.markCells(0, 0, spanX, spanY, Utilities.showQsbWidget(mContext));
             }
             mOccupied.put(item.screenId, screen);
         }

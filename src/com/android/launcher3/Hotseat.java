@@ -103,11 +103,7 @@ public class Hotseat extends CellLayout implements Insettable {
     public Hotseat(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
 
-        if (Utilities.showHotseatQsbWidget(context)) {
-            mQsb = LayoutInflater.from(context).inflate(R.layout.search_container_hotseat, this, false);
-        } else {
-            mQsb = LayoutInflater.from(context).inflate(R.layout.search_container_hotseat_empty, this, false);
-        }
+        mQsb = LayoutInflater.from(context).inflate(R.layout.search_container_hotseat, this, false);
         addView(mQsb);
         mIconsAlphaChannels = new MultiValueAlpha(getShortcutsAndWidgets(),
                 ALPHA_CHANNEL_CHANNELS_COUNT);
@@ -314,8 +310,7 @@ public class Hotseat extends CellLayout implements Insettable {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
 
         DeviceProfile dp = mActivity.getDeviceProfile();
-        int hotseatQsbWidth = dp.isQsbInline ? dp.hotseatQsbWidth : dp.getHostseatQsbWidth();
-        mQsb.measure(MeasureSpec.makeMeasureSpec(hotseatQsbWidth, MeasureSpec.EXACTLY),
+        mQsb.measure(MeasureSpec.makeMeasureSpec(dp.hotseatQsbWidth, MeasureSpec.EXACTLY),
                 MeasureSpec.makeMeasureSpec(dp.hotseatQsbHeight, MeasureSpec.EXACTLY));
     }
 
