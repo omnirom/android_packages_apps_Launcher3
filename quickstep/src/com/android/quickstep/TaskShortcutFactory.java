@@ -595,19 +595,17 @@ public interface TaskShortcutFactory {
         private static final String TAG = "ClearTaskSystemShortcut";
 
         private final TaskView mTaskView;
-        private final TaskContainer mTaskContainer;
 
         public ClearTaskSystemShortcut(ActivityContext target, TaskContainer taskContainer) {
             super(R.drawable.ic_close, R.string.recents_clear, target, taskContainer.getItemInfo(),
                     taskContainer.getTaskView());
             mTaskView = taskContainer.getTaskView();
-            mTaskContainer = taskContainer;
         }
 
         @Override
         public void onClick(View view) {
             dismissTaskMenuView();
-            mTaskView.getRecentsView().dismissTask(mTaskContainer.getTask().key.id, true /*animateTaskView*/,
+            mTaskView.getRecentsView().dismissTask(mTaskView, true /*animateTaskView*/,
                     true /*removeTask*/);
         }
     }
