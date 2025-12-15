@@ -17,12 +17,9 @@ package com.android.launcher3.uioverrides.states;
 
 import static com.android.launcher3.logging.StatsLogManager.LAUNCHER_STATE_BACKGROUND;
 
-import android.graphics.Color;
-
 import com.android.launcher3.DeviceProfile;
 import com.android.launcher3.Launcher;
-import com.android.launcher3.R;
-import com.android.launcher3.util.Themes;
+import com.android.launcher3.LauncherUiState;
 
 /**
  * State to indicate we are about to launch a recent task. Note that this state is only used when
@@ -44,36 +41,23 @@ public class QuickSwitchState extends BackgroundAppState {
     }
 
     @Override
-    public int getWorkspaceScrimColor(Launcher launcher) {
-        if (launcher.areDesktopTasksVisible()) {
-            // No scrim while desktop tasks are visible
-            return Color.TRANSPARENT;
-        }
-        DeviceProfile dp = launcher.getDeviceProfile();
-        if (dp.isTaskbarPresentInApps) {
-            return launcher.getColor(R.color.taskbar_background);
-        }
-        return Themes.getAttrColor(launcher, R.attr.overviewScrimColor);
-    }
-
-    @Override
     public float getVerticalProgress(Launcher launcher) {
         // Don't move all apps shelf while quick-switching (just let it fade).
         return 1f;
     }
 
     @Override
-    public int getVisibleElements(Launcher launcher) {
+    public int getVisibleElements(LauncherUiState launcherUiState) {
         return NONE;
     }
 
     @Override
-    public boolean isTaskbarStashed(Launcher launcher) {
-        return !launcher.getDeviceProfile().isTaskbarPresentInApps;
+    public boolean isTaskbarStashed(DeviceProfile deviceProfile) {
+        return !deviceProfile.isTaskbarPresentInApps;
     }
 
     @Override
-    public boolean isTaskbarAlignedWithHotseat(Launcher launcher) {
-        return false;
+    public boolean detachDesktopCarousel() {
+        return true;
     }
 }

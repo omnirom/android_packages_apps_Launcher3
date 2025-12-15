@@ -20,8 +20,7 @@ import android.os.Trace;
 
 import androidx.annotation.MainThread;
 
-import kotlin.random.Random;
-
+import java.util.Random;
 import java.util.function.Supplier;
 
 /**
@@ -38,6 +37,8 @@ public class TraceHelper {
 
     // Temporarily ignore blocking binder calls for this trace.
     public static final int FLAG_IGNORE_BINDERS = 1 << 1;
+
+    private static final Random RANDOM = new Random();
 
     /**
      * Static instance of Trace helper, overridden in tests.
@@ -65,7 +66,7 @@ public class TraceHelper {
     @SuppressWarnings("NewApi")
     @SuppressLint("NewApi")
     public SafeCloseable beginAsyncSection(String sectionName) {
-        int cookie = Random.Default.nextInt();
+        int cookie = RANDOM.nextInt();
         Trace.beginAsyncSection(sectionName, cookie);
         return () -> Trace.endAsyncSection(sectionName, cookie);
     }
@@ -76,7 +77,7 @@ public class TraceHelper {
     @SuppressWarnings("NewApi")
     @SuppressLint("NewApi")
     public SafeCloseable allowIpcs(String rpcName) {
-        int cookie = Random.Default.nextInt();
+        int cookie = RANDOM.nextInt();
         Trace.beginAsyncSection(rpcName, cookie);
         return () -> Trace.endAsyncSection(rpcName, cookie);
     }

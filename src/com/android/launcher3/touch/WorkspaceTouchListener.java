@@ -21,9 +21,9 @@ import static android.view.MotionEvent.ACTION_MOVE;
 import static android.view.MotionEvent.ACTION_POINTER_UP;
 import static android.view.MotionEvent.ACTION_UP;
 
-import static com.android.launcher3.Flags.enableMouseInteractionChanges;
 import static com.android.launcher3.LauncherState.ALL_APPS;
 import static com.android.launcher3.LauncherState.NORMAL;
+import static com.android.launcher3.Utilities.shouldEnableMouseInteractionChanges;
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_ALLAPPS_CLOSE_TAP_OUTSIDE;
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_SPLIT_SELECTION_EXIT_INTERRUPTED;
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_WORKSPACE_LONGPRESS;
@@ -102,7 +102,8 @@ public class WorkspaceTouchListener extends GestureDetector.SimpleOnGestureListe
 
                 mTempRect.set(insets.left, insets.top, dl.getWidth() - insets.right,
                         dl.getHeight() - insets.bottom);
-                mTempRect.inset(dp.edgeMarginPx, dp.edgeMarginPx);
+                mTempRect.inset(dp.mWorkspaceProfile.getEdgeMarginPx(),
+                        dp.mWorkspaceProfile.getEdgeMarginPx());
                 handleLongPress = mTempRect.contains((int) ev.getX(), (int) ev.getY());
             }
 
@@ -149,8 +150,8 @@ public class WorkspaceTouchListener extends GestureDetector.SimpleOnGestureListe
             result = true;
         } else {
             // We don't want to handle touch unless we're in AllApps bottom sheet, let workspace
-            // handle it as usual.
-            result = isInAllAppsBottomSheet;
+            // handle it as usual. Also, let workspace handle cancel/up events to settle correctly.
+            result = isInAllAppsBottomSheet && action != ACTION_CANCEL && action != ACTION_UP;
         }
 
         if (action == ACTION_UP || action == ACTION_POINTER_UP) {
@@ -194,7 +195,8 @@ public class WorkspaceTouchListener extends GestureDetector.SimpleOnGestureListe
 
     @Override
     public void onLongPress(MotionEvent event) {
-        if (event.getSource() == InputDevice.SOURCE_MOUSE && enableMouseInteractionChanges()) {
+        if (event.getSource() == InputDevice.SOURCE_MOUSE && shouldEnableMouseInteractionChanges(
+                mWorkspace.getContext())) {
             // Stop mouse long press events from showing the menu.
             return;
         }

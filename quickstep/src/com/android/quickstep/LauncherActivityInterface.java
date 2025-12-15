@@ -27,9 +27,9 @@ import android.animation.Animator;
 import android.animation.AnimatorSet;
 import android.content.Context;
 import android.graphics.Rect;
-import android.view.MotionEvent;
 import android.view.RemoteAnimationTarget;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.UiThread;
 
@@ -41,16 +41,18 @@ import com.android.launcher3.LauncherState;
 import com.android.launcher3.anim.PendingAnimation;
 import com.android.launcher3.statehandlers.DepthController;
 import com.android.launcher3.statemanager.StateManager;
-import com.android.launcher3.taskbar.LauncherTaskbarUIController;
+import com.android.launcher3.taskbar.TaskbarInteractor;
 import com.android.launcher3.uioverrides.QuickstepLauncher;
 import com.android.launcher3.util.DisplayController;
 import com.android.launcher3.util.NavigationMode;
+import com.android.launcher3.views.ScrimColors;
 import com.android.quickstep.GestureState.GestureEndTarget;
 import com.android.quickstep.orientation.RecentsPagedOrientationHandler;
 import com.android.quickstep.util.AnimatorControllerWithResistance;
 import com.android.quickstep.util.LayoutUtils;
 import com.android.quickstep.views.RecentsView;
 import com.android.systemui.plugins.shared.LauncherOverlayManager;
+import com.android.wm.shell.shared.desktopmode.DesktopState;
 
 import java.util.function.Consumer;
 import java.util.function.Predicate;
@@ -73,7 +75,7 @@ public final class LauncherActivityInterface extends
         calculateTaskSize(context, dp, outRect, orientationHandler);
         if (dp.isVerticalBarLayout()
                 && DisplayController.getNavigationMode(context) != NavigationMode.NO_BUTTON) {
-            return dp.isSeascape() ? outRect.left : (dp.widthPx - outRect.right);
+            return dp.isSeascape() ? outRect.left : (dp.getDeviceProperties().getWidthPx() - outRect.right);
         } else {
             return LayoutUtils.getShelfTrackingDistance(context, dp, orientationHandler, this);
         }
@@ -128,7 +130,7 @@ public final class LauncherActivityInterface extends
         QuickstepLauncher launcher = factory.initBackgroundStateUI();
         // Since all apps is not visible, we can safely reset the scroll position.
         // This ensures then the next swipe up to all-apps starts from scroll 0.
-        launcher.getAppsView().reset(false /* animate */);
+        launcher.getAppsView().reset(false /* animate */, true /* clearScrim */);
         return factory;
     }
 
@@ -165,12 +167,12 @@ public final class LauncherActivityInterface extends
 
     @Nullable
     @Override
-    public LauncherTaskbarUIController getTaskbarController() {
+    public TaskbarInteractor getTaskbarInteractor() {
         QuickstepLauncher launcher = getCreatedContainer();
         if (launcher == null) {
             return null;
         }
-        return launcher.getTaskbarUIController();
+        return launcher.getTaskbarInteractor();
     }
 
     @Nullable
@@ -209,6 +211,12 @@ public final class LauncherActivityInterface extends
     public boolean switchToRecentsIfVisible(Animator.AnimatorListener animatorListener) {
         QuickstepLauncher launcher = getVisibleLauncher();
         if (launcher == null) {
+            return false;
+        }
+        if (DesktopState.getInstance(launcher.asContext()).getShouldShowHomeBehindDesktop()
+                && !launcher.hasWindowFocus()) {
+            // Home is always shown behind desktop, but it is currently not the top task, so treat
+            // it as if it is not visible.
             return false;
         }
         if (isInLiveTileMode()) {
@@ -302,13 +310,13 @@ public final class LauncherActivityInterface extends
     @Override
     public @Nullable Animator getParallelAnimationToGestureEndTarget(GestureEndTarget endTarget,
             long duration, RecentsAnimationCallbacks callbacks) {
-        LauncherTaskbarUIController uiController = getTaskbarController();
+        TaskbarInteractor interactor = getTaskbarInteractor();
         Animator superAnimator = super.getParallelAnimationToGestureEndTarget(
                 endTarget, duration, callbacks);
-        if (uiController == null || callbacks == null) {
+        if (interactor == null || callbacks == null) {
             return superAnimator;
         }
-        Animator taskbarAnimator = uiController.getParallelAnimationToGestureEndTarget(endTarget,
+        Animator taskbarAnimator = interactor.getParallelAnimationToGestureEndTarget(endTarget,
                 duration, callbacks);
         if (superAnimator == null) {
             return taskbarAnimator;
@@ -320,42 +328,25 @@ public final class LauncherActivityInterface extends
     }
 
     @Override
-    protected int getOverviewScrimColorForState(QuickstepLauncher activity, LauncherState state) {
+    protected ScrimColors getOverviewScrimColorForState(QuickstepLauncher activity,
+            LauncherState state) {
         return state.getWorkspaceScrimColor(activity);
     }
 
     @Override
-    public boolean deferStartingActivity(RecentsAnimationDeviceState deviceState, MotionEvent ev) {
-        LauncherTaskbarUIController uiController = getTaskbarController();
-        if (uiController == null) {
-            return super.deferStartingActivity(deviceState, ev);
-        }
-        return uiController.isEventOverAnyTaskbarItem(ev)
-                || super.deferStartingActivity(deviceState, ev);
+    public LauncherState stateFromGestureEndTarget(@NonNull GestureEndTarget endTarget) {
+        return switch (endTarget) {
+            case RECENTS -> OVERVIEW;
+            case NEW_TASK, LAST_TASK -> BACKGROUND_APP;
+            case ALL_APPS -> ALL_APPS;
+            default -> NORMAL;
+        };
     }
 
     @Override
-    public boolean shouldCancelCurrentGesture() {
-        LauncherTaskbarUIController uiController = getTaskbarController();
-        if (uiController == null) {
-            return super.shouldCancelCurrentGesture();
-        }
-        return uiController.isDraggingItem();
-    }
+    public boolean isLauncherOverlayShowing() {
+        Launcher launcher = Launcher.ACTIVITY_TRACKER.getCreatedContext();
 
-    @Override
-    public LauncherState stateFromGestureEndTarget(GestureEndTarget endTarget) {
-        switch (endTarget) {
-            case RECENTS:
-                return OVERVIEW;
-            case NEW_TASK:
-            case LAST_TASK:
-                return BACKGROUND_APP;
-            case ALL_APPS:
-                return ALL_APPS;
-            case HOME:
-            default:
-                return NORMAL;
-        }
+        return launcher != null && launcher.getWorkspace().isOverlayShown();
     }
 }

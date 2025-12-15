@@ -21,10 +21,8 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
-import android.graphics.Path;
 import android.graphics.PointF;
 import android.graphics.Rect;
-import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.AttributeSet;
@@ -36,6 +34,7 @@ import androidx.constraintlayout.widget.ConstraintLayout;
 
 import com.android.launcher3.R;
 import com.android.launcher3.icons.DotRenderer;
+import com.android.launcher3.icons.DotRenderer.IconShapeInfo;
 import com.android.wm.shell.shared.animation.Interpolators;
 import com.android.wm.shell.shared.bubbles.BubbleBarLocation;
 import com.android.wm.shell.shared.bubbles.BubbleInfo;
@@ -48,7 +47,6 @@ import com.android.wm.shell.shared.bubbles.BubbleInfo;
  */
 public class BubbleView extends ConstraintLayout {
 
-    public static final int DEFAULT_PATH_SIZE = 100;
     /** Duration for animating the scale of the dot and badge. */
     private static final int SCALE_ANIMATION_DURATION_MS = 200;
 
@@ -60,7 +58,7 @@ public class BubbleView extends ConstraintLayout {
     private float mOffsetX;
 
     private DotRenderer mDotRenderer;
-    private DotRenderer.DrawParams mDrawParams;
+    private final DotRenderer.DrawParams mDrawParams;
     private int mDotColor;
     private Rect mTempBounds = new Rect();
 
@@ -72,10 +70,6 @@ public class BubbleView extends ConstraintLayout {
     private float mDotScale;
     private boolean mDotSuppressedForBubbleUpdate = false;
 
-    // TODO: (b/273310265) handle RTL
-    // Whether the bubbles are positioned on the left or right side of the screen
-    private boolean mOnLeft = false;
-
     private BubbleBarItem mBubble;
     private boolean mIsOverflow;
 
@@ -83,9 +77,6 @@ public class BubbleView extends ConstraintLayout {
 
     @Nullable
     private Controller mController;
-
-    @Nullable
-    private BubbleBarBubbleIconsFactory mIconFactory = null;
 
     public BubbleView(Context context) {
         this(context, null);
@@ -110,6 +101,10 @@ public class BubbleView extends ConstraintLayout {
         mAppIcon = findViewById(R.id.app_icon_view);
 
         mDrawParams = new DotRenderer.DrawParams();
+        // TODO: (b/273310265) handle RTL
+        // Whether the bubbles are positioned on the left or right side of the screen
+        mDrawParams.leftAlign = false;
+        mDrawParams.shapeInfo = IconShapeInfo.DEFAULT_NORMALIZED;
 
         setFocusable(true);
         setClickable(true);
@@ -123,11 +118,8 @@ public class BubbleView extends ConstraintLayout {
         int updatedBubbleSize = Math.min(getWidth(), getHeight());
         if (updatedBubbleSize == mBubbleSize) return;
         mBubbleSize = updatedBubbleSize;
-        mIconFactory = new BubbleBarBubbleIconsFactory(mContext, mBubbleSize);
-        updateBubbleIcon();
         if (mBubble == null || mBubble instanceof BubbleBarOverflow) return;
-        Path dotPath = ((BubbleBarBubble) mBubble).getDotPath();
-        mDotRenderer = new DotRenderer(mBubbleSize, dotPath, DEFAULT_PATH_SIZE);
+        mDotRenderer = new DotRenderer(mBubbleSize);
     }
 
     /**
@@ -178,10 +170,7 @@ public class BubbleView extends ConstraintLayout {
         }
 
         getDrawingRect(mTempBounds);
-
-        mDrawParams.dotColor = mDotColor;
         mDrawParams.iconBounds = mTempBounds;
-        mDrawParams.leftAlign = mOnLeft;
         mDrawParams.scale = mDotScale;
 
         mDotRenderer.draw(canvas, mDrawParams);
@@ -247,12 +236,12 @@ public class BubbleView extends ConstraintLayout {
         mIcon = bubble.getIcon();
         updateBubbleIcon();
         if (bubble.getInfo().showAppBadge()) {
-            mAppIcon.setImageBitmap(bubble.getBadge());
+            mAppIcon.setImageDrawable(bubble.getBadge().newIcon(getContext()));
         } else {
             mAppIcon.setVisibility(GONE);
         }
         mDotColor = bubble.getDotColor();
-        mDotRenderer = new DotRenderer(mBubbleSize, bubble.getDotPath(), DEFAULT_PATH_SIZE);
+        mDrawParams.setDotColor(mDotColor);
         String contentDesc = bubble.getInfo().getTitle();
         if (TextUtils.isEmpty(contentDesc)) {
             contentDesc = getResources().getString(R.string.bubble_bar_bubble_fallback_description);
@@ -266,15 +255,7 @@ public class BubbleView extends ConstraintLayout {
     }
 
     private void updateBubbleIcon() {
-        Bitmap icon = null;
-        if (mIcon != null) {
-            icon = mIcon;
-            if (mIconFactory != null) {
-                BitmapDrawable iconDrawable = new BitmapDrawable(getResources(), icon);
-                icon = mIconFactory.createShadowedIconBitmap(iconDrawable, /* scale = */ 1f);
-            }
-        }
-        mBubbleIcon.setImageBitmap(icon);
+        mBubbleIcon.setImageBitmap(mIcon);
     }
 
     /**
@@ -460,11 +441,10 @@ public class BubbleView extends ConstraintLayout {
      * Returns the distance from the top left corner of this bubble view to the center of its dot.
      */
     public PointF getDotCenter() {
-        float[] dotPosition =
-                mOnLeft ? mDotRenderer.getLeftDotPosition() : mDotRenderer.getRightDotPosition();
+        PointF dotPosition = mDrawParams.getDotPosition();
         getDrawingRect(mTempBounds);
-        float dotCenterX = mTempBounds.width() * dotPosition[0];
-        float dotCenterY = mTempBounds.height() * dotPosition[1];
+        float dotCenterX = mTempBounds.width() * dotPosition.x;
+        float dotCenterY = mTempBounds.height() * dotPosition.y;
         return new PointF(dotCenterX, dotCenterY);
     }
 

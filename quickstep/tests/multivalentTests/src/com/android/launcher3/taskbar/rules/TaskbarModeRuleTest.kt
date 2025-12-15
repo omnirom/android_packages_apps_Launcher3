@@ -25,6 +25,7 @@ import com.android.launcher3.util.DisplayController
 import com.android.launcher3.util.LauncherMultivalentJUnit
 import com.android.launcher3.util.LauncherMultivalentJUnit.EmulatedDevices
 import com.android.launcher3.util.NavigationMode
+import com.android.launcher3.util.TaskbarModeUtil
 import com.google.common.truth.Truth.assertThat
 import org.junit.Rule
 import org.junit.Test
@@ -39,9 +40,9 @@ class TaskbarModeRuleTest {
 
     @Test
     @TaskbarMode(TRANSIENT)
-    fun testTaskbarMode_transient_overridesDisplayController() {
-        assertThat(DisplayController.isTransientTaskbar(context)).isTrue()
-        assertThat(DisplayController.isPinnedTaskbar(context)).isFalse()
+    fun testTaskbarMode_transient_overridesTaskbarUtil() {
+        assertThat(TaskbarModeUtil.INSTANCE.get(context).isTransient).isTrue()
+        assertThat(TaskbarModeUtil.INSTANCE.get(context).isPinned).isFalse()
         assertThat(DisplayController.getNavigationMode(context)).isEqualTo(NavigationMode.NO_BUTTON)
     }
 
@@ -49,15 +50,15 @@ class TaskbarModeRuleTest {
     @TaskbarMode(TRANSIENT)
     fun testTaskbarMode_transient_overridesDeviceProfile() {
         val dp = InvariantDeviceProfile.INSTANCE.get(context).getDeviceProfile(context)
-        assertThat(dp.isTransientTaskbar).isTrue()
-        assertThat(dp.isGestureMode).isTrue()
+        assertThat(dp.taskbarProfile.isTransientTaskbar).isTrue()
+        assertThat(dp.deviceProperties.isGestureMode).isTrue()
     }
 
     @Test
     @TaskbarMode(PINNED)
-    fun testTaskbarMode_pinned_overridesDisplayController() {
-        assertThat(DisplayController.isTransientTaskbar(context)).isFalse()
-        assertThat(DisplayController.isPinnedTaskbar(context)).isTrue()
+    fun testTaskbarMode_pinned_overridesTaskbarUtil() {
+        assertThat(TaskbarModeUtil.INSTANCE.get(context).isTransient).isFalse()
+        assertThat(TaskbarModeUtil.INSTANCE.get(context).isPinned).isTrue()
         assertThat(DisplayController.getNavigationMode(context)).isEqualTo(NavigationMode.NO_BUTTON)
     }
 
@@ -65,15 +66,15 @@ class TaskbarModeRuleTest {
     @TaskbarMode(PINNED)
     fun testTaskbarMode_pinned_overridesDeviceProfile() {
         val dp = InvariantDeviceProfile.INSTANCE.get(context).getDeviceProfile(context)
-        assertThat(dp.isTransientTaskbar).isFalse()
-        assertThat(dp.isGestureMode).isTrue()
+        assertThat(dp.taskbarProfile.isTransientTaskbar).isFalse()
+        assertThat(dp.deviceProperties.isGestureMode).isTrue()
     }
 
     @Test
     @TaskbarMode(THREE_BUTTONS)
-    fun testTaskbarMode_threeButtons_overridesDisplayController() {
-        assertThat(DisplayController.isTransientTaskbar(context)).isFalse()
-        assertThat(DisplayController.isPinnedTaskbar(context)).isFalse()
+    fun testTaskbarMode_threeButtons_overridesTaskbarUtil() {
+        assertThat(TaskbarModeUtil.INSTANCE.get(context).isTransient).isFalse()
+        assertThat(TaskbarModeUtil.INSTANCE.get(context).isPinned).isFalse()
         assertThat(DisplayController.getNavigationMode(context))
             .isEqualTo(NavigationMode.THREE_BUTTONS)
     }
@@ -82,7 +83,7 @@ class TaskbarModeRuleTest {
     @TaskbarMode(THREE_BUTTONS)
     fun testTaskbarMode_threeButtons_overridesDeviceProfile() {
         val dp = InvariantDeviceProfile.INSTANCE.get(context).getDeviceProfile(context)
-        assertThat(dp.isTransientTaskbar).isFalse()
-        assertThat(dp.isGestureMode).isFalse()
+        assertThat(dp.taskbarProfile.isTransientTaskbar).isFalse()
+        assertThat(dp.deviceProperties.isGestureMode).isFalse()
     }
 }

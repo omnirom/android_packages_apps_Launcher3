@@ -15,20 +15,26 @@
  */
 package com.android.launcher3.taskbar;
 
+import static com.android.launcher3.LauncherSettings.Favorites.CONTAINER_ALL_APPS_PREDICTION;
+import static com.android.launcher3.LauncherSettings.Favorites.CONTAINER_HOTSEAT;
+import static com.android.launcher3.LauncherSettings.Favorites.CONTAINER_HOTSEAT_PREDICTION;
+
 import android.util.SparseArray;
 import android.view.View;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.annotation.UiThread;
 
 import com.android.launcher3.LauncherSettings.Favorites;
+import com.android.launcher3.celllayout.CellInfo;
 import com.android.launcher3.model.BgDataModel;
-import com.android.launcher3.model.BgDataModel.FixedContainerItems;
 import com.android.launcher3.model.data.AppInfo;
 import com.android.launcher3.model.data.ItemInfo;
-import com.android.launcher3.util.ComponentKey;
-import com.android.launcher3.util.IntArray;
-import com.android.launcher3.util.IntSet;
+import com.android.launcher3.model.data.PredictedContainerInfo;
+import com.android.launcher3.model.data.WorkspaceData;
+import com.android.launcher3.taskbar.handoff.HandoffSuggestion;
+import com.android.launcher3.taskbar.TaskbarView.TaskbarLayoutParams;
 import com.android.launcher3.util.ItemInfoMatcher;
 import com.android.launcher3.util.LauncherBindableItemsContainer;
 import com.android.launcher3.util.PackageUserKey;
@@ -38,7 +44,6 @@ import com.android.quickstep.util.GroupTask;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -62,7 +67,6 @@ public class TaskbarModelCallbacks implements
     // Used to defer any UI updates during the SUW unstash animation.
     private boolean mDeferUpdatesForSUW;
     private Runnable mDeferredUpdates;
-    private boolean mBindingItems = false;
 
     public TaskbarModelCallbacks(
             TaskbarActivityContext context, TaskbarView container) {
@@ -75,36 +79,25 @@ public class TaskbarModelCallbacks implements
     }
 
     @Override
-    public void startBinding() {
-        mBindingItems = true;
+    public void bindCompleteModel(WorkspaceData itemIdMap, boolean isBindingSync) {
         mHotseatItems.clear();
-        mPredictedItems = Collections.emptyList();
-    }
+        mPredictedItems = itemIdMap.getPredictedContents(CONTAINER_HOTSEAT_PREDICTION);
+        handleItemsAdded(itemIdMap);
 
-    @Override
-    public void finishBindingItems(IntSet pagesBoundFirst) {
-        mBindingItems = false;
+        if (itemIdMap.get(CONTAINER_ALL_APPS_PREDICTION) instanceof PredictedContainerInfo pci) {
+            mControllers.taskbarAllAppsController.setPredictedApps(pci.getContents());
+        }
         commitItemsToUI();
     }
 
     @Override
-    public void bindAppsAdded(IntArray newScreens, ArrayList<ItemInfo> addNotAnimated,
-            ArrayList<ItemInfo> addAnimated) {
-        boolean add1 = handleItemsAdded(addNotAnimated);
-        boolean add2 = handleItemsAdded(addAnimated);
-        if (add1 || add2) {
+    public void bindItemsAdded(List<ItemInfo> items) {
+        if (handleItemsAdded(items)) {
             commitItemsToUI();
         }
     }
 
-    @Override
-    public void bindItems(List<ItemInfo> shortcuts, boolean forceAnimateIcons) {
-        if (handleItemsAdded(shortcuts)) {
-            commitItemsToUI();
-        }
-    }
-
-    private boolean handleItemsAdded(List<ItemInfo> items) {
+    private boolean handleItemsAdded(Iterable<ItemInfo> items) {
         boolean modified = false;
         for (ItemInfo item : items) {
             if (item.container == Favorites.CONTAINER_HOTSEAT) {
@@ -116,20 +109,41 @@ public class TaskbarModelCallbacks implements
     }
 
     @Override
-    public void bindItemsUpdated(Set<ItemInfo> updates) {
-        updateContainerItems(updates, mContext);
+    public void bindItemsUpdated(@NonNull Set<ItemInfo> updates) {
+        Set<ItemInfo> itemsToRebind = updateContainerItems(updates, mContext);
+        boolean removed = handleItemsRemoved(ItemInfoMatcher.ofItems(itemsToRebind));
+        boolean added = handleItemsAdded(itemsToRebind);
+
+        boolean predictionsUpdated = false;
+        for (ItemInfo update: updates) {
+            if (update instanceof PredictedContainerInfo pci) {
+                if (pci.id == Favorites.CONTAINER_HOTSEAT_PREDICTION) {
+                    mPredictedItems = pci.getContents();
+                    predictionsUpdated = true;
+                } else if (pci.id == CONTAINER_ALL_APPS_PREDICTION) {
+                    mControllers.taskbarAllAppsController.setPredictedApps(pci.getContents());
+                }
+            }
+        }
+        if (removed || added || predictionsUpdated) {
+            commitItemsToUI();
+        }
+    }
+
+    @Nullable
+    @Override
+    public CellInfo getCellInfoForView(@NonNull View view) {
+        return view.getLayoutParams() instanceof TaskbarLayoutParams tlp ? tlp.bindInfo : null;
+    }
+
+    @Override
+    public boolean isContainerSupported(int container) {
+        return container == CONTAINER_HOTSEAT || container == CONTAINER_HOTSEAT_PREDICTION;
     }
 
     @Override
     public View mapOverItems(@NonNull ItemOperator op) {
-        final int itemCount = mContainer.getChildCount();
-        for (int itemIdx = 0; itemIdx < itemCount; itemIdx++) {
-            View item = mContainer.getChildAt(itemIdx);
-            if (item.getTag() instanceof ItemInfo itemInfo && op.evaluate(itemInfo, item)) {
-                return item;
-            }
-        }
-        return null;
+        return mContainer.mapOverItems(mContainer, op);
     }
 
     @Override
@@ -150,32 +164,9 @@ public class TaskbarModelCallbacks implements
         return modified;
     }
 
-    @Override
-    public void bindItemsModified(List<ItemInfo> items) {
-        boolean removed = handleItemsRemoved(ItemInfoMatcher.ofItems(items));
-        boolean added = handleItemsAdded(items);
-        if (removed || added) {
-            commitItemsToUI();
-        }
-    }
-
-    @Override
-    public void bindExtraContainerItems(FixedContainerItems item) {
-        if (item.containerId == Favorites.CONTAINER_HOTSEAT_PREDICTION) {
-            mPredictedItems = item.items;
-            commitItemsToUI();
-        } else if (item.containerId == Favorites.CONTAINER_PREDICTION) {
-            mControllers.taskbarAllAppsController.setPredictedApps(item.items);
-        }
-    }
-
     private void commitItemsToUI() {
-        if (mBindingItems) {
-            return;
-        }
-
-        ItemInfo[] hotseatItemInfos =
-                new ItemInfo[mContext.getDeviceProfile().numShownHotseatIcons];
+        int taskbarSize = mContext.getTaskbarSpecsEvaluator().getMaxPinnableCount();
+        ItemInfo[] hotseatItemInfos = new ItemInfo[taskbarSize];
         int predictionSize = mPredictedItems.size();
         int predictionNextIndex = 0;
 
@@ -192,21 +183,33 @@ public class TaskbarModelCallbacks implements
                 mControllers.taskbarRecentAppsController;
         hotseatItemInfos = recentAppsController.updateHotseatItemInfos(hotseatItemInfos);
 
+        final List<HandoffSuggestion> handoffSuggestions
+            = android.companion.Flags.enableTaskContinuity()
+                ? mControllers.taskbarHandoffController.getSuggestions()
+                : Collections.emptyList();
+
         if (mDeferUpdatesForSUW) {
             ItemInfo[] finalHotseatItemInfos = hotseatItemInfos;
             mDeferredUpdates = () ->
                     commitHotseatItemUpdates(finalHotseatItemInfos,
-                            recentAppsController.getShownTasks());
+                            recentAppsController.getShownTasks(),
+                            handoffSuggestions);
         } else {
-            commitHotseatItemUpdates(hotseatItemInfos, recentAppsController.getShownTasks());
+            commitHotseatItemUpdates(
+                hotseatItemInfos,
+                recentAppsController.getShownTasks(),
+                handoffSuggestions);
         }
     }
 
     private void commitHotseatItemUpdates(
-            ItemInfo[] hotseatItemInfos, List<GroupTask> recentTasks) {
-        mContainer.updateItems(hotseatItemInfos, recentTasks);
+            ItemInfo[] hotseatItemInfos,
+            List<GroupTask> recentTasks,
+            List<HandoffSuggestion> handoffSuggestions) {
+
+        mContainer.updateItems(hotseatItemInfos, recentTasks, handoffSuggestions);
         mControllers.taskbarViewController.updateIconViewsRunningStates();
-        mControllers.taskbarPopupController.setHotseatInfosList(mHotseatItems);
+        mControllers.taskbarPopupController.setTaskbarInfoList(mHotseatItems);
     }
 
     /**
@@ -230,9 +233,13 @@ public class TaskbarModelCallbacks implements
         commitItemsToUI();
     }
 
-    @Override
-    public void bindDeepShortcutMap(HashMap<ComponentKey, Integer> deepShortcutMapCopy) {
-        mControllers.taskbarPopupController.setDeepShortcutMap(deepShortcutMapCopy);
+    /** Called when there's a change in handoff suggestions to update the UI. */
+    public void commitHandoffSuggestionsToUI() {
+        if (!android.companion.Flags.enableTaskContinuity()) {
+            return;
+        }
+
+        commitItemsToUI();
     }
 
     @UiThread

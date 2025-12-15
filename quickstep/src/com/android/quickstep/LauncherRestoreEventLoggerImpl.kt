@@ -9,13 +9,17 @@ import androidx.annotation.VisibleForTesting
 import com.android.launcher3.Flags.enableLauncherBrMetricsFixed
 import com.android.launcher3.LauncherSettings.Favorites
 import com.android.launcher3.backuprestore.LauncherRestoreEventLogger
+import com.android.launcher3.dagger.ApplicationContext
+import javax.inject.Inject
 
 /**
  * Concrete implementation for wrapper to log Restore event metrics for both success and failure to
  * restore Launcher workspace from a backup. This implementation accesses SystemApis so is only
  * available to QuickStep/NexusLauncher.
  */
-class LauncherRestoreEventLoggerImpl(val context: Context) : LauncherRestoreEventLogger() {
+class LauncherRestoreEventLoggerImpl
+@Inject
+constructor(@ApplicationContext private val context: Context) : LauncherRestoreEventLogger() {
     companion object {
         const val TAG = "LauncherRestoreEventLoggerImpl"
 
@@ -43,7 +47,7 @@ class LauncherRestoreEventLoggerImpl(val context: Context) : LauncherRestoreEven
     override fun logLauncherItemsRestoreFailed(
         @BackupRestoreDataType dataType: String,
         count: Int,
-        @BackupRestoreError error: String?
+        @BackupRestoreError error: String?,
     ) {
         if (enableLauncherBrMetricsFixed()) {
             restoreEventLogger.logItemsRestoreFailed(dataType, count, error)
@@ -93,7 +97,7 @@ class LauncherRestoreEventLoggerImpl(val context: Context) : LauncherRestoreEven
      */
     override fun logSingleFavoritesItemRestoreFailed(
         favoritesId: Int,
-        @BackupRestoreError error: String?
+        @BackupRestoreError error: String?,
     ) {
         if (enableLauncherBrMetricsFixed()) {
             restoreEventLogger.logItemsRestoreFailed(favoritesIdToDataType(favoritesId), 1, error)
@@ -110,13 +114,13 @@ class LauncherRestoreEventLoggerImpl(val context: Context) : LauncherRestoreEven
     override fun logFavoritesItemsRestoreFailed(
         favoritesId: Int,
         count: Int,
-        @BackupRestoreError error: String?
+        @BackupRestoreError error: String?,
     ) {
         if (enableLauncherBrMetricsFixed()) {
             restoreEventLogger.logItemsRestoreFailed(
                 favoritesIdToDataType(favoritesId),
                 count,
-                error
+                error,
             )
         }
     }

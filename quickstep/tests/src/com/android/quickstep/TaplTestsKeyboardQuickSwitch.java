@@ -16,11 +16,14 @@
 package com.android.quickstep;
 
 import android.content.Intent;
+import android.platform.test.annotations.DisableFlags;
+import android.platform.test.annotations.EnableFlags;
 
 import androidx.annotation.NonNull;
 import androidx.test.filters.LargeTest;
 import androidx.test.runner.AndroidJUnit4;
 
+import com.android.launcher3.Flags;
 import com.android.launcher3.tapl.KeyboardQuickSwitch;
 import com.android.launcher3.taskbar.KeyboardQuickSwitchController;
 
@@ -50,7 +53,8 @@ public class TaplTestsKeyboardQuickSwitch extends AbstractQuickStepTest {
         LAUNCH_LAST_APP(0),
         LAUNCH_SELECTED_APP(1),
         DISMISS_WHEN_GOING_HOME(1),
-        LAUNCH_OVERVIEW(KeyboardQuickSwitchController.MAX_TASKS - 1);
+        LAUNCH_OVERVIEW(KeyboardQuickSwitchController.MAX_TASKS - 1),
+        LAUNCH_LAST_MAX_TASK_NOT_OVERVIEW(KeyboardQuickSwitchController.MAX_TASKS);
 
         private final int mNumAdditionalRunningTasks;
 
@@ -64,7 +68,8 @@ public class TaplTestsKeyboardQuickSwitch extends AbstractQuickStepTest {
 
     @Override
     public void setUp() throws Exception {
-        Assume.assumeTrue(mLauncher.isTablet());
+        Assume.assumeTrue("Ignoring test because device is not a tablet",
+            mLauncher.isTablet());
         super.setUp();
         startAppFast(CALCULATOR_APP_PACKAGE);
         startTestActivity(2);
@@ -86,6 +91,7 @@ public class TaplTestsKeyboardQuickSwitch extends AbstractQuickStepTest {
     }
 
     @Test
+    @DisableFlags(value = Flags.FLAG_ENABLE_WIDGET_PICKER_REFACTOR)
     public void testDismiss_fromWidgets() {
         runTest(TestSurface.WIDGETS, TestCase.DISMISS);
     }
@@ -106,6 +112,7 @@ public class TaplTestsKeyboardQuickSwitch extends AbstractQuickStepTest {
     }
 
     @Test
+    @DisableFlags(value = Flags.FLAG_ENABLE_WIDGET_PICKER_REFACTOR)
     public void testLaunchLastTask_fromWidgets() {
         runTest(TestSurface.WIDGETS, TestCase.LAUNCH_LAST_APP);
     }
@@ -126,33 +133,39 @@ public class TaplTestsKeyboardQuickSwitch extends AbstractQuickStepTest {
     }
 
     @Test
+    @DisableFlags(value = Flags.FLAG_ENABLE_WIDGET_PICKER_REFACTOR)
     public void testLaunchSelectedTask_fromWidgets() {
         runTest(TestSurface.WIDGETS, TestCase.LAUNCH_SELECTED_APP);
     }
 
     @Test
+    @DisableFlags(value = Flags.FLAG_ENABLE_ALT_TAB_KQS_FLATENNING)
     public void testLaunchOverviewTask_fromHome() {
         runTest(TestSurface.HOME, TestCase.LAUNCH_OVERVIEW);
     }
 
     @Test
+    @DisableFlags(value = Flags.FLAG_ENABLE_ALT_TAB_KQS_FLATENNING)
     public void testLaunchOverviewTask_fromApp() {
         runTest(TestSurface.LAUNCHED_APP, TestCase.LAUNCH_OVERVIEW);
     }
 
     @Test
+    @DisableFlags(value = Flags.FLAG_ENABLE_ALT_TAB_KQS_FLATENNING)
     public void testLaunchOverviewTask_fromHomeAllApps() {
         runTest(TestSurface.HOME_ALL_APPS, TestCase.LAUNCH_OVERVIEW);
     }
 
     @Test
+    @DisableFlags(value = {Flags.FLAG_ENABLE_WIDGET_PICKER_REFACTOR,
+            Flags.FLAG_ENABLE_ALT_TAB_KQS_FLATENNING})
     public void testLaunchOverviewTask_fromWidgets() {
         runTest(TestSurface.WIDGETS, TestCase.LAUNCH_OVERVIEW);
     }
 
     @Test
     public void testLaunchSingleRecentTask() {
-        mLauncher.getLaunchedAppState().switchToOverview().dismissAllTasks();
+        clearAllRecentTasks();
         startAppFast(CALCULATOR_APP_PACKAGE);
         mLauncher.goHome().showQuickSwitchView().launchFocusedAppTask(CALCULATOR_APP_PACKAGE);
     }
@@ -160,6 +173,12 @@ public class TaplTestsKeyboardQuickSwitch extends AbstractQuickStepTest {
     @Test
     public void testDismissedWhenGoingHome() {
         runTest(TestSurface.LAUNCHED_APP, TestCase.DISMISS_WHEN_GOING_HOME);
+    }
+
+    @Test
+    @EnableFlags(value = Flags.FLAG_ENABLE_ALT_TAB_KQS_FLATENNING)
+    public void testLaunchLastTaskAfterMaxNotOverview_fromHome() {
+        runTest(TestSurface.HOME, TestCase.LAUNCH_LAST_MAX_TASK_NOT_OVERVIEW);
     }
 
     private void runTest(@NonNull TestSurface testSurface, @NonNull TestCase testCase) {
@@ -214,6 +233,13 @@ public class TaplTestsKeyboardQuickSwitch extends AbstractQuickStepTest {
                 kqs.launchFocusedOverviewTask()
                         // Check that the correct task was focused
                         .launchFocusedTaskByEnterKey(CALCULATOR_APP_PACKAGE);
+                break;
+            case LAUNCH_LAST_MAX_TASK_NOT_OVERVIEW:
+                kqs.moveFocusBackward();
+                if (!testSurface.mInitialFocusAtZero) {
+                    kqs.moveFocusBackward();
+                }
+                kqs.launchFocusedAppTask(CALCULATOR_APP_PACKAGE);
                 break;
             default:
                 throw new IllegalStateException("Cannot run test case: " + testCase);

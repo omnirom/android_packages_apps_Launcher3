@@ -22,18 +22,13 @@ import android.util.SparseIntArray;
 
 import androidx.annotation.Nullable;
 
-import com.android.launcher3.R;
-import com.android.launcher3.util.ResourceBasedOverride;
+import javax.inject.Inject;
 
 /** Extracts the colors we need from the wallpaper at given locations. */
-public class LocalColorExtractor implements ResourceBasedOverride {
+public class LocalColorExtractor {
 
-    /**
-     * Creates a new instance of LocalColorExtractor
-     */
-    public static LocalColorExtractor newInstance(Context context) {
-        return Overrides.getObject(LocalColorExtractor.class, context.getApplicationContext(),
-                R.string.local_colors_extraction_class);
+    @Inject
+    public LocalColorExtractor() {
     }
 
     /**

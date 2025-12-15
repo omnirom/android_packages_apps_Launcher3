@@ -17,10 +17,10 @@
 package com.android.quickstep
 
 import android.os.RemoteException
+import android.os.UserHandle
 import android.util.Log
 import android.view.InsetsState
 import android.view.WindowInsets
-
 import com.android.launcher3.Utilities
 import com.android.launcher3.config.FeatureFlags
 import com.android.launcher3.util.Executors
@@ -47,20 +47,28 @@ class HomeVisibilityState {
             transitions?.setHomeTransitionListener(
                 object : Stub() {
                     override fun onHomeVisibilityChanged(isVisible: Boolean) {
-                        Utilities.postAsyncCallback(
-                            Executors.MAIN_EXECUTOR.handler,
-                            {
-                                isHomeVisible = isVisible
-                                listeners.forEach { it.onHomeVisibilityChanged(isVisible) }
-                            },
-                        )
+                        Utilities.postAsyncCallback(Executors.MAIN_EXECUTOR.handler) {
+                            isHomeVisible = isVisible
+                            val copiedListeners = listeners.toSet()
+                            copiedListeners.forEach { it.onHomeVisibilityChanged(isVisible) }
+                        }
                     }
+
                     override fun onDisplayInsetsChanged(insetsState: InsetsState) {
-                        val bottomInset = insetsState.calculateInsets(insetsState.displayFrame,
-                                WindowInsets.Type.navigationBars(), false).bottom
-                        navbarInsetPosition = insetsState.displayFrame.bottom - bottomInset
+                        val displayFrame = insetsState.displayFrame
+                        val bottomInset =
+                            insetsState
+                                .calculateInsets(
+                                    displayFrame,
+                                    displayFrame,
+                                    WindowInsets.Type.navigationBars(),
+                                    false,
+                                )
+                                .bottom
+                        navbarInsetPosition = displayFrame.bottom - bottomInset
                     }
-                }
+                },
+                UserHandle.myUserId(),
             )
         } catch (e: RemoteException) {
             Log.w(TAG, "Failed call setHomeTransitionListener", e)

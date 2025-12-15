@@ -23,6 +23,7 @@ import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -42,14 +43,17 @@ import androidx.test.filters.SmallTest;
 import com.android.launcher3.Flags;
 import com.android.launcher3.R;
 import com.android.launcher3.graphics.ThemeManager;
-import com.android.launcher3.icons.IconProvider;
+import com.android.launcher3.icons.IconChangeTracker;
 import com.android.launcher3.util.DaggerSingletonTracker;
+import com.android.launcher3.util.Executors;
 import com.android.launcher3.util.LockedUserState;
-import com.android.launcher3.util.SplitConfigurationOptions;
+import com.android.launcher3.util.MutableListenableStream;
+import com.android.launcher3.util.PackageUserKey;
 import com.android.quickstep.util.GroupTask;
 import com.android.quickstep.util.SplitTask;
 import com.android.systemui.shared.recents.model.Task;
 import com.android.systemui.shared.system.TaskStackChangeListeners;
+import com.android.wm.shell.shared.split.SplitBounds;
 import com.android.wm.shell.shared.split.SplitScreenConstants;
 
 import org.junit.Before;
@@ -58,7 +62,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
 
 import java.util.ArrayList;
 import java.util.function.Consumer;
@@ -74,9 +79,12 @@ public class RecentsModelTest {
 
     @Mock
     private RecentTasksList mTasksList;
+    private RecentsModel.RecentTasksChangedListener mRegisteredTaskListListener = null;
 
     @Mock
     private HighResLoadingState mHighResLoadingState;
+
+    @Mock private IconChangeTracker mIconChangeTracker;
 
     @Mock
     private LockedUserState mLockedUserState;
@@ -90,12 +98,13 @@ public class RecentsModelTest {
 
     private Resources mResource;
 
+    @Rule public MockitoRule mockitoRule = MockitoJUnit.rule();
+
     @Rule
     public final SetFlagsRule mSetFlagsRule = new SetFlagsRule();
 
     @Before
     public void setup() throws NoSuchFieldException {
-        MockitoAnnotations.initMocks(this);
         mSetFlagsRule.enableFlags(Flags.FLAG_ENABLE_GRID_ONLY_OVERVIEW);
         mTaskResult = getTaskResult();
         doAnswer(invocation-> {
@@ -103,14 +112,38 @@ public class RecentsModelTest {
             callback.accept(mTaskResult);
             return null;
         }).when(mTasksList).getTaskKeys(anyInt(), any());
+        doAnswer(invocation -> {
+            mRegisteredTaskListListener = invocation.getArgument(0);
+            return null;
+        }).when(mTasksList).registerRecentTasksChangedListener(any());
+        doAnswer(invocation -> {
+            mRegisteredTaskListListener = null;
+            return null;
+        }).when(mTasksList).unregisterRecentTasksChangedListener();
+        doAnswer(invocation -> {
+            if (mRegisteredTaskListListener != null) {
+                mRegisteredTaskListListener.onRecentTasksChanged();
+            }
+            return null;
+        }).when(mTasksList).onRecentTasksChanged();
 
         when(mHighResLoadingState.isEnabled()).thenReturn(true);
         when(mThumbnailCache.getHighResLoadingState()).thenReturn(mHighResLoadingState);
         when(mThumbnailCache.isPreloadingEnabled()).thenReturn(true);
 
-        mRecentsModel = new RecentsModel(mContext, mTasksList, mock(TaskIconCache.class),
-                mThumbnailCache, mock(IconProvider.class), mock(TaskStackChangeListeners.class),
-                mLockedUserState, () -> mThemeManager, mock(DaggerSingletonTracker.class));
+        doReturn(new MutableListenableStream<PackageUserKey>())
+                .when(mIconChangeTracker).getChanges();
+        mRecentsModel = new RecentsModel(
+                mContext,
+                mTasksList,
+                mock(TaskIconCache.class),
+                mThumbnailCache,
+                mock(TaskStackChangeListeners.class),
+                mLockedUserState,
+                () -> mThemeManager,
+                mock(DaggerSingletonTracker.class),
+                Executors.UI_HELPER_EXECUTOR,
+                mIconChangeTracker);
 
         mResource = mock(Resources.class);
         when(mResource.getInteger((R.integer.recentsThumbnailCacheSize))).thenReturn(3);
@@ -186,6 +219,38 @@ public class RecentsModelTest {
         verify(mThemeManager, times(1)).addChangeListener(any());
     }
 
+    @Test
+    public void recentTaskListChangesNotiftListeners() {
+        RecentsModel.RecentTasksChangedListener listener1 = mock(
+                RecentsModel.RecentTasksChangedListener.class);
+        RecentsModel.RecentTasksChangedListener listener2 = mock(
+                RecentsModel.RecentTasksChangedListener.class);
+
+        mRecentsModel.registerRecentTasksChangedListener(listener1);
+
+        mTasksList.onRecentTasksChanged();
+        verify(listener1, times(1)).onRecentTasksChanged();
+        verify(listener2, times(0)).onRecentTasksChanged();
+
+        mRecentsModel.registerRecentTasksChangedListener(listener2);
+
+        mTasksList.onRecentTasksChanged();
+        verify(listener1, times(2)).onRecentTasksChanged();
+        verify(listener2, times(1)).onRecentTasksChanged();
+
+        mRecentsModel.unregisterRecentTasksChangedListener(listener1);
+
+        mTasksList.onRecentTasksChanged();
+        verify(listener1, times(2)).onRecentTasksChanged();
+        verify(listener2, times(2)).onRecentTasksChanged();
+
+        mRecentsModel.unregisterRecentTasksChangedListener(listener2);
+
+        mTasksList.onRecentTasksChanged();
+        verify(listener1, times(2)).onRecentTasksChanged();
+        verify(listener2, times(2)).onRecentTasksChanged();
+    }
+
     private RecentTasksList.TaskLoadResult getTaskResult() {
         RecentTasksList.TaskLoadResult allTasks = new RecentTasksList.TaskLoadResult(0, false, 1);
         ActivityManager.RecentTaskInfo taskInfo1 = new ActivityManager.RecentTaskInfo();
@@ -197,11 +262,11 @@ public class RecentsModelTest {
         Task task2 = Task.from(taskKey2, taskInfo2, false);
 
         allTasks.add(
-                new SplitTask(task1, task2, new SplitConfigurationOptions.SplitBounds(
+                new SplitTask(task1, task2, new SplitBounds(
                         /* leftTopBounds = */ new Rect(),
                         /* rightBottomBounds = */ new Rect(),
-                        /* leftTopTaskId = */ -1,
-                        /* rightBottomTaskId = */ -1,
+                        /* leftTopTaskId = */ 1,
+                        /* rightBottomTaskId = */ 2,
                         /* snapPosition = */ SplitScreenConstants.SNAP_TO_2_50_50)));
         return allTasks;
     }

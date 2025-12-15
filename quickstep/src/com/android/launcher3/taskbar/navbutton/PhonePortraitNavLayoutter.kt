@@ -34,7 +34,7 @@ class PhonePortraitNavLayoutter(
     startContextualContainer: ViewGroup,
     imeSwitcher: ImageView?,
     a11yButton: ImageView?,
-    space: Space?
+    space: Space?,
 ) :
     AbstractNavButtonLayoutter(
         resources,
@@ -43,11 +43,11 @@ class PhonePortraitNavLayoutter(
         startContextualContainer,
         imeSwitcher,
         a11yButton,
-        space
+        space,
     ) {
 
     override fun layoutButtons(context: TaskbarActivityContext, isA11yButtonPersistent: Boolean) {
-        val totalWidth = context.deviceProfile.widthPx
+        val totalWidth = context.deviceProfile.deviceProperties.widthPx
         val homeButtonWidth =
             resources.getDimensionPixelSize(R.dimen.taskbar_phone_home_button_size)
         val roundedCornerContentMargin =
@@ -63,7 +63,7 @@ class PhonePortraitNavLayoutter(
         val navContainerParams =
             FrameLayout.LayoutParams(
                 navButtonContainerWidth.toInt(),
-                ViewGroup.LayoutParams.MATCH_PARENT
+                ViewGroup.LayoutParams.MATCH_PARENT,
             )
         navContainerParams.apply {
             topMargin = 0
@@ -75,12 +75,7 @@ class PhonePortraitNavLayoutter(
         }
 
         // Ensure order of buttons is correct
-        navButtonContainer.removeAllViews()
-        navButtonContainer.orientation = LinearLayout.HORIZONTAL
-
-        navButtonContainer.addView(backButton)
-        navButtonContainer.addView(homeButton)
-        navButtonContainer.addView(recentsButton)
+        addThreeButtons()
 
         navButtonContainer.layoutParams = navContainerParams
         navButtonContainer.gravity = Gravity.CENTER
@@ -120,14 +115,14 @@ class PhonePortraitNavLayoutter(
             contextualButtonWidth.toInt(),
             roundedCornerContentMargin + contentPadding,
             0,
-            Gravity.START
+            Gravity.START,
         )
         repositionContextualContainer(
             endContextualContainer,
             contextualButtonWidth.toInt(),
             0,
             roundedCornerContentMargin + contentPadding,
-            Gravity.END
+            Gravity.END,
         )
 
         startContextualContainer.addView(space, MATCH_PARENT, MATCH_PARENT)

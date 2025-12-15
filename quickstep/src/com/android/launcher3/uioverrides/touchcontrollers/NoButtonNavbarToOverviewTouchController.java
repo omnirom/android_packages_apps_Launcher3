@@ -17,7 +17,7 @@
 package com.android.launcher3.uioverrides.touchcontrollers;
 
 import static com.android.app.animation.Interpolators.ACCELERATE_DECELERATE;
-import static com.android.launcher3.LauncherAnimUtils.VIEW_BACKGROUND_COLOR;
+import static com.android.launcher3.LauncherAnimUtils.SCRIM_COLORS;
 import static com.android.launcher3.LauncherAnimUtils.newSingleUseCancelListener;
 import static com.android.launcher3.LauncherState.ALL_APPS;
 import static com.android.launcher3.LauncherState.HINT_STATE;
@@ -43,10 +43,11 @@ import com.android.launcher3.LauncherState;
 import com.android.launcher3.Utilities;
 import com.android.launcher3.anim.AnimatorPlaybackController;
 import com.android.launcher3.states.StateAnimationConfig;
-import com.android.launcher3.taskbar.LauncherTaskbarUIController;
+import com.android.launcher3.taskbar.TaskbarInteractor;
 import com.android.launcher3.uioverrides.QuickstepLauncher;
 import com.android.launcher3.util.DisplayController;
 import com.android.launcher3.util.VibratorWrapper;
+import com.android.launcher3.views.ScrimColorsEvaluator;
 import com.android.quickstep.SystemUiProxy;
 import com.android.quickstep.util.AnimatorControllerWithResistance;
 import com.android.quickstep.util.MotionPauseDetector;
@@ -62,6 +63,8 @@ import java.util.function.BiConsumer;
  * first home screen instead of to Overview.
  */
 public class NoButtonNavbarToOverviewTouchController extends PortraitStatesTouchController {
+
+    public static final String TAG = "NoButtonNavbarToOverviewTouchController";
     private static final float ONE_HANDED_ACTIVATED_SLOP_MULTIPLIER = 2.5f;
 
     // How much of the movement to use for translating overview after swipe and hold.
@@ -84,7 +87,7 @@ public class NoButtonNavbarToOverviewTouchController extends PortraitStatesTouch
     private AnimatorPlaybackController mOverviewResistYAnim;
 
     // Normal to Hint animation has flag SKIP_OVERVIEW, so we update this scrim with this animator.
-    private ObjectAnimator mNormalToHintOverviewScrimAnimator;
+    private ValueAnimator mNormalToHintOverviewScrimAnimator;
 
     private final QuickstepLauncher mLauncher;
     private boolean mIsTrackpadSwipe;
@@ -134,7 +137,7 @@ public class NoButtonNavbarToOverviewTouchController extends PortraitStatesTouch
         float progressMultiplier = super.initCurrentAnimation();
         if (mToState == HINT_STATE) {
             // Track the drag across the entire height of the screen.
-            progressMultiplier = -1f / mLauncher.getDeviceProfile().heightPx;
+            progressMultiplier = -1f / mLauncher.getDeviceProfile().getDeviceProperties().getHeightPx();
         }
         return progressMultiplier;
     }
@@ -142,10 +145,9 @@ public class NoButtonNavbarToOverviewTouchController extends PortraitStatesTouch
     @Override
     public void onDragStart(boolean start, float startDisplacement) {
         if (mLauncher.isInState(ALL_APPS)) {
-            LauncherTaskbarUIController controller =
-                    ((QuickstepLauncher) mLauncher).getTaskbarUIController();
-            if (controller != null) {
-                controller.setShouldDelayLauncherStateAnim(true);
+            TaskbarInteractor taskbarInteractor = mLauncher.getTaskbarInteractor();
+            if (taskbarInteractor != null) {
+                taskbarInteractor.setShouldDelayLauncherStateAnim(true);
             }
         }
 
@@ -161,15 +163,21 @@ public class NoButtonNavbarToOverviewTouchController extends PortraitStatesTouch
         }
 
         if (mFromState == NORMAL && mToState == HINT_STATE) {
-            mNormalToHintOverviewScrimAnimator = ObjectAnimator.ofArgb(
+            mNormalToHintOverviewScrimAnimator = ObjectAnimator.ofObject(
                     mLauncher.getScrimView(),
-                    VIEW_BACKGROUND_COLOR,
+                    SCRIM_COLORS,
+                    ScrimColorsEvaluator.INSTANCE,
                     mFromState.getWorkspaceScrimColor(mLauncher),
                     mToState.getWorkspaceScrimColor(mLauncher));
         }
         mStartedOverview = false;
         mReachedOverview = false;
         mOverviewResistYAnim = null;
+    }
+
+    @Override
+    public String dump() {
+        return TAG;
     }
 
     @Override
@@ -182,10 +190,9 @@ public class NoButtonNavbarToOverviewTouchController extends PortraitStatesTouch
 
     @Override
     public void onDragEnd(float velocity) {
-        LauncherTaskbarUIController controller =
-                ((QuickstepLauncher) mLauncher).getTaskbarUIController();
-        if (controller != null) {
-            controller.setShouldDelayLauncherStateAnim(false);
+        TaskbarInteractor taskbarInteractor = mLauncher.getTaskbarInteractor();
+        if (taskbarInteractor != null) {
+            taskbarInteractor.setShouldDelayLauncherStateAnim(false);
         }
 
         if (mStartedOverview) {

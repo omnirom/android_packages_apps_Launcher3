@@ -16,6 +16,9 @@
 
 package com.android.quickstep;
 
+import static com.android.quickstep.TaskViewTestDIHelpers.initializeRecentsDependencies;
+import static com.android.quickstep.TaskViewTestDIHelpers.mockRecentsModel;
+
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyInt;
@@ -35,19 +38,30 @@ import android.util.DisplayMetrics;
 import android.view.MotionEvent;
 
 import androidx.test.filters.SmallTest;
+import androidx.test.platform.app.InstrumentationRegistry;
 
 import com.android.launcher3.uioverrides.QuickstepLauncher;
+import com.android.launcher3.util.SandboxContext;
+import com.android.quickstep.recents.di.RecentsDependencies;
 import com.android.quickstep.util.BorderAnimator;
 import com.android.quickstep.views.TaskView;
 
+import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
 
 @SmallTest
 public class TaskViewTest {
 
+    private final SandboxContext mApplicationContext =
+            new SandboxContext(InstrumentationRegistry.getInstrumentation().getTargetContext());
+
+    @Rule
+    public MockitoRule mockitoRule = MockitoJUnit.rule();
     @Mock
     private QuickstepLauncher mContext;
     @Mock
@@ -60,7 +74,6 @@ public class TaskViewTest {
 
     @Before
     public void setup() {
-        MockitoAnnotations.initMocks(this);
         when(mResource.getDisplayMetrics()).thenReturn(mock(DisplayMetrics.class));
         when(mResource.getConfiguration()).thenReturn(new Configuration());
 
@@ -69,8 +82,17 @@ public class TaskViewTest {
         when(mContext.getApplicationInfo()).thenReturn(mock(ApplicationInfo.class));
         when(mContext.obtainStyledAttributes(any(), any(), anyInt(), anyInt())).thenReturn(
                 mock(TypedArray.class));
+        when(mContext.getApplicationContext()).thenReturn(mApplicationContext);
 
+        mApplicationContext.initDaggerComponent(
+                DaggerTaskViewTestComponent.builder().bindRecentsModel(mockRecentsModel()));
+        initializeRecentsDependencies(mContext);
         mTaskView = new TaskView(mContext, null, 0, 0, mFocusAnimator, mHoverAnimator);
+    }
+
+    @After
+    public void tearDown() {
+        RecentsDependencies.destroy(mContext);
     }
 
     @Test

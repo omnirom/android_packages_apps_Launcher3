@@ -90,7 +90,7 @@ class NavButtonLayoutFactory {
                     )
                 }
                 isPhoneNavMode -> {
-                    if (!deviceProfile.isLandscape) {
+                    if (!deviceProfile.deviceProperties.isLandscape) {
                         navButtonsView.setIsVertical(false)
                         PhonePortraitNavLayoutter(
                             resources,
@@ -169,5 +169,8 @@ class NavButtonLayoutFactory {
     /** Lays out and provides access to the home, recents, and back buttons for various mischief */
     interface NavButtonLayoutter {
         fun layoutButtons(context: TaskbarActivityContext, isA11yButtonPersistent: Boolean)
+
+        /** Isolated logic for updating the order of the 3 buttons. */
+        fun addThreeButtons()
     }
 }

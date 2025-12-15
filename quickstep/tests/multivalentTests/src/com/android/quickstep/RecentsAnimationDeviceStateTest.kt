@@ -1,6 +1,6 @@
 package com.android.quickstep
 
-import android.view.Display
+import android.view.Display.DEFAULT_DISPLAY
 import androidx.test.annotation.UiThreadTest
 import androidx.test.filters.SmallTest
 import com.android.launcher3.dagger.LauncherComponentProvider
@@ -14,9 +14,9 @@ import com.android.launcher3.util.LauncherMultivalentJUnit
 import com.android.launcher3.util.NavigationMode
 import com.android.launcher3.util.SandboxApplication
 import com.android.quickstep.util.GestureExclusionManager
-import com.android.systemui.shared.system.QuickStepContract
 import com.android.systemui.shared.system.QuickStepContract.SYSUI_STATE_ALLOW_GESTURE_IGNORING_BAR_VISIBILITY
 import com.android.systemui.shared.system.QuickStepContract.SYSUI_STATE_DEVICE_DREAMING
+import com.android.systemui.shared.system.QuickStepContract.SYSUI_STATE_DISABLE_GESTURE_PIP_ANIMATING
 import com.android.systemui.shared.system.QuickStepContract.SYSUI_STATE_DISABLE_GESTURE_SPLIT_INVOCATION
 import com.android.systemui.shared.system.QuickStepContract.SYSUI_STATE_HOME_DISABLED
 import com.android.systemui.shared.system.QuickStepContract.SYSUI_STATE_MAGNIFICATION_OVERLAP
@@ -35,7 +35,8 @@ import org.junit.runner.RunWith
 import org.mockito.Mock
 import org.mockito.Mockito.reset
 import org.mockito.Mockito.verify
-import org.mockito.MockitoAnnotations
+import org.mockito.junit.MockitoJUnit
+import org.mockito.junit.MockitoRule
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.verifyNoMoreInteractions
 import org.mockito.kotlin.whenever
@@ -48,23 +49,25 @@ class RecentsAnimationDeviceStateTest {
 
     @get:Rule val context = SandboxApplication()
 
+    @get:Rule var mockitoRule: MockitoRule = MockitoJUnit.rule()
+
     @Mock private lateinit var exclusionManager: GestureExclusionManager
     @Mock private lateinit var info: Info
+    @Mock private lateinit var rotationTouchHelper: RotationTouchHelper
 
     private lateinit var underTest: RecentsAnimationDeviceState
 
     @Before
     fun setup() {
-        MockitoAnnotations.initMocks(this)
-
         val component = LauncherComponentProvider.get(context)
         underTest =
             RecentsAnimationDeviceState(
                 context,
+                DEFAULT_DISPLAY,
+                rotationTouchHelper,
                 exclusionManager,
                 component.displayController,
                 component.contextualSearchStateManager,
-                component.rotationTouchHelper,
                 component.settingsCache,
                 component.daggerSingletonTracker,
             )
@@ -152,7 +155,7 @@ class RecentsAnimationDeviceStateTest {
 
         allSysUiStates().forEach { state ->
             val canStartGesture = !disablingStates.contains(state)
-            underTest.setSysUIStateFlagsForDisplay(state, Display.DEFAULT_DISPLAY)
+            underTest.setSysUIStateFlags(state)
             assertThat(underTest.canStartTrackpadGesture()).isEqualTo(canStartGesture)
         }
     }
@@ -168,7 +171,7 @@ class RecentsAnimationDeviceStateTest {
             )
 
         stateToExpectedResult.forEach { (state, allowed) ->
-            underTest.setSysUIStateFlagsForDisplay(state, Display.DEFAULT_DISPLAY)
+            underTest.setSysUIStateFlags(state)
             assertThat(underTest.canStartTrackpadGesture()).isEqualTo(allowed)
         }
     }
@@ -179,7 +182,7 @@ class RecentsAnimationDeviceStateTest {
 
         allSysUiStates().forEach { state ->
             val canStartGesture = !disablingStates.contains(state)
-            underTest.setSysUIStateFlagsForDisplay(state, Display.DEFAULT_DISPLAY)
+            underTest.setSysUIStateFlags(state)
             assertThat(underTest.canStartSystemGesture()).isEqualTo(canStartGesture)
         }
     }
@@ -199,40 +202,21 @@ class RecentsAnimationDeviceStateTest {
             )
 
         stateToExpectedResult.forEach { (state, gestureAllowed) ->
-            underTest.setSysUIStateFlagsForDisplay(state, Display.DEFAULT_DISPLAY)
+            underTest.setSysUIStateFlags(state)
             assertThat(underTest.canStartSystemGesture()).isEqualTo(gestureAllowed)
         }
     }
 
     @Test
-    fun getSystemUiStateFlags_defaultAwake() {
-        val NOT_EXISTENT_DISPLAY = 2
-        assertThat(underTest.getSystemUiStateFlags(NOT_EXISTENT_DISPLAY))
-            .isEqualTo(QuickStepContract.SYSUI_STATE_AWAKE)
-    }
+    fun startOverviewCommandForDisallowedSysUiState() {
+        val disallowedStates = GESTURE_DISABLING_SYSUI_STATES + SYSUI_STATE_OVERVIEW_DISABLED
 
-    @Test
-    fun clearSysUIStateFlagsForDisplay_displayNotReturnedAnymore() {
-        underTest.setSysUIStateFlagsForDisplay(1, /* displayId= */ 1)
+        allSysUiStates().forEach { state ->
+            underTest.setSysUIStateFlags(state)
 
-        assertThat(underTest.displaysWithSysUIState).contains(1)
-        assertThat(underTest.getSystemUiStateFlags(1)).isEqualTo(1)
-
-        underTest.clearSysUIStateFlagsForDisplay(1)
-
-        assertThat(underTest.displaysWithSysUIState).doesNotContain(1)
-        assertThat(underTest.getSystemUiStateFlags(1))
-            .isEqualTo(QuickStepContract.SYSUI_STATE_AWAKE)
-    }
-
-    @Test
-    fun setSysUIStateFlagsForDisplay_setsCorrectly() {
-        underTest.setSysUIStateFlagsForDisplay(1, /* displayId= */ 1)
-        underTest.setSysUIStateFlagsForDisplay(2, /* displayId= */ 2)
-
-        assertThat(underTest.getSystemUiStateFlags(1)).isEqualTo(1)
-        assertThat(underTest.getSystemUiStateFlags(2)).isEqualTo(2)
-        assertThat(underTest.displaysWithSysUIState).containsAtLeast(1, 2)
+            val isAllowed = !disallowedStates.contains(state)
+            assertThat(underTest.canStartOverviewCommand()).isEqualTo(isAllowed)
+        }
     }
 
     private fun allSysUiStates(): List<Long> {
@@ -249,6 +233,7 @@ class RecentsAnimationDeviceStateTest {
                 SYSUI_STATE_MAGNIFICATION_OVERLAP,
                 SYSUI_STATE_DEVICE_DREAMING,
                 SYSUI_STATE_DISABLE_GESTURE_SPLIT_INVOCATION,
+                SYSUI_STATE_DISABLE_GESTURE_PIP_ANIMATING,
             )
         private const val SYSUI_STATES_COUNT = 33
         private const val DEFAULT_STATE = 0L

@@ -7,21 +7,29 @@ import static com.android.launcher3.util.Executors.MAIN_EXECUTOR;
 
 import android.content.Context;
 import android.content.res.Resources;
+import android.graphics.Rect;
 import android.os.Bundle;
 import android.view.WindowInsets;
 
 import androidx.annotation.Nullable;
 
+import com.android.launcher3.LauncherPrefs;
+import com.android.launcher3.R;
+import com.android.launcher3.dagger.ApplicationContext;
+import com.android.launcher3.statehandlers.DesktopVisibilityController;
 import com.android.launcher3.taskbar.TaskbarActivityContext;
 import com.android.launcher3.testing.TestInformationHandler;
 import com.android.launcher3.testing.shared.TestProtocol;
-import com.android.launcher3.util.DisplayController;
 import com.android.quickstep.util.GroupTask;
 import com.android.quickstep.util.LayoutUtils;
 import com.android.quickstep.util.TISBindHelper;
+import com.android.quickstep.views.DesktopTaskView;
 import com.android.quickstep.views.RecentsView;
 import com.android.quickstep.views.RecentsViewContainer;
+import com.android.quickstep.views.TaskView;
 import com.android.systemui.shared.recents.model.Task;
+import com.android.wm.shell.shared.bubbles.DeviceConfig;
+import com.android.wm.shell.shared.desktopmode.DesktopState;
 
 import java.util.ArrayList;
 import java.util.concurrent.CountDownLatch;
@@ -30,12 +38,28 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+import javax.inject.Inject;
+
 public class QuickstepTestInformationHandler extends TestInformationHandler {
 
     protected final Context mContext;
+    private final RecentsModel mRecentsModel;
+    private final SystemUiProxy mSystemUiProxy;
+    private final  OverviewComponentObserver mOverviewComponentObserver;
+    private final DesktopVisibilityController mDesktopVisibilityController;
 
-    public QuickstepTestInformationHandler(Context context) {
+
+    @Inject
+    public QuickstepTestInformationHandler(@ApplicationContext Context context,
+            RecentsModel recentsModel,
+            SystemUiProxy systemUiProxy,
+            OverviewComponentObserver overviewComponentObserver,
+            DesktopVisibilityController desktopVisibilityController) {
         mContext = context;
+        mRecentsModel = recentsModel;
+        mSystemUiProxy = systemUiProxy;
+        mOverviewComponentObserver = overviewComponentObserver;
+        mDesktopVisibilityController = desktopVisibilityController;
     }
 
     @Override
@@ -45,7 +69,7 @@ public class QuickstepTestInformationHandler extends TestInformationHandler {
             case TestProtocol.REQUEST_RECENT_TASKS_LIST: {
                 ArrayList<String> taskBaseIntentComponents = new ArrayList<>();
                 CountDownLatch latch = new CountDownLatch(1);
-                RecentsModel.INSTANCE.get(mContext).getTasks((taskGroups) -> {
+                mRecentsModel.getTasks((taskGroups) -> {
                     for (GroupTask group : taskGroups) {
                         for (Task t : group.getTasks()) {
                             taskBaseIntentComponents.add(
@@ -72,7 +96,7 @@ public class QuickstepTestInformationHandler extends TestInformationHandler {
             }
 
             case TestProtocol.REQUEST_BACKGROUND_TO_OVERVIEW_SWIPE_HEIGHT: {
-                final float swipeHeight = mDeviceProfile.heightPx / 2f;
+                final float swipeHeight = mDeviceProfile.getDeviceProperties().getHeightPx() / 2f;
                 response.putInt(TestProtocol.TEST_INFO_RESPONSE_FIELD, (int) swipeHeight);
                 return response;
             }
@@ -95,13 +119,28 @@ public class QuickstepTestInformationHandler extends TestInformationHandler {
 
             case TestProtocol.REQUEST_GET_OVERVIEW_PAGE_SPACING: {
                 response.putInt(TestProtocol.TEST_INFO_RESPONSE_FIELD,
-                        mDeviceProfile.overviewPageSpacing);
+                        mDeviceProfile.getOverviewProfile().getPageSpacing());
+                return response;
+            }
+
+            case TestProtocol.REQUEST_GET_BUBBLE_BAR_DROP_TARGET_SIZE: {
+                int dimenResId = DeviceConfig.isSmallTablet(mContext)
+                        ? R.dimen.drag_zone_bubble_fold : R.dimen.drag_zone_bubble_tablet;
+                response.putInt(TestProtocol.TEST_INFO_RESPONSE_FIELD,
+                        mContext.getResources().getDimensionPixelSize(dimenResId));
                 return response;
             }
 
             case TestProtocol.REQUEST_GET_OVERVIEW_CURRENT_PAGE_INDEX: {
                 return getLauncherUIProperty(Bundle::putInt,
                         launcher -> launcher.<RecentsView>getOverviewPanel().getCurrentPage());
+            }
+
+            case TestProtocol.REQUEST_GET_OVERVIEW_FIRST_TASKVIEW_INDEX: {
+                return getLauncherUIProperty(Bundle::putInt,
+                        launcher ->
+                                launcher.<RecentsView<?, ?>>getOverviewPanel()
+                                        .getFirstTaskViewIndex());
             }
 
             case TestProtocol.REQUEST_HAS_TIS: {
@@ -114,6 +153,13 @@ public class QuickstepTestInformationHandler extends TestInformationHandler {
                     // Allow null-pointer to catch illegal states.
                     tisBinder.getTaskbarManager().getCurrentActivityContext()
                             .unstashTaskbarIfStashed();
+                });
+                return response;
+
+            case TestProtocol.REQUEST_COLLAPSE_BUBBLE_BAR:
+                runOnTISBinder(tisBinder -> {
+                    // Allow null-pointer to catch illegal states.
+                    tisBinder.getTaskbarManager().getCurrentActivityContext().removeAllBubbles();
                 });
                 return response;
 
@@ -148,6 +194,14 @@ public class QuickstepTestInformationHandler extends TestInformationHandler {
                                 .getTaskbarAllAppsScroll());
             }
 
+            case TestProtocol.REQUEST_LIMIT_MAX_TASKBAR_ICON_NUMBER: {
+                runOnTISBinder(tisBinder ->
+                        tisBinder.getTaskbarManager()
+                                .getCurrentActivityContext()
+                                .limitMaxTaskbarIconsNum(Integer.parseInt(arg)));
+                return response;
+            }
+
             case TestProtocol.REQUEST_ENABLE_BLOCK_TIMEOUT:
                 runOnTISBinder(tisBinder -> {
                     enableBlockingTimeout(tisBinder, true);
@@ -170,11 +224,11 @@ public class QuickstepTestInformationHandler extends TestInformationHandler {
 
             case TestProtocol.REQUEST_SHELL_DRAG_READY:
                 response.putBoolean(TestProtocol.TEST_INFO_RESPONSE_FIELD,
-                        SystemUiProxy.INSTANCE.get(mContext).isDragAndDropReady());
+                        mSystemUiProxy.isDragAndDropReady());
                 return response;
 
             case TestProtocol.REQUEST_REFRESH_OVERVIEW_TARGET:
-                runOnTISBinder(TouchInteractionService.TISBinder::refreshOverviewTarget);
+                runOnTISBinder(TouchInteractionService.TISBinder::refreshOverviewTargetForTest);
                 return response;
 
             case TestProtocol.REQUEST_RECREATE_TASKBAR:
@@ -192,12 +246,75 @@ public class QuickstepTestInformationHandler extends TestInformationHandler {
                             .unstashBubbleBarIfStashed();
                 });
                 return response;
+            case TestProtocol.REQUEST_REMOVE_ALL_BUBBLES:
+                runOnTISBinder(tisBinder -> {
+                    // Allow null-pointer to catch illegal states.
+                    Context context = tisBinder.getTaskbarManager().getCurrentActivityContext();
+                    SystemUiProxy.INSTANCE.get(context).removeAllBubbles();
+                });
+                return response;
             case TestProtocol.REQUEST_INJECT_FAKE_TRACKPAD:
                 runOnTISBinder(tisBinder -> tisBinder.injectFakeTrackpadForTesting());
                 return response;
             case TestProtocol.REQUEST_EJECT_FAKE_TRACKPAD:
                 runOnTISBinder(tisBinder -> tisBinder.ejectFakeTrackpadForTesting());
                 return response;
+
+            case TestProtocol.REQUEST_DISMISS_MAGNETIC_DETACH_THRESHOLD: {
+                final Resources resources = mContext.getResources();
+                response.putInt(TestProtocol.TEST_INFO_RESPONSE_FIELD,
+                        resources.getDimensionPixelSize(R.dimen.task_dismiss_detach_threshold));
+                return response;
+            }
+
+            case TestProtocol.REQUEST_TASKBAR_ACTION_CORNER_PADDING: {
+                final Resources resources = mContext.getResources();
+                response.putInt(TestProtocol.TEST_INFO_RESPONSE_FIELD,
+                        resources.getDimensionPixelSize(
+                                R.dimen.transient_taskbar_action_corner_padding));
+                return response;
+            }
+            case TestProtocol.REQUEST_TASKBAR_UNSTASHED_INPUT_AREA: {
+                final Resources resources = mContext.getResources();
+                response.putInt(TestProtocol.TEST_INFO_RESPONSE_FIELD,
+                        resources.getDimensionPixelSize(
+                                R.dimen.taskbar_unstash_input_area));
+                return response;
+            }
+            case TestProtocol.REQUEST_IS_TRANSIENT_TASKBAR:
+                return getTISBinderUIProperty(Bundle::putBoolean, tisBinder ->
+                        tisBinder.getTaskbarManager()
+                                .getCurrentActivityContext()
+                                .getTaskbarFeatureEvaluator().isTransient());
+            case TestProtocol.REQUEST_FLAG_ENABLE_MULTIPLE_DESKTOPS: {
+                response.putBoolean(TestProtocol.TEST_INFO_RESPONSE_FIELD,
+                        DesktopState.fromContext(mContext)
+                                .isMultipleDesktopFrontendEnabledOnDisplay(
+                                        Integer.parseInt(arg)));
+                return response;
+            }
+            case TestProtocol.REQUEST_GET_ACTIVE_DESK_ID: {
+                response.putInt(TestProtocol.TEST_INFO_RESPONSE_FIELD,
+                        mDesktopVisibilityController.getActiveDeskId(Integer.parseInt(arg)));
+                return response;
+            }
+            case TestProtocol.REQUEST_GET_DESK_ID: {
+                final Rect taskBounds = extras.getParcelable(TestProtocol.TEST_INFO_RESPONSE_FIELD);
+                return getUIProperty(Bundle::putInt,
+                        recentsViewContainer -> {
+                            RecentsView recentsView = recentsViewContainer.getOverviewPanel();
+                            for (TaskView taskView : recentsView.getTaskViews()) {
+                                Rect bounds = new Rect();
+                                taskView.getGlobalVisibleRect(bounds);
+                                if (bounds.equals(taskBounds)
+                                        && taskView instanceof DesktopTaskView) {
+                                    return ((DesktopTaskView) taskView).getDeskId();
+                                }
+                            }
+                            return -1;
+                        },
+                        this::getRecentsViewContainer);
+            }
         }
 
         return super.call(method, arg, extras);
@@ -206,20 +323,26 @@ public class QuickstepTestInformationHandler extends TestInformationHandler {
     @Override
     protected WindowInsets getWindowInsets() {
         RecentsViewContainer container = getRecentsViewContainer();
-        WindowInsets insets = container == null
+        WindowInsets insets = container == null || container.getRootView() == null
                 ? null : container.getRootView().getRootWindowInsets();
         return insets == null ? super.getWindowInsets() : insets;
     }
 
+    @Nullable
     private RecentsViewContainer getRecentsViewContainer() {
         // TODO (b/400647896): support per-display container in e2e tests
-        return OverviewComponentObserver.INSTANCE.get(mContext)
-                .getContainerInterface(DEFAULT_DISPLAY).getCreatedContainer();
+        BaseContainerInterface<?, ?> containerInterface =
+                mOverviewComponentObserver.getContainerInterface(DEFAULT_DISPLAY);
+        if (containerInterface != null) {
+            return containerInterface.getCreatedContainer();
+        } else {
+            return null;
+        }
     }
 
     @Override
     protected boolean isLauncherInitialized() {
-        return super.isLauncherInitialized() && SystemUiProxy.INSTANCE.get(mContext).isActive();
+        return super.isLauncherInitialized() && mSystemUiProxy.isActive();
     }
 
     private void enableBlockingTimeout(
@@ -232,7 +355,7 @@ public class QuickstepTestInformationHandler extends TestInformationHandler {
     }
 
     private void enableTransientTaskbar(boolean enable) {
-        DisplayController.INSTANCE.get(mContext).enableTransientTaskbarForTests(enable);
+        LauncherPrefs.get(mContext).put(LauncherPrefs.TASKBAR_PINNING, !enable);
     }
 
     /**

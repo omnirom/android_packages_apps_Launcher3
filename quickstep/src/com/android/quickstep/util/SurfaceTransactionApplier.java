@@ -107,6 +107,8 @@ public class SurfaceTransactionApplier extends ReleaseCheck {
         setCanRelease(false);
         mTargetViewRootImpl.registerRtFrameCallback(frame -> {
             if (mBarrierSurfaceControl == null || !mBarrierSurfaceControl.isValid()) {
+                // Won't sync with anything, but we still need to apply the transaction
+                t.apply();
                 Message.obtain(mApplyHandler, MSG_UPDATE_SEQUENCE_NUMBER, toApplySeqNo, 0)
                         .sendToTarget();
                 return;

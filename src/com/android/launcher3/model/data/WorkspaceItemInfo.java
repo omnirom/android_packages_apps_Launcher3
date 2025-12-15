@@ -31,6 +31,7 @@ import com.android.launcher3.Flags;
 import com.android.launcher3.LauncherSettings;
 import com.android.launcher3.LauncherSettings.Favorites;
 import com.android.launcher3.Utilities;
+import com.android.launcher3.icons.BitmapInfo;
 import com.android.launcher3.icons.IconCache;
 import com.android.launcher3.pm.UserCache;
 import com.android.launcher3.shortcuts.ShortcutKey;
@@ -76,6 +77,12 @@ public class WorkspaceItemInfo extends ItemInfoWithIcon {
      *
      */
     public static final int FLAG_START_FOR_RESULT = 1 << 4;
+
+    /**
+     * Used to indicate that the icon bitmap in the restored Launcher db file is full-bleed and not
+     * cropped.
+     */
+    public static final int FLAG_RESTORED_FULL_BLEED = 1 << 5;
 
     /**
      * The intent used to start the application.
@@ -175,6 +182,12 @@ public class WorkspaceItemInfo extends ItemInfoWithIcon {
      */
     public boolean hasPromiseIconUi() {
         return isPromise() && !hasStatusFlag(FLAG_SUPPORTS_WEB_UI);
+    }
+
+    @Override
+    public boolean supportsCustomShapes(@BitmapInfo.DrawableCreationFlags int creationFlags) {
+        return !(isArchived() && !hasStatusFlag(FLAG_RESTORED_FULL_BLEED))
+                && super.supportsCustomShapes(creationFlags);
     }
 
     public void updateFromDeepShortcutInfo(@NonNull final ShortcutInfo shortcutInfo,

@@ -134,7 +134,7 @@ public abstract class ShortcutConfigActivityInfo implements CachedObject {
     @TargetApi(26)
     public static class ShortcutConfigActivityInfoVO extends ShortcutConfigActivityInfo {
 
-        private final LauncherActivityInfo mInfo;
+        public final LauncherActivityInfo mInfo;
 
         public ShortcutConfigActivityInfoVO(LauncherActivityInfo info) {
             super(info.getComponentName(), info.getUser(),

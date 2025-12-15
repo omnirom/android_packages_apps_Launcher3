@@ -16,6 +16,7 @@
 
 package com.android.quickstep.util
 
+import android.app.contextualsearch.ContextualSearchConfig
 import android.app.contextualsearch.ContextualSearchManager
 import android.app.contextualsearch.ContextualSearchManager.ENTRYPOINT_LONG_PRESS_HOME
 import android.app.contextualsearch.ContextualSearchManager.FEATURE_CONTEXTUAL_SEARCH
@@ -24,6 +25,7 @@ import android.util.Log
 import android.view.Display.DEFAULT_DISPLAY
 import androidx.annotation.VisibleForTesting
 import com.android.internal.app.AssistUtils
+import com.android.launcher3.dagger.ApplicationContext
 import com.android.launcher3.logging.StatsLogManager
 import com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_LAUNCH_ASSISTANT_FAILED_SERVICE_ERROR
 import com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_LAUNCH_OMNI_ATTEMPTED_OVER_KEYGUARD
@@ -39,6 +41,7 @@ import com.android.quickstep.SystemUiProxy
 import com.android.quickstep.TopTaskTracker
 import com.android.quickstep.views.RecentsView
 import com.android.systemui.shared.system.QuickStepContract
+import javax.inject.Inject
 
 /** Handles invocations and checks for Contextual Search. */
 class ContextualSearchInvoker
@@ -63,6 +66,24 @@ internal constructor(
         context.getSystemService(ContextualSearchManager::class.java),
     )
 
+    @Inject
+    constructor(
+        @ApplicationContext context: Context,
+        contextualSearchStateManager: ContextualSearchStateManager,
+        topTaskTracker: TopTaskTracker,
+        systemUiProxy: SystemUiProxy,
+        logManagerFactory: StatsLogManager.StatsLogManagerFactory,
+        hapticManager: ContextualSearchHapticManager,
+    ) : this(
+        context,
+        contextualSearchStateManager,
+        topTaskTracker,
+        systemUiProxy,
+        logManagerFactory.create(context),
+        hapticManager,
+        context.getSystemService(ContextualSearchManager::class.java),
+    )
+
     /** @return Array of AssistUtils.INVOCATION_TYPE_* that we want to handle instead of SysUI. */
     fun getSysUiAssistOverrideInvocationTypes(): IntArray {
         val overrideInvocationTypes = com.android.launcher3.util.IntArray()
@@ -76,19 +97,24 @@ internal constructor(
      * @return `true` if the override was handled, i.e. an assist surface was shown or the request
      *   should be ignored. `false` means the caller should start assist another way.
      */
-    fun tryStartAssistOverride(invocationType: Int): Boolean {
+    @JvmOverloads
+    fun tryStartAssistOverride(
+        invocationType: Int,
+        config: ContextualSearchConfig? = null,
+    ): Boolean {
         if (invocationType == AssistUtils.INVOCATION_TYPE_HOME_BUTTON_LONG_PRESS) {
             if (!context.packageManager.hasSystemFeature(FEATURE_CONTEXTUAL_SEARCH)) {
                 // When Contextual Search is disabled, fall back to Assistant.
                 return false
             }
 
-            val success = show(ENTRYPOINT_LONG_PRESS_HOME)
+            val success = show(ENTRYPOINT_LONG_PRESS_HOME, config)
             if (success) {
+                val displayId = config?.displayId ?: DEFAULT_DISPLAY
                 val runningPackage =
                     TopTaskTracker.INSTANCE[context].getCachedTopTask(
                             /* filterOnlyVisibleRecents */ true,
-                            DEFAULT_DISPLAY,
+                            displayId,
                         )
                         .getPackageName()
                 statsLogManager
@@ -109,9 +135,10 @@ internal constructor(
      * @param entryPoint one of the ENTRY_POINT_* constants defined in this class
      * @return true if invocation was successful, false otherwise
      */
-    fun show(entryPoint: Int): Boolean {
+    @JvmOverloads
+    fun show(entryPoint: Int, config: ContextualSearchConfig? = null): Boolean {
         return if (!runContextualSearchInvocationChecksAndLogFailures()) false
-        else invokeContextualSearchUnchecked(entryPoint)
+        else invokeContextualSearchUnchecked(entryPoint, config = config)
     }
 
     /**
@@ -163,11 +190,7 @@ internal constructor(
             statsLogManager.logger().log(LAUNCHER_LAUNCH_OMNI_FAILED_NOT_AVAILABLE)
             return false
         }
-        if (isFakeLandscape()) {
-            // TODO (b/383421642): Fake landscape is to be removed in 25Q3 and this entire block
-            // can be removed when that happens.
-            return false
-        }
+
         return true
     }
 
@@ -177,13 +200,18 @@ internal constructor(
      * @param entryPoint Entry point identifier, passed to ContextualSearchService.
      * @return true if invocation was successful, false otherwise
      */
-    fun invokeContextualSearchUncheckedWithHaptic(entryPoint: Int): Boolean {
-        return invokeContextualSearchUnchecked(entryPoint, withHaptic = true)
+    @JvmOverloads
+    fun invokeContextualSearchUncheckedWithHaptic(
+        entryPoint: Int,
+        config: ContextualSearchConfig? = null,
+    ): Boolean {
+        return invokeContextualSearchUnchecked(entryPoint, withHaptic = true, config)
     }
 
     private fun invokeContextualSearchUnchecked(
         entryPoint: Int,
         withHaptic: Boolean = false,
+        config: ContextualSearchConfig? = null,
     ): Boolean {
         if (withHaptic && DeviceConfigWrapper.get().enableSearchHapticCommit) {
             contextualSearchHapticManager.vibrateForSearch()
@@ -195,20 +223,13 @@ internal constructor(
         if (recentsContainerInterface?.isInLiveTileMode() == true) {
             Log.i(TAG, "Contextual Search invocation attempted: live tile")
             endLiveTileMode(recentsContainerInterface) {
-                contextualSearchManager.startContextualSearch(entryPoint)
+                contextualSearchManager.startContextualSearch(entryPoint, config)
             }
         } else {
-            contextualSearchManager.startContextualSearch(entryPoint)
+            contextualSearchManager.startContextualSearch(entryPoint, config)
         }
         return true
     }
-
-    private fun isFakeLandscape(): Boolean =
-        getRecentsContainerInterface()
-            ?.getCreatedContainer()
-            ?.getOverviewPanel<RecentsView<*, *>>()
-            ?.getPagedOrientationHandler()
-            ?.isLayoutNaturalToLauncher == false
 
     private fun isInSplitscreen(): Boolean {
         return topTaskTracker.getRunningSplitTaskIds().isNotEmpty()
@@ -245,7 +266,7 @@ internal constructor(
         val recentsView: RecentsView<*, *> = recentsViewContainer.getOverviewPanel()
         recentsView.switchToScreenshot {
             recentsView.finishRecentsAnimation(
-                true, /* toRecents */
+                true, /* toHome */
                 false, /* shouldPip */
                 onCompleteRunnable,
             )

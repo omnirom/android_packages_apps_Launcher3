@@ -16,15 +16,29 @@
 
 package com.android.launcher3.dagger;
 
+import com.android.launcher3.compose.widgetpicker.LauncherWidgetPickerModule;
+import com.android.launcher3.concurrent.ExecutorsModule;
+import com.android.launcher3.util.dagger.LauncherExecutorsModule;
+
 import dagger.Module;
 
-@Module(includes = {
-        WindowManagerProxyModule.class,
-        ApiWrapperModule.class,
-        PluginManagerWrapperModule.class,
-        StaticObjectModule.class,
-        WidgetModule.class,
-        AppModule.class
-})
-public class LauncherAppModule {
-}
+@Module(
+        includes = {
+            WindowManagerProxyModule.class,
+            ApiWrapperModule.class,
+            PluginManagerWrapperModule.class,
+            StaticObjectModule.class,
+            WidgetModule.class,
+            AppModule.class,
+            PerDisplayModule.class,
+            LauncherConcurrencyModule.class,
+            ExecutorsModule.class,
+            LauncherExecutorsModule.class,
+            LauncherWidgetPickerModule.class,
+            LauncherModelModule.class,
+            SettingsModule.class,
+            SystemDragModule.class,
+            HomeScreenFilesModule.class,
+        },
+        subcomponents = ActivityContextComponent.class)
+public class LauncherAppModule { }

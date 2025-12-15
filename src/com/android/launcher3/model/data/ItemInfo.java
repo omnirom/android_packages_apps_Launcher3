@@ -20,7 +20,7 @@ import static com.android.launcher3.LauncherSettings.Favorites.CONTAINER_ALL_APP
 import static com.android.launcher3.LauncherSettings.Favorites.CONTAINER_DESKTOP;
 import static com.android.launcher3.LauncherSettings.Favorites.CONTAINER_HOTSEAT;
 import static com.android.launcher3.LauncherSettings.Favorites.CONTAINER_HOTSEAT_PREDICTION;
-import static com.android.launcher3.LauncherSettings.Favorites.CONTAINER_PREDICTION;
+import static com.android.launcher3.LauncherSettings.Favorites.CONTAINER_ALL_APPS_PREDICTION;
 import static com.android.launcher3.LauncherSettings.Favorites.CONTAINER_SETTINGS;
 import static com.android.launcher3.LauncherSettings.Favorites.CONTAINER_SHORTCUTS;
 import static com.android.launcher3.LauncherSettings.Favorites.CONTAINER_TASKSWITCHER;
@@ -101,6 +101,8 @@ public class ItemInfo {
      * {@link Favorites#ITEM_TYPE_QSB}.
      * {@link Favorites#ITEM_TYPE_SEARCH_ACTION}.
      * {@link Favorites#ITEM_TYPE_PRIVATE_SPACE_INSTALL_APP_BUTTON}.
+     * {@link Favorites#ITEM_TYPE_FILE_SYSTEM_FILE}.
+     * {@link Favorites#ITEM_TYPE_FILE_SYSTEM_FOLDER}.
      */
     public int itemType;
 
@@ -195,6 +197,12 @@ public class ItemInfo {
     @NonNull
     private List<Attribute> mAttributeList = Collections.EMPTY_LIST;
 
+    /**
+     * Non-null if the associated info is for an activity alias, and will refer to the target
+     * activity of the alias.
+     */
+    private ComponentName mTargetActivityComponentName;
+
     public ItemInfo() {
         user = Process.myUserHandle();
     }
@@ -220,6 +228,7 @@ public class ItemInfo {
         user = info.user;
         contentDescription = info.contentDescription;
         mComponentName = info.getTargetComponent();
+        mTargetActivityComponentName = info.mTargetActivityComponentName;
     }
 
     @Nullable
@@ -227,15 +236,37 @@ public class ItemInfo {
         return null;
     }
 
+    /**
+     * Returns the Activity TargetComponent of the item that an Intent is trying to start.
+     */
     @Nullable
     public ComponentName getTargetComponent() {
         return Optional.ofNullable(getIntent()).map(Intent::getComponent).orElse(mComponentName);
     }
 
+    /**
+     * Returns the {@link ComponentKey} of the Activity that this Intent is trying to start.
+     */
     @Nullable
     public final ComponentKey getComponentKey() {
         ComponentName targetComponent = getTargetComponent();
         return targetComponent == null ? null : new ComponentKey(targetComponent, user);
+    }
+
+    /**
+     * Sets the target activity that this activity alias info points to.
+     */
+    void setTargetActivityComponentName(@Nullable ComponentName targetActivityComponentName) {
+        mTargetActivityComponentName = targetActivityComponentName;
+    }
+
+    /**
+     * Returns the resolved target info for the activity.
+     * This object contains the alias target activity component and activity component.
+     */
+    @NonNull
+    public ResolvedTargetInfo getResolvedTargetInfo() {
+        return new ResolvedTargetInfo(mTargetActivityComponentName, getTargetComponent(), user);
     }
 
     /**
@@ -303,6 +334,7 @@ public class ItemInfo {
                 + " type=" + LauncherSettings.Favorites.itemTypeToString(itemType)
                 + " container=" + getContainerInfo()
                 + " targetComponent=" + getTargetComponent()
+                + " ResolvedTargetInfo=" + getResolvedTargetInfo()
                 + " screen=" + screenId
                 + " cell(" + cellX + "," + cellY + ")"
                 + " span(" + spanX + "," + spanY + ")"
@@ -331,7 +363,8 @@ public class ItemInfo {
      * Returns if an Item is a predicted item
      */
     public boolean isPredictedItem() {
-        return container == CONTAINER_HOTSEAT_PREDICTION || container == CONTAINER_PREDICTION;
+        return container == CONTAINER_HOTSEAT_PREDICTION
+                || container == CONTAINER_ALL_APPS_PREDICTION;
     }
 
     /**
@@ -339,6 +372,13 @@ public class ItemInfo {
      */
     public boolean isInHotseat() {
         return container == CONTAINER_HOTSEAT || container == CONTAINER_HOTSEAT_PREDICTION;
+    }
+
+    /**
+     * Returns if an Item is in the All Apps container.
+     */
+    public boolean isInAllApps() {
+        return container == CONTAINER_ALL_APPS || container == CONTAINER_ALL_APPS_PREDICTION;
     }
 
     /**
@@ -437,7 +477,7 @@ public class ItemInfo {
     protected LauncherAtom.ItemInfo.Builder getDefaultItemInfoBuilder(Context context) {
         LauncherAtom.ItemInfo.Builder itemBuilder = LauncherAtom.ItemInfo.newBuilder();
         itemBuilder.setIsKidsMode(
-                SettingsCache.INSTANCE.get(context).getValue(NAV_BAR_KIDS_MODE, 0));
+                SettingsCache.INSTANCE.get(context).getValue(NAV_BAR_KIDS_MODE));
         itemBuilder.setUserType(getUserType(UserCache.INSTANCE.get(context).getUserInfo(user)));
         itemBuilder.setRank(rank);
         itemBuilder.addAllItemAttributes(mAttributeList);
@@ -476,7 +516,7 @@ public class ItemInfo {
                         .setWidgetsContainer(
                                 LauncherAtom.WidgetsContainer.getDefaultInstance())
                         .build();
-            case CONTAINER_PREDICTION:
+            case CONTAINER_ALL_APPS_PREDICTION:
                 return ContainerInfo.newBuilder()
                         .setPredictionContainer(PredictionContainer.getDefaultInstance())
                         .build();

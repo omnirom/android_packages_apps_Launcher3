@@ -65,6 +65,11 @@ public class SessionCommitReceiver extends BroadcastReceiver {
             return;
         }
 
+        if (info.getSessionId() == -1) {
+            FileLog.d(LOG, "Session id for " + info.getAppPackageName() + " is -1");
+            return;
+        }
+
         InstallSessionHelper packageInstallerCompat = InstallSessionHelper.INSTANCE.get(context);
         boolean alreadyAddedPromiseIcon =
                 packageInstallerCompat.promiseIconAddedForId(info.getSessionId());

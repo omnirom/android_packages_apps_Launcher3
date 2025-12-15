@@ -16,18 +16,26 @@
 
 package com.android.quickstep.logging;
 
-import static com.android.launcher3.LauncherPrefs.getDevicePrefs;
-import static com.android.launcher3.LauncherPrefs.getPrefs;
-import static com.android.launcher3.graphics.ThemeManager.KEY_THEMED_ICONS;
-import static com.android.launcher3.graphics.ThemeManager.THEMED_ICONS;
+import static com.android.launcher3.graphics.ThemeManager.ICON_FACTORY_DAGGER_KEY;
+import static com.android.launcher3.graphics.ThemeManager.PREF_ICON_SHAPE;
+import static com.android.launcher3.graphics.theme.ThemePreference.MONO_THEME_VALUE;
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_HOME_SCREEN_SUGGESTIONS_DISABLED;
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_HOME_SCREEN_SUGGESTIONS_ENABLED;
+import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_ICON_SHAPE_ARCH;
+import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_ICON_SHAPE_CIRCLE;
+import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_ICON_SHAPE_FOUR_SIDED_COOKIE;
+import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_ICON_SHAPE_SEVEN_SIDED_COOKIE;
+import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_ICON_SHAPE_SQUARE;
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_NOTIFICATION_DOT_DISABLED;
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_NOTIFICATION_DOT_ENABLED;
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_THEMED_ICON_DISABLED;
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_THEMED_ICON_ENABLED;
-import static com.android.launcher3.model.DeviceGridState.KEY_WORKSPACE_SIZE;
 import static com.android.launcher3.model.PredictionUpdateTask.LAST_PREDICTION_ENABLED;
+import static com.android.launcher3.shapes.ShapesProvider.ARCH_KEY;
+import static com.android.launcher3.shapes.ShapesProvider.CIRCLE_KEY;
+import static com.android.launcher3.shapes.ShapesProvider.FOUR_SIDED_COOKIE_KEY;
+import static com.android.launcher3.shapes.ShapesProvider.SEVEN_SIDED_COOKIE_KEY;
+import static com.android.launcher3.shapes.ShapesProvider.SQUARE_KEY;
 import static com.android.launcher3.util.DisplayController.CHANGE_NAVIGATION_MODE;
 import static com.android.launcher3.util.SettingsCache.NOTIFICATION_BADGING_URI;
 
@@ -39,14 +47,22 @@ import android.util.ArrayMap;
 import android.util.Log;
 import android.util.Xml;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.VisibleForTesting;
 
+import com.android.launcher3.Flags;
 import com.android.launcher3.LauncherPrefs;
 import com.android.launcher3.R;
 import com.android.launcher3.dagger.ApplicationContext;
 import com.android.launcher3.dagger.LauncherAppSingleton;
+import com.android.launcher3.graphics.ThemeManager;
+import com.android.launcher3.graphics.ThemeManager.ThemeChangeListener;
+import com.android.launcher3.graphics.theme.IconThemeFactory;
+import com.android.launcher3.graphics.theme.ThemePreference;
+import com.android.launcher3.graphics.theme.ThemePreference.ThemeValue;
 import com.android.launcher3.logging.InstanceId;
 import com.android.launcher3.logging.StatsLogManager;
+import com.android.launcher3.logging.StatsLogManager.LauncherEvent;
 import com.android.launcher3.logging.StatsLogManager.StatsLogger;
 import com.android.launcher3.model.DeviceGridState;
 import com.android.launcher3.util.DaggerSingletonObject;
@@ -61,9 +77,11 @@ import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
+import java.util.Map;
 import java.util.Optional;
 
 import javax.inject.Inject;
+import javax.inject.Named;
 
 /**
  * Utility class to log launcher settings changes
@@ -84,10 +102,14 @@ public class SettingsChangeLogger implements
     private final Context mContext;
     private final ArrayMap<String, LoggablePref> mLoggablePrefs;
     private final StatsLogManager mStatsLogManager;
+    private final LauncherPrefs mLauncherPrefs;
 
+    private final ThemePreference mThemePreference;
+    private final Map<String, IconThemeFactory> mThemeFactoryMap;
+
+    @NonNull
     private NavigationMode mNavMode;
-    private StatsLogManager.LauncherEvent mNotificationDotsEvent;
-    private StatsLogManager.LauncherEvent mHomeScreenSuggestionEvent;
+    private LauncherEvent mNotificationDotsEvent;
 
     private final SettingsCache.OnChangeListener mListener = this::onNotificationDotsChanged;
 
@@ -95,37 +117,37 @@ public class SettingsChangeLogger implements
     SettingsChangeLogger(@ApplicationContext Context context,
             DaggerSingletonTracker tracker,
             DisplayController displayController,
-            SettingsCache settingsCache) {
-        this(context, StatsLogManager.newInstance(context), tracker, displayController,
-                settingsCache);
-    }
-
-    @VisibleForTesting
-    SettingsChangeLogger(@ApplicationContext Context context,
-            StatsLogManager statsLogManager,
-            DaggerSingletonTracker tracker,
-            DisplayController displayController,
-            SettingsCache settingsCache) {
+            SettingsCache settingsCache,
+            LauncherPrefs launcherPrefs,
+            StatsLogManager.StatsLogManagerFactory factory,
+            ThemePreference themePreference,
+            @Named(ICON_FACTORY_DAGGER_KEY) Map<String, IconThemeFactory> themeFactoryMap,
+            ThemeManager themeManager) {
         mContext = context;
-        mStatsLogManager = statsLogManager;
+        mLauncherPrefs = launcherPrefs;
+        mStatsLogManager = factory.create(context);
         mLoggablePrefs = loadPrefKeys(context);
+        mThemePreference = themePreference;
+        mThemeFactoryMap = themeFactoryMap;
 
         displayController.addChangeListener(this);
         mNavMode = displayController.getInfo().getNavigationMode();
         tracker.addCloseable(() -> displayController.removeChangeListener(this));
 
-        getPrefs(context).registerOnSharedPreferenceChangeListener(this);
-        getDevicePrefs(context).registerOnSharedPreferenceChangeListener(this);
+        mLauncherPrefs.getBackedUpPrefs().registerOnSharedPreferenceChangeListener(this);
+        mLauncherPrefs.getDevicePrefs().registerOnSharedPreferenceChangeListener(this);
         tracker.addCloseable(() -> {
-            getPrefs(mContext).unregisterOnSharedPreferenceChangeListener(this);
-            getDevicePrefs(mContext).unregisterOnSharedPreferenceChangeListener(this);
+            mLauncherPrefs.getBackedUpPrefs().unregisterOnSharedPreferenceChangeListener(this);
+            mLauncherPrefs.getDevicePrefs().unregisterOnSharedPreferenceChangeListener(this);
         });
 
         settingsCache.register(NOTIFICATION_BADGING_URI, mListener);
         onNotificationDotsChanged(settingsCache.getValue(NOTIFICATION_BADGING_URI));
-        tracker.addCloseable(() -> {
-            settingsCache.unregister(NOTIFICATION_BADGING_URI, mListener);
-        });
+        tracker.addCloseable(() -> settingsCache.unregister(NOTIFICATION_BADGING_URI, mListener));
+
+        ThemeChangeListener themeChangeListener = () -> logThemeEvent(mStatsLogManager.logger());
+        themeManager.addChangeListener(themeChangeListener);
+        tracker.addCloseable(() -> themeManager.removeChangeListener(themeChangeListener));
     }
 
     private static ArrayMap<String, LoggablePref> loadPrefKeys(Context context) {
@@ -168,7 +190,7 @@ public class SettingsChangeLogger implements
     }
 
     private void onNotificationDotsChanged(boolean isDotsEnabled) {
-        StatsLogManager.LauncherEvent mEvent =
+        LauncherEvent mEvent =
                 isDotsEnabled ? LAUNCHER_NOTIFICATION_DOT_ENABLED
                         : LAUNCHER_NOTIFICATION_DOT_DISABLED;
 
@@ -189,17 +211,20 @@ public class SettingsChangeLogger implements
 
     @Override
     public void onSharedPreferenceChanged(SharedPreferences prefs, String key) {
-        if (LAST_PREDICTION_ENABLED.getSharedPrefKey().equals(key)
-                || KEY_WORKSPACE_SIZE.equals(key)
-                || KEY_THEMED_ICONS.equals(key)
-                || mLoggablePrefs.containsKey(key)) {
-
-            mHomeScreenSuggestionEvent = LauncherPrefs.get(mContext).get(LAST_PREDICTION_ENABLED)
-                    ? LAUNCHER_HOME_SCREEN_SUGGESTIONS_ENABLED
-                    : LAUNCHER_HOME_SCREEN_SUGGESTIONS_DISABLED;
-
-            mStatsLogManager.logger().log(mHomeScreenSuggestionEvent);
+        LoggablePref loggablePref;
+        if (LAST_PREDICTION_ENABLED.getSharedPrefKey().equals(key)) {
+            logHomeScreenSuggestionEvent(mStatsLogManager.logger());
+        } else if ((loggablePref = mLoggablePrefs.get(key)) != null) {
+            int eventId = prefs.getBoolean(key, loggablePref.defaultValue)
+                    ? loggablePref.eventIdOn : loggablePref.eventIdOff;
+            mStatsLogManager.logger().log(() -> eventId);
         }
+    }
+
+    private void logHomeScreenSuggestionEvent(StatsLogger logger) {
+        logger.log(LauncherPrefs.get(mContext).get(LAST_PREDICTION_ENABLED)
+                ? LAUNCHER_HOME_SCREEN_SUGGESTIONS_ENABLED
+                : LAUNCHER_HOME_SCREEN_SUGGESTIONS_DISABLED);
     }
 
     /**
@@ -209,18 +234,45 @@ public class SettingsChangeLogger implements
         StatsLogger logger = mStatsLogManager.logger().withInstanceId(snapshotInstanceId);
 
         Optional.ofNullable(mNotificationDotsEvent).ifPresent(logger::log);
-        Optional.ofNullable(mNavMode).map(mode -> mode.launcherEvent).ifPresent(logger::log);
-        Optional.ofNullable(mHomeScreenSuggestionEvent).ifPresent(logger::log);
+        logger.log(mNavMode.launcherEvent);
+        logHomeScreenSuggestionEvent(logger);
         Optional.ofNullable(new DeviceGridState(mContext).getWorkspaceSizeEvent()).ifPresent(
                 logger::log);
+        logThemeEvent(logger);
 
-        SharedPreferences prefs = getPrefs(mContext);
-        logger.log(LauncherPrefs.get(mContext).get(THEMED_ICONS)
+        logger.log(
+                MONO_THEME_VALUE.equals(mThemePreference.getValue())
                 ? LAUNCHER_THEMED_ICON_ENABLED
                 : LAUNCHER_THEMED_ICON_DISABLED);
 
+        if (Flags.enableLauncherIconShapes()) {
+            Optional.ofNullable(
+                    switch (LauncherPrefs.get(mContext).get(PREF_ICON_SHAPE)) {
+                        case CIRCLE_KEY -> LAUNCHER_ICON_SHAPE_CIRCLE;
+                        case SQUARE_KEY -> LAUNCHER_ICON_SHAPE_SQUARE;
+                        case FOUR_SIDED_COOKIE_KEY -> LAUNCHER_ICON_SHAPE_FOUR_SIDED_COOKIE;
+                        case SEVEN_SIDED_COOKIE_KEY -> LAUNCHER_ICON_SHAPE_SEVEN_SIDED_COOKIE;
+                        case ARCH_KEY -> LAUNCHER_ICON_SHAPE_ARCH;
+                        default -> null;
+                    }
+            ).ifPresent(logger::log);
+        }
+
+        SharedPreferences prefs = mLauncherPrefs.getBackedUpPrefs();
         mLoggablePrefs.forEach((key, lp) -> logger.log(() ->
                 prefs.getBoolean(key, lp.defaultValue) ? lp.eventIdOn : lp.eventIdOff));
+    }
+
+    private void logThemeEvent(StatsLogger logger) {
+        ThemeValue themeValue = mThemePreference.getValue();
+        IconThemeFactory factory = themeValue != null
+                ? mThemeFactoryMap.get(themeValue.getFactoryId())
+                : null;
+        if (factory != null) {
+            factory.logThemeEvent(themeValue.getThemeId(), logger);
+        } else {
+            logger.log(LAUNCHER_THEMED_ICON_DISABLED);
+        }
     }
 
     @VisibleForTesting

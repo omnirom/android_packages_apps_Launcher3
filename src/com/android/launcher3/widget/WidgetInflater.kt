@@ -90,6 +90,13 @@ constructor(
             }
         }
 
+        // Use requested spans instead of the default widget size for the grid.
+        // See b/408934352
+        if (appWidgetInfo != null) {
+            appWidgetInfo.spanX = item.spanX
+            appWidgetInfo.spanY = item.spanY
+        }
+
         // If the provider is ready, but the widget is not yet restored, try to restore it.
         if (
             !item.hasRestoreFlag(LauncherAppWidgetInfo.FLAG_PROVIDER_NOT_READY) &&

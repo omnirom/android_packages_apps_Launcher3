@@ -233,8 +233,7 @@ public class SettingsActivity extends FragmentActivity
             // If the target preference is not in the current preference screen, find the parent
             // preference screen that contains the target preference and set it as the preference
             // screen.
-            if (Flags.navigateToChildPreference()
-                    && mHighLightKey != null
+            if (mHighLightKey != null
                     && !isKeyInPreferenceGroup(mHighLightKey, screen)) {
                 final PreferenceScreen parentPreferenceScreen =
                         findParentPreference(screen, mHighLightKey);
@@ -295,7 +294,7 @@ public class SettingsActivity extends FragmentActivity
                     }
 
                     InvariantDeviceProfile.INSTANCE.get(getContext())
-                            .setCurrentGrid(getContext(), gridName);
+                            .setCurrentGrid(gridName);
 
                     int valueIndex = grid.findIndexOfValue(gridName);
                     grid.setValueIndex(valueIndex >= 0 ? valueIndex : 0);

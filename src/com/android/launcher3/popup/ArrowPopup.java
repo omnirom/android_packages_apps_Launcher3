@@ -43,6 +43,8 @@ import android.view.animation.Interpolator;
 import android.view.animation.PathInterpolator;
 import android.widget.FrameLayout;
 
+import androidx.annotation.VisibleForTesting;
+
 import com.android.launcher3.AbstractFloatingView;
 import com.android.launcher3.InsettableFrameLayout;
 import com.android.launcher3.R;
@@ -75,7 +77,7 @@ public abstract class ArrowPopup<T extends Context & ActivityContext>
     protected int mCloseChildFadeStartDelay = 0;
     protected int mCloseChildFadeDuration = 140;
 
-    private static final int OPEN_DURATION_U = 200;
+    @VisibleForTesting public static final int OPEN_DURATION_U = 200;
     private static final int OPEN_FADE_START_DELAY_U = 0;
     private static final int OPEN_FADE_DURATION_U = 83;
     private static final int OPEN_CHILD_FADE_START_DELAY_U = 0;

@@ -16,6 +16,7 @@
 
 package com.android.quickstep;
 
+import static com.android.launcher3.Flags.FLAG_ENABLE_MOUSE_INTERACTION_CHANGES;
 import static com.android.quickstep.InputConsumerUtils.newBaseConsumer;
 import static com.android.quickstep.InputConsumerUtils.newConsumer;
 
@@ -25,20 +26,27 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 import static org.mockito.kotlin.StubberKt.doCallRealMethod;
 
 import android.annotation.NonNull;
+import android.content.Context;
+import android.content.res.Resources;
 import android.os.Looper;
+import android.platform.test.annotations.EnableFlags;
 import android.view.Choreographer;
 import android.view.Display;
+import android.view.InputDevice;
 import android.view.MotionEvent;
 
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.filters.SmallTest;
 import androidx.test.platform.app.InstrumentationRegistry;
 
+import com.android.app.displaylib.fakes.FakePerDisplayRepository;
 import com.android.launcher3.DeviceProfile;
+import com.android.launcher3.R;
 import com.android.launcher3.anim.AnimatedFloat;
 import com.android.launcher3.dagger.LauncherAppComponent;
 import com.android.launcher3.dagger.LauncherAppModule;
@@ -46,27 +54,28 @@ import com.android.launcher3.dagger.LauncherAppSingleton;
 import com.android.launcher3.taskbar.TaskbarActivityContext;
 import com.android.launcher3.taskbar.TaskbarManager;
 import com.android.launcher3.taskbar.bubbles.BubbleBarController;
-import com.android.launcher3.taskbar.bubbles.BubbleBarPinController;
 import com.android.launcher3.taskbar.bubbles.BubbleBarSwipeController;
 import com.android.launcher3.taskbar.bubbles.BubbleBarViewController;
 import com.android.launcher3.taskbar.bubbles.BubbleControllers;
 import com.android.launcher3.taskbar.bubbles.BubbleCreator;
 import com.android.launcher3.taskbar.bubbles.BubbleDismissController;
 import com.android.launcher3.taskbar.bubbles.BubbleDragController;
-import com.android.launcher3.taskbar.bubbles.BubblePinController;
 import com.android.launcher3.taskbar.bubbles.BubbleStashedHandleViewController;
+import com.android.launcher3.taskbar.bubbles.DragToBubbleController;
 import com.android.launcher3.taskbar.bubbles.stashing.BubbleStashController;
+import com.android.launcher3.taskbar.customization.TaskbarFeatureEvaluator;
+import com.android.launcher3.util.DisplayController;
 import com.android.launcher3.util.LockedUserState;
 import com.android.launcher3.util.SandboxApplication;
 import com.android.launcher3.views.BaseDragLayer;
 import com.android.quickstep.inputconsumers.AccessibilityInputConsumer;
 import com.android.quickstep.inputconsumers.BubbleBarInputConsumer;
 import com.android.quickstep.inputconsumers.DeviceLockedInputConsumer;
+import com.android.quickstep.inputconsumers.LauncherInputConsumer;
+import com.android.quickstep.inputconsumers.LauncherWithoutFocusInputConsumer;
 import com.android.quickstep.inputconsumers.NavHandleLongPressInputConsumer;
 import com.android.quickstep.inputconsumers.OneHandedModeInputConsumer;
 import com.android.quickstep.inputconsumers.OtherActivityInputConsumer;
-import com.android.quickstep.inputconsumers.OverviewInputConsumer;
-import com.android.quickstep.inputconsumers.OverviewWithoutFocusInputConsumer;
 import com.android.quickstep.inputconsumers.ProgressDelegateInputConsumer;
 import com.android.quickstep.inputconsumers.ResetGestureInputConsumer;
 import com.android.quickstep.inputconsumers.ScreenPinnedInputConsumer;
@@ -77,6 +86,7 @@ import com.android.quickstep.util.NavBarPosition;
 import com.android.quickstep.views.RecentsViewContainer;
 import com.android.systemui.shared.system.InputChannelCompat;
 import com.android.systemui.shared.system.InputMonitorCompat;
+import com.android.wm.shell.shared.desktopmode.DesktopState;
 
 import dagger.BindsInstance;
 import dagger.Component;
@@ -111,8 +121,10 @@ public class InputConsumerUtilsTest {
     @NonNull private Function<GestureState, AnimatedFloat> mSwipeUpProxyProvider = (state) -> null;
 
     @NonNull @Mock private TaskbarActivityContext mTaskbarActivityContext;
+    @NonNull @Mock private TaskbarFeatureEvaluator mTaskbarFeatureEvaluator;
     @NonNull @Mock private OverviewComponentObserver mOverviewComponentObserver;
     @NonNull @Mock private RecentsAnimationDeviceState mDeviceState;
+    @NonNull @Mock private RotationTouchHelper mRotationTouchHelper;
     @NonNull @Mock private AbsSwipeUpHandler.Factory mSwipeUpHandlerFactory;
     @NonNull @Mock private TaskbarManager mTaskbarManager;
     @NonNull @Mock private OverviewCommandHelper mOverviewCommandHelper;
@@ -122,13 +134,19 @@ public class InputConsumerUtilsTest {
     @NonNull @Mock private TopTaskTracker.CachedTaskInfo mRunningTask;
     @NonNull @Mock private BaseContainerInterface<?, ?> mContainerInterface;
     @NonNull @Mock private BaseDragLayer<?> mBaseDragLayer;
+    @NonNull @Mock private DesktopState mDesktopState;
 
     @Rule
     public final MockitoRule mMockitoRule = MockitoJUnit.rule();
 
     @Before
     public void setupTaskAnimationManager() {
-        mTaskAnimationManager = new TaskAnimationManager(mContext, mDeviceState, mDisplayId);
+        DisplayController displayController = DisplayController.INSTANCE.get(mContext);
+        FakePerDisplayRepository<TaskAnimationManager> fakePerDisplayRepository =
+                new FakePerDisplayRepository<>();
+        mTaskAnimationManager = new TaskAnimationManager(mContext, mDisplayId, displayController,
+                fakePerDisplayRepository);
+        fakePerDisplayRepository.add(mDisplayId, mTaskAnimationManager);
     }
 
     @Before
@@ -136,8 +154,7 @@ public class InputConsumerUtilsTest {
         mContext.initDaggerComponent(DaggerInputConsumerUtilsTest_TestComponent
                 .builder()
                 .bindLockedState(mLockedUserState)
-                .bindRotationHelper(mock(RotationTouchHelper.class))
-                .bindRecentsState(mDeviceState));
+        );
     }
 
     @Before
@@ -157,11 +174,12 @@ public class InputConsumerUtilsTest {
 
         when(mTaskbarActivityContext.getDeviceProfile()).thenReturn(new DeviceProfile());
         when(mTaskbarActivityContext.getNavHandle()).thenReturn(navHandle);
+        when(mTaskbarActivityContext.getResources()).thenReturn(mContext.getResources());
     }
 
     @Before
     public void setUpTaskbarManager() {
-        when(mTaskbarManager.getCurrentActivityContext()).thenReturn(mTaskbarActivityContext);
+        when(mTaskbarManager.getTaskbarForDisplay(mDisplayId)).thenReturn(mTaskbarActivityContext);
     }
 
     @Before
@@ -201,8 +219,10 @@ public class InputConsumerUtilsTest {
 
     @After
     public void cleanUp() {
-        mInputMonitorCompat.dispose();
-        mInputEventReceiver.dispose();
+        runOnMainSync(() -> {
+            mInputMonitorCompat.dispose();
+            mInputEventReceiver.dispose();
+        });
     }
 
     @Test
@@ -224,13 +244,13 @@ public class InputConsumerUtilsTest {
     }
 
     @Test
-    public void testNewBaseConsumer_onLiveTileMode_returnsOverviewInputConsumer() {
+    public void testNewBaseConsumer_onLiveTileMode_returnsLauncherInputConsumer() {
         when(mContainerInterface.isInLiveTileMode()).thenReturn(true);
 
         assertCorrectInputConsumer(
                 this::createBaseInputConsumer,
-                OverviewInputConsumer.class,
-                InputConsumer.TYPE_OVERVIEW);
+                LauncherInputConsumer.class,
+                InputConsumer.TYPE_LAUNCHER);
     }
 
     @Test
@@ -241,61 +261,62 @@ public class InputConsumerUtilsTest {
     }
 
     @Test
-    public void testNewBaseConsumer_prevGestureAnimatingToLauncher_returnsOverviewInputConsumer() {
+    public void testNewBaseConsumer_prevGestureAnimatingToLauncher_returnsLauncherInputConsumer() {
         when(mPreviousGestureState.isRunningAnimationToLauncher()).thenReturn(true);
 
         assertCorrectInputConsumer(
                 this::createBaseInputConsumer,
-                OverviewInputConsumer.class,
-                InputConsumer.TYPE_OVERVIEW);
+                LauncherInputConsumer.class,
+                InputConsumer.TYPE_LAUNCHER);
     }
 
     @Test
-    public void testNewBaseConsumer_predictiveBackToHomeInProgress_returnsOverviewInputConsumer() {
+    public void testNewBaseConsumer_predictiveBackToHomeInProgress_returnsLauncherInputConsumer() {
         when(mDeviceState.isPredictiveBackToHomeInProgress()).thenReturn(true);
 
         assertCorrectInputConsumer(
                 this::createBaseInputConsumer,
-                OverviewInputConsumer.class,
-                InputConsumer.TYPE_OVERVIEW);
+                LauncherInputConsumer.class,
+                InputConsumer.TYPE_LAUNCHER);
     }
 
     @Test
-    public void testNewBaseConsumer_resumedThroughShellTransition_returnsOverviewInputConsumer() {
+    public void testNewBaseConsumer_resumedThroughShellTransition_returnsLauncherInputConsumer() {
         when(mContainerInterface.isResumed()).thenReturn(true);
 
         assertCorrectInputConsumer(
                 this::createBaseInputConsumer,
-                OverviewInputConsumer.class,
-                InputConsumer.TYPE_OVERVIEW);
+                LauncherInputConsumer.class,
+                InputConsumer.TYPE_LAUNCHER);
     }
 
     @Test
-    public void testNewBaseConsumer_shellNoWindowFocus_returnsOverviewWithoutFocusInputConsumer() {
+    public void testNewBaseConsumer_shellNoWindowFocus_returnsLauncherWithoutFocusInputConsumer() {
         when(mContainerInterface.isResumed()).thenReturn(true);
         when(mBaseDragLayer.hasWindowFocus()).thenReturn(false);
 
         assertCorrectInputConsumer(
                 this::createBaseInputConsumer,
-                OverviewWithoutFocusInputConsumer.class,
-                InputConsumer.TYPE_OVERVIEW_WITHOUT_FOCUS);
+                LauncherWithoutFocusInputConsumer.class,
+                InputConsumer.TYPE_LAUNCHER_WITHOUT_FOCUS);
     }
 
     @Test
-    public void testNewBaseConsumer_forceOverviewInputConsumer_returnsOverviewInputConsumer() {
+    public void testNewBaseConsumer_forceLauncherInputConsumer_returnsLauncherInputConsumer() {
         when(mContainerInterface.isResumed()).thenReturn(true);
         when(mRunningTask.isRootChooseActivity()).thenReturn(true);
 
         assertCorrectInputConsumer(
                 this::createBaseInputConsumer,
-                OverviewInputConsumer.class,
-                InputConsumer.TYPE_OVERVIEW);
+                LauncherInputConsumer.class,
+                InputConsumer.TYPE_LAUNCHER);
     }
 
     @Test
     public void testNewBaseConsumer_launcherChildActivityResumed_returnsDefaultInputConsumer() {
         when(mRunningTask.isHomeTask()).thenReturn(true);
-        when(mOverviewComponentObserver.isHomeAndOverviewSameActivity()).thenReturn(true);
+        when(mOverviewComponentObserver.isHomeAndOverviewSame()).thenReturn(true);
+        when(mContainerInterface.isLauncherOverlayShowing()).thenReturn(true);
 
         assertEqualsDefaultInputConsumer(this::createBaseInputConsumer);
     }
@@ -305,6 +326,72 @@ public class InputConsumerUtilsTest {
         when(mDeviceState.isGestureBlockedTask(any())).thenReturn(true);
 
         assertEqualsDefaultInputConsumer(this::createBaseInputConsumer);
+    }
+
+    @Test
+    @EnableFlags(FLAG_ENABLE_MOUSE_INTERACTION_CHANGES)
+    public void testNewBaseConsumer_nonTrackpadMouseEvent_desktop_returnsDefaultInputConsumer() {
+        Resources res = spy(mContext.getResources());
+        doReturn(true).when(res).getBoolean(R.bool.desktop_form_factor);
+        Context context = spy(mContext);
+        when(context.getResources()).thenReturn(res);
+        when(mCurrentGestureState.isTrackpadGesture()).thenReturn(false);
+        MotionEvent mouseEvent = MotionEvent.obtain(0, 0, MotionEvent.ACTION_DOWN, 0, 0, 0);
+        mouseEvent.setSource(InputDevice.SOURCE_MOUSE);
+
+        assertEqualsDefaultInputConsumer(
+                () ->
+                        newBaseConsumer(
+                                context,
+                                mUserUnlocked,
+                                mTaskbarManager,
+                                mOverviewComponentObserver,
+                                mDeviceState,
+                                mPreviousGestureState,
+                                mCurrentGestureState,
+                                mTaskAnimationManager,
+                                mInputMonitorCompat,
+                                mSwipeUpHandlerFactory,
+                                otherActivityInputConsumer -> {},
+                                mInputEventReceiver,
+                                mouseEvent,
+                                ActiveGestureLog.CompoundString.NO_OP,
+                                mRotationTouchHelper,
+                                mDesktopState));
+
+        mouseEvent.recycle();
+    }
+
+    @Test
+    @EnableFlags(FLAG_ENABLE_MOUSE_INTERACTION_CHANGES)
+    public void testNewBaseConsumer_nonTrackpadMouseEvent_nonDesktop_returnsDefaultInputConsumer() {
+        when(mCurrentGestureState.isTrackpadGesture()).thenReturn(false);
+        MotionEvent mouseEvent = MotionEvent.obtain(0, 0, MotionEvent.ACTION_DOWN, 0, 0, 0);
+        mouseEvent.setSource(InputDevice.SOURCE_MOUSE);
+
+        assertCorrectInputConsumer(
+                () ->
+                        newBaseConsumer(
+                                mContext,
+                                mUserUnlocked,
+                                mTaskbarManager,
+                                mOverviewComponentObserver,
+                                mDeviceState,
+                                mPreviousGestureState,
+                                mCurrentGestureState,
+                                mTaskAnimationManager,
+                                mInputMonitorCompat,
+                                mSwipeUpHandlerFactory,
+                                otherActivityInputConsumer -> {},
+                                mInputEventReceiver,
+                                mouseEvent,
+                                ActiveGestureLog.CompoundString.NO_OP,
+                                mRotationTouchHelper,
+                                mDesktopState),
+                OtherActivityInputConsumer.class,
+                InputConsumer.TYPE_OTHER_ACTIVITY);
+
+        mouseEvent.recycle();
     }
 
     @Test
@@ -352,6 +439,9 @@ public class InputConsumerUtilsTest {
         DeviceProfile deviceProfile = new DeviceProfile();
         deviceProfile.isTaskbarPresent = true;
         when(mTaskbarActivityContext.getDeviceProfile()).thenReturn(deviceProfile);
+        when(mTaskbarActivityContext.getTaskbarFeatureEvaluator())
+                .thenReturn(mTaskbarFeatureEvaluator);
+        when(mTaskbarFeatureEvaluator.isTransient()).thenReturn(true);
 
         assertCorrectInputConsumer(
                 this::createInputConsumer,
@@ -487,6 +577,7 @@ public class InputConsumerUtilsTest {
 
     private InputConsumer createInputConsumer() {
         MotionEvent event = MotionEvent.obtain(0, 0, MotionEvent.ACTION_DOWN, 0, 0, 0);
+        event.setDisplayId(mDisplayId);
         InputConsumer inputConsumer = newConsumer(
                 mContext,
                 mUserUnlocked,
@@ -502,7 +593,9 @@ public class InputConsumerUtilsTest {
                 mTaskbarManager,
                 mSwipeUpProxyProvider,
                 mOverviewCommandHelper,
-                event);
+                event,
+                mRotationTouchHelper,
+                mDesktopState);
 
         event.recycle();
 
@@ -525,7 +618,9 @@ public class InputConsumerUtilsTest {
                 otherActivityInputConsumer -> {},
                 mInputEventReceiver,
                 event,
-                ActiveGestureLog.CompoundString.NO_OP);
+                ActiveGestureLog.CompoundString.NO_OP,
+                mRotationTouchHelper,
+                mDesktopState);
 
         event.recycle();
 
@@ -594,9 +689,8 @@ public class InputConsumerUtilsTest {
                 mock(BubbleStashedHandleViewController.class);
         BubbleDragController bubbleDragController = mock(BubbleDragController.class);
         BubbleDismissController bubbleDismissController = mock(BubbleDismissController.class);
-        BubbleBarPinController bubbleBarPinController = mock(BubbleBarPinController.class);
-        BubblePinController bubblePinController = mock(BubblePinController.class);
         BubbleBarSwipeController bubbleBarSwipeController = mock(BubbleBarSwipeController.class);
+        DragToBubbleController dragToBubbleController = mock(DragToBubbleController.class);
         BubbleCreator bubbleCreator = mock(BubbleCreator.class);
         BubbleControllers bubbleControllers = new BubbleControllers(
                 bubbleBarController,
@@ -605,9 +699,8 @@ public class InputConsumerUtilsTest {
                 Optional.of(bubbleStashedHandleViewController),
                 bubbleDragController,
                 bubbleDismissController,
-                bubbleBarPinController,
-                bubblePinController,
                 Optional.of(bubbleBarSwipeController),
+                dragToBubbleController,
                 bubbleCreator);
 
         when(bubbleBarViewController.hasBubbles()).thenReturn(true);
@@ -625,8 +718,6 @@ public class InputConsumerUtilsTest {
         @Component.Builder
         interface Builder extends LauncherAppComponent.Builder {
             @BindsInstance Builder bindLockedState(LockedUserState state);
-            @BindsInstance Builder bindRotationHelper(RotationTouchHelper helper);
-            @BindsInstance Builder bindRecentsState(RecentsAnimationDeviceState state);
 
             @Override
             TestComponent build();

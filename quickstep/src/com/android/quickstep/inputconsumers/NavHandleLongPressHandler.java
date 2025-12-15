@@ -22,6 +22,7 @@ import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCH
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_OMNI_GET_LONG_PRESS_RUNNABLE;
 import static com.android.launcher3.logging.StatsLogManager.LauncherLatencyEvent.LAUNCHER_LATENCY_OMNI_RUNNABLE;
 
+import android.app.contextualsearch.ContextualSearchConfig;
 import android.content.Context;
 import android.os.UserHandle;
 import android.os.SystemClock;
@@ -32,11 +33,11 @@ import android.view.ViewConfiguration;
 import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
 
-import com.android.launcher3.R;
+import com.android.launcher3.dagger.ApplicationContext;
+import com.android.launcher3.dagger.LauncherComponentProvider;
 import com.android.launcher3.logging.InstanceId;
 import com.android.launcher3.logging.InstanceIdSequence;
 import com.android.launcher3.logging.StatsLogManager;
-import com.android.launcher3.util.ResourceBasedOverride;
 import com.android.launcher3.util.VibratorWrapper;
 import com.android.quickstep.DeviceConfigWrapper;
 import com.android.quickstep.NavHandle;
@@ -48,32 +49,41 @@ import com.android.quickstep.util.ContextualSearchStateManager;
 import org.omnirom.omnilib.utils.TaskUtils;
 import org.omnirom.omnilib.utils.OmniVibe;
 
+import javax.inject.Inject;
+
 /**
  * Class for extending nav handle long press behavior
  */
-public class NavHandleLongPressHandler implements ResourceBasedOverride {
+public class NavHandleLongPressHandler {
 
     private static final String TAG = "NavHandleLongPressHandler";
-
-    protected final Context mContext;
     protected final VibratorWrapper mVibratorWrapper;
     protected final ContextualSearchHapticManager mContextualSearchHapticManager;
     protected final ContextualSearchInvoker mContextualSearchInvoker;
     protected final StatsLogManager mStatsLogManager;
     private boolean mPendingInvocation;
+    protected final TopTaskTracker mTopTaskTracker;
+    private final ContextualSearchStateManager mContextualSearchStateManager;
 
-    public NavHandleLongPressHandler(Context context) {
-        mContext = context;
-        mStatsLogManager = StatsLogManager.newInstance(context);
-        mVibratorWrapper = VibratorWrapper.INSTANCE.get(mContext);
-        mContextualSearchHapticManager = ContextualSearchHapticManager.INSTANCE.get(context);
-        mContextualSearchInvoker = new ContextualSearchInvoker(mContext);
+    @Inject
+    public NavHandleLongPressHandler(@ApplicationContext Context context,
+            VibratorWrapper vibratorWrapper,
+            ContextualSearchHapticManager hapticManager,
+            TopTaskTracker topTaskTracker,
+            StatsLogManager.StatsLogManagerFactory logManagerFactory,
+            ContextualSearchStateManager contextualSearchStateManager,
+            ContextualSearchInvoker contextualSearchInvoker) {
+        mStatsLogManager = logManagerFactory.create(context);
+        mVibratorWrapper = vibratorWrapper;
+        mContextualSearchHapticManager = hapticManager;
+        mContextualSearchInvoker = contextualSearchInvoker;
+        mTopTaskTracker = topTaskTracker;
+        mContextualSearchStateManager = contextualSearchStateManager;
     }
 
     /** Creates NavHandleLongPressHandler as specified by overrides */
     public static NavHandleLongPressHandler newInstance(Context context) {
-        return Overrides.getObject(NavHandleLongPressHandler.class, context,
-                R.string.nav_handle_long_press_handler_class);
+        return LauncherComponentProvider.get(context).getNavHandleLongPressHandler();
     }
 
     protected boolean isContextualSearchEntrypointEnabled(NavHandle navHandle) {
@@ -118,11 +128,14 @@ public class NavHandleLongPressHandler implements ResourceBasedOverride {
             mStatsLogManager.latencyLogger().withInstanceId(instanceId).withLatency(
                     SystemClock.elapsedRealtime() - startTimeMillis).log(
                     LAUNCHER_LATENCY_OMNI_RUNNABLE);
+            ContextualSearchConfig config = new ContextualSearchConfig.Builder()
+                    .setSourceBounds(navHandle.getBoundsOnScreen()).setDisplayId(displayId).build();
+
             if (mContextualSearchInvoker.invokeContextualSearchUncheckedWithHaptic(
-                    ENTRYPOINT_LONG_PRESS_NAV_HANDLE)) {
+                    ENTRYPOINT_LONG_PRESS_NAV_HANDLE, config)) {
                 Log.i(TAG, "Contextual Search invocation successful");
 
-                String runningPackage = TopTaskTracker.INSTANCE.get(mContext).getCachedTopTask(
+                String runningPackage = mTopTaskTracker.getCachedTopTask(
                         /* filterOnlyVisibleRecents */ true, displayId).getPackageName();
                 mStatsLogManager.logger().withPackageName(runningPackage)
                         .log(LAUNCHER_LAUNCH_ASSISTANT_SUCCESSFUL_NAV_HANDLE);
@@ -188,11 +201,9 @@ public class NavHandleLongPressHandler implements ResourceBasedOverride {
                         /*isTouchDown*/ true, /*shrink*/true, /*durationMs*/200);
             } else {
                 long longPressTimeout;
-                ContextualSearchStateManager contextualSearchStateManager =
-                        ContextualSearchStateManager.INSTANCE.get(mContext);
-                if (contextualSearchStateManager.getLPNHDurationMillis().isPresent()) {
+                if (mContextualSearchStateManager.getLPNHDurationMillis().isPresent()) {
                     longPressTimeout =
-                            contextualSearchStateManager.getLPNHDurationMillis().get().intValue();
+                            mContextualSearchStateManager.getLPNHDurationMillis().get().intValue();
                 } else {
                     longPressTimeout = ViewConfiguration.getLongPressTimeout();
                 }

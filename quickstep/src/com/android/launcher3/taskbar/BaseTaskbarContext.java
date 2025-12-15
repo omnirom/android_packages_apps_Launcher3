@@ -18,25 +18,45 @@ package com.android.launcher3.taskbar;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ShortcutInfo;
+import android.graphics.Point;
 import android.os.UserHandle;
 import android.view.LayoutInflater;
 
+import com.android.launcher3.LifecycleTracker;
+import com.android.launcher3.dagger.LauncherComponentProvider;
 import com.android.launcher3.popup.SystemShortcut;
+import com.android.launcher3.taskbar.bubbles.BubbleActivityStarter;
 import com.android.launcher3.util.BaseContext;
 import com.android.launcher3.util.NavigationMode;
 import com.android.launcher3.util.Themes;
-import com.android.quickstep.SystemUiProxy;
+import com.android.wm.shell.shared.bubbles.logging.EntryPoint;
 
 // TODO(b/218912746): Share more behavior to avoid all apps context depending directly on taskbar.
 /** Base for common behavior between taskbar window contexts. */
 public abstract class BaseTaskbarContext extends BaseContext
-        implements SystemShortcut.BubbleActivityStarter {
+        implements SystemShortcut.TaskbarBubbleActivityStarter {
 
+    private final int mDisplayId;
+    private final boolean mIsPrimaryDisplay;
     protected final LayoutInflater mLayoutInflater;
 
-    public BaseTaskbarContext(Context windowContext, boolean isPrimaryDisplay) {
+    public BaseTaskbarContext(Context windowContext, int displayId, boolean isPrimaryDisplay) {
         super(windowContext, Themes.getActivityThemeRes(windowContext));
+        mDisplayId = displayId;
+        mIsPrimaryDisplay = isPrimaryDisplay;
         mLayoutInflater = LayoutInflater.from(this).cloneInContext(this);
+    }
+
+    @Override
+    public int getDisplayId() {
+        return mDisplayId;
+    }
+
+    /**
+     * Returns whether the taskbar is displayed on primary or external display.
+     */
+    public final boolean isPrimaryDisplay() {
+        return mIsPrimaryDisplay;
     }
 
     /**
@@ -57,9 +77,16 @@ public abstract class BaseTaskbarContext extends BaseContext
     public abstract NavigationMode getNavigationMode();
 
     /**
-     * Returns whether the taskbar is in desktop mode.
+     * Returns whether the taskbar is in desktop mode. Implies that some desktop tasks are currently
+     * visible.
      */
     public abstract boolean isInDesktopMode();
+
+    /**
+     * Returns whether the taskbar is showing desktop tasks, which may happen even outside desktop
+     * mode on freeform displays.
+     */
+    public abstract boolean isTaskbarShowingDesktopTasks();
 
     /**
      * Returns whether the taskbar is forced to be pinned when home is visible.
@@ -73,25 +100,45 @@ public abstract class BaseTaskbarContext extends BaseContext
     public abstract  boolean showDesktopTaskbarForFreeformDisplay();
 
     /**
-     * Returns whether the taskbar is displayed on primary or external display.
+     * Returns screen size.
      */
-    public abstract boolean isPrimaryDisplay();
+    public abstract Point getScreenSize();
+
+    /**
+     * Returns display height.
+     */
+    public abstract int getDisplayHeight();
+
+    /**
+     * Notifies the context that the configuration has changed.
+     */
+    public abstract void notifyConfigChanged();
+
 
     @Override
     public final LayoutInflater getLayoutInflater() {
         return mLayoutInflater;
     }
 
-    @Override
-    public void showShortcutBubble(ShortcutInfo info) {
-        if (info == null) return;
-        SystemUiProxy.INSTANCE.get(this).showShortcutBubble(info);
+    public void onDestroy() {
+        // Since TaskbarDragLayer is removed from view hierarchy AFTER onDestroy() and it holds ref
+        // to TaskbarActivityContext, we add 1s delay to check leaks in order to avoid false
+        // positive leak alarms.
+        for (LifecycleTracker tracker: LauncherComponentProvider.get(this).getLifecycleTrackers()) {
+            tracker.trackLifecycleOnDestroy(this, 1000L);
+        }
     }
 
     @Override
-    public void showAppBubble(Intent intent, UserHandle user) {
+    public void showShortcutBubble(ShortcutInfo info, EntryPoint entryPoint) {
+        if (info == null) return;
+        BubbleActivityStarter.INSTANCE.get(this).showShortcutBubble(info, entryPoint);
+    }
+
+    @Override
+    public void showAppBubble(Intent intent, UserHandle user, EntryPoint entryPoint) {
         if (intent == null || intent.getPackage() == null) return;
-        SystemUiProxy.INSTANCE.get(this).showAppBubble(intent, user);
+        BubbleActivityStarter.INSTANCE.get(this).showAppBubble(intent, user, entryPoint);
     }
 
     /** Callback invoked when a drag is initiated within this context. */

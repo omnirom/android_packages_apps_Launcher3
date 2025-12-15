@@ -16,18 +16,26 @@
 
 package com.android.quickstep.recents.di
 
+import android.app.KeyguardManager
 import android.content.Context
 import android.util.Log
+import android.view.WindowManagerGlobal
 import com.android.launcher3.util.coroutines.DispatcherProvider
-import com.android.launcher3.util.coroutines.ProductionDispatchers
 import com.android.quickstep.RecentsModel
+import com.android.quickstep.recents.data.DesktopTileBackgroundDataSource
+import com.android.quickstep.recents.data.DesktopTileBackgroundRepository
 import com.android.quickstep.recents.data.RecentTasksRepository
 import com.android.quickstep.recents.data.TaskVisualsChangedDelegate
 import com.android.quickstep.recents.data.TaskVisualsChangedDelegateImpl
 import com.android.quickstep.recents.data.TasksRepository
+import com.android.quickstep.recents.data.UserLockedRepository
+import com.android.quickstep.recents.data.UserLockedStateRepository
+import com.android.quickstep.recents.domain.usecase.GetObscuredDesktopTaskIdsUseCase
+import com.android.quickstep.recents.domain.usecase.GetRemainingAppTimerDurationUseCase
 import com.android.quickstep.recents.domain.usecase.GetSysUiStatusNavFlagsUseCase
 import com.android.quickstep.recents.domain.usecase.GetTaskUseCase
 import com.android.quickstep.recents.domain.usecase.GetThumbnailPositionUseCase
+import com.android.quickstep.recents.domain.usecase.IsPointerConnectedUseCase
 import com.android.quickstep.recents.domain.usecase.IsThumbnailValidUseCase
 import com.android.quickstep.recents.domain.usecase.OrganizeDesktopTasksUseCase
 import com.android.quickstep.recents.viewmodel.RecentsViewData
@@ -38,11 +46,14 @@ import kotlinx.coroutines.SupervisorJob
 
 internal typealias RecentsScopeId = String
 
-class RecentsDependencies private constructor(appContext: Context) {
+fun Any.toScopeId(): String = this as? RecentsScopeId ?: this.hashCode().toString()
+
+class RecentsDependencies
+private constructor(appContext: Context, dispatcherProvider: DispatcherProvider) {
     private val scopes = mutableMapOf<RecentsScopeId, RecentsDependenciesScope>()
 
     init {
-        startDefaultScope(appContext)
+        startDefaultScope(appContext, dispatcherProvider)
     }
 
     /**
@@ -50,11 +61,10 @@ class RecentsDependencies private constructor(appContext: Context) {
      * are global while others are per-RecentsView. The scope is used to differentiate between
      * RecentsViews.
      */
-    private fun startDefaultScope(appContext: Context) {
+    private fun startDefaultScope(appContext: Context, dispatcherProvider: DispatcherProvider) {
         Log.d(TAG, "startDefaultScope")
         createScope(DEFAULT_SCOPE_ID).apply {
             set(RecentsViewData::class.java.simpleName, RecentsViewData())
-            val dispatcherProvider: DispatcherProvider = ProductionDispatchers
             val recentsCoroutineScope =
                 CoroutineScope(
                     SupervisorJob() + dispatcherProvider.unconfined + CoroutineName("RecentsView")
@@ -68,6 +78,9 @@ class RecentsDependencies private constructor(appContext: Context) {
                     recentsModel.thumbnailCache.highResLoadingState,
                 )
             set(TaskVisualsChangedDelegate::class.java.simpleName, taskVisualsChangedDelegate)
+            val keyguardManager = appContext.getSystemService(KeyguardManager::class.java)
+            val userLockedRepository = UserLockedRepository(keyguardManager)
+            set(UserLockedStateRepository::class.java.simpleName, userLockedRepository)
 
             // Create RecentsTaskRepository singleton
             val recentTasksRepository: RecentTasksRepository =
@@ -76,9 +89,10 @@ class RecentsDependencies private constructor(appContext: Context) {
                         this,
                         thumbnailCache,
                         iconCache,
+                        userLockedRepository,
                         taskVisualsChangedDelegate,
                         recentsCoroutineScope,
-                        ProductionDispatchers,
+                        dispatcherProvider,
                     )
                 }
             set(RecentTasksRepository::class.java.simpleName, recentTasksRepository)
@@ -92,11 +106,12 @@ class RecentsDependencies private constructor(appContext: Context) {
      * @return the scope id associated with the new RecentsDependenciesScope.
      */
     fun createRecentsViewScope(viewContext: Context): String {
-        val scopeId = viewContext.hashCode().toString()
+        val scopeId = viewContext.toScopeId()
         Log.d(TAG, "createRecentsViewScope $scopeId")
         val scope =
             createScope(scopeId).apply {
                 set(RecentsViewData::class.java.simpleName, RecentsViewData())
+                set(DisplayId::class.java.simpleName, DisplayId(viewContext.displayId))
                 val dispatcherProvider: DispatcherProvider =
                     get<DispatcherProvider>(DEFAULT_SCOPE_ID)
                 val recentsCoroutineScope =
@@ -168,16 +183,13 @@ class RecentsDependencies private constructor(appContext: Context) {
         return instance
     }
 
-    fun getScope(scope: Any): RecentsDependenciesScope {
-        val scopeId: RecentsScopeId = scope as? RecentsScopeId ?: scope.hashCode().toString()
-        return getScope(scopeId)
-    }
+    fun getScope(scope: Any) = getScope(scope.toScopeId())
 
     fun getScope(scopeId: RecentsScopeId): RecentsDependenciesScope =
         scopes[scopeId] ?: createScope(scopeId)
 
     fun removeScope(scope: Any) {
-        val scopeId: RecentsScopeId = scope as? RecentsScopeId ?: scope.hashCode().toString()
+        val scopeId = scope.toScopeId()
         scopes[scopeId]?.close()
         scopes.remove(scopeId)
         log("Scope $scopeId removed")
@@ -197,7 +209,14 @@ class RecentsDependencies private constructor(appContext: Context) {
             when (modelClass) {
                 IsThumbnailValidUseCase::class.java ->
                     IsThumbnailValidUseCase(rotationStateRepository = inject(scopeId))
-                GetTaskUseCase::class.java -> GetTaskUseCase(repository = inject(scopeId))
+                GetRemainingAppTimerDurationUseCase::class.java ->
+                    GetRemainingAppTimerDurationUseCase(appTimersRepository = inject(scopeId))
+                GetTaskUseCase::class.java ->
+                    GetTaskUseCase(
+                        tasksRepository = inject(scopeId),
+                        getRemainingAppTimerDurationUseCase = inject(scopeId),
+                        userLockedStateRepository = inject(scopeId),
+                    )
                 GetSysUiStatusNavFlagsUseCase::class.java -> GetSysUiStatusNavFlagsUseCase()
                 GetThumbnailPositionUseCase::class.java ->
                     GetThumbnailPositionUseCase(
@@ -206,6 +225,16 @@ class RecentsDependencies private constructor(appContext: Context) {
                         previewPositionHelperFactory = PreviewPositionHelperFactory(),
                     )
                 OrganizeDesktopTasksUseCase::class.java -> OrganizeDesktopTasksUseCase()
+                GetObscuredDesktopTaskIdsUseCase::class.java -> GetObscuredDesktopTaskIdsUseCase()
+                DesktopTileBackgroundDataSource::class.java ->
+                    DesktopTileBackgroundDataSource(
+                        WindowManagerGlobal.getWindowManagerService(),
+                        inject(scopeId),
+                    )
+                DesktopTileBackgroundRepository::class.java ->
+                    DesktopTileBackgroundRepository(inject(scopeId))
+                IsPointerConnectedUseCase::class.java ->
+                    IsPointerConnectedUseCase(pointerRepository = inject(scopeId))
                 else -> {
                     log("Factory for ${modelClass.simpleName} not defined!", Log.ERROR)
                     error("Factory for ${modelClass.simpleName} not defined!")
@@ -242,17 +271,25 @@ class RecentsDependencies private constructor(appContext: Context) {
 
         @Volatile private var instance: RecentsDependencies? = null
 
-        private fun initialize(context: Context): RecentsDependencies {
+        private fun initialize(
+            context: Context,
+            dispatcherProvider: DispatcherProvider,
+        ): RecentsDependencies {
             Log.d(TAG, "initializing")
             synchronized(this) {
-                val newInstance = RecentsDependencies(context.applicationContext)
+                val newInstance =
+                    RecentsDependencies(context.applicationContext, dispatcherProvider)
                 instance = newInstance
                 return newInstance
             }
         }
 
-        fun maybeInitialize(context: Context): RecentsDependencies {
-            return instance ?: initialize(context)
+        @JvmStatic
+        fun maybeInitialize(
+            context: Context,
+            dispatcherProvider: DispatcherProvider,
+        ): RecentsDependencies {
+            return instance ?: initialize(context, dispatcherProvider)
         }
 
         fun getInstance(): RecentsDependencies {
@@ -267,7 +304,7 @@ class RecentsDependencies private constructor(appContext: Context) {
         fun destroy(viewContext: Context) {
             synchronized(this) {
                 val localInstance = instance ?: return
-                val scopeId = viewContext.hashCode().toString()
+                val scopeId = viewContext.toScopeId()
                 val scope = localInstance.scopes[scopeId]
                 if (scope == null) {
                     Log.e(
@@ -290,22 +327,21 @@ class RecentsDependencies private constructor(appContext: Context) {
                 }
             }
         }
+
+        fun hasScope(scope: Any) =
+            synchronized(this) {
+                val localInstance = instance ?: return false
+                localInstance.scopes.containsKey(scope.toScopeId())
+            }
     }
 }
-
-inline fun <reified T> RecentsDependencies.Companion.inject(
-    scope: Any = "",
-    vararg extras: Pair<String, Any>,
-    noinline factory: ((extras: RecentsDependenciesExtras) -> T)? = null,
-): Lazy<T> = lazy { get(scope, RecentsDependenciesExtras(extras), factory) }
 
 inline fun <reified T> RecentsDependencies.Companion.get(
     scope: Any = "",
     extras: RecentsDependenciesExtras = RecentsDependenciesExtras(),
     noinline factory: ((extras: RecentsDependenciesExtras) -> T)? = null,
 ): T {
-    val scopeId: RecentsScopeId = scope as? RecentsScopeId ?: scope.hashCode().toString()
-    return getInstance().inject(scopeId, extras, factory)
+    return getInstance().inject(scope.toScopeId(), extras, factory)
 }
 
 inline fun <reified T> RecentsDependencies.Companion.get(
@@ -315,3 +351,5 @@ inline fun <reified T> RecentsDependencies.Companion.get(
 ): T = get(scope, RecentsDependenciesExtras(extras), factory)
 
 fun RecentsDependencies.Companion.getScope(scopeId: Any) = getInstance().getScope(scopeId)
+
+@JvmInline value class DisplayId(val displayId: Int)

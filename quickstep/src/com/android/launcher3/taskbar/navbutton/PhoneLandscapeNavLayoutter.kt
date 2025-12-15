@@ -34,7 +34,7 @@ open class PhoneLandscapeNavLayoutter(
     startContextualContainer: ViewGroup,
     imeSwitcher: ImageView?,
     a11yButton: ImageView?,
-    space: Space?
+    space: Space?,
 ) :
     AbstractNavButtonLayoutter(
         resources,
@@ -43,11 +43,13 @@ open class PhoneLandscapeNavLayoutter(
         startContextualContainer,
         imeSwitcher,
         a11yButton,
-        space
+        space,
     ) {
 
+    override val orientation = LinearLayout.VERTICAL
+
     override fun layoutButtons(context: TaskbarActivityContext, isA11yButtonPersistent: Boolean) {
-        val totalHeight = context.deviceProfile.heightPx
+        val totalHeight = context.deviceProfile.deviceProperties.heightPx
         val homeButtonHeight =
             resources.getDimensionPixelSize(R.dimen.taskbar_phone_home_button_size)
         val roundedCornerContentMargin =
@@ -72,9 +74,6 @@ open class PhoneLandscapeNavLayoutter(
         }
 
         // Ensure order of buttons is correct
-        navButtonContainer.removeAllViews()
-        navButtonContainer.orientation = LinearLayout.VERTICAL
-
         addThreeButtons()
 
         navButtonContainer.layoutParams = navContainerParams
@@ -110,11 +109,9 @@ open class PhoneLandscapeNavLayoutter(
         repositionContextualButtons(contextualButtonHeight.toInt())
     }
 
-    open fun addThreeButtons() {
-        // Swap recents and back button
-        navButtonContainer.addView(recentsButton)
-        navButtonContainer.addView(homeButton)
-        navButtonContainer.addView(backButton)
+    /** Landscape flips the default order to account for rotation. */
+    override fun shouldFlipButtonOrder(): Boolean {
+        return !super.shouldFlipButtonOrder()
     }
 
     open fun repositionContextualButtons(buttonSize: Int) {
@@ -129,14 +126,14 @@ open class PhoneLandscapeNavLayoutter(
             buttonSize,
             roundedCornerContentMargin + contentPadding,
             0,
-            Gravity.TOP
+            Gravity.TOP,
         )
         repositionContextualContainer(
             endContextualContainer,
             buttonSize,
             0,
             roundedCornerContentMargin + contentPadding,
-            Gravity.BOTTOM
+            Gravity.BOTTOM,
         )
 
         if (imeSwitcher != null) {
@@ -155,7 +152,7 @@ open class PhoneLandscapeNavLayoutter(
         buttonSize: Int,
         barAxisMarginTop: Int,
         barAxisMarginBottom: Int,
-        gravity: Int
+        gravity: Int,
     ) {
         val contextualContainerParams = FrameLayout.LayoutParams(MATCH_PARENT, buttonSize)
         contextualContainerParams.apply {

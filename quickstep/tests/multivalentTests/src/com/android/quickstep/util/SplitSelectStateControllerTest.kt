@@ -28,17 +28,17 @@ import com.android.launcher3.LauncherState
 import com.android.launcher3.logging.StatsLogManager
 import com.android.launcher3.logging.StatsLogManager.StatsLogger
 import com.android.launcher3.model.data.ItemInfo
+import com.android.launcher3.model.data.ResolvedTargetInfo
 import com.android.launcher3.statehandlers.DepthController
 import com.android.launcher3.statemanager.StateManager
 import com.android.launcher3.statemanager.StatefulActivity
-import com.android.launcher3.util.ComponentKey
-import com.android.launcher3.util.SplitConfigurationOptions
 import com.android.quickstep.RecentsModel
 import com.android.quickstep.SystemUiProxy
 import com.android.quickstep.util.SplitSelectStateController.SplitFromDesktopController
 import com.android.quickstep.views.RecentsView
 import com.android.quickstep.views.RecentsViewContainer
 import com.android.systemui.shared.recents.model.Task
+import com.android.wm.shell.shared.split.SplitBounds
 import com.android.wm.shell.shared.split.SplitScreenConstants.SNAP_TO_2_50_50
 import java.util.function.Consumer
 import org.junit.Assert.assertEquals
@@ -100,7 +100,8 @@ class SplitSelectStateControllerTest {
 
     @Test
     fun activeTasks_noMatchingTasks() {
-        val nonMatchingComponent = ComponentKey(ComponentName("no", "match"), primaryUserHandle)
+        val nonMatchingResolvedTargetInfo =
+            ResolvedTargetInfo(null, ComponentName("no", "match"), primaryUserHandle)
         val groupTask1 =
             generateSplitTask(
                 ComponentName("pomegranate", "juice"),
@@ -124,7 +125,7 @@ class SplitSelectStateControllerTest {
         val consumer =
             argumentCaptor<Consumer<List<GroupTask>>> {
                     splitSelectStateController.findLastActiveTasksAndRunCallback(
-                        listOf(nonMatchingComponent),
+                        listOf(nonMatchingResolvedTargetInfo),
                         false /* findExactPairMatch */,
                         taskConsumer,
                     )
@@ -140,8 +141,12 @@ class SplitSelectStateControllerTest {
     fun activeTasks_singleMatchingTask() {
         val matchingPackage = "hotdog"
         val matchingClass = "juice"
-        val matchingComponent =
-            ComponentKey(ComponentName(matchingPackage, matchingClass), primaryUserHandle)
+        val matchingResolvedTargetInfo =
+            ResolvedTargetInfo(
+                null,
+                ComponentName(matchingPackage, matchingClass),
+                primaryUserHandle,
+            )
         val groupTask1 =
             generateSplitTask(
                 ComponentName(matchingPackage, matchingClass),
@@ -177,7 +182,7 @@ class SplitSelectStateControllerTest {
         val consumer =
             argumentCaptor<Consumer<List<GroupTask>>> {
                     splitSelectStateController.findLastActiveTasksAndRunCallback(
-                        listOf(matchingComponent),
+                        listOf(matchingResolvedTargetInfo),
                         false /* findExactPairMatch */,
                         taskConsumer,
                     )
@@ -193,8 +198,12 @@ class SplitSelectStateControllerTest {
     fun activeTasks_skipTaskWithDifferentUser() {
         val matchingPackage = "hotdog"
         val matchingClass = "juice"
-        val nonPrimaryUserComponent =
-            ComponentKey(ComponentName(matchingPackage, matchingClass), nonPrimaryUserHandle)
+        val nonPrimaryUserResolvedTargetInfo =
+            ResolvedTargetInfo(
+                null,
+                ComponentName(matchingPackage, matchingClass),
+                nonPrimaryUserHandle,
+            )
         val groupTask1 =
             generateSplitTask(
                 ComponentName(matchingPackage, matchingClass),
@@ -218,7 +227,7 @@ class SplitSelectStateControllerTest {
         val consumer =
             argumentCaptor<Consumer<List<GroupTask>>> {
                     splitSelectStateController.findLastActiveTasksAndRunCallback(
-                        listOf(nonPrimaryUserComponent),
+                        listOf(nonPrimaryUserResolvedTargetInfo),
                         false /* findExactPairMatch */,
                         taskConsumer,
                     )
@@ -234,8 +243,12 @@ class SplitSelectStateControllerTest {
     fun activeTasks_findTaskAsNonPrimaryUser() {
         val matchingPackage = "hotdog"
         val matchingClass = "juice"
-        val nonPrimaryUserComponent =
-            ComponentKey(ComponentName(matchingPackage, matchingClass), nonPrimaryUserHandle)
+        val nonPrimaryUserResolvedTargetInfo =
+            ResolvedTargetInfo(
+                null,
+                ComponentName(matchingPackage, matchingClass),
+                nonPrimaryUserHandle,
+            )
         val groupTask1 =
             generateSplitTask(
                 ComponentName(matchingPackage, matchingClass),
@@ -274,7 +287,7 @@ class SplitSelectStateControllerTest {
         val consumer =
             argumentCaptor<Consumer<List<GroupTask>>> {
                     splitSelectStateController.findLastActiveTasksAndRunCallback(
-                        listOf(nonPrimaryUserComponent),
+                        listOf(nonPrimaryUserResolvedTargetInfo),
                         false /* findExactPairMatch */,
                         taskConsumer,
                     )
@@ -290,8 +303,12 @@ class SplitSelectStateControllerTest {
     fun activeTasks_multipleMatchMostRecentTask() {
         val matchingPackage = "hotdog"
         val matchingClass = "juice"
-        val matchingComponent =
-            ComponentKey(ComponentName(matchingPackage, matchingClass), primaryUserHandle)
+        val matchingResolvedTargetInfo =
+            ResolvedTargetInfo(
+                null,
+                ComponentName(matchingPackage, matchingClass),
+                primaryUserHandle,
+            )
         val groupTask1 =
             generateSplitTask(
                 ComponentName(matchingPackage, matchingClass),
@@ -327,7 +344,7 @@ class SplitSelectStateControllerTest {
         val consumer =
             argumentCaptor<Consumer<List<GroupTask>>> {
                     splitSelectStateController.findLastActiveTasksAndRunCallback(
-                        listOf(matchingComponent),
+                        listOf(matchingResolvedTargetInfo),
                         false /* findExactPairMatch */,
                         taskConsumer,
                     )
@@ -341,11 +358,16 @@ class SplitSelectStateControllerTest {
 
     @Test
     fun activeTasks_multipleSearchShouldFindTask() {
-        val nonMatchingComponent = ComponentKey(ComponentName("no", "match"), primaryUserHandle)
+        val noMatchingResolvedTargetInfo =
+            ResolvedTargetInfo(null, ComponentName("no", "match"), primaryUserHandle)
         val matchingPackage = "hotdog"
         val matchingClass = "juice"
-        val matchingComponent =
-            ComponentKey(ComponentName(matchingPackage, matchingClass), primaryUserHandle)
+        val matchingResolvedTargetInfo =
+            ResolvedTargetInfo(
+                null,
+                ComponentName(matchingPackage, matchingClass),
+                primaryUserHandle,
+            )
 
         val groupTask1 =
             generateSplitTask(ComponentName("hotdog", "pie"), ComponentName("pumpkin", "pie"))
@@ -381,7 +403,7 @@ class SplitSelectStateControllerTest {
         val consumer =
             argumentCaptor<Consumer<List<GroupTask>>> {
                     splitSelectStateController.findLastActiveTasksAndRunCallback(
-                        listOf(nonMatchingComponent, matchingComponent),
+                        listOf(noMatchingResolvedTargetInfo, matchingResolvedTargetInfo),
                         false /* findExactPairMatch */,
                         taskConsumer,
                     )
@@ -397,8 +419,12 @@ class SplitSelectStateControllerTest {
     fun activeTasks_multipleSearchShouldNotFindSameTaskTwice() {
         val matchingPackage = "hotdog"
         val matchingClass = "juice"
-        val matchingComponent =
-            ComponentKey(ComponentName(matchingPackage, matchingClass), primaryUserHandle)
+        val matchingResolvedTargetInfo =
+            ResolvedTargetInfo(
+                null,
+                ComponentName(matchingPackage, matchingClass),
+                primaryUserHandle,
+            )
 
         val groupTask1 =
             generateSplitTask(ComponentName("hotdog", "pie"), ComponentName("pumpkin", "pie"))
@@ -434,7 +460,7 @@ class SplitSelectStateControllerTest {
         val consumer =
             argumentCaptor<Consumer<List<GroupTask>>> {
                     splitSelectStateController.findLastActiveTasksAndRunCallback(
-                        listOf(matchingComponent, matchingComponent),
+                        listOf(matchingResolvedTargetInfo, matchingResolvedTargetInfo),
                         false /* findExactPairMatch */,
                         taskConsumer,
                     )
@@ -450,8 +476,12 @@ class SplitSelectStateControllerTest {
     fun activeTasks_multipleSearchShouldFindDifferentInstancesOfSameTask() {
         val matchingPackage = "hotdog"
         val matchingClass = "juice"
-        val matchingComponent =
-            ComponentKey(ComponentName(matchingPackage, matchingClass), primaryUserHandle)
+        val matchingResolvedTargetInfo =
+            ResolvedTargetInfo(
+                null,
+                ComponentName(matchingPackage, matchingClass),
+                primaryUserHandle,
+            )
 
         val groupTask1 =
             generateSplitTask(
@@ -500,7 +530,7 @@ class SplitSelectStateControllerTest {
         val consumer =
             argumentCaptor<Consumer<List<GroupTask>>> {
                     splitSelectStateController.findLastActiveTasksAndRunCallback(
-                        listOf(matchingComponent, matchingComponent),
+                        listOf(matchingResolvedTargetInfo, matchingResolvedTargetInfo),
                         false /* findExactPairMatch */,
                         taskConsumer,
                     )
@@ -516,12 +546,21 @@ class SplitSelectStateControllerTest {
     fun activeTasks_multipleSearchShouldFindExactPairMatch() {
         val matchingPackage = "hotdog"
         val matchingClass = "juice"
-        val matchingComponent =
-            ComponentKey(ComponentName(matchingPackage, matchingClass), primaryUserHandle)
+        val matchingResolvedTargetInfo =
+            ResolvedTargetInfo(
+                null,
+                ComponentName(matchingPackage, matchingClass),
+                primaryUserHandle,
+            )
+
         val matchingPackage2 = "pomegranate"
         val matchingClass2 = "juice"
-        val matchingComponent2 =
-            ComponentKey(ComponentName(matchingPackage2, matchingClass2), primaryUserHandle)
+        val matchingResolvedTargetInfo2 =
+            ResolvedTargetInfo(
+                null,
+                ComponentName(matchingPackage2, matchingClass2),
+                primaryUserHandle,
+            )
 
         val groupTask1 =
             generateSplitTask(ComponentName("hotdog", "pie"), ComponentName("pumpkin", "pie"))
@@ -552,7 +591,7 @@ class SplitSelectStateControllerTest {
         val consumer =
             argumentCaptor<Consumer<List<GroupTask>>> {
                     splitSelectStateController.findLastActiveTasksAndRunCallback(
-                        listOf(matchingComponent2, matchingComponent),
+                        listOf(matchingResolvedTargetInfo2, matchingResolvedTargetInfo),
                         true /* findExactPairMatch */,
                         taskConsumer,
                     )
@@ -663,7 +702,7 @@ class SplitSelectStateControllerTest {
         return SplitTask(
             task1,
             task2,
-            SplitConfigurationOptions.SplitBounds(
+            SplitBounds(
                 /* leftTopBounds = */ Rect(),
                 /* rightBottomBounds = */ Rect(),
                 /* leftTopTaskId = */ task1.key.id,
@@ -701,7 +740,7 @@ class SplitSelectStateControllerTest {
         return SplitTask(
             task1,
             task2,
-            SplitConfigurationOptions.SplitBounds(
+            SplitBounds(
                 /* leftTopBounds = */ Rect(),
                 /* rightBottomBounds = */ Rect(),
                 /* leftTopTaskId = */ task1.key.id,

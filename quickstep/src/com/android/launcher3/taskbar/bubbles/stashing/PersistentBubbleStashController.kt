@@ -60,8 +60,10 @@ class PersistentBubbleStashController(
                 // if there are no bubbles, there's nothing to show, so just return.
                 return
             }
-            // If we're transitioning anywhere, bubble bar should be collapsed
-            updateExpandedState(expand = false)
+            if (field == BubbleLauncherState.OVERVIEW && inAppDisplayOverrideProgress != 0f) {
+                // we will never return to launcher -1 page from the overview state
+                inAppDisplayOverrideProgress = 0f
+            }
             if (transitionFromHome || field == BubbleLauncherState.HOME) {
                 // If we're transitioning to or from home, animate the Y because we're in hotseat
                 // on home but in persistent taskbar elsewhere so the position is different.
@@ -83,8 +85,10 @@ class PersistentBubbleStashController(
     /** When the bubble bar is shown for the persistent task bar, there is no handle view. */
     override val hasHandleView: Boolean = false
 
-    /** For persistent task bar we never stash the bubble bar */
-    override val isStashed: Boolean = false
+    override var isStashed: Boolean = false
+
+    /** Determines whether stashing is allowed. */
+    private var allowStashing: Boolean = false
 
     override val bubbleBarTranslationYForTaskbar: Float
         get() {
@@ -94,12 +98,22 @@ class PersistentBubbleStashController(
             return -taskbarBottomMargin - (taskbarHeight - bubbleBarHeight) / 2f
         }
 
+    private val stashedBubbleBarTranslationY: Float
+        get() {
+            return bubbleBarTranslationYForTaskbar +
+                taskbarHotseatDimensionsProvider.getTaskbarHeight()
+        }
+
     override val bubbleBarTranslationYForHotseat: Float
         get() {
             val bubbleBarHeight = bubbleBarViewController.bubbleBarCollapsedHeight
             return -bubbleBarVerticalCenterForHome + bubbleBarHeight / 2
         }
 
+    /**
+     * Returns bubble bar Y target position according to [isBubblesShowingOnHome] value. Value could
+     * be adjusted to the display override progress.
+     */
     override val bubbleBarTranslationY: Float
         get() =
             if (inAppDisplayOverrideProgress > 0f && launcherState == BubbleLauncherState.HOME) {
@@ -112,7 +126,7 @@ class PersistentBubbleStashController(
                     Interpolators.LINEAR,
                 )
             } else {
-                super.bubbleBarTranslationY
+                targetTranslationYForState
             }
 
     override var inAppDisplayOverrideProgress: Float = 0f
@@ -162,9 +176,19 @@ class PersistentBubbleStashController(
     override fun showBubbleBarImmediate() = showBubbleBarImmediate(bubbleBarTranslationY)
 
     override fun showBubbleBarImmediate(bubbleBarTranslationY: Float) {
+        isStashed = false
         bubbleBarTranslationYAnimator.updateValue(bubbleBarTranslationY)
         bubbleBarAlphaAnimator.setValue(1f)
         bubbleBarScaleAnimator.updateValue(1f)
+    }
+
+    override fun setStashedInPersistentTaskBar(stashed: Boolean) {
+        // if instructed to stash in persistent taskbar, - allow all stash operations
+        allowStashing = stashed
+        isStashed = stashed
+        val targetTranslationY =
+            if (stashed) stashedBubbleBarTranslationY else bubbleBarTranslationY
+        animateBubbleBarY(targetTranslationY)
     }
 
     override fun setBubbleBarLocation(bubbleBarLocation: BubbleBarLocation) {
@@ -173,16 +197,27 @@ class PersistentBubbleStashController(
     }
 
     override fun stashBubbleBar() {
+        // only stash persistent bubble bar if it is allowed to be stashed
+        if (allowStashing) {
+            isStashed = true
+            animateBubbleBarY(stashedBubbleBarTranslationY)
+        }
         updateExpandedState(expand = false)
     }
 
     override fun showBubbleBar(expandBubbles: Boolean, bubbleBarGesture: Boolean) {
+        isStashed = false
+        animateBubbleBarY()
         updateExpandedState(expand = expandBubbles, bubbleBarGesture = bubbleBarGesture)
     }
 
     override fun stashBubbleBarImmediate() {
-        // When the bubble bar is shown for the persistent task bar, there is no handle view, so no
-        // operation is performed.
+        // only stash persistent bubble bar if it is allowed to be stashed
+        if (allowStashing) {
+            isStashed = true
+            bubbleBarTranslationYAnimator.updateValue(stashedBubbleBarTranslationY)
+        }
+        updateExpandedState(expand = false)
     }
 
     /** If bubble bar is visible return bubble bar height, 0 otherwise */
@@ -238,14 +273,15 @@ class PersistentBubbleStashController(
         }
         if (bubbleBarViewController.isExpanded != expand) {
             val maybeShowEdu = expand && bubbleBarGesture
-            bubbleBarViewController.setExpanded(expand, maybeShowEdu)
+            bubbleBarViewController.animateExpanded(expand, maybeShowEdu)
         }
     }
 
-    /** Animates bubble bar Y accordingly to the showing mode */
-    private fun animateBubbleBarY() {
-        val animator =
-            bubbleBarViewController.bubbleBarTranslationY.animateToValue(bubbleBarTranslationY)
+    /**
+     * Animates bubble bar Y to provided [translationY], by default accordingly to the showing mode.
+     */
+    private fun animateBubbleBarY(translationY: Float = bubbleBarTranslationY) {
+        val animator = bubbleBarViewController.bubbleBarTranslationY.animateToValue(translationY)
         updateTouchRegionOnAnimationEnd(animator)
         animator.setDuration(BAR_TRANSLATION_DURATION)
         animator.start()

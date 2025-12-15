@@ -45,11 +45,14 @@
     <string name="recent_task_option_aspect_ratio">Change aspect ratio</string>
     <string name="split_app_info_accessibility">App info for %1$s</string>
     <string name="split_app_usage_settings">Usage settings for %1$s</string>
+    <string name="close_task_accessibility">Close %1$s</string>
 
     <!-- Title for an option to open a new window for a given app   -->
     <string name="new_window_option_taskbar">New Window</string>
     <!-- Title for an option to manage open windows for a given app   -->
     <string name="manage_windows_option_taskbar">Manage Windows</string>
+    <!-- Title for an option to close open windows for a given app   -->
+    <string name="close_app_taskbar">Close</string>
 
     <!-- App pairs -->
     <string name="save_app_pair">Save app pair</string>
@@ -236,6 +239,12 @@
     <string name="pin_prediction">Pin Prediction</string>
     <!-- Label for bubbling a launcher item. [CHAR_LIMIT=20] -->
     <string name="bubble">Bubble</string>
+    <!-- Label for widget settings shows in the long press menu for widgets. [CHAR_LIMIT=20] -->
+    <string name="widget_settings">Settings</string>
+    <!-- Label for pinning an item to the taskbar. [CHAR_LIMIT=20] -->
+    <string name="pin_to_taskbar">Pin to Taskbar</string>
+    <!-- Label for unpinning an item from the taskbar. [CHAR_LIMIT=20] -->
+    <string name="unpin_from_taskbar">Unpin from Taskbar</string>
 
     <!-- Permissions: -->
     <skip />
@@ -272,6 +281,8 @@
 
     <!-- Default folder title -->
     <string name="folder_hint_text">Edit Name</string>
+    <string name="paginate_left">Paginate left</string>
+    <string name="paginate_right">Paginate right</string>
 
     <!-- Accessibility -->
     <!-- The format string for when an app is temporarily disabled. -->
@@ -283,6 +294,8 @@
             other   {{app_name} has # notifications}
         }
     </string>
+    <!-- content description for hotseat items -->
+    <string name="hotseat_prediction_content_description">Predicted app: <xliff:g id="title" example="Chrome">%1$s</xliff:g></string>
     <skip />
 
     <!-- The format string for default page scroll text [CHAR_LIMIT=none] -->
@@ -308,8 +321,12 @@
     <string name="folder_renamed">Folder renamed to <xliff:g id="name" example="Games">%1$s</xliff:g></string>
     <!-- Folder name format when folder has less than 4 items -->
     <string name="folder_name_format_exact">Folder: <xliff:g id="name" example="Games">%1$s</xliff:g>, <xliff:g id="size" example="2">%2$d</xliff:g> items</string>
+    <!-- Folder name format when folder has less than 4 items and a notification dot -->
+    <string name="folder_name_format_exact_with_dot">Folder: <xliff:g id="name" example="Games">%1$s</xliff:g>, <xliff:g id="size" example="2">%2$d</xliff:g> items, has notifications</string>
     <!-- Folder name format when folder has 4 or more items shown in preview-->
     <string name="folder_name_format_overflow">Folder: <xliff:g id="name" example="Games">%1$s</xliff:g>, <xliff:g id="size" example="2">%2$d</xliff:g> or more items</string>
+    <!-- Folder name format when folder has 4 or more items shown in preview and a notification dot -->
+    <string name="folder_name_format_overflow_with_dot">Folder: <xliff:g id="name" example="Games">%1$s</xliff:g>, <xliff:g id="size" example="2">%2$d</xliff:g> or more items, has notifications</string>
     <!-- Accessibility announement for unnamed folders -->
     <string name="unnamed_folder">Unnamed folder</string>
 
@@ -335,8 +352,9 @@
 
     <!-- Title for Landscape Mode setting. [CHAR LIMIT=50] -->
     <string name="landscape_mode_title">Landscape mode</string>
+
     <!--  [CHAR LIMIT=100] -->
-    <string name="landscape_mode_desc">Set phone into landscape mode</string>
+    <string name="landscape_mode_desc">Set home screen into landscape mode</string>
 
     <!-- Title for Notification dots setting. Tapping this will link to the system Notifications settings screen where the user can turn off notification dots globally. [CHAR LIMIT=50] -->
     <string name="notification_dots_title">Notification dots</string>
@@ -495,8 +513,6 @@
     <string name="work_profile_toggle_label">Work profile</string>
     <!--- User onboarding title for work profile apps -->
     <string name="work_profile_edu_work_apps">Work apps are badged and visible to your IT admin</string>
-    <!-- Action label to finish work profile edu-->
-    <string name="work_profile_edu_accept">Got it</string>
     <!-- Info icon unicode for alpha scroller when work edu card is present -->
     <string name="work_profile_edu_section" translatable="false">\u24D8</string>
     <!-- Intent for work profiler scheduler -->
@@ -546,7 +562,21 @@
     <string name="ps_container_transition">Private Space Transitioning</string>
     <!-- Title for Private Space install app icon -->
     <string name="ps_add_button_label">Install</string>
+    <!-- Title for Private Space app icon to add files and more to Private Space -->
+    <string name="ps_app_label_override">Add</string>
     <!-- Content description for install app icon -->
     <string name="ps_add_button_content_description">Install apps to Private Space</string>
     <string name="ps_app_content_description">Add files and more to Private Space</string>
+
+    <!-- Strings for icon shapes -->
+    <!-- label for circle shape option in customization picker -->
+    <string name="circle_shape_title">Circle</string>
+    <!-- label for square shape option in customization picker -->
+    <string name="square_shape_title">Square</string>
+    <!-- label for 4-sided cookie option shape in customization picker -->
+    <string name="four_sided_cookie_shape_title">4-sided cookie</string>
+    <!-- label for 7-sided cookie option shape in customization picker -->
+    <string name="seven_sided_cookie_shape_title">7-sided cookie</string>
+    <!-- label for arch shape option in customization picker -->
+    <string name="arch_shape_title">Arch</string>
 </resources>

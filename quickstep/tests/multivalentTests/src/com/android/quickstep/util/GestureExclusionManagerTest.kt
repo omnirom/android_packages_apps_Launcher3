@@ -26,10 +26,12 @@ import com.android.launcher3.util.Executors
 import com.android.launcher3.util.LauncherMultivalentJUnit
 import com.android.quickstep.util.GestureExclusionManager.ExclusionListener
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Mock
-import org.mockito.MockitoAnnotations
+import org.mockito.junit.MockitoJUnit
+import org.mockito.junit.MockitoRule
 import org.mockito.kotlin.reset
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoMoreInteractions
@@ -39,6 +41,8 @@ import org.mockito.kotlin.verifyNoMoreInteractions
 @UiThreadTest
 @RunWith(LauncherMultivalentJUnit::class)
 class GestureExclusionManagerTest {
+
+    @get:Rule var mockitoRule: MockitoRule = MockitoJUnit.rule()
 
     @Mock private lateinit var windowManager: IWindowManager
 
@@ -52,7 +56,6 @@ class GestureExclusionManagerTest {
 
     @Before
     fun setup() {
-        MockitoAnnotations.initMocks(this)
         underTest = GestureExclusionManager(windowManager)
     }
 
@@ -131,7 +134,7 @@ class GestureExclusionManagerTest {
     }
 
     private fun awaitTasksCompleted() {
-        Executors.UI_HELPER_EXECUTOR.submit<Any> { null }.get()
-        Executors.MAIN_EXECUTOR.submit<Any> { null }.get()
+        Executors.UI_HELPER_EXECUTOR.submit<Any?> { null }.get()
+        Executors.MAIN_EXECUTOR.submit<Any?> { null }.get()
     }
 }

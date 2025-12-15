@@ -18,6 +18,7 @@ package com.android.launcher3.folder;
 
 import static com.android.app.animation.Interpolators.ACCELERATE_DECELERATE;
 import static com.android.app.animation.Interpolators.EMPHASIZED_DECELERATE;
+import static com.android.launcher3.folder.ClippedFolderIconLayoutRule.ICON_OVERLAP_FACTOR;
 import static com.android.launcher3.icons.GraphicsUtils.setColorAlphaBound;
 
 import android.animation.Animator;
@@ -45,11 +46,11 @@ import androidx.annotation.VisibleForTesting;
 
 import com.android.launcher3.CellLayout;
 import com.android.launcher3.DeviceProfile;
+import com.android.launcher3.Flags;
 import com.android.launcher3.R;
 import com.android.launcher3.celllayout.DelegatedCellDrawing;
 import com.android.launcher3.graphics.ShapeDelegate;
 import com.android.launcher3.graphics.ThemeManager;
-import com.android.launcher3.util.Themes;
 import com.android.launcher3.views.ActivityContext;
 
 /**
@@ -79,7 +80,6 @@ public class PreviewBackground extends DelegatedCellDrawing {
     float mScale = 1f;
     private int mBgColor;
     private int mStrokeColor;
-    private int mDotColor;
     private float mStrokeWidth;
     private int mStrokeAlpha = MAX_BG_OPACITY;
     private int mShadowAlpha = 255;
@@ -169,7 +169,6 @@ public class PreviewBackground extends DelegatedCellDrawing {
         mInvalidateDelegate = invalidateDelegate;
 
         TypedArray ta = context.getTheme().obtainStyledAttributes(R.styleable.FolderIconPreview);
-        mDotColor = Themes.getAttrColor(context, R.attr.notificationDotColor);
         mStrokeColor = ta.getColor(R.styleable.FolderIconPreview_folderIconBorderColor, 0);
         mBgColor = ta.getColor(R.styleable.FolderIconPreview_folderPreviewColor, 0);
         ta.recycle();
@@ -245,10 +244,6 @@ public class PreviewBackground extends DelegatedCellDrawing {
 
     public int getBgColor() {
         return mBgColor;
-    }
-
-    public int getDotColor() {
-        return mDotColor;
     }
 
     public void drawBackground(Canvas canvas) {
@@ -372,7 +367,10 @@ public class PreviewBackground extends DelegatedCellDrawing {
 
     public Path getClipPath() {
         mPath.reset();
-        float radius = getScaledRadius() * ClippedFolderIconLayoutRule.getIconOverlapFactor();
+        float radius = getScaledRadius();
+        if (!Flags.enableLauncherIconShapes()) {
+            radius = radius * ICON_OVERLAP_FACTOR;
+        }
         // Find the difference in radius so that the clip path remains centered.
         float radiusDifference = radius - getRadius();
         float offsetX = basePreviewOffsetX - radiusDifference;

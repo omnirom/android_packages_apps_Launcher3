@@ -16,13 +16,15 @@
 
 package com.android.quickstep.util
 
+import android.app.WindowConfiguration.ACTIVITY_TYPE_STANDARD
 import android.content.ComponentName
 import android.content.Intent
 import android.graphics.Rect
 import android.view.Display.DEFAULT_DISPLAY
+import android.view.Display.INVALID_DISPLAY
 import com.android.launcher3.util.LauncherMultivalentJUnit
-import com.android.launcher3.util.SplitConfigurationOptions
 import com.android.systemui.shared.recents.model.Task
+import com.android.wm.shell.shared.split.SplitBounds
 import com.android.wm.shell.shared.split.SplitScreenConstants
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
@@ -60,14 +62,7 @@ class GroupTaskTest {
 
     @Test
     fun testGroupTask_equalSplitTasks_isEqual() {
-        val splitBounds =
-            SplitConfigurationOptions.SplitBounds(
-                Rect(),
-                Rect(),
-                1,
-                2,
-                SplitScreenConstants.SNAP_TO_2_50_50,
-            )
+        val splitBounds = SplitBounds(Rect(), Rect(), 1, 2, SplitScreenConstants.SNAP_TO_2_50_50)
         val task1 = SplitTask(createTask(1), createTask(2), splitBounds)
         val task2 = SplitTask(createTask(1), createTask(2), splitBounds)
         assertThat(task1).isEqualTo(task2)
@@ -75,22 +70,8 @@ class GroupTaskTest {
 
     @Test
     fun testGroupTask_differentSplitTasks_isNotEqual() {
-        val splitBounds1 =
-            SplitConfigurationOptions.SplitBounds(
-                Rect(),
-                Rect(),
-                1,
-                2,
-                SplitScreenConstants.SNAP_TO_2_50_50,
-            )
-        val splitBounds2 =
-            SplitConfigurationOptions.SplitBounds(
-                Rect(),
-                Rect(),
-                1,
-                2,
-                SplitScreenConstants.SNAP_TO_2_33_66,
-            )
+        val splitBounds1 = SplitBounds(Rect(), Rect(), 1, 2, SplitScreenConstants.SNAP_TO_2_50_50)
+        val splitBounds2 = SplitBounds(Rect(), Rect(), 1, 2, SplitScreenConstants.SNAP_TO_2_33_66)
         val task1 = SplitTask(createTask(1), createTask(2), splitBounds1)
         val task2 = SplitTask(createTask(1), createTask(2), splitBounds2)
         assertThat(task1).isNotEqualTo(task2)
@@ -103,7 +84,81 @@ class GroupTaskTest {
         assertThat(task1).isNotEqualTo(task2)
     }
 
-    private fun createTask(id: Int): Task {
-        return Task(Task.TaskKey(id, 0, Intent(), ComponentName("", ""), 0, 0))
+    @Test
+    fun testDesktopTask_matchesDisplayId() {
+        val task1 = DesktopTask(deskId = 0, DEFAULT_DISPLAY, listOf(createTask(1, INVALID_DISPLAY)))
+        assertThat(task1.matchesDisplayId(DEFAULT_DISPLAY)).isTrue()
+        assertThat(task1.matchesDisplayId(DISPLAY_2)).isFalse()
+        val task2 = DesktopTask(deskId = 0, DISPLAY_2, listOf(createTask(1, DISPLAY_2)))
+        assertThat(task2.matchesDisplayId(DEFAULT_DISPLAY)).isFalse()
+        assertThat(task2.matchesDisplayId(DISPLAY_2)).isTrue()
+        val task3 = DesktopTask(deskId = 0, DISPLAY_2, listOf(createTask(1, INVALID_DISPLAY)))
+        assertThat(task3.matchesDisplayId(DEFAULT_DISPLAY)).isFalse()
+        assertThat(task3.matchesDisplayId(DISPLAY_2)).isTrue()
+    }
+
+    @Test
+    fun testSingleTask_matchesDisplayId() {
+        val task1 = SingleTask(createTask(1, INVALID_DISPLAY))
+        assertThat(task1.matchesDisplayId(DEFAULT_DISPLAY)).isTrue()
+        assertThat(task1.matchesDisplayId(DISPLAY_2)).isFalse()
+        val task2 = SingleTask(createTask(1, DISPLAY_2))
+        assertThat(task2.matchesDisplayId(DEFAULT_DISPLAY)).isFalse()
+        assertThat(task2.matchesDisplayId(DISPLAY_2)).isTrue()
+        val task3 = SingleTask(createTask(1, DEFAULT_DISPLAY))
+        assertThat(task3.matchesDisplayId(DEFAULT_DISPLAY)).isTrue()
+        assertThat(task3.matchesDisplayId(DISPLAY_2)).isFalse()
+    }
+
+    @Test
+    fun testSplitTask_matchesDisplayId() {
+        val splitBounds = SplitBounds(Rect(), Rect(), 1, 2, SplitScreenConstants.SNAP_TO_2_50_50)
+        val task1 =
+            SplitTask(createTask(1, INVALID_DISPLAY), createTask(2, INVALID_DISPLAY), splitBounds)
+        assertThat(task1.matchesDisplayId(DEFAULT_DISPLAY)).isTrue()
+        assertThat(task1.matchesDisplayId(DISPLAY_2)).isFalse()
+        val task2 = SplitTask(createTask(1, INVALID_DISPLAY), createTask(2, DISPLAY_2), splitBounds)
+        assertThat(task2.matchesDisplayId(DEFAULT_DISPLAY)).isTrue()
+        assertThat(task2.matchesDisplayId(DISPLAY_2)).isFalse()
+        val task3 = SplitTask(createTask(1, DISPLAY_2), createTask(2, INVALID_DISPLAY), splitBounds)
+        assertThat(task3.matchesDisplayId(DEFAULT_DISPLAY)).isFalse()
+        assertThat(task3.matchesDisplayId(DISPLAY_2)).isTrue()
+        val task4 =
+            SplitTask(createTask(1, DEFAULT_DISPLAY), createTask(2, DEFAULT_DISPLAY), splitBounds)
+        assertThat(task4.matchesDisplayId(DEFAULT_DISPLAY)).isTrue()
+        assertThat(task4.matchesDisplayId(DISPLAY_2)).isFalse()
+        val task5 = SplitTask(createTask(1, DEFAULT_DISPLAY), createTask(2, DISPLAY_2), splitBounds)
+        assertThat(task5.matchesDisplayId(DEFAULT_DISPLAY)).isTrue()
+        assertThat(task5.matchesDisplayId(DISPLAY_2)).isFalse()
+        val task6 = SplitTask(createTask(1, DISPLAY_2), createTask(2, DEFAULT_DISPLAY), splitBounds)
+        assertThat(task6.matchesDisplayId(DEFAULT_DISPLAY)).isFalse()
+        assertThat(task6.matchesDisplayId(DISPLAY_2)).isTrue()
+    }
+
+    private fun createTask(id: Int, displayId: Int = INVALID_DISPLAY, pkg: String? = null): Task {
+        val intent = Intent()
+        pkg.let { intent.setPackage(it) }
+        return Task(
+            Task.TaskKey(
+                id,
+                0,
+                intent,
+                ComponentName(pkg ?: "", ""),
+                0,
+                0,
+                displayId,
+                null,
+                0,
+                false,
+                false,
+                ACTIVITY_TYPE_STANDARD,
+                false,
+            )
+        )
+    }
+
+    companion object {
+        const val DISPLAY_2 = 2
+        const val PACKAGE = "com.android.launcher3"
     }
 }

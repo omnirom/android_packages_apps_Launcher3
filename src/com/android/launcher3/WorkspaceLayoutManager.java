@@ -42,8 +42,6 @@ public interface WorkspaceLayoutManager {
 
     // The is the first screen. It is always present, even if its empty.
     int FIRST_SCREEN_ID = 0;
-    // This is the second page. On two panel home it is always present, even if its empty.
-    int SECOND_SCREEN_ID = 1;
 
     /**
      * At bind time, we use the rank (screenId) to compute x and y for hotseat items.
@@ -62,6 +60,13 @@ public interface WorkspaceLayoutManager {
             Log.d(TAG, "addInScreenFromBind: hotseat inflation with x = " + x
                     + " and y = " + y);
         }
+
+        // b/388022685 adding logs to investigate why tag is sometimes null.
+        if (child.getTag() == null) {
+            Log.e(TAG, "child.getTag() is null here for view: " + child + " and itemInfo: "
+                    + info);
+        }
+
         addInScreen(child, info.container, presenterPos.screenId, x, y, info.spanX, info.spanY);
     }
 

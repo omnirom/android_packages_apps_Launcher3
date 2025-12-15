@@ -183,8 +183,8 @@ abstract class TutorialFragment extends GestureSandboxFragment implements OnTouc
 
         mDeviceProfile = InvariantDeviceProfile.INSTANCE.get(getContext())
                 .getDeviceProfile(getContext());
-        mIsLargeScreen = mDeviceProfile.isTablet;
-        mIsFoldable = mDeviceProfile.isTwoPanels;
+        mIsLargeScreen = mDeviceProfile.getDeviceProperties().isTablet();
+        mIsFoldable = mDeviceProfile.getDeviceProperties().isTwoPanels();
 
         if (mOnAttachedToWindowPendingCreate) {
             mOnAttachedToWindowPendingCreate = false;

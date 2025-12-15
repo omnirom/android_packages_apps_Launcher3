@@ -15,7 +15,6 @@
  */
 package com.android.launcher3.taskbar
 
-import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
@@ -37,6 +36,7 @@ import androidx.annotation.VisibleForTesting
 import androidx.core.text.HtmlCompat
 import androidx.core.view.updateLayoutParams
 import com.airbnb.lottie.LottieAnimationView
+import com.android.launcher3.Flags.refactorTaskbarUiState
 import com.android.launcher3.LauncherPrefs
 import com.android.launcher3.R
 import com.android.launcher3.RemoveAnimationSettingsTracker
@@ -46,7 +46,6 @@ import com.android.launcher3.taskbar.TaskbarAutohideSuspendController.FLAG_AUTOH
 import com.android.launcher3.taskbar.TaskbarControllers.LoggableTaskbarController
 import com.android.launcher3.util.OnboardingPrefs.TASKBAR_EDU_TOOLTIP_STEP
 import com.android.launcher3.util.OnboardingPrefs.TASKBAR_SEARCH_EDU_SEEN
-import com.android.launcher3.util.ResourceBasedOverride
 import com.android.launcher3.views.ActivityContext
 import com.android.launcher3.views.BaseDragLayer
 import com.android.quickstep.util.ContextualSearchInvoker
@@ -54,6 +53,7 @@ import com.android.quickstep.util.LottieAnimationColorUtils
 import com.android.wm.shell.shared.TypefaceUtils
 import com.android.wm.shell.shared.TypefaceUtils.FontFamily
 import java.io.PrintWriter
+import javax.inject.Inject
 
 /** First EDU step for swiping up to show transient Taskbar. */
 const val TOOLTIP_STEP_SWIPE = 0
@@ -79,10 +79,14 @@ private const val TOS_BASE_URL = "https://policies.google.com/terms?hl="
 annotation class TaskbarEduTooltipStep
 
 /** Controls stepping through the Taskbar tooltip EDU. */
-open class TaskbarEduTooltipController(context: Context) :
-    ResourceBasedOverride, LoggableTaskbarController {
+open class TaskbarEduTooltipController
+@Inject
+constructor(
+    activityContext: ActivityContext,
+    private val removeAnimationSettingsTracker: RemoveAnimationSettingsTracker,
+) : LoggableTaskbarController {
 
-    protected val activityContext: TaskbarActivityContext = ActivityContext.lookupContext(context)
+    protected val activityContext = activityContext as TaskbarActivityContext
     open val shouldShowSearchEdu: Boolean
         get() =
             ContextualSearchInvoker(activityContext)
@@ -102,6 +106,7 @@ open class TaskbarEduTooltipController(context: Context) :
         get() = isTooltipEnabled && tooltipStep <= TOOLTIP_STEP_FEATURES
 
     private lateinit var controllers: TaskbarControllers
+    private lateinit var taskbarUIState: TaskbarUiState
 
     // Keep track of whether the user has seen the Search Edu
     @VisibleForTesting
@@ -120,14 +125,31 @@ open class TaskbarEduTooltipController(context: Context) :
         }
         private set(step) {
             TASKBAR_EDU_TOOLTIP_STEP.set(step, activityContext)
+            updateShouldShowEduOnAppLaunch()
         }
 
     private var tooltip: TaskbarEduTooltip? = null
 
-    fun init(controllers: TaskbarControllers) {
+    fun init(controllers: TaskbarControllers, taskbarUiState: TaskbarUiState) {
         this.controllers = controllers
+        this.taskbarUIState = taskbarUiState
+        updateShouldShowEduOnAppLaunch()
         // We want to show the Search Edu right after pinning the taskbar, so we post it here
         activityContext.dragLayer.post { maybeShowSearchEdu() }
+    }
+
+    /**
+     * Should be called whenever [TaskbarUIController], [DeviceProfile] or
+     * "taskbar_edu_tooltip_step" counter is changed.
+     */
+    fun updateShouldShowEduOnAppLaunch() {
+        if (!refactorTaskbarUiState()) {
+            return
+        }
+        val uiController = controllers.uiController
+        if (uiController is LauncherTaskbarUIController) {
+            taskbarUIState.setShouldShowEduOnAppLaunch(uiController.shouldShowEduOnAppLaunch())
+        }
     }
 
     /**
@@ -136,10 +158,7 @@ open class TaskbarEduTooltipController(context: Context) :
      */
     fun handleEduAnimations(animationViews: List<LottieAnimationView>) {
         for (animationView in animationViews) {
-            if (
-                RemoveAnimationSettingsTracker.INSTANCE.get(animationView.context)
-                    .isRemoveAnimationEnabled()
-            ) {
+            if (removeAnimationSettingsTracker.isRemoveAnimationEnabled()) {
                 animationView.pauseAnimation()
             } else {
                 animationView.setOnClickListener {
@@ -168,6 +187,8 @@ open class TaskbarEduTooltipController(context: Context) :
                 FontFamily.GSF_HEADLINE_SMALL_EMPHASIZED,
             )
             val swipeAnimation = requireViewById<LottieAnimationView>(R.id.swipe_animation)
+            swipeAnimation.contentDescription =
+                context.getString(R.string.taskbar_edu_swipe_animation_description)
             swipeAnimation.supportLightTheme()
             handleEduAnimations(listOf(swipeAnimation))
             show()
@@ -192,8 +213,14 @@ open class TaskbarEduTooltipController(context: Context) :
         tooltip?.run {
             allowTouchDismissal = false
             val splitscreenAnim = requireViewById<LottieAnimationView>(R.id.splitscreen_animation)
+            splitscreenAnim.contentDescription =
+                context.getString(R.string.taskbar_edu_split_screen_animation_description)
             val suggestionsAnim = requireViewById<LottieAnimationView>(R.id.suggestions_animation)
+            suggestionsAnim.contentDescription =
+                context.getString(R.string.taskbar_edu_suggested_app_animation_description)
             val pinningAnim = requireViewById<LottieAnimationView>(R.id.pinning_animation)
+            pinningAnim.contentDescription =
+                context.getString(R.string.taskbar_edu_pinning_animation_description)
             val pinningEdu = requireViewById<View>(R.id.pinning_edu)
             splitscreenAnim.supportLightTheme()
             suggestionsAnim.supportLightTheme()
@@ -237,7 +264,7 @@ open class TaskbarEduTooltipController(context: Context) :
                             else R.dimen.taskbar_edu_features_tooltip_width_with_two_features
                         )
 
-                    bottomMargin += activityContext.deviceProfile.taskbarHeight
+                    bottomMargin += activityContext.deviceProfile.taskbarProfile.height
                 } else {
                     width =
                         resources.getDimensionPixelSize(
@@ -285,11 +312,13 @@ open class TaskbarEduTooltipController(context: Context) :
 
             val pinningAnim =
                 requireViewById<LottieAnimationView>(R.id.standalone_pinning_animation)
+            pinningAnim.contentDescription =
+                context.getString(R.string.taskbar_edu_pinning_animation_description)
             pinningAnim.supportLightTheme()
             handleEduAnimations(listOf(pinningAnim))
             updateLayoutParams<BaseDragLayer.LayoutParams> {
                 if (activityContext.isTransientTaskbar) {
-                    bottomMargin += activityContext.deviceProfile.taskbarHeight
+                    bottomMargin += activityContext.deviceProfile.taskbarProfile.height
                 }
                 // Unlike other tooltips, we want to align with taskbar divider rather than center.
                 gravity = Gravity.BOTTOM
@@ -331,6 +360,8 @@ open class TaskbarEduTooltipController(context: Context) :
         tooltip?.run {
             allowTouchDismissal = true
             val searchEdu = requireViewById<LottieAnimationView>(R.id.search_edu_animation)
+            searchEdu.contentDescription =
+                context.getString(R.string.taskbar_edu_suggested_search_animation_description)
             searchEdu.supportLightTheme()
             handleEduAnimations(listOf(searchEdu))
             val eduSubtitle: TextView = requireViewById(R.id.search_edu_text)
@@ -344,7 +375,7 @@ open class TaskbarEduTooltipController(context: Context) :
             showDisclosureText(eduSubtitle)
             updateLayoutParams<BaseDragLayer.LayoutParams> {
                 if (activityContext.isTransientTaskbar) {
-                    bottomMargin += activityContext.deviceProfile.taskbarHeight
+                    bottomMargin += activityContext.deviceProfile.taskbarProfile.height
                 }
                 // Unlike other tooltips, we want to align with the all apps button rather than
                 // center.
@@ -488,13 +519,8 @@ open class TaskbarEduTooltipController(context: Context) :
 
     companion object {
         @JvmStatic
-        fun newInstance(context: Context): TaskbarEduTooltipController {
-            return ResourceBasedOverride.Overrides.getObject(
-                TaskbarEduTooltipController::class.java,
-                context,
-                R.string.taskbar_edu_tooltip_controller_class,
-            )
-        }
+        fun newInstance(activityContext: ActivityContext): TaskbarEduTooltipController =
+            activityContext.activityComponent.createTaskbarEduTooltipController()
     }
 }
 

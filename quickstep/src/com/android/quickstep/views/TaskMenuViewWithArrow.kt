@@ -45,7 +45,7 @@ class TaskMenuViewWithArrow<T> : ArrowPopup<T> where T : RecentsViewContainer, T
         fun showForTask(
             taskContainer: TaskContainer,
             alignedOptionIndex: Int = 0,
-            onClosedCallback: Runnable? = null
+            onClosedCallback: Runnable? = null,
         ): Boolean {
             val container: RecentsViewContainer =
                 RecentsViewContainer.containerFromContext(taskContainer.taskView.context)
@@ -53,13 +53,13 @@ class TaskMenuViewWithArrow<T> : ArrowPopup<T> where T : RecentsViewContainer, T
                 container.layoutInflater.inflate(
                     R.layout.task_menu_with_arrow,
                     container.dragLayer,
-                    false
+                    false,
                 ) as TaskMenuViewWithArrow<*>
 
             return taskMenuViewWithArrow.populateAndShowForTask(
                 taskContainer,
                 alignedOptionIndex,
-                onClosedCallback
+                onClosedCallback,
             )
         }
     }
@@ -71,7 +71,7 @@ class TaskMenuViewWithArrow<T> : ArrowPopup<T> where T : RecentsViewContainer, T
     constructor(
         context: Context,
         attrs: AttributeSet,
-        defStyleAttr: Int
+        defStyleAttr: Int,
     ) : super(context, attrs, defStyleAttr)
 
     init {
@@ -144,14 +144,14 @@ class TaskMenuViewWithArrow<T> : ArrowPopup<T> where T : RecentsViewContainer, T
             taskInsetMargin,
             mActivityContext.deviceProfile,
             translationX,
-            translationY
+            translationY,
         )
     }
 
     private fun populateAndShowForTask(
         taskContainer: TaskContainer,
         alignedOptionIndex: Int,
-        onClosedCallback: Runnable?
+        onClosedCallback: Runnable?,
     ): Boolean {
         if (isAttachedToWindow) {
             return false
@@ -173,7 +173,7 @@ class TaskMenuViewWithArrow<T> : ArrowPopup<T> where T : RecentsViewContainer, T
                 layoutParams =
                     FrameLayout.LayoutParams(
                         FrameLayout.LayoutParams.MATCH_PARENT,
-                        FrameLayout.LayoutParams.MATCH_PARENT
+                        FrameLayout.LayoutParams.MATCH_PARENT,
                     )
                 setBackgroundColor(Themes.getAttrColor(context, R.attr.overviewScrimColor))
                 alpha = 0f
@@ -210,7 +210,7 @@ class TaskMenuViewWithArrow<T> : ArrowPopup<T> where T : RecentsViewContainer, T
             deviceProfile,
             optionLayout,
             dividerSpacing,
-            divider
+            divider,
         )
     }
 
@@ -220,7 +220,7 @@ class TaskMenuViewWithArrow<T> : ArrowPopup<T> where T : RecentsViewContainer, T
                 as LinearLayout
         menuOption.setIconAndLabelFor(
             menuOptionView.requireViewById(R.id.icon),
-            menuOptionView.requireViewById(R.id.text)
+            menuOptionView.requireViewById(R.id.text),
         )
         val lp = menuOptionView.layoutParams as LayoutParams
         lp.width = LayoutParams.MATCH_PARENT
@@ -228,7 +228,7 @@ class TaskMenuViewWithArrow<T> : ArrowPopup<T> where T : RecentsViewContainer, T
             menuOptionView.paddingStart,
             menuOptionView.paddingTop,
             menuPaddingEnd,
-            menuOptionView.paddingBottom
+            menuOptionView.paddingBottom,
         )
         menuOptionView.setOnClickListener { view: View? -> menuOption.onClick(view) }
         optionLayout.addView(menuOptionView)
@@ -237,7 +237,7 @@ class TaskMenuViewWithArrow<T> : ArrowPopup<T> where T : RecentsViewContainer, T
     override fun assignMarginsAndBackgrounds(viewGroup: ViewGroup) {
         assignMarginsAndBackgrounds(
             this,
-            Themes.getAttrColor(context, com.android.internal.R.attr.colorSurface)
+            Themes.getAttrColor(context, com.android.internal.R.attr.colorSurface),
         )
     }
 
@@ -275,15 +275,15 @@ class TaskMenuViewWithArrow<T> : ArrowPopup<T> where T : RecentsViewContainer, T
             IconView(context).apply {
                 layoutParams =
                     FrameLayout.LayoutParams(
-                        taskContainer.iconView.width,
-                        taskContainer.iconView.height
+                        taskContainer.iconView.asView().width,
+                        taskContainer.iconView.asView().height,
                     )
                 x = mTempRect.left.toFloat() - insets.left
                 y = mTempRect.top.toFloat() - insets.top
                 drawable = taskContainer.iconView.drawable
                 setDrawableSize(
                     taskContainer.iconView.drawableWidth,
-                    taskContainer.iconView.drawableHeight
+                    taskContainer.iconView.drawableHeight,
                 )
             }
 
@@ -369,7 +369,7 @@ class TaskMenuViewWithArrow<T> : ArrowPopup<T> where T : RecentsViewContainer, T
                 mArrowHeight.toFloat(),
                 mArrowPointRadius.toFloat(),
                 mIsLeftAligned,
-                mArrowColor
+                mArrowColor,
             )
         elevation = mElevation
         mArrow.elevation = mElevation

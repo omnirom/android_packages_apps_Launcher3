@@ -16,13 +16,17 @@
 
 package com.android.launcher3;
 
-import static com.android.launcher3.BuildConfig.WIDGET_ON_FIRST_SCREEN;
-import static com.android.launcher3.Flags.enableSmartspaceAsAWidget;
+import static com.android.launcher3.Flags.enableMouseInteractionChanges;
+import static com.android.launcher3.Flags.injectableModelItems;
+import static com.android.launcher3.LauncherSettings.Favorites.CONTAINER_PRIVATESPACE;
+import static com.android.launcher3.folder.ClippedFolderIconLayoutRule.ICON_OVERLAP_FACTOR;
 import static com.android.launcher3.graphics.ShapeDelegate.DEFAULT_PATH_SIZE;
 import static com.android.launcher3.icons.BitmapInfo.FLAG_THEMED;
+import static com.android.launcher3.icons.IconNormalizer.ICON_VISIBLE_AREA_FACTOR;
 import static com.android.launcher3.util.SplitConfigurationOptions.STAGE_POSITION_BOTTOM_OR_RIGHT;
 import static com.android.launcher3.util.SplitConfigurationOptions.STAGE_POSITION_TOP_OR_LEFT;
 import static com.android.launcher3.util.SplitConfigurationOptions.STAGE_TYPE_MAIN;
+import static com.android.window.flags.Flags.enableNonDefaultDisplaySplit;
 
 import android.annotation.SuppressLint;
 import android.app.ActivityManager;
@@ -76,11 +80,13 @@ import androidx.annotation.Nullable;
 import androidx.annotation.WorkerThread;
 import androidx.core.graphics.ColorUtils;
 
+import com.android.launcher3.deviceprofile.DeviceProperties;
 import com.android.launcher3.dragndrop.FolderAdaptiveIcon;
 import com.android.launcher3.graphics.ThemeManager;
 import com.android.launcher3.graphics.TintedDrawableSpan;
 import com.android.launcher3.icons.BitmapInfo;
 import com.android.launcher3.icons.CacheableShortcutInfo;
+import com.android.launcher3.icons.IconShape;
 import com.android.launcher3.icons.IconThemeController;
 import com.android.launcher3.icons.LauncherIcons;
 import com.android.launcher3.model.data.ItemInfo;
@@ -99,11 +105,13 @@ import com.android.launcher3.views.BaseDragLayer;
 import com.android.launcher3.widget.PendingAddShortcutInfo;
 
 import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 /**
  * Various utilities shared amongst the Launcher's classes.
@@ -143,13 +151,14 @@ public final class Utilities {
     @Deprecated
     public static final boolean IS_DEBUG_DEVICE = BuildConfig.IS_DEBUG_DEVICE;
 
+    public static boolean qsbOnFirstScreen() {
+        return !injectableModelItems() && BuildConfig.QSB_ON_FIRST_SCREEN;
+    }
+
     public static final int TRANSLATE_UP = 0;
     public static final int TRANSLATE_DOWN = 1;
     public static final int TRANSLATE_LEFT = 2;
     public static final int TRANSLATE_RIGHT = 3;
-
-    public static final boolean SHOULD_SHOW_FIRST_PAGE_WIDGET =
-            enableSmartspaceAsAWidget() && WIDGET_ON_FIRST_SCREEN;
 
     @IntDef({TRANSLATE_UP, TRANSLATE_DOWN, TRANSLATE_LEFT, TRANSLATE_RIGHT})
     public @interface AdjustmentDirection{}
@@ -443,6 +452,25 @@ public final class Utilities {
         return (int) mapRange(interpolator.getInterpolation(progress), toMin, toMax);
     }
 
+    /**
+     * TODO(b/235886078): workaround needed because of this bug
+     * Icons are 10% larger on XML than their visual size, so remove that extra space to get
+     * some dimensions correct.
+     *
+     * When this bug is resolved this method will no longer be needed and we would be able to
+     * replace all instances where this method is called with iconSizePx.
+     */
+    public static int getIconVisibleSizePx(int iconSizePx) {
+        return Math.round(ICON_VISIBLE_AREA_FACTOR * iconSizePx);
+    }
+
+    public static int getNormalizedIconDrawablePadding(int iconSizePx, int iconDrawablePadding) {
+        return Math.max(
+                0,
+                iconDrawablePadding - ((iconSizePx - getIconVisibleSizePx(iconSizePx)) / 2)
+        );
+    }
+
     /** Bounds t between a lower and upper bound and maps the result to a range. */
     public static float mapBoundToRange(float t, float lowerBound, float upperBound,
             float toMin, float toMax, Interpolator interpolator) {
@@ -485,8 +513,8 @@ public final class Utilities {
     }
 
     /** Converts a pixel value (px) to scale pixel value (SP) for the current device. */
-    public static float pxToSp(float size) {
-        return size / Resources.getSystem().getDisplayMetrics().scaledDensity;
+    public static float pxToSp(float size, Context context) {
+        return size / context.getResources().getDisplayMetrics().scaledDensity;
     }
 
     public static float dpiFromPx(float size, int densityDpi) {
@@ -499,6 +527,11 @@ public final class Utilities {
         return (int) (dp * Resources.getSystem().getDisplayMetrics().density);
     }
 
+    /** Converts a dp value to pixels for the current context. */
+    public static int dpToPx(float dp, Context context) {
+        return (int) (dp * context.getResources().getDisplayMetrics().density);
+    }
+
     /** Converts a dp value to pixels for a certain density. */
     public static int dpToPx(float dp, int densityDpi) {
         float densityRatio = (float) densityDpi / DisplayMetrics.DENSITY_DEFAULT;
@@ -507,6 +540,10 @@ public final class Utilities {
 
     public static int pxFromSp(float size, DisplayMetrics metrics) {
         return pxFromSp(size, metrics, 1f);
+    }
+
+    public static int getIconSizeWithOverlap(int iconSize) {
+        return (int) Math.ceil(iconSize * ICON_OVERLAP_FACTOR);
     }
 
     public static int pxFromSp(float size, DisplayMetrics metrics, float scale) {
@@ -643,7 +680,7 @@ public final class Utilities {
 
         Drawable badge = null;
         if ((info instanceof ItemInfoWithIcon iiwi) && !iiwi.getMatchingLookupFlag().useLowRes()) {
-            badge = iiwi.bitmap.getBadgeDrawable(context, useTheme, getIconShapeOrNull(context));
+            badge = iiwi.bitmap.getBadgeDrawable(context, useTheme);
         }
 
         if (info instanceof PendingAddShortcutInfo) {
@@ -656,7 +693,11 @@ public final class Utilities {
             if (activityInfo == null) {
                 return null;
             }
-            mainIcon = appState.getIconCache().getFullResIcon(activityInfo.getActivityInfo());
+            if (info instanceof ItemInfoWithIcon && info.container == CONTAINER_PRIVATESPACE) {
+                mainIcon = ((ItemInfoWithIcon) info).bitmap.getBadgeDrawable(context, useTheme);
+            } else {
+                mainIcon = appState.getIconCache().getFullResIcon(activityInfo.getActivityInfo());
+            }
         } else if (info.itemType == LauncherSettings.Favorites.ITEM_TYPE_DEEP_SHORTCUT) {
             List<ShortcutInfo> siList = ShortcutKey.fromItemInfo(info)
                     .buildRequest(context)
@@ -669,12 +710,13 @@ public final class Utilities {
                         appState.getInvariantDeviceProfile().fillResIconDpi);
                 // Only fetch badge if the icon is on workspace
                 if (info.id != ItemInfo.NO_ID && badge == null) {
-                    badge = appState.getIconCache().getShortcutInfoBadge(si).newIcon(
-                            context,
-                            ThemeManager.INSTANCE.get(context).isIconThemeEnabled()
-                                    ? FLAG_THEMED : 0,
-                            getIconShapeOrNull(context)
-                    );
+                    ThemeManager themeManager = ThemeManager.INSTANCE.get(context);
+                    BitmapInfo badgeInfo = appState.getIconCache().getShortcutInfoBadge(si);
+                    IconShape shape = themeManager.getIconShapeData().getValue();
+
+                    int flags = ThemeManager.INSTANCE.get(context).isIconThemeEnabled()
+                            ? FLAG_THEMED : 0;
+                    badge = badgeInfo.newIcon(context, flags, shape);
                 }
             }
         } else if (info.itemType == LauncherSettings.Favorites.ITEM_TYPE_FOLDER) {
@@ -699,21 +741,18 @@ public final class Utilities {
                 result = li.wrapToAdaptiveIcon(mainIcon);
             }
         }
-        if (result == null) {
-            return null;
-        }
 
         // Inject theme icon drawable
         if (ATLEAST_T && useTheme) {
             IconThemeController themeController =
                     ThemeManager.INSTANCE.get(context).getThemeController();
             if (themeController != null) {
-                AdaptiveIconDrawable themed = themeController.createThemedAdaptiveIcon(
+                result = themeController.createThemedAdaptiveIcon(
                         context,
                         result,
                         info instanceof ItemInfoWithIcon iiwi ? iiwi.bitmap : null);
-                if (themed != null) {
-                    result = themed;
+                if (result == null) {
+                    return null;
                 }
             }
         }
@@ -724,7 +763,7 @@ public final class Utilities {
                             .getUserInfo(info.user)
                             .applyBitmapInfoFlags(FlagOp.NO_OP)
                     )
-                    .getBadgeDrawable(context, useTheme, getIconShapeOrNull(context));
+                    .getBadgeDrawable(context, useTheme);
             if (badge == null) {
                 badge = new ColorDrawable(Color.TRANSPARENT);
             }
@@ -846,9 +885,12 @@ public final class Utilities {
      */
     public static List<SplitPositionOption> getSplitPositionOptions(
             DeviceProfile dp) {
-        int splitIconRes = dp.isLeftRightSplit
-                ? R.drawable.ic_split_horizontal
-                : R.drawable.ic_split_vertical;
+        int splitIconRes;
+        if (dp.isLeftRightSplit) {
+            splitIconRes = R.drawable.ic_split_horizontal;
+        } else {
+            splitIconRes = R.drawable.ic_split_vertical;
+        }
         int stagePosition = dp.isLeftRightSplit
                 ? STAGE_POSITION_BOTTOM_OR_RIGHT
                 : STAGE_POSITION_TOP_OR_LEFT;
@@ -988,6 +1030,50 @@ public final class Utilities {
     public static void debugLog(String tag, String message) {
         if (BuildConfig.IS_DEBUG_DEVICE) {
             Log.d(tag, message);
+        }
+    }
+
+    /**
+     * Returns whether mouse interaction changes intended for the desktop form factor should be
+     * enabled.
+     */
+    public static boolean shouldEnableMouseInteractionChanges(Context context) {
+        return enableMouseInteractionChanges() && context.getResources().getBoolean(
+                R.bool.desktop_form_factor);
+    }
+
+    /**
+     * Returns a partial, loggable stack trace.
+     */
+    public static String getTrimmedStackTrace(String callingMethodName) {
+        String stackTrace = Log.getStackTraceString(new Exception());
+        return Arrays.stream(stackTrace.split("\\n"))
+                .skip(2) // Removes the line "java.lang.Exception" and "getTrimmedStackTrace".
+                .filter(traceLine -> !traceLine.contains(callingMethodName))
+                .limit(3)
+                .collect(Collectors.joining("\n"));
+    }
+
+    /**
+     * Determines whether the split should be left/right split layout and returns a boolean.
+     * The split orientation depends on the device's properties (tablet vs. phone, landscape vs.
+     * portrait), if current display is external display, and flags.
+     *
+     * @return {@code true} if the split should be a left/right split, {@code false} if it should
+     *     be a top/bottom split.
+     */
+    public static boolean calculateIsLeftRightSplit(boolean allowLeftRightSplitInPortrait,
+            DeviceProperties deviceProperties, boolean isExternalDisplay) {
+        if (allowLeftRightSplitInPortrait && deviceProperties.isTablet()) {
+            if (!isExternalDisplay || !enableNonDefaultDisplaySplit()) {
+                return !deviceProperties.isLandscape();
+            } else {
+                // If split is started in external display and the non_default_display_split
+                // is enabled, set isLeftRightSplit to true in landscape mode.
+                return deviceProperties.isLandscape();
+            }
+        } else {
+            return deviceProperties.isLandscape();
         }
     }
 }
