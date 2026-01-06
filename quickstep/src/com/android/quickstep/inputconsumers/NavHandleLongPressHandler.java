@@ -57,6 +57,7 @@ import javax.inject.Inject;
 public class NavHandleLongPressHandler {
 
     private static final String TAG = "NavHandleLongPressHandler";
+    private final Context mContext;
     protected final VibratorWrapper mVibratorWrapper;
     protected final ContextualSearchHapticManager mContextualSearchHapticManager;
     protected final ContextualSearchInvoker mContextualSearchInvoker;
@@ -73,6 +74,7 @@ public class NavHandleLongPressHandler {
             StatsLogManager.StatsLogManagerFactory logManagerFactory,
             ContextualSearchStateManager contextualSearchStateManager,
             ContextualSearchInvoker contextualSearchInvoker) {
+        mContext = context;
         mStatsLogManager = logManagerFactory.create(context);
         mVibratorWrapper = vibratorWrapper;
         mContextualSearchHapticManager = hapticManager;
