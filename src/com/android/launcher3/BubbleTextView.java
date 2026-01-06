@@ -24,6 +24,7 @@ import static com.android.launcher3.BubbleTextView.RunningAppState.MINIMIZED;
 import static com.android.launcher3.BubbleTextView.RunningAppState.RUNNING;
 import static com.android.launcher3.Flags.enableContrastTiles;
 import static com.android.launcher3.Flags.enableScalabilityForDesktopExperience;
+import static com.android.launcher3.LauncherPrefs.ALLAPPS_THEMED_ICONS;
 import static com.android.launcher3.graphics.PreloadIconDelegate.extractPreloadDelegate;
 import static com.android.launcher3.graphics.PreloadIconDelegate.hasPendingAnimationCompleted;
 import static com.android.launcher3.graphics.PreloadIconDelegate.newPendingIcon;
@@ -252,6 +253,9 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
 
     private boolean mHighResUpdateInProgress = false;
 
+    /*omni-addon*/
+    private boolean mThemeAllAppsIcons;
+
     public BubbleTextView(Context context) {
         this(context, null, 0);
     }
@@ -291,6 +295,7 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
             setCompoundDrawablePadding(
                     mDeviceProfile.getAllAppsProfile().getIconDrawablePaddingPx());
             defaultIconSize = mDeviceProfile.getAllAppsProfile().getIconSizePx();
+            mThemeAllAppsIcons = ALLAPPS_THEMED_ICONS.get(context);
         } else if (mDisplay == DISPLAY_FOLDER) {
             setTextSize(TypedValue.COMPLEX_UNIT_PX,
                     mDeviceProfile.getFolderProfile().getChildTextSizePx());
@@ -578,7 +583,8 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
 
     protected boolean shouldUseTheme() {
         return mDisplay == DISPLAY_WORKSPACE || mDisplay == DISPLAY_FOLDER
-                || mDisplay == DISPLAY_TASKBAR;
+                || mDisplay == DISPLAY_TASKBAR
+                || (mThemeAllAppsIcons && mDisplay == DISPLAY_ALL_APPS);
     }
 
     /**
