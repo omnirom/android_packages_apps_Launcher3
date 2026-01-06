@@ -4,6 +4,7 @@
     <include domain="database" path="launcher.db" />
     <include domain="database" path="launcher_5_by_8.db" />
     <include domain="database" path="launcher_6_by_5.db" />
+    <include domain="database" path="launcher_6_by_6.db" />
     <include domain="database" path="launcher_5_by_6.db" />
     <include domain="database" path="launcher_4_by_6.db" />
     <include domain="database" path="launcher_4_by_5.db" />
