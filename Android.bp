@@ -443,7 +443,6 @@ android_library {
         "kotlinx_coroutines",
         "com_android_launcher3_flags_lib",
         "com_android_wm_shell_flags_lib",
-        "OmniPreferenceTheme",
         "dagger2",
         "jsr330",
         "com_android_systemui_shared_flags_lib",

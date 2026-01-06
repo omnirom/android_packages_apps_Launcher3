@@ -63,9 +63,4 @@
         android:defaultValue="false"
         android:persistent="true" />
 
-    <ListPreference
-        android:key="pref_grid"
-        android:title="@string/pref_grid_title"
-        android:persistent="false"/>
-
 </androidx.preference.PreferenceScreen>

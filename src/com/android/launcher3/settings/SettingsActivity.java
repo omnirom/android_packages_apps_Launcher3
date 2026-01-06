@@ -24,20 +24,16 @@ import static com.android.launcher3.BuildConfig.IS_DEBUG_DEVICE;
 import static com.android.launcher3.BuildConfig.IS_STUDIO_BUILD;
 import static com.android.launcher3.InvariantDeviceProfile.TYPE_MULTI_DISPLAY;
 import static com.android.launcher3.InvariantDeviceProfile.TYPE_TABLET;
-import static com.android.launcher3.LauncherPrefs.GRID_NAME;
 import static com.android.launcher3.states.RotationHelper.ALLOW_ROTATION_PREFERENCE_KEY;
 
 import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.net.Uri;
-import android.content.res.XmlResourceParser;
 import android.os.Bundle;
 import android.os.Handler;
 import android.provider.Settings;
 import android.text.TextUtils;
-import android.util.Log;
-import android.util.Xml;
 import android.view.MenuItem;
 import android.view.View;
 
@@ -48,7 +44,6 @@ import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 import androidx.fragment.app.FragmentManager;
-import androidx.preference.ListPreference;
 import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
 import androidx.preference.PreferenceFragmentCompat.OnPreferenceStartFragmentCallback;
@@ -61,9 +56,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.android.launcher3.BuildConfig;
 import com.android.launcher3.Flags;
 import com.android.launcher3.InvariantDeviceProfile;
-import com.android.launcher3.InvariantDeviceProfile.GridOption;
 import com.android.launcher3.LauncherFiles;
-import com.android.launcher3.LauncherPrefs;
 import com.android.launcher3.R;
 import com.android.launcher3.states.RotationHelper;
 import com.android.launcher3.Utilities;
@@ -71,20 +64,12 @@ import com.android.launcher3.util.DisplayController;
 import com.android.launcher3.util.SettingsCache;
 
 import org.omnirom.omnilib.utils.PackageUtils;
-import org.xmlpull.v1.XmlPullParser;
-import org.xmlpull.v1.XmlPullParserException;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 
 /**
  * Settings activity for Launcher. Currently implements the following setting: Allow rotation
  */
 public class SettingsActivity extends FragmentActivity
         implements OnPreferenceStartFragmentCallback, OnPreferenceStartScreenCallback {
-    private static final String TAG = "SettingsActivity";
 
     @VisibleForTesting
     static final String DEVELOPER_OPTIONS_KEY = "pref_developer_options";
@@ -92,7 +77,6 @@ public class SettingsActivity extends FragmentActivity
     public static final String FIXED_LANDSCAPE_MODE = "pref_fixed_landscape_mode";
 
     private static final String NOTIFICATION_DOTS_PREFERENCE_KEY = "pref_icon_badging";
-    private static final String GRID_SIZE_PREFERENCE_KEY = "pref_grid";
 
     public static final String EXTRA_FRAGMENT_ARGS = ":settings:fragment_args";
 
@@ -257,48 +241,6 @@ public class SettingsActivity extends FragmentActivity
             leftTabPage.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
                 public boolean onPreferenceChange(Preference preference, Object newValue) {
                     new Handler().postDelayed(() -> Utilities.restart(getActivity()), Utilities.WAIT_BEFORE_RESTART);
-                    return true;
-                }
-            });
-
-            final ListPreference grid = (ListPreference) findPreference(GRID_SIZE_PREFERENCE_KEY);
-            InvariantDeviceProfile idp = InvariantDeviceProfile.INSTANCE.get(getContext());
-            ArrayList<String> entries = new ArrayList<>();
-            ArrayList<String> values = new ArrayList<>();
-            for (GridOption gridOption : parseAllGridOptions(idp.deviceType)) {
-                values.add(gridOption.name);
-                entries.add(gridOption.numColumns + " x " + gridOption.numRows);
-            }
-
-            grid.setEntries(entries.toArray(new String[entries.size()]));
-            grid.setEntryValues(values.toArray(new String[values.size()]));
-
-            String currentGrid = LauncherPrefs.INSTANCE.get(getContext()).get(GRID_NAME);
-            int valueIndex = grid.findIndexOfValue(currentGrid);
-            grid.setValueIndex(valueIndex >= 0 ? valueIndex : 0);
-            grid.setSummary(grid.getEntry());
-
-            grid.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
-                public boolean onPreferenceChange(Preference preference, Object newValue) {
-                    // Verify that this is a valid grid option
-                    String gridName = (String) newValue;
-                    GridOption match = null;
-                    for (GridOption option : parseAllGridOptions(idp.deviceType)) {
-                        if (option.name.equals(gridName)) {
-                            match = option;
-                            break;
-                        }
-                    }
-                    if (match == null) {
-                        return false;
-                    }
-
-                    InvariantDeviceProfile.INSTANCE.get(getContext())
-                            .setCurrentGrid(gridName);
-
-                    int valueIndex = grid.findIndexOfValue(gridName);
-                    grid.setValueIndex(valueIndex >= 0 ? valueIndex : 0);
-                    grid.setSummary(grid.getEntries()[valueIndex]);
                     return true;
                 }
             });
@@ -479,32 +421,6 @@ public class SettingsActivity extends FragmentActivity
             return position >= 0 ? new PreferenceHighlighter(
                     list, position, screen.findPreference(mHighLightKey))
                     : null;
-        }
-
-        private List<GridOption> parseAllGridOptions(int deviceType) {
-            List<GridOption> result = new ArrayList<>();
-            try (XmlResourceParser parser = getContext().getResources().getXml(R.xml.device_profiles)) {
-                final int depth = parser.getDepth();
-                int type;
-                while (((type = parser.next()) != XmlPullParser.END_TAG ||
-                        parser.getDepth() > depth) && type != XmlPullParser.END_DOCUMENT) {
-                    if ((type == XmlPullParser.START_TAG)
-                            && GridOption.TAG_NAME.equals(parser.getName())) {
-                        GridOption gridOption = new GridOption
-                        (
-                            getContext(), Xml.asAttributeSet(parser),
-                            DisplayController.INSTANCE.get(getContext()).getInfo()
-                        );
-                        if (gridOption.isEnabled(deviceType)) {
-                            result.add(gridOption);
-                        }
-                    }
-                }
-            } catch (IOException | XmlPullParserException e) {
-                Log.e(TAG, "Error parsing device profile", e);
-                return Collections.emptyList();
-            }
-            return result;
         }
 
         private boolean isSearchInstalled() {

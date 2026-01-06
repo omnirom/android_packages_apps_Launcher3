@@ -17,10 +17,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
 
+    <!-- Process dialog to reboot launcher-->
     <string name="state_loading">Applying\u2026</string>
-    <string name="pref_qsb_show_summary"></string>
-    <string name="pref_qsb_show_title">Show search widget</string>
-    <string name="pref_grid_title">Grid size</string>
+
+    <!-- Google search-->
     <string name="left_tab_label">Google feed tab</string>
     <string name="left_tab_description">Toggle Google feed intergration</string>
 
