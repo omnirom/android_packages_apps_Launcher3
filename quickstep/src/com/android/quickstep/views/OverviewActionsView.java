@@ -215,6 +215,8 @@ public class OverviewActionsView<T extends OverlayUICallbacks> extends FrameLayo
         mSplitButton = findViewById(R.id.action_split);
         mSplitButton.setOnClickListener(this);
         mSaveAppPairButton.setOnClickListener(this);
+        View clearallButton = findViewById(R.id.action_clear_all);
+        clearallButton.setOnClickListener(this);
     }
 
     /**
@@ -238,6 +240,8 @@ public class OverviewActionsView<T extends OverlayUICallbacks> extends FrameLayo
             mCallbacks.onSplit();
         } else if (id == R.id.action_save_app_pair) {
             mCallbacks.onSaveAppPair();
+        } else if (id == R.id.action_clear_all) {
+            mCallbacks.onClearAllTasks();
         }
     }
 

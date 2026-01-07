@@ -257,6 +257,12 @@ public class TaskOverlayFactory {
             }
         }
 
+        private void clearAllTasks() {
+            RecentsView recentsView =
+                    mTaskContainer.getTaskView().getRecentsView();
+            recentsView.dismissAllTasks(null);
+        }
+
         protected void enterSplitSelect() {
             RecentsView overviewPanel = mTaskContainer.getTaskView().getRecentsView();
             // Task has already been dismissed
@@ -435,6 +441,10 @@ public class TaskOverlayFactory {
             public void onSaveAppPair() {
                 endLiveTileMode(TaskOverlay.this::saveAppPair);
             }
+
+            public void onClearAllTasks() {
+                endLiveTileMode(TaskOverlay.this::clearAllTasks);
+            }
         }
     }
 
@@ -451,5 +461,7 @@ public class TaskOverlayFactory {
 
         /** User wants to save an app pair with current group of apps. */
         void onSaveAppPair();
+
+        void onClearAllTasks();
     }
 }
