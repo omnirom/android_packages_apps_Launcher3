@@ -133,6 +133,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
 import java.util.function.IntConsumer;
 
+import org.omnirom.omnilib.utils.OmniSettings;
+
 /**
  * Class to manage taskbar lifecycle
  */
@@ -168,6 +170,12 @@ public class TaskbarManagerImpl implements DisplayDecorationListener {
 
     public static final LooperExecutor TASKBAR_UI_THREAD =
             new LooperExecutor("TASKBAR_UI_THREAD", THREAD_PRIORITY_FOREGROUND);
+
+    public static final Uri OMNI_GESTURE_HANDLE_HIDE = Settings.System.getUriFor(
+            OmniSettings.OMNI_GESTURE_HANDLE_HIDE);
+
+    public static final Uri OMNI_GESTURE_HANDLE_SMALL = Settings.System.getUriFor(
+            OmniSettings.OMNI_GESTURE_HANDLE_SMALL);
 
     private final Context mBaseContext;
     private final WindowManager mBaseWindowManager;
@@ -464,6 +472,10 @@ public class TaskbarManagerImpl implements DisplayDecorationListener {
                 .register(USER_SETUP_COMPLETE_URI, mOnSettingsChangeListener);
         SettingsCache.INSTANCE.get(mPrimaryWindowContext)
                 .register(NAV_BAR_KIDS_MODE, mOnSettingsChangeListener);
+        SettingsCache.INSTANCE.get(mPrimaryWindowContext)
+                .register(OMNI_GESTURE_HANDLE_HIDE, mOnSettingsChangeListener);
+        SettingsCache.INSTANCE.get(mPrimaryWindowContext)
+                .register(OMNI_GESTURE_HANDLE_SMALL, mOnSettingsChangeListener);
         if (DesktopExperienceFlags.ENABLE_SYS_DECORS_CALLBACKS_VIA_WM.isTrue()
                 && DesktopExperienceFlags.ENABLE_DISPLAY_CONTENT_MODE_MANAGEMENT.isTrue()) {
             displaysWithDecorationsRepositoryCompat
@@ -1195,6 +1207,10 @@ public class TaskbarManagerImpl implements DisplayDecorationListener {
                 .unregister(USER_SETUP_COMPLETE_URI, mOnSettingsChangeListener);
         SettingsCache.INSTANCE.get(mPrimaryWindowContext)
                 .unregister(NAV_BAR_KIDS_MODE, mOnSettingsChangeListener);
+        SettingsCache.INSTANCE.get(mPrimaryWindowContext)
+                .unregister(OMNI_GESTURE_HANDLE_HIDE, mOnSettingsChangeListener);
+        SettingsCache.INSTANCE.get(mPrimaryWindowContext)
+                .unregister(OMNI_GESTURE_HANDLE_SMALL, mOnSettingsChangeListener);
         if (DesktopExperienceFlags.ENABLE_SYS_DECORS_CALLBACKS_VIA_WM.isTrue()
                 && DesktopExperienceFlags.ENABLE_DISPLAY_CONTENT_MODE_MANAGEMENT.isTrue()) {
             mDisplaysWithDecorationsRepositoryCompat.unregisterDisplayDecorationListener(this);
