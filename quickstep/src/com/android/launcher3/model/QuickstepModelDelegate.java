@@ -27,6 +27,8 @@ import static com.android.launcher3.LauncherSettings.Favorites.DESKTOP_ICON_FLAG
 import static com.android.launcher3.icons.cache.CacheLookupFlag.DEFAULT_LOOKUP_FLAG;
 import static com.android.launcher3.model.PredictionHelper.getBundleForHotseatPredictions;
 import static com.android.launcher3.model.PredictionHelper.getBundleForWidgetPredictions;
+import static com.android.launcher3.util.DisplayController.CHANGE_OVERLAYS;
+import static com.android.launcher3.util.DisplayController.CHANGE_UI_MODE;
 import static com.android.launcher3.util.Executors.MODEL_EXECUTOR;
 
 import android.app.StatsManager;
@@ -47,6 +49,7 @@ import com.android.launcher3.Flags;
 import com.android.launcher3.InvariantDeviceProfile;
 import com.android.launcher3.LauncherPrefs;
 import com.android.launcher3.dagger.ApplicationContext;
+import com.android.launcher3.LauncherAppState;
 import com.android.launcher3.logger.LauncherAtom;
 import com.android.launcher3.logging.InstanceId;
 import com.android.launcher3.logging.InstanceIdSequence;
@@ -55,6 +58,9 @@ import com.android.launcher3.model.data.ItemInfo;
 import com.android.launcher3.model.data.PredictedContainerInfo;
 import com.android.launcher3.model.data.WorkspaceData;
 import com.android.launcher3.pm.UserCache;
+import com.android.launcher3.util.DisplayController;
+import com.android.launcher3.util.DisplayController.DisplayInfoChangeListener;
+import com.android.launcher3.util.DisplayController.Info;
 import com.android.launcher3.util.IntSparseArrayMap;
 import com.android.quickstep.logging.SettingsChangeLogger;
 import com.android.quickstep.logging.StatsLogCompatManager;
@@ -155,6 +161,22 @@ public class QuickstepModelDelegate extends ModelDelegate {
         // Initialize ContextualSearchStateManager.
         ContextualSearchStateManager.INSTANCE.get(mContext);
         recreatePredictors();
+
+        DisplayInfoChangeListener displayListener = new DisplayInfoChangeListener() {
+            @Override
+            public void onDisplayInfoChanged(Context context, Info info, int flags) {
+                if ((flags & CHANGE_UI_MODE) != 0 || (flags & CHANGE_OVERLAYS) != 0) {
+                    Log.d(TAG, "onDisplayInfoChanged " + flags);
+                    MODEL_EXECUTOR.execute(() ->
+                        LauncherAppState.getInstance(mContext).getIconCache().clearDb());
+                    mModel.forceReload();
+                }
+            }
+        };
+        DisplayController.INSTANCE.get(mContext).addChangeListener(displayListener);
+        if (!mActive) {
+            DisplayController.INSTANCE.get(mContext).removeChangeListener(displayListener);
+        }
     }
 
     @Override
