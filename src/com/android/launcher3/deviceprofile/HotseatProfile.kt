@@ -16,8 +16,10 @@
 
 package com.android.launcher3.deviceprofile
 
+import android.content.Context
 import android.content.res.Resources
 import com.android.launcher3.InvariantDeviceProfile
+import com.android.launcher3.Utilities
 import com.android.launcher3.R
 import com.android.launcher3.responsive.CalculatedHotseatSpec
 
@@ -58,6 +60,7 @@ data class HotseatProfile(
             isVerticalBarLayout: Boolean,
             responsiveHotseatSpec: CalculatedHotseatSpec?,
             workspacePageIndicatorHeight: Int,
+            context: Context,
         ): HotseatProfile {
             val areNavButtonsInline = isTaskbarPresent && !deviceProperties.isGestureMode
             var inlineNavButtonsEndSpacingPx = 0
@@ -88,7 +91,7 @@ data class HotseatProfile(
             val hotseatBarWorkspaceSpacePx =
                 if (responsiveHotseatSpec != null) 0
                 else res.getDimensionPixelSize(R.dimen.dynamic_grid_hotseat_side_padding)
-            val hotseatQsbHeight = res.getDimensionPixelSize(R.dimen.qsb_widget_height)
+            val hotseatQsbHeight = if (Utilities.showHotseatQsbWidget(context)) res.getDimensionPixelSize(R.dimen.qsb_widget_height) else 0
             val hotseatQsbShadowHeight = res.getDimensionPixelSize(R.dimen.qsb_shadow_height)
 
             return HotseatProfile(
