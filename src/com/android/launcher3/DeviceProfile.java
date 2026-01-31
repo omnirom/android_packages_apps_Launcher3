@@ -221,7 +221,7 @@ public class DeviceProfile {
                 0,
                 0
         );
-        hotseatProfile = new HotseatProfile(false, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+        hotseatProfile = new HotseatProfile(false, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
         mTaskbarProfile = new TaskbarProfile(0, 0, 0, 0, 0, false, false);
         mFolderProfile = new FolderProfile(0, 0, 0, 0, 0, new Point(), 0, 0, 0, 0, 0, 0, 0, 0);
         inv = null;
@@ -1345,7 +1345,8 @@ public class DeviceProfile {
             return hotseatBarSizePx - getHotseatProfile().getQsbHeight()
                     + getHotseatProfile().getQsbShadowHeight();
         } else {
-            return hotseatBarBottomSpacePx - getHotseatProfile().getQsbShadowHeight();
+            return hotseatBarBottomSpacePx - getHotseatProfile().getQsbShadowHeight() -
+                                    getHotseatProfile().getQsbMarginTop();
         }
     }
 

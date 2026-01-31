@@ -45,6 +45,7 @@ data class HotseatProfile(
     val qsbHeight: Int,
     val qsbShadowHeight: Int,
     val qsbVisualHeight: Int,
+    val qsbMarginTop: Int,
     val minIconSpacePx: Int,
     val minQsbWidthPx: Int,
     val maxIconSpacePx: Int,
@@ -93,6 +94,7 @@ data class HotseatProfile(
                 else res.getDimensionPixelSize(R.dimen.dynamic_grid_hotseat_side_padding)
             val hotseatQsbHeight = if (Utilities.showHotseatQsbWidget(context)) res.getDimensionPixelSize(R.dimen.qsb_widget_height) else 0
             val hotseatQsbShadowHeight = res.getDimensionPixelSize(R.dimen.qsb_shadow_height)
+            val hotseatQsbMarginTop = res.getDimensionPixelSize(R.dimen.hotseat_qsb_margin_top)
 
             return HotseatProfile(
                 areNavButtonsInline = areNavButtonsInline,
@@ -105,6 +107,7 @@ data class HotseatProfile(
                 qsbHeight = hotseatQsbHeight,
                 qsbShadowHeight = hotseatQsbShadowHeight,
                 qsbVisualHeight = hotseatQsbHeight - 2 * hotseatQsbShadowHeight,
+                qsbMarginTop = hotseatQsbMarginTop,
                 minIconSpacePx = res.getDimensionPixelSize(R.dimen.min_hotseat_icon_space),
                 minQsbWidthPx = res.getDimensionPixelSize(R.dimen.min_hotseat_qsb_width),
                 maxIconSpacePx =
