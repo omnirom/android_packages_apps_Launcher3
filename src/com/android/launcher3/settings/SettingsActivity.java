@@ -44,6 +44,7 @@ import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 import androidx.fragment.app.FragmentManager;
+import androidx.preference.ListPreference;
 import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
 import androidx.preference.PreferenceFragmentCompat.OnPreferenceStartFragmentCallback;
@@ -90,6 +91,7 @@ public class SettingsActivity extends FragmentActivity
 
     private static final String SEARCH_PACKAGE = "com.google.android.googlequicksearchbox";
     private static final String SHOW_LEFT_TAB_PREFERENCE_KEY = "pref_left_tab";
+    public static final String QSB_LOCATION_PREFERENCE_KEY = "pref_qsb_location";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -247,6 +249,16 @@ public class SettingsActivity extends FragmentActivity
                 getPreferenceScreen().removePreference(leftTabPage);
             }
             leftTabPage.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+                public boolean onPreferenceChange(Preference preference, Object newValue) {
+                    new Handler().postDelayed(() -> Utilities.restart(getActivity()), Utilities.WAIT_BEFORE_RESTART);
+                    return true;
+                }
+            });
+
+            final ListPreference qsbLocation = (ListPreference) findPreference(QSB_LOCATION_PREFERENCE_KEY);
+            int valueIndex = qsbLocation.findIndexOfValue(qsbLocation.getValue());
+            qsbLocation.setSummary(qsbLocation.getEntries()[valueIndex]);
+            qsbLocation.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
                 public boolean onPreferenceChange(Preference preference, Object newValue) {
                     new Handler().postDelayed(() -> Utilities.restart(getActivity()), Utilities.WAIT_BEFORE_RESTART);
                     return true;
