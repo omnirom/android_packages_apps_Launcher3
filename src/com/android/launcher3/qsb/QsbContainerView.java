@@ -46,6 +46,7 @@ import com.android.launcher3.BuildConfig;
 import com.android.launcher3.InvariantDeviceProfile;
 import com.android.launcher3.LauncherAppState;
 import com.android.launcher3.LauncherPrefs;
+import com.android.launcher3.Utilities;
 import com.android.launcher3.R;
 import com.android.launcher3.dagger.LauncherComponentProvider;
 import com.android.launcher3.graphics.FragmentWithPreview;
@@ -278,19 +279,14 @@ public class QsbContainerView extends FrameLayout {
         }
 
         private void rebindFragment() {
-            // Exit if the embedded qsb is disabled
-            if (!isQsbEnabled()) {
-                return;
-            }
-
-            if (mWrapper != null && getContext() != null) {
+            if (mWrapper != null && getContext() != null && isQsbEnabled()) {
                 mWrapper.removeAllViews();
                 mWrapper.addView(createQsb(mWrapper));
             }
         }
 
-        public boolean isQsbEnabled() {
-            return BuildConfig.QSB_ON_FIRST_SCREEN;
+        private boolean isQsbEnabled() {
+            return Utilities.showQsbWidget(getContext());
         }
 
         protected Bundle createBindOptions() {

@@ -234,6 +234,14 @@ public class SettingsActivity extends FragmentActivity
                 getActivity().setTitle(getPreferenceScreen().getTitle());
             }
 
+            Preference showQsbWidget = findPreference(Utilities.QSB_SHOW);
+            showQsbWidget.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+                public boolean onPreferenceChange(Preference preference, Object newValue) {
+                    new Handler().postDelayed(() -> Utilities.restart(getActivity()), Utilities.WAIT_BEFORE_RESTART);
+                    return true;
+                }
+            });
+
             Preference leftTabPage = findPreference(SHOW_LEFT_TAB_PREFERENCE_KEY);
             if (!isSearchInstalled()) {
                 getPreferenceScreen().removePreference(leftTabPage);

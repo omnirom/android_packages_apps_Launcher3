@@ -182,6 +182,7 @@ public final class Utilities {
         sIsRunningInTestHarness = true;
     }
 
+    public static final String QSB_SHOW = "pref_qsb_show";
     public static final long WAIT_BEFORE_RESTART = 250;
 
     /** Disables running test in test harness mode */
@@ -191,6 +192,11 @@ public final class Utilities {
 
     public static boolean isPropertyEnabled(String propertyName) {
         return Log.isLoggable(propertyName, Log.VERBOSE);
+    }
+
+    public static boolean showQsbWidget(Context context) {
+         return LauncherPrefs.getPrefs(context).getBoolean(QSB_SHOW,
+                context.getResources().getBoolean(R.bool.qsb_show_default));
     }
 
     /**
