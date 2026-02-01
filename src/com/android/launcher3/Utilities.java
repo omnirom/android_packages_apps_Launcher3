@@ -152,8 +152,8 @@ public final class Utilities {
     @Deprecated
     public static final boolean IS_DEBUG_DEVICE = BuildConfig.IS_DEBUG_DEVICE;
 
-    public static boolean qsbOnFirstScreen() {
-        return !injectableModelItems() && BuildConfig.QSB_ON_FIRST_SCREEN;
+    public static boolean qsbOnFirstScreen(Context context) {
+        return !injectableModelItems() && showWorkspaceQsbWidget(context);
     }
 
     public static final int TRANSLATE_UP = 0;

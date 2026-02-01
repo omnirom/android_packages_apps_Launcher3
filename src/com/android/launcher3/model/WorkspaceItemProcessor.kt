@@ -648,7 +648,7 @@ class WorkspaceItemProcessor(
             ArrayList(loadedItems.filter { it.container == Favorites.CONTAINER_DESKTOP })
         val excludedScreens = IntSet()
 
-        if (qsbOnFirstScreen()) {
+        if (qsbOnFirstScreen(context)) {
             // Reserve layout space for the search container. Note that this is not required when
             // [Flags.FLAG_INJECTABLE_MODEL_ITEMS] is enabled as injected items will already be
             // accounted for in [knownDesktopContainerItems].
